@@ -2,10 +2,10 @@
   "name": "rigsweep",
   "private": true,
   "license": "MIT",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "scripts": {
     "dev": "tauri dev",
-    "build": "tauri build",
+    "build": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build.ps1",
     "tauri": "tauri"
   },
   "devDependencies": {
