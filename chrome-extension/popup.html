@@ -1,0 +1,55 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <h1 data-i18n="extName"></h1>
+    <div class="stats">
+      <div><b id="statTabs">-</b><span data-i18n="statTabs"></span></div>
+      <div><b id="statSleeping">-</b><span data-i18n="statSleeping"></span></div>
+      <div><b id="statWindows">-</b><span data-i18n="statWindows"></span></div>
+    </div>
+  </header>
+
+  <section>
+    <h2>💤 <span data-i18n="secSleep"></span></h2>
+    <label class="row"><span data-i18n="idleLabel"></span>
+      <input id="idleMinutes" type="number" min="1" max="1440" value="30">
+      <span data-i18n="minutesUnit"></span></label>
+    <div class="buttons">
+      <button id="btnSleepIdle" class="primary" data-i18n="btnSleepIdle"></button>
+      <button id="btnSleepAll" data-i18n="btnSleepAll"></button>
+    </div>
+    <p class="note" data-i18n="sleepNote"></p>
+    <label class="row"><input id="autoSleep" type="checkbox">⏰ <span data-i18n="autoSleep"></span></label>
+  </section>
+
+  <section>
+    <h2>🧹 <span data-i18n="secDupes"></span></h2>
+    <div class="buttons">
+      <button id="btnFindDupes" data-i18n="btnFindDupes"></button>
+      <button id="btnCloseDupes" class="danger" hidden data-i18n="btnCloseDupes"></button>
+    </div>
+  </section>
+
+  <section>
+    <h2>🎯 <span data-i18n="secPatterns"></span></h2>
+    <textarea id="patterns" rows="3" spellcheck="false"></textarea>
+    <p class="note" data-i18n="patternsHint"></p>
+    <label class="row"><input id="includePinned" type="checkbox"><span data-i18n="includePinned"></span></label>
+    <div class="buttons">
+      <button id="btnSavePatterns" data-i18n="btnSavePatterns"></button>
+      <button id="btnFindMatches" data-i18n="btnFindMatches"></button>
+    </div>
+    <ul id="matches" hidden></ul>
+    <button id="btnCloseSelected" class="danger" hidden data-i18n="btnCloseSelected"></button>
+  </section>
+
+  <p id="status" role="status"></p>
+  <footer data-i18n="footer"></footer>
+  <script src="popup.js"></script>
+</body>
+</html>

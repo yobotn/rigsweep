@@ -1,0 +1,164 @@
+<div align="center">
+
+# 🧹 RigSweep
+
+**Room for your agents.** Free up RAM, CPU and disk on Windows dev machines cluttered by AI-agent sessions.
+
+🇬🇧 English · [🇪🇸 Español](README.es.md) · [🇫🇷 Français](README.fr.md)
+
+![Windows 10/11](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows)
+![Rust + Tauri 2](https://img.shields.io/badge/Rust-Tauri%202-orange?logo=rust)
+![License: MIT](https://img.shields.io/badge/License-MIT-green)
+![Price: free](https://img.shields.io/badge/price-free-brightgreen)
+
+<img src="docs/screenshots/dashboard.png" alt="RigSweep dashboard" width="860">
+
+</div>
+
+---
+
+## 📖 Why I built this
+
+In the AI era, my laptop isn't running *one* thing anymore. On a normal day I have several **Claude Code** sessions in different terminals, a dev server per project, build watchers, and a browser full of docs, previews and dashboards. Every new session spawns more Node processes, and when I close a terminal some of them **just keep running in the background**.
+
+It started to feel *cluttered*: fans spinning, RAM always near the top, and no clear picture of what was actually eating it. Task Manager just showed me a wall of `node.exe` and `chrome.exe` without telling me which session, which project, or whether anything still needed it.
+
+So I measured my own machine (32 GB RAM) in the middle of a working day:
+
+| 🔎 What I found | Count | RAM |
+|---|---:|---:|
+| 🌐 Chrome processes | 37 | **6.5 GB** |
+| ⬢ Node + Claude processes (agent CLIs, dev servers, the desktop app) | 14 | **2.5 GB** |
+| 🧩 Windows services running (telemetry, Xbox, search indexer…) | ~150 | — |
+
+None of it was "a virus" or "junk". It was the **normal leftovers of working with AI agents**, plus Windows background stuff a dev box doesn't need. Existing "PC booster" apps either do scary irreversible things or know nothing about dev workflows. So I built the tool I wanted:
+
+> **See what's actually using your machine, sweep what's stale, and keep every change reversible.**
+
+---
+
+## ✨ Features
+
+### 🧹 Dev Cleanup: stale Node and agent sessions
+Finds **Node servers, build watchers and AI-agent CLIs** (Claude Code, Codex, Gemini CLI, opencode…) and groups each one with its **whole process tree**, project folder, age, RAM and listening ports.
+
+<img src="docs/screenshots/cleanup.png" alt="Dev Cleanup" width="860">
+
+- 🧟 **Orphan**: its terminal was closed but it kept running. Pre-selected, even if it still holds a port (the classic zombie `localhost:3000`).
+- 💤 **Idle**: no CPU activity for a long time. Runtimes with no open port get pre-selected. An **idle agent session in an open terminal is never pre-selected**, because it's just waiting for you (and `claude --resume` brings it back anyway).
+- 🔒 **Locked**: Node processes owned by **VS Code, Cursor, JetBrains…** (your language servers) or by a desktop app are never killable from here.
+- ✅ Nothing is ended without your confirmation, and PID reuse is checked before every kill.
+
+### 📊 Boost Report: real before and after
+No fake "your PC is 87% faster" numbers. RigSweep **measures** your machine and compares two snapshots: RAM used/free, average CPU, process count, running services, Chrome RAM, Node/agent RAM.
+
+- 📸 A **baseline** is captured automatically before your first tweak.
+- 🔁 A **before/after** pair is captured around every Dev Cleanup.
+- 📋 **Copy as Markdown** to share your result in an issue, a post, or this README.
+
+### 🌐 Chrome tab helper
+A desktop app **can't** close Chrome tabs, so RigSweep ships a tiny extension ([`chrome-extension/`](chrome-extension/)) with no network access and only the `tabs` / `storage` / `alarms` permissions:
+- 💤 **Sleep idle tabs**: frees their memory, but the tab stays in your tab strip
+- 🧹 **Close duplicate tabs**
+- 🎯 **Close tabs by pattern**, like `localhost:*` or `*.vercel.app`
+- ⏰ **Auto-sleep** every 10 minutes (optional)
+
+### ⚙️ Reversible Windows tweaks
+A curated catalog ([`catalog/tweaks.json`](src-tauri/catalog/tweaks.json)) of telemetry, Xbox, search indexer, background apps, Defender exclusions for dev folders, power plan and more, each with a risk level:
+
+| Level | Meaning |
+|---|---|
+| 🟢 `safe` | No noticeable side effects (pre-selected) |
+| 🟡 `moderate` | Small trade-off, explained |
+| 🔴 `caution` | Disables a feature; you must confirm |
+
+<img src="docs/screenshots/tweaks.png" alt="Tweaks" width="860">
+
+- 💾 **Every original value is backed up** in SQLite before the first change. Restore one tweak, a category, or everything.
+- 🛟 A **System Restore point** is created before the first apply.
+- 🔁 A **watchdog** re-applies tweaks that a Windows Update silently reverted, and counts how often it happens.
+- 🚫 Never touched: Windows Update, the Defender engine, RPC/DCOM/LSA and ~60 other core services ([`PROTECTED_SERVICES`](src-tauri/src/catalog.rs)).
+
+### 🔍 Process analyzer
+CPU / RAM / disk per process, and **which services live inside each `svchost.exe`**. Disable a service or end a process right from the list (core items are locked 🔒).
+
+### 🌍 3 languages
+The UI is in **English, Español and Français** (switch in the sidebar), and so are the installer and the Chrome extension.
+
+---
+
+## 🏁 Before vs after on your machine
+
+Install, open **📊 Boost Report → 📸 Measure now**, do a Dev Cleanup and apply the safe tweaks, reboot, measure again, then click **📋 Copy as Markdown**. Results are welcome in [Discussions](../../discussions)!
+
+<!-- TODO(maintainer): paste your own "Copy as Markdown" result here once you've run it on your machine. -->
+
+> ℹ️ Service tweaks take full effect after a reboot. Dev Cleanup and Chrome tab sleeping show up immediately.
+
+---
+
+## 📦 Install
+
+1. Download `RigSweep_x.y.z_x64-setup.exe` from [**Releases**](../../releases).
+2. Run it. It asks for admin rights, because RigSweep manages services and policies.
+3. The installer asks whether to allow RigSweep in Microsoft Defender (see below). This is your choice.
+
+🌐 **Chrome helper:** in RigSweep go to **🛠️ Settings → 🌐 Chrome tab helper → Open extension folder**, then in Chrome: `chrome://extensions` → **Developer mode** → **Load unpacked** → pick that folder.
+
+## 🛡️ Antivirus false positives
+
+RigSweep is open source but **not code-signed yet**. Tools that change services and Defender settings look a lot like malware to machine-learning heuristics, so **Microsoft Defender may delete the exe by mistake**. This happened during development as `Trojan:Win32/Bearfoos.B!ml`, where `!ml` means a heuristic guess rather than a known-malware signature.
+
+What we do about it:
+- ❓ **Installer prompt (opt-in):** "Allow RigSweep in Microsoft Defender?" Yes excludes **only the install folder**, and the uninstaller removes that exclusion again. Silent installs never add one.
+- 🛠️ **Settings → 🛡️ Antivirus trust:** see the status, and add or remove the exclusion at any time.
+- ✍️ **Code signing is planned** through [SignPath Foundation](https://signpath.org) (free for open-source projects). That's the real fix.
+
+If it already got deleted: **Windows Security → Virus & threat protection → Protection history →** pick the RigSweep entry → **Actions → Restore**. Only do this for a download from this repo's Releases page, or for a build you made yourself. You can also [report the false positive to Microsoft](https://www.microsoft.com/wdsi/filesubmission) yourself.
+
+---
+
+## 🛠️ Build from source
+
+```powershell
+winget install Rustlang.Rustup        # + VS 2022 Build Tools (C++ workload)
+npm install
+npm run build                         # -> src-tauri/target/release/rigsweep.exe + bundle/nsis/*-setup.exe
+```
+Dev run: `npm run dev` (accept UAC; the app relaunches itself elevated).
+
+> 💡 Defender may quarantine your fresh local builds too. Add your clone folder to RigSweep's *Dev folders* list (Settings) and apply the **Defender exclusions for dev folders** tweak, or exclude `src-tauri\target` manually.
+
+### ⌨️ CLI
+| Command | Effect |
+|---|---|
+| `rigsweep.exe` | GUI + tray |
+| `rigsweep.exe --apply` | Headless: verify the profile, re-apply drifted tweaks, exit (used by the startup task) |
+| `rigsweep.exe --apply --tray` | Same, then stay in the tray with the watchdog |
+| `rigsweep.exe --restore-all` | Revert everything to the backed-up originals |
+
+### 🧪 Tests
+```powershell
+cd src-tauri
+cargo test                                          # catalog validity, backups, snapshots, command parsing
+cargo test live_status   -- --ignored --nocapture   # read-only: detected status of every tweak
+cargo test live_dev_scan -- --ignored --nocapture   # read-only: what Dev Cleanup sees right now
+```
+
+### ➕ Adding tweaks
+Add an entry to [`catalog/tweaks.json`](src-tauri/catalog/tweaks.json). Action types are `service` (start: disabled|manual), `task` (path), `registry` (HKLM|HKCU, dword|string), `defender_exclusion` and `power_plan`. `caution` items must include a `warning`. `cargo test` rejects protected services and malformed entries.
+
+## 🗂️ Where things live
+| What | Where |
+|---|---|
+| Database (backups, history, snapshots) | `%ProgramData%\RigSweep\rigsweep.db` (+ `.bak.1`–`.bak.5`) |
+| Startup task | Task Scheduler → `RigSweep-Reapply` |
+| Exported profiles | `Documents\RigSweep-profile-*.json` |
+
+Coming from **aiBoost** (the old name)? Your database is migrated automatically on first start, and the old startup task is replaced.
+
+## 🤝 Contributing
+Issues and PRs are welcome, especially new tweaks (with a clear risk level), more agent CLIs for Dev Cleanup, and translations.
+
+## 📄 License
+[MIT](LICENSE): free forever, do what you want, no warranty.

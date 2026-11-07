@@ -1,0 +1,392 @@
+{
+  "categories": [
+    { "id": "telemetry", "name": "Telemetry & Privacy", "description": "Diagnostic data collection, feedback, advertising and AI data analysis." },
+    { "id": "xbox", "name": "Xbox & Gaming", "description": "Xbox Live services and Game DVR. Safe to disable if you don't use Xbox apps or Game Pass." },
+    { "id": "dev", "name": "Dev Performance", "description": "Tweaks that speed up builds, npm/cargo installs and heavy AI-assisted dev sessions." },
+    { "id": "search", "name": "Search & Indexing", "description": "Background indexing and prefetch services that hammer the disk during big builds." },
+    { "id": "features", "name": "Rarely Used Features", "description": "Services for hardware or features most dev machines never use." },
+    { "id": "updates", "name": "Updates & Delivery", "description": "Control how Windows Update behaves. Windows Update itself is never disabled." },
+    { "id": "custom", "name": "Custom (from Process Analyzer)", "description": "Services you chose to disable from the Processes tab." }
+  ],
+  "tweaks": [
+    {
+      "id": "telemetry.diagtrack",
+      "category": "telemetry",
+      "name": "Connected User Experiences & Telemetry (DiagTrack)",
+      "description": "Main Windows telemetry service. Sends usage and diagnostic data to Microsoft.",
+      "risk": "safe",
+      "actions": [
+        { "type": "service", "name": "DiagTrack", "start": "disabled", "stop": true }
+      ]
+    },
+    {
+      "id": "telemetry.dmwappush",
+      "category": "telemetry",
+      "name": "WAP Push Message Routing (dmwappushservice)",
+      "description": "Routes device-management push messages; used by telemetry.",
+      "risk": "safe",
+      "actions": [
+        { "type": "service", "name": "dmwappushservice", "start": "disabled", "stop": true }
+      ]
+    },
+    {
+      "id": "telemetry.policy",
+      "category": "telemetry",
+      "name": "Telemetry level policy = minimum",
+      "description": "Sets AllowTelemetry policy to 0 (Security/minimum) and disables feedback notifications.",
+      "risk": "safe",
+      "actions": [
+        { "type": "registry", "hive": "HKLM", "path": "SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection", "value": "AllowTelemetry", "kind": "dword", "data": 0 },
+        { "type": "registry", "hive": "HKLM", "path": "SOFTWARE\\Policies\\Microsoft\\Windows\\DataCollection", "value": "DoNotShowFeedbackNotifications", "kind": "dword", "data": 1 }
+      ]
+    },
+    {
+      "id": "telemetry.tasks",
+      "category": "telemetry",
+      "name": "Telemetry scheduled tasks",
+      "description": "Compatibility Appraiser, CEIP, Disk Diagnostic and Feedback tasks that wake up and scan the disk.",
+      "risk": "safe",
+      "actions": [
+        { "type": "task", "path": "\\Microsoft\\Windows\\Application Experience\\Microsoft Compatibility Appraiser" },
+        { "type": "task", "path": "\\Microsoft\\Windows\\Application Experience\\ProgramDataUpdater" },
+        { "type": "task", "path": "\\Microsoft\\Windows\\Customer Experience Improvement Program\\Consolidator" },
+        { "type": "task", "path": "\\Microsoft\\Windows\\Customer Experience Improvement Program\\UsbCeip" },
+        { "type": "task", "path": "\\Microsoft\\Windows\\DiskDiagnostic\\Microsoft-Windows-DiskDiagnosticDataCollector" },
+        { "type": "task", "path": "\\Microsoft\\Windows\\Feedback\\Siuf\\DmClient" },
+        { "type": "task", "path": "\\Microsoft\\Windows\\Feedback\\Siuf\\DmClientOnScenarioDownload" },
+        { "type": "task", "path": "\\Microsoft\\Windows\\Autochk\\Proxy" }
+      ]
+    },
+    {
+      "id": "telemetry.advertising",
+      "category": "telemetry",
+      "name": "Advertising ID & tailored experiences",
+      "description": "Disables the per-user advertising ID and ads/tips based on diagnostic data.",
+      "risk": "safe",
+      "actions": [
+        { "type": "registry", "hive": "HKLM", "path": "SOFTWARE\\Policies\\Microsoft\\Windows\\AdvertisingInfo", "value": "DisabledByGroupPolicy", "kind": "dword", "data": 1 },
+        { "type": "registry", "hive": "HKCU", "path": "Software\\Policies\\Microsoft\\Windows\\CloudContent", "value": "DisableTailoredExperiencesWithDiagnosticData", "kind": "dword", "data": 1 },
+        { "type": "registry", "hive": "HKLM", "path": "SOFTWARE\\Policies\\Microsoft\\Windows\\CloudContent", "value": "DisableWindowsConsumerFeatures", "kind": "dword", "data": 1 }
+      ]
+    },
+    {
+      "id": "telemetry.activity",
+      "category": "telemetry",
+      "name": "Activity history",
+      "description": "Stops Windows from recording and uploading your app/file activity timeline.",
+      "risk": "safe",
+      "actions": [
+        { "type": "registry", "hive": "HKLM", "path": "SOFTWARE\\Policies\\Microsoft\\Windows\\System", "value": "EnableActivityFeed", "kind": "dword", "data": 0 },
+        { "type": "registry", "hive": "HKLM", "path": "SOFTWARE\\Policies\\Microsoft\\Windows\\System", "value": "PublishUserActivities", "kind": "dword", "data": 0 },
+        { "type": "registry", "hive": "HKLM", "path": "SOFTWARE\\Policies\\Microsoft\\Windows\\System", "value": "UploadUserActivities", "kind": "dword", "data": 0 }
+      ]
+    },
+    {
+      "id": "telemetry.recall",
+      "category": "telemetry",
+      "name": "Recall snapshots / AI data analysis",
+      "description": "Disables Windows Recall screen snapshots (continuous screenshots + OCR indexing).",
+      "risk": "safe",
+      "actions": [
+        { "type": "registry", "hive": "HKLM", "path": "SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsAI", "value": "DisableAIDataAnalysis", "kind": "dword", "data": 1 },
+        { "type": "registry", "hive": "HKCU", "path": "Software\\Policies\\Microsoft\\Windows\\WindowsAI", "value": "DisableAIDataAnalysis", "kind": "dword", "data": 1 }
+      ]
+    },
+    {
+      "id": "telemetry.copilot",
+      "category": "telemetry",
+      "name": "Windows Copilot sidebar",
+      "description": "Turns off the built-in Windows Copilot via policy. Does not affect Claude or other AI tools.",
+      "risk": "moderate",
+      "actions": [
+        { "type": "registry", "hive": "HKCU", "path": "Software\\Policies\\Microsoft\\Windows\\WindowsCopilot", "value": "TurnOffWindowsCopilot", "kind": "dword", "data": 1 }
+      ]
+    },
+    {
+      "id": "telemetry.wer",
+      "category": "telemetry",
+      "name": "Windows Error Reporting",
+      "description": "Stops crash dumps being collected and uploaded. Crash reports for your own apps won't be sent to Microsoft either.",
+      "risk": "moderate",
+      "actions": [
+        { "type": "service", "name": "WerSvc", "start": "disabled", "stop": true },
+        { "type": "task", "path": "\\Microsoft\\Windows\\Windows Error Reporting\\QueueReporting" }
+      ]
+    },
+    {
+      "id": "xbox.services",
+      "category": "xbox",
+      "name": "Xbox Live services",
+      "description": "Xbox auth, cloud saves, networking. Disable if you don't play Xbox / Game Pass titles on this PC.",
+      "risk": "safe",
+      "actions": [
+        { "type": "service", "name": "XblAuthManager", "start": "disabled", "stop": true },
+        { "type": "service", "name": "XblGameSave", "start": "disabled", "stop": true },
+        { "type": "service", "name": "XboxNetApiSvc", "start": "disabled", "stop": true }
+      ]
+    },
+    {
+      "id": "xbox.accessories",
+      "category": "xbox",
+      "name": "Xbox Accessory Management",
+      "description": "Needed only for Xbox controllers' firmware/config app.",
+      "risk": "moderate",
+      "warning": "Xbox controllers still work as gamepads, but the Xbox Accessories app won't.",
+      "actions": [
+        { "type": "service", "name": "XboxGipSvc", "start": "disabled", "stop": true }
+      ]
+    },
+    {
+      "id": "xbox.gamedvr",
+      "category": "xbox",
+      "name": "Game DVR / background recording",
+      "description": "Prevents Game Bar background capture which costs GPU and disk.",
+      "risk": "safe",
+      "actions": [
+        { "type": "registry", "hive": "HKLM", "path": "SOFTWARE\\Policies\\Microsoft\\Windows\\GameDVR", "value": "AllowGameDVR", "kind": "dword", "data": 0 }
+      ]
+    },
+    {
+      "id": "dev.longpaths",
+      "category": "dev",
+      "name": "Enable long paths (>260 chars)",
+      "description": "Fixes deep node_modules / cargo target path errors.",
+      "risk": "safe",
+      "actions": [
+        { "type": "registry", "hive": "HKLM", "path": "SYSTEM\\CurrentControlSet\\Control\\FileSystem", "value": "LongPathsEnabled", "kind": "dword", "data": 1 }
+      ]
+    },
+    {
+      "id": "dev.power",
+      "category": "dev",
+      "name": "High performance power plan",
+      "description": "Keeps CPU clocks up during builds instead of ramping down.",
+      "risk": "moderate",
+      "warning": "Uses more power and makes laptops warmer; battery life drops.",
+      "actions": [
+        { "type": "power_plan", "scheme": "high" }
+      ]
+    },
+    {
+      "id": "dev.defender_folders",
+      "category": "dev",
+      "name": "Defender exclusions for dev folders",
+      "description": "Skips real-time scanning of the folders listed in Settings (projects, .cargo, .rustup, npm-cache). Huge speedup for npm install / cargo build.",
+      "risk": "moderate",
+      "warning": "Files inside these folders are not scanned on access. Only list folders containing code you trust.",
+      "actions": [
+        { "type": "defender_exclusion", "use_dev_folders": true }
+      ]
+    },
+    {
+      "id": "dev.defender_processes",
+      "category": "dev",
+      "name": "Defender exclusions for dev toolchain processes",
+      "description": "Skips scanning of files opened by node, cargo, rustc, git, python and claude.",
+      "risk": "caution",
+      "warning": "Anything these processes open (including a malicious npm package's files) will not be scanned. Prefer folder exclusions unless you really need this.",
+      "actions": [
+        { "type": "defender_exclusion", "processes": ["node.exe", "cargo.exe", "rustc.exe", "git.exe", "python.exe", "claude.exe", "link.exe"] }
+      ]
+    },
+    {
+      "id": "dev.background_apps",
+      "category": "dev",
+      "name": "Block Store apps running in background",
+      "description": "Stops UWP/Store apps (Weather, News, Phone Link...) from running when not open.",
+      "risk": "moderate",
+      "warning": "Store apps like Mail, Teams (new) or Phone Link won't deliver notifications while closed.",
+      "actions": [
+        { "type": "registry", "hive": "HKLM", "path": "SOFTWARE\\Policies\\Microsoft\\Windows\\AppPrivacy", "value": "LetAppsRunInBackground", "kind": "dword", "data": 2 }
+      ]
+    },
+    {
+      "id": "dev.ntfs_lastaccess",
+      "category": "dev",
+      "name": "Disable NTFS last-access timestamps",
+      "description": "Avoids a metadata write on every file read; helps with huge node_modules trees.",
+      "risk": "moderate",
+      "warning": "Tools that rely on last-access time (rare backup/cleanup tools) lose that info. Takes effect after reboot.",
+      "actions": [
+        { "type": "registry", "hive": "HKLM", "path": "SYSTEM\\CurrentControlSet\\Control\\FileSystem", "value": "NtfsDisableLastAccessUpdate", "kind": "dword", "data": 2147483649 }
+      ]
+    },
+    {
+      "id": "search.wsearch",
+      "category": "search",
+      "name": "Windows Search indexer (WSearch)",
+      "description": "Indexer constantly re-reads files during builds and git checkouts.",
+      "risk": "moderate",
+      "warning": "Start-menu and Explorer file search become slower (non-indexed). Outlook search depends on it.",
+      "actions": [
+        { "type": "service", "name": "WSearch", "start": "disabled", "stop": true }
+      ]
+    },
+    {
+      "id": "search.sysmain",
+      "category": "search",
+      "name": "SysMain (Superfetch)",
+      "description": "Preloads apps into RAM. On SSD + heavy dev load it mostly costs disk I/O and memory.",
+      "risk": "caution",
+      "warning": "On HDD machines app launches get noticeably slower. Leave enabled if you have a spinning disk.",
+      "actions": [
+        { "type": "service", "name": "SysMain", "start": "disabled", "stop": true }
+      ]
+    },
+    {
+      "id": "features.fax",
+      "category": "features",
+      "name": "Fax",
+      "description": "Fax service.",
+      "risk": "safe",
+      "actions": [ { "type": "service", "name": "Fax", "start": "disabled", "stop": true } ]
+    },
+    {
+      "id": "features.retaildemo",
+      "category": "features",
+      "name": "Retail Demo",
+      "description": "Store display demo mode.",
+      "risk": "safe",
+      "actions": [ { "type": "service", "name": "RetailDemo", "start": "disabled", "stop": true } ]
+    },
+    {
+      "id": "features.remoteregistry",
+      "category": "features",
+      "name": "Remote Registry",
+      "description": "Lets remote users edit this PC's registry. Also a security improvement to disable.",
+      "risk": "safe",
+      "actions": [ { "type": "service", "name": "RemoteRegistry", "start": "disabled", "stop": true } ]
+    },
+    {
+      "id": "features.maps",
+      "category": "features",
+      "name": "Downloaded Maps Manager",
+      "description": "Background map downloads for the Maps app.",
+      "risk": "safe",
+      "actions": [ { "type": "service", "name": "MapsBroker", "start": "disabled", "stop": true } ]
+    },
+    {
+      "id": "features.wmpnetwork",
+      "category": "features",
+      "name": "Windows Media Player network sharing",
+      "description": "DLNA media sharing.",
+      "risk": "safe",
+      "actions": [ { "type": "service", "name": "WMPNetworkSvc", "start": "disabled", "stop": true } ]
+    },
+    {
+      "id": "features.trkwks",
+      "category": "features",
+      "name": "Distributed Link Tracking Client",
+      "description": "Tracks NTFS shortcut targets across network shares.",
+      "risk": "safe",
+      "actions": [ { "type": "service", "name": "TrkWks", "start": "disabled", "stop": true } ]
+    },
+    {
+      "id": "features.geolocation",
+      "category": "features",
+      "name": "Geolocation service",
+      "description": "Location for apps.",
+      "risk": "moderate",
+      "warning": "Weather, Maps, 'Find my device' and automatic time-zone won't know your location.",
+      "actions": [ { "type": "service", "name": "lfsvc", "start": "disabled", "stop": true } ]
+    },
+    {
+      "id": "features.phone",
+      "category": "features",
+      "name": "Phone service",
+      "description": "Telephony state for Phone Link calls.",
+      "risk": "moderate",
+      "warning": "Phone Link calling from the PC stops working.",
+      "actions": [ { "type": "service", "name": "PhoneSvc", "start": "disabled", "stop": true } ]
+    },
+    {
+      "id": "features.pca",
+      "category": "features",
+      "name": "Program Compatibility Assistant",
+      "description": "Monitors programs for known compatibility issues; scans every exe you run (including build outputs).",
+      "risk": "moderate",
+      "warning": "You won't get 'this program might not have installed correctly' compatibility prompts.",
+      "actions": [ { "type": "service", "name": "PcaSvc", "start": "disabled", "stop": true } ]
+    },
+    {
+      "id": "features.ssdp",
+      "category": "features",
+      "name": "SSDP Discovery / UPnP Host",
+      "description": "Network device discovery (UPnP).",
+      "risk": "moderate",
+      "warning": "Network media devices / some smart TVs and casting targets may not be discovered.",
+      "actions": [
+        { "type": "service", "name": "SSDPSRV", "start": "disabled", "stop": true },
+        { "type": "service", "name": "upnphost", "start": "disabled", "stop": true }
+      ]
+    },
+    {
+      "id": "features.insider",
+      "category": "features",
+      "name": "Windows Insider Service",
+      "description": "Only needed for Windows Insider builds.",
+      "risk": "moderate",
+      "warning": "Don't disable if you are enrolled in Windows Insider.",
+      "actions": [ { "type": "service", "name": "wisvc", "start": "disabled", "stop": true } ]
+    },
+    {
+      "id": "features.diagpolicy",
+      "category": "features",
+      "name": "Diagnostic Policy Service",
+      "description": "Problem detection & troubleshooting; runs periodic diagnostics.",
+      "risk": "caution",
+      "warning": "Windows troubleshooters stop working and Task Manager's network usage per app may disappear.",
+      "actions": [ { "type": "service", "name": "DPS", "start": "disabled", "stop": true } ]
+    },
+    {
+      "id": "features.spooler",
+      "category": "features",
+      "name": "Print Spooler",
+      "description": "Printing. Also has a long history of security vulnerabilities.",
+      "risk": "caution",
+      "warning": "You will NOT be able to print or 'Print to PDF' until restored.",
+      "actions": [ { "type": "service", "name": "Spooler", "start": "disabled", "stop": true } ]
+    },
+    {
+      "id": "features.bluetooth",
+      "category": "features",
+      "name": "Bluetooth Support Service",
+      "description": "Bluetooth discovery and pairing.",
+      "risk": "caution",
+      "warning": "Bluetooth mice, keyboards and headsets will stop working.",
+      "actions": [ { "type": "service", "name": "bthserv", "start": "disabled", "stop": true } ]
+    },
+    {
+      "id": "updates.delivery_p2p",
+      "category": "updates",
+      "name": "Delivery Optimization: no peer-to-peer",
+      "description": "Stops Windows uploading updates to other PCs (bandwidth + disk). Updates still download normally from Microsoft.",
+      "risk": "safe",
+      "actions": [
+        { "type": "registry", "hive": "HKLM", "path": "SOFTWARE\\Policies\\Microsoft\\Windows\\DeliveryOptimization", "value": "DODownloadMode", "kind": "dword", "data": 0 }
+      ]
+    },
+    {
+      "id": "updates.no_auto_reboot",
+      "category": "updates",
+      "name": "No auto-restart while signed in",
+      "description": "Windows Update won't reboot the PC in the middle of a long dev/agent session while you're logged on.",
+      "risk": "moderate",
+      "warning": "Updates wait for you to restart manually, so remember to reboot occasionally.",
+      "actions": [
+        { "type": "registry", "hive": "HKLM", "path": "SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\AU", "value": "NoAutoRebootWithLoggedOnUsers", "kind": "dword", "data": 1 }
+      ]
+    },
+    {
+      "id": "updates.no_drivers",
+      "category": "updates",
+      "name": "Exclude drivers from Windows Update",
+      "description": "Prevents Windows Update from replacing GPU/chipset drivers you installed yourself.",
+      "risk": "caution",
+      "warning": "You become responsible for driver updates, including security fixes.",
+      "actions": [
+        { "type": "registry", "hive": "HKLM", "path": "SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate", "value": "ExcludeWUDriversInQualityUpdate", "kind": "dword", "data": 1 }
+      ]
+    }
+  ]
+}

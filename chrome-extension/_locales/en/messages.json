@@ -1,0 +1,140 @@
+{
+  "extName": {
+    "message": "RigSweep Tabs"
+  },
+  "extDesc": {
+    "message": "Free RAM from Chrome tabs without losing work: sleep idle tabs, close duplicates and dev-server tabs."
+  },
+  "statTabs": {
+    "message": "tabs"
+  },
+  "statSleeping": {
+    "message": "sleeping"
+  },
+  "statWindows": {
+    "message": "windows"
+  },
+  "secSleep": {
+    "message": "Sleep idle tabs"
+  },
+  "idleLabel": {
+    "message": "Idle longer than"
+  },
+  "minutesUnit": {
+    "message": "min"
+  },
+  "btnSleepIdle": {
+    "message": "Sleep idle tabs"
+  },
+  "btnSleepAll": {
+    "message": "Sleep all background tabs now"
+  },
+  "sleepNote": {
+    "message": "Sleeping tabs stay in the tab strip and reload when you click them. Active, pinned and audible tabs are never slept."
+  },
+  "autoSleep": {
+    "message": "Auto-sleep idle tabs every 10 minutes"
+  },
+  "sleptResult": {
+    "message": "Slept $COUNT$ tab(s).",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "sleptFailed": {
+    "message": "$COUNT$ could not be slept.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "secDupes": {
+    "message": "Close duplicate tabs"
+  },
+  "btnFindDupes": {
+    "message": "Find duplicates"
+  },
+  "dupesFound": {
+    "message": "$COUNT$ duplicate tab(s) found. The most recent copy of each is kept.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "noDupes": {
+    "message": "No duplicate tabs found."
+  },
+  "btnCloseDupes": {
+    "message": "Close $COUNT$ duplicate(s)",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "dupesClosed": {
+    "message": "Closed $COUNT$ duplicate tab(s).",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "secPatterns": {
+    "message": "Close tabs matching patterns"
+  },
+  "patternsHint": {
+    "message": "One pattern per line, matched against host + path. * matches anything, e.g. localhost:*"
+  },
+  "includePinned": {
+    "message": "Include pinned tabs"
+  },
+  "btnSavePatterns": {
+    "message": "Save patterns"
+  },
+  "patternsSaved": {
+    "message": "Patterns saved."
+  },
+  "btnFindMatches": {
+    "message": "Find matching tabs"
+  },
+  "matchesFound": {
+    "message": "$COUNT$ matching tab(s). Uncheck any to keep, then confirm.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "noMatches": {
+    "message": "No tabs match these patterns."
+  },
+  "btnCloseSelected": {
+    "message": "Close selected tabs"
+  },
+  "matchesClosed": {
+    "message": "Closed $COUNT$ tab(s).",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "errorGeneric": {
+    "message": "Something went wrong. Please try again."
+  },
+  "footer": {
+    "message": "Part of RigSweep · MIT"
+  }
+}

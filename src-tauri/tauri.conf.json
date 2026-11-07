@@ -1,0 +1,60 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "RigSweep",
+  "version": "0.2.0",
+  "identifier": "io.github.rigsweep",
+  "build": {
+    "frontendDist": "../ui"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "RigSweep",
+        "width": 1240,
+        "height": 820,
+        "minWidth": 960,
+        "minHeight": 620,
+        "visible": false
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "nsis"
+    ],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.ico"
+    ],
+    "publisher": "RigSweep contributors",
+    "copyright": "MIT License - RigSweep contributors",
+    "category": "Utility",
+    "shortDescription": "Free resources on Windows dev machines cluttered by AI-agent sessions",
+    "longDescription": "RigSweep frees CPU, RAM and disk on Windows 10/11 dev laptops: reversible service/telemetry tweaks, stale Node and AI-agent CLI cleanup, a before/after Boost Report and a Chrome tab helper.",
+    "homepage": "https://github.com/yobotn/rigsweep",
+    "license": "MIT",
+    "resources": {
+      "../chrome-extension/": "chrome-extension/"
+    },
+    "windows": {
+      "nsis": {
+        "installMode": "perMachine",
+        "installerHooks": "./windows/hooks.nsh",
+        "languages": [
+          "English",
+          "Spanish",
+          "French"
+        ],
+        "displayLanguageSelector": true
+      }
+    }
+  }
+}

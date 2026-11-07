@@ -1,0 +1,40 @@
+[package]
+name = "rigsweep"
+version = "0.2.0"
+description = "Free resources on Windows dev machines cluttered by AI-agent sessions"
+license = "MIT"
+repository = "https://github.com/yobotn/rigsweep"
+edition = "2021"
+
+[[bin]]
+name = "rigsweep"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-plugin-single-instance = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rusqlite = { version = "0.41", features = ["bundled"] }
+sysinfo = "0.40"
+winreg = "0.56"
+chrono = "0.4"
+anyhow = "1"
+windows = { version = "0.62", features = [
+  "Win32_Foundation",
+  "Win32_NetworkManagement",
+  "Win32_NetworkManagement_IpHelper",
+  "Win32_Networking_WinSock",
+  "Win32_System_Services",
+  "Win32_UI_Shell",
+  "Win32_UI_WindowsAndMessaging",
+] }
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true

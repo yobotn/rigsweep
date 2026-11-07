@@ -1,0 +1,140 @@
+{
+  "extName": {
+    "message": "RigSweep Tabs"
+  },
+  "extDesc": {
+    "message": "Libérez la RAM des onglets sans perdre votre travail : veille des onglets inactifs, fermeture des doublons et serveurs locaux."
+  },
+  "statTabs": {
+    "message": "onglets"
+  },
+  "statSleeping": {
+    "message": "en veille"
+  },
+  "statWindows": {
+    "message": "fenêtres"
+  },
+  "secSleep": {
+    "message": "Mettre en veille les onglets inactifs"
+  },
+  "idleLabel": {
+    "message": "Inactifs depuis plus de"
+  },
+  "minutesUnit": {
+    "message": "min"
+  },
+  "btnSleepIdle": {
+    "message": "Mettre en veille"
+  },
+  "btnSleepAll": {
+    "message": "Tout mettre en veille maintenant"
+  },
+  "sleepNote": {
+    "message": "Les onglets en veille restent dans la barre et se rechargent au clic. Les onglets actifs, épinglés ou qui jouent du son ne sont jamais mis en veille."
+  },
+  "autoSleep": {
+    "message": "Veille automatique toutes les 10 minutes"
+  },
+  "sleptResult": {
+    "message": "$COUNT$ onglet(s) mis en veille.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "sleptFailed": {
+    "message": "$COUNT$ n’ont pas pu être mis en veille.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "secDupes": {
+    "message": "Fermer les onglets en double"
+  },
+  "btnFindDupes": {
+    "message": "Chercher les doublons"
+  },
+  "dupesFound": {
+    "message": "$COUNT$ onglet(s) en double. La copie la plus récente de chacun est conservée.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "noDupes": {
+    "message": "Aucun onglet en double."
+  },
+  "btnCloseDupes": {
+    "message": "Fermer $COUNT$ doublon(s)",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "dupesClosed": {
+    "message": "$COUNT$ doublon(s) fermé(s).",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "secPatterns": {
+    "message": "Fermer les onglets par motif"
+  },
+  "patternsHint": {
+    "message": "Un motif par ligne, comparé à hôte + chemin. * correspond à n’importe quoi, ex. localhost:*"
+  },
+  "includePinned": {
+    "message": "Inclure les onglets épinglés"
+  },
+  "btnSavePatterns": {
+    "message": "Enregistrer"
+  },
+  "patternsSaved": {
+    "message": "Motifs enregistrés."
+  },
+  "btnFindMatches": {
+    "message": "Chercher les onglets"
+  },
+  "matchesFound": {
+    "message": "$COUNT$ onglet(s) correspondent. Décochez ceux à garder, puis confirmez.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "noMatches": {
+    "message": "Aucun onglet ne correspond à ces motifs."
+  },
+  "btnCloseSelected": {
+    "message": "Fermer la sélection"
+  },
+  "matchesClosed": {
+    "message": "$COUNT$ onglet(s) fermé(s).",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "errorGeneric": {
+    "message": "Une erreur est survenue. Veuillez réessayer."
+  },
+  "footer": {
+    "message": "Fait partie de RigSweep · MIT"
+  }
+}

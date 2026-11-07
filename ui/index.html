@@ -1,0 +1,190 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RigSweep</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand"><span class="bolt">🧹</span> RigSweep<div class="tagline" data-i18n="tagline"></div></div>
+    <nav>
+      <button data-tab="dashboard" class="active" data-i18n="nav.dashboard"></button>
+      <button data-tab="cleanup" data-i18n="nav.cleanup"></button>
+      <button data-tab="report" data-i18n="nav.report"></button>
+      <button data-tab="tweaks" data-i18n="nav.tweaks"></button>
+      <button data-tab="processes" data-i18n="nav.processes"></button>
+      <button data-tab="history" data-i18n="nav.history"></button>
+      <button data-tab="settings" data-i18n="nav.settings"></button>
+    </nav>
+    <div class="side-foot">
+      <select id="lang-select" aria-label="Language"></select>
+      <div id="watchdog-status" class="pill"></div>
+      <div id="admin-status" class="pill"></div>
+    </div>
+  </aside>
+
+  <main>
+    <!-- DASHBOARD -->
+    <section id="tab-dashboard" class="tab active">
+      <header><h1 data-i18n="dash.title"></h1><button id="btn-refresh-dash" class="ghost" data-i18n="common.refresh"></button></header>
+      <div class="tiles">
+        <div class="tile"><div class="label" data-i18n="dash.cpu"></div><div class="value" id="t-cpu">–</div></div>
+        <div class="tile"><div class="label" data-i18n="dash.mem"></div><div class="value" id="t-mem">–</div></div>
+        <div class="tile"><div class="label" data-i18n="dash.procs"></div><div class="value" id="t-procs">–</div></div>
+        <div class="tile"><div class="label" data-i18n="dash.tweaks"></div><div class="value" id="t-tweaks">–</div></div>
+        <div class="tile"><div class="label" data-i18n="dash.drift"></div><div class="value" id="t-drift">–</div></div>
+      </div>
+      <div id="dash-callouts" class="callouts"></div>
+      <div class="grid2">
+        <div class="card">
+          <h2 data-i18n="dash.top"></h2>
+          <table class="tbl"><thead><tr><th data-i18n="col.process"></th><th class="num" data-i18n="col.cpu"></th><th class="num" data-i18n="col.ram"></th><th class="num" data-i18n="col.disk"></th></tr></thead><tbody id="dash-top"></tbody></table>
+        </div>
+        <div class="card">
+          <h2 data-i18n="dash.recent"></h2>
+          <ul id="dash-history" class="feed"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- DEV CLEANUP -->
+    <section id="tab-cleanup" class="tab">
+      <header>
+        <h1 data-i18n="clean.title"></h1>
+        <div class="actions">
+          <button id="btn-clean-scan" class="ghost" data-i18n="clean.scan"></button>
+          <button id="btn-clean-stale" class="ghost" data-i18n="clean.selectStale"></button>
+          <button id="btn-clean-end" class="danger" data-i18n="clean.end"></button>
+        </div>
+      </header>
+      <p class="hint" data-i18n="clean.hint"></p>
+      <div id="clean-summary" class="summary"></div>
+      <table class="tbl">
+        <thead><tr>
+          <th></th><th data-i18n="clean.col.what"></th><th data-i18n="clean.col.project"></th>
+          <th class="num" data-i18n="clean.col.age"></th><th class="num" data-i18n="clean.col.mem"></th>
+          <th data-i18n="clean.col.ports"></th><th data-i18n="clean.col.status"></th>
+        </tr></thead>
+        <tbody id="clean-body"><tr><td colspan="7" class="loading">…</td></tr></tbody>
+      </table>
+    </section>
+
+    <!-- BOOST REPORT -->
+    <section id="tab-report" class="tab">
+      <header>
+        <h1 data-i18n="report.title"></h1>
+        <div class="actions">
+          <button id="btn-measure" class="primary" data-i18n="report.measure"></button>
+          <button id="btn-copy-md" class="ghost" data-i18n="report.copy"></button>
+          <button id="btn-clear-snaps" class="ghost" data-i18n="report.clear"></button>
+        </div>
+      </header>
+      <p class="hint" data-i18n="report.hint"></p>
+      <div class="pickers">
+        <label><span data-i18n="report.before"></span> <select id="snap-before"></select></label>
+        <span class="arrow">→</span>
+        <label><span data-i18n="report.after"></span> <select id="snap-after"></select></label>
+      </div>
+      <div id="report-win" class="win hidden"></div>
+      <div id="report-body"></div>
+    </section>
+
+    <!-- TWEAKS -->
+    <section id="tab-tweaks" class="tab">
+      <header>
+        <h1 data-i18n="tw.title"></h1>
+        <div class="actions">
+          <button id="btn-select-safe" class="ghost" data-i18n="tw.selectSafe"></button>
+          <button id="btn-apply-selected" class="primary" data-i18n="tw.applySel"></button>
+          <button id="btn-reapply" class="ghost" data-i18n="tw.verify"></button>
+        </div>
+      </header>
+      <p class="hint" id="tw-hint"></p>
+      <div id="tweak-list"><div class="loading" data-i18n="tw.loading"></div></div>
+    </section>
+
+    <!-- PROCESSES -->
+    <section id="tab-processes" class="tab">
+      <header>
+        <h1 data-i18n="proc.title"></h1>
+        <div class="actions">
+          <input id="proc-filter" type="search" data-i18n-ph="proc.filter" />
+          <label class="chk"><input type="checkbox" id="proc-auto" checked /> <span data-i18n="proc.auto"></span></label>
+          <button id="btn-refresh-proc" class="ghost" data-i18n="common.refresh"></button>
+        </div>
+      </header>
+      <table class="tbl sticky">
+        <thead><tr>
+          <th data-sort="name" data-i18n="col.process"></th><th data-sort="pid" class="num" data-i18n="col.pid"></th>
+          <th data-sort="cpu" class="num" data-i18n="col.cpu"></th><th data-sort="mem" class="num" data-i18n="col.ram"></th>
+          <th data-sort="disk" class="num" data-i18n="col.disk"></th><th data-i18n="col.services"></th><th></th>
+        </tr></thead>
+        <tbody id="proc-body"></tbody>
+      </table>
+    </section>
+
+    <!-- HISTORY -->
+    <section id="tab-history" class="tab">
+      <header>
+        <h1 data-i18n="hist.title"></h1>
+        <div class="actions">
+          <button id="btn-export" class="ghost" data-i18n="hist.export"></button>
+          <label class="btn ghost"><span data-i18n="hist.import"></span><input id="file-import" type="file" accept=".json" hidden /></label>
+          <button id="btn-restore-all" class="danger" data-i18n="hist.restoreAll"></button>
+        </div>
+      </header>
+      <p class="hint" id="backup-info"></p>
+      <table class="tbl"><thead><tr>
+        <th data-i18n="hist.col.time"></th><th data-i18n="hist.col.source"></th><th data-i18n="hist.col.tweak"></th>
+        <th data-i18n="hist.col.action"></th><th data-i18n="hist.col.result"></th><th data-i18n="hist.col.detail"></th>
+      </tr></thead><tbody id="hist-body"></tbody></table>
+    </section>
+
+    <!-- SETTINGS -->
+    <section id="tab-settings" class="tab">
+      <header><h1 data-i18n="set.title"></h1><button id="btn-save-settings" class="primary" data-i18n="common.save"></button></header>
+      <div class="card form">
+        <h2 data-i18n="set.general"></h2>
+        <label class="chk"><input type="checkbox" id="s-startup" /> <span data-i18n="set.startup"></span></label>
+        <label class="chk"><input type="checkbox" id="s-tray" /> <span data-i18n="set.tray"></span></label>
+        <label><span data-i18n="set.watchdog"></span> <input type="number" id="s-watchdog" min="1" max="1440" /></label>
+        <label><span data-i18n="set.idle"></span> <input type="number" id="s-idle" min="1" max="168" /></label>
+        <label><span data-i18n="set.folders"></span>
+          <textarea id="s-folders" rows="6" spellcheck="false"></textarea>
+        </label>
+        <p class="hint" id="s-info"></p>
+      </div>
+
+      <div class="card form" id="av-card">
+        <h2 data-i18n="av.title"></h2>
+        <p class="hint" data-i18n="av.hint"></p>
+        <div id="av-status" class="sub"></div>
+        <div class="actions"><button id="btn-av" class="ghost"></button></div>
+      </div>
+
+      <div class="card form">
+        <h2 data-i18n="chrome.title"></h2>
+        <p class="hint" data-i18n="chrome.hint"></p>
+        <div class="actions"><button id="btn-chrome" class="ghost" data-i18n="chrome.open"></button></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="modal" class="modal hidden">
+    <div class="modal-box">
+      <h3 id="modal-title"></h3>
+      <div id="modal-body"></div>
+      <div class="modal-actions">
+        <button id="modal-cancel" class="ghost" data-i18n="common.cancel"></button>
+        <button id="modal-ok" class="primary"></button>
+      </div>
+    </div>
+  </div>
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="i18n.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
