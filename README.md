@@ -39,14 +39,28 @@ None of it was "a virus" or "junk". It was the **normal leftovers of working wit
 
 ## ✨ Features
 
-### 🧹 Dev Cleanup: stale Node and agent sessions
-Finds **Node servers, build watchers and AI-agent CLIs** (Claude Code, Codex, Gemini CLI, opencode…) and groups each one with its **whole process tree**, project folder, age, RAM and listening ports.
+### 🧹 Dev Cleanup: stale dev processes in any stack
+Finds **dev servers, build daemons and AI-agent CLIs** and groups each one with its **whole process tree**, project folder, age, RAM and listening ports.
+
+| Stack | What it finds |
+|---|---|
+| ⬢ Node · Bun · Deno | dev servers (Vite, Astro, Next…), watchers, esbuild |
+| 🐍 Python | uvicorn, Flask, Django, Jupyter, Streamlit, Celery, venv processes, Python MCP servers |
+| ☕ Java | Gradle & Kotlin daemons, Maven, Spring Boot, Quarkus |
+| 🟣 .NET | `dotnet watch/run`, Roslyn compiler server, leftover MSBuild nodes |
+| 💎 Ruby · 🐘 PHP · 🦀 Rust · 🐹 Go | `rails`/`ruby`, `php -S`/artisan, `cargo watch/run`, `go run` |
+| 🤖 Agent CLIs | Claude Code, Codex, Gemini CLI, opencode, Aider, Goose |
+| 🐧 WSL 2 / Docker | the Linux VM (`vmmemWSL`), shut down cleanly with `wsl --shutdown`, never pre-selected |
+
+Python and Java also run ordinary desktop apps, so for those only processes with a clear dev signature are listed.
+
 
 <img src="docs/screenshots/cleanup.png" alt="Dev Cleanup" width="860">
 
 - 🧟 **Orphan**: its terminal was closed but it kept running. Pre-selected, even if it still holds a port (the classic zombie `localhost:3000`).
 - 💤 **Idle**: no CPU activity for a long time. Runtimes with no open port get pre-selected. An **idle agent session in an open terminal is never pre-selected**, because it's just waiting for you (and `claude --resume` brings it back anyway).
-- 🔒 **Locked**: Node processes owned by **VS Code, Cursor, JetBrains…** (your language servers) or by a desktop app are never killable from here.
+- ♻️ **Build daemon**: Gradle, Kotlin and Roslyn servers are meant to linger. Ending them is harmless; they restart on the next build.
+- 🔒 **Locked**: processes owned by **VS Code, Cursor, JetBrains, Visual Studio…** (your language servers) or by a desktop app are never killable from here.
 - ✅ Nothing is ended without your confirmation, and PID reuse is checked before every kill.
 
 ### 📊 Boost Report: real before and after
@@ -148,6 +162,19 @@ cargo test live_dev_scan -- --ignored --nocapture   # read-only: what Dev Cleanu
 ### ➕ Adding tweaks
 Add an entry to [`catalog/tweaks.json`](src-tauri/catalog/tweaks.json). Action types are `service` (start: disabled|manual), `task` (path), `registry` (HKLM|HKCU, dword|string), `defender_exclusion` and `power_plan`. `caution` items must include a `warning`. `cargo test` rejects protected services and malformed entries.
 
+## 🐳 Docker / WSL tuning (one-time script)
+Docker Desktop's WSL2 VM can grow to half your RAM and keep it. This is a one-time config change, so it lives in a script rather than in the app: [`scripts/tune-docker-wsl.ps1`](scripts/tune-docker-wsl.ps1).
+
+- Writes `%USERPROFILE%\.wslconfig` (memory cap = RAM/4, half the CPUs, `autoMemoryReclaim=gradual`, `sparseVhd=true`), merging with any existing file.
+- Sets Docker Desktop: Resource Saver on; Kubernetes, extensions, SBOM indexing and Ask Gordon off.
+- Backs up first (`%USERPROFILE%\.rigsweep\docker-wsl-backup`), restarts WSL/Docker, restarts the containers that were running, and checks that every container, image and volume is still there. **Nothing is ever deleted.**
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts	une-docker-wsl.ps1          # dry run
+powershell -ExecutionPolicy Bypass -File scripts	une-docker-wsl.ps1 -Apply   # apply
+powershell -ExecutionPolicy Bypass -File scripts	une-docker-wsl.ps1 -Revert  # undo
+```
+
 ## 🗂️ Where things live
 | What | Where |
 |---|---|
@@ -157,8 +184,14 @@ Add an entry to [`catalog/tweaks.json`](src-tauri/catalog/tweaks.json). Action t
 
 Coming from **aiBoost** (the old name)? Your database is migrated automatically on first start, and the old startup task is replaced.
 
+## ⚠️ Disclaimer
+
+RigSweep changes Windows services, scheduled tasks, registry policies and Microsoft Defender settings, and it can end running processes. Every tweak is backed up and can be restored, and nothing happens without your confirmation, but **you use it at your own risk**. It is provided **"as is", without warranty of any kind** (see the [MIT license](LICENSE)). Review each change before applying it, keep your own backups, and don't use it on work- or school-managed devices without your IT team's approval.
+
+RigSweep is an independent project, **not affiliated with** Microsoft, Google, Anthropic, OpenAI or any other tool it mentions. All trademarks belong to their owners.
+
 ## 🤝 Contributing
-Issues and PRs are welcome, especially new tweaks (with a clear risk level), more agent CLIs for Dev Cleanup, and translations.
+Issues and PRs are welcome, especially new tweaks (with a clear risk level), more dev stacks and agent CLIs for Dev Cleanup, and translations.
 
 ## 📄 License
 [MIT](LICENSE): free forever, do what you want, no warranty.

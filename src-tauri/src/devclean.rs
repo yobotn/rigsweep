@@ -1,6 +1,7 @@
-//! Dev Cleanup: find stale Node / AI-agent CLI processes left behind by closed terminals and
-//! old sessions, and end them (whole process tree) on request. Nothing is ever killed
-//! automatically; the UI pre-selects only what is clearly stale.
+//! Dev Cleanup: find stale dev processes (Node, Python, Java/Gradle, .NET, Ruby, PHP, Rust, Go,
+//! AI-agent CLIs, the WSL 2 / Docker VM) left behind by closed terminals and old sessions, and end
+//! them (whole process tree) on request. Nothing is ever killed automatically; the UI pre-selects
+//! only what is clearly stale.
 
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -9,17 +10,55 @@ use sysinfo::{Pid, Process, System};
 
 use crate::util;
 
-/// JS / build runtimes that pile up across dev sessions.
-const RUNTIMES: &[&str] = &["node.exe", "bun.exe", "deno.exe", "esbuild.exe"];
 /// Native AI coding-agent CLIs.
-const AGENT_EXES: &[&str] = &["claude.exe", "codex.exe", "opencode.exe", "gemini.exe"];
-/// Markers in a node command line that mean "this is an agent CLI".
-const AGENT_MARKERS: &[&str] = &["@anthropic-ai/claude-code", "@openai/codex", "@google/gemini-cli", "opencode-ai"];
-/// GUI apps whose node children (language servers, MCP servers, extension hosts) must not be touched.
+const AGENT_EXES: &[&str] = &["claude.exe", "codex.exe", "opencode.exe", "gemini.exe", "aider.exe", "goose.exe"];
+/// Markers in a runtime's command line that mean "this is an agent CLI".
+const AGENT_MARKERS: &[&str] = &[
+    "@anthropic-ai/claude-code", "@openai/codex", "@google/gemini-cli", "opencode-ai", "aider", "goose",
+];
+
+/// Executables RigSweep looks at (everything else is ignored). Used to limit the
+/// expensive command-line / working-dir refresh to candidates only.
+pub const SCAN_NAMES: &[&str] = &[
+    // node
+    "node.exe", "bun.exe", "deno.exe", "esbuild.exe",
+    // python
+    "python.exe", "pythonw.exe", "uvicorn.exe", "gunicorn.exe", "jupyter-lab.exe", "jupyter-notebook.exe",
+    "streamlit.exe", "celery.exe", "flask.exe",
+    // jvm
+    "java.exe", "javaw.exe",
+    // .NET
+    "dotnet.exe", "vbcscompiler.exe", "msbuild.exe",
+    // others
+    "ruby.exe", "rubyw.exe", "php.exe", "php-cgi.exe", "cargo.exe", "go.exe",
+    // WSL 2 / Docker Desktop VM
+    "vmmemwsl",
+    // agents
+    "claude.exe", "codex.exe", "opencode.exe", "gemini.exe", "aider.exe", "goose.exe",
+];
+
+/// Python also runs ordinary desktop tools, so it only counts with a dev signature.
+const PY_MARKERS: &[&str] = &[
+    "uvicorn", "gunicorn", "hypercorn", "flask", "django", "manage.py", "fastapi", "jupyter", "ipykernel",
+    "streamlit", "gradio", "celery", "pytest", "http.server", "mkdocs", "mcp", "langgraph", "/.venv/",
+    "/venv/", "/envs/", "poetry", "pipenv", "/uv/", "watchfiles", "webpack", "vite",
+];
+/// Java likewise: only build daemons and dev servers.
+const JAVA_MARKERS: &[&str] = &[
+    "gradledaemon", "gradleworkermain", "kotlincompiledaemon", "plexus-classworlds", "maven",
+    "springframework", "spring-boot", "quarkus", "micronaut", "sbt-launch", "jetty", "tomcat", "gradle",
+];
+/// Build servers designed to linger in the background; ending them is harmless (they restart).
+const DAEMON_MARKERS: &[&str] = &[
+    "gradledaemon", "kotlincompiledaemon", "vbcscompiler", "nodereuse:true", "/nodereuse", "sbt-launch",
+];
+
+/// GUI apps whose children (language servers, MCP servers, extension hosts) must not be touched.
 const OWNER_APPS: &[&str] = &[
     "code.exe", "code - insiders.exe", "cursor.exe", "windsurf.exe", "zed.exe", "devenv.exe",
     "idea64.exe", "webstorm64.exe", "rider64.exe", "pycharm64.exe", "goland64.exe", "phpstorm64.exe",
-    "clion64.exe", "rustrover64.exe", "studio64.exe", "sublime_text.exe",
+    "clion64.exe", "rustrover64.exe", "studio64.exe", "sublime_text.exe", "fleet.exe", "datagrip64.exe",
+    "rubymine64.exe", "spyder.exe", "positron.exe",
 ];
 
 /// A tree with no CPU activity for this long (while RigSweep watched it) counts as idle.
@@ -31,8 +70,10 @@ pub struct DevProc {
     /// process start time (unix secs); sent back on kill so a reused PID is never hit
     pub start_time: u64,
     pub name: String,
-    /// "agent" | "runtime"
+    /// "agent" | "runtime" | "vm"
     pub kind: &'static str,
+    /// node | python | java | dotnet | ruby | php | rust | go | wsl | agent
+    pub eco: &'static str,
     /// friendly label, e.g. "astro", "vite", "claude"
     pub label: String,
     /// project folder guessed from cwd / command line
@@ -46,7 +87,7 @@ pub struct DevProc {
     pub tree_mem: u64,
     pub tree_count: usize,
     pub ports: Vec<u16>,
-    /// reason codes for the UI: orphan | idle | serving | owned
+    /// reason codes for the UI: orphan | idle | serving | owned | daemon
     pub reasons: Vec<&'static str>,
     pub stale: bool,
     /// owned by an editor / desktop app (language server, MCP server…): never killable here
@@ -136,28 +177,119 @@ fn is_desktop_app(p: &Process) -> bool {
     p.exe().map(|e| e.to_string_lossy().to_ascii_lowercase().contains("\\windowsapps\\")).unwrap_or(false)
 }
 
-/// Classify a process: Some("agent") / Some("runtime") / None (not a dev process).
-fn dev_kind(p: &Process) -> Option<&'static str> {
-    let n = lower_name(p);
-    if AGENT_EXES.contains(&n.as_str()) {
-        // the Claude / ChatGPT desktop apps also ship a claude.exe; only CLIs count
-        return if is_desktop_app(p) { None } else { Some("agent") };
-    }
-    if RUNTIMES.contains(&n.as_str()) {
-        let c = cmdline(p).to_ascii_lowercase().replace('\\', "/");
-        return Some(if AGENT_MARKERS.iter().any(|m| c.contains(m)) { "agent" } else { "runtime" });
-    }
-    None
+/// How a process is shown: kind = "agent" | "runtime" | "vm", eco = ecosystem key for the UI.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Class {
+    pub kind: &'static str,
+    pub eco: &'static str,
+    pub daemon: bool,
 }
 
+fn has_any(hay: &str, needles: &[&str]) -> bool {
+    needles.iter().any(|m| hay.contains(m))
+}
+
+/// Pure classification from name / exe path / command line (lowercase handled here).
+pub fn classify_parts(name: &str, exe: &str, cmd: &str) -> Option<Class> {
+    let n = name.to_ascii_lowercase();
+    let exe = exe.to_ascii_lowercase().replace('\\', "/");
+    let c = cmd.to_ascii_lowercase().replace('\\', "/");
+    let daemon = has_any(&c, DAEMON_MARKERS) || n == "vbcscompiler.exe";
+    let mk = |kind, eco| Some(Class { kind, eco, daemon });
+    if AGENT_EXES.contains(&n.as_str()) {
+        // the Claude / ChatGPT desktop apps also ship e.g. a claude.exe; only CLIs count
+        return if exe.contains("/windowsapps/") { None } else { mk("agent", "agent") };
+    }
+    match n.as_str() {
+        "vmmemwsl" => mk("vm", "wsl"),
+        "node.exe" | "bun.exe" | "deno.exe" | "esbuild.exe" => {
+            if has_any(&c, AGENT_MARKERS) { mk("agent", "node") } else { mk("runtime", "node") }
+        }
+        "python.exe" | "pythonw.exe" => {
+            if c.contains("aider") || c.contains("goose") {
+                mk("agent", "python")
+            } else if has_any(&c, PY_MARKERS) || has_any(&exe, &["/.venv/", "/venv/", "/envs/", "/pypoetry/", "/uv/"]) {
+                mk("runtime", "python")
+            } else {
+                None
+            }
+        }
+        "uvicorn.exe" | "gunicorn.exe" | "jupyter-lab.exe" | "jupyter-notebook.exe" | "streamlit.exe" | "celery.exe" | "flask.exe" => {
+            mk("runtime", "python")
+        }
+        "java.exe" | "javaw.exe" => {
+            if has_any(&c, JAVA_MARKERS) { mk("runtime", "java") } else { None }
+        }
+        "dotnet.exe" | "vbcscompiler.exe" | "msbuild.exe" => mk("runtime", "dotnet"),
+        "ruby.exe" | "rubyw.exe" => mk("runtime", "ruby"),
+        "php.exe" | "php-cgi.exe" => mk("runtime", "php"),
+        "cargo.exe" => mk("runtime", "rust"),
+        "go.exe" => mk("runtime", "go"),
+        _ => None,
+    }
+}
+
+fn classify(p: &Process) -> Option<Class> {
+    let n = lower_name(p);
+    if !SCAN_NAMES.contains(&n.as_str()) {
+        return None;
+    }
+    let exe = p.exe().map(|e| e.to_string_lossy().into_owned()).unwrap_or_default();
+    classify_parts(&n, &exe, &cmdline(p))
+}
+
+/// Friendly label + project folder from the command line / working dir.
 /// "C:\x\proj\node_modules\.bin\..\astro\bin\astro.mjs dev" -> ("astro", "proj")
 pub fn describe(name: &str, cmd: &str, cwd: &str) -> (String, String) {
     let c = cmd.replace('\\', "/");
-    let base = |s: &str| s.trim_end_matches('/').rsplit('/').next().unwrap_or("").to_string();
-    let mut label = name.trim_end_matches(".exe").to_string();
-    let mut project = String::new();
     let lc = c.to_ascii_lowercase();
-    if let Some(i) = lc.rfind("node_modules/") {
+    let n = name.to_ascii_lowercase();
+    let base = |s: &str| s.trim_matches('"').trim_end_matches('/').rsplit('/').next().unwrap_or("").to_string();
+    let args: Vec<&str> = c.split_whitespace().map(|s| s.trim_matches('"')).collect();
+    let mut label = name.trim_end_matches(".exe").trim_end_matches(".EXE").to_string();
+    let mut project = String::new();
+
+    let script_with = |exts: &[&str]| -> Option<String> {
+        args.iter().skip(1).find(|a| {
+            let a = a.to_ascii_lowercase();
+            exts.iter().any(|e| a.ends_with(e))
+        }).map(|a| base(a))
+    };
+    let after_flag = |flag: &str| -> Option<String> {
+        args.iter().position(|a| *a == flag).and_then(|i| args.get(i + 1)).map(|s| s.to_string())
+    };
+
+    if n == "vmmemwsl" {
+        label = "WSL 2 / Docker".into();
+    } else if n == "vbcscompiler.exe" {
+        label = "Roslyn compiler server".into();
+    } else if n == "msbuild.exe" {
+        label = "MSBuild node".into();
+    } else if n.starts_with("java") {
+        label = if lc.contains("gradledaemon") { "Gradle daemon".into() }
+            else if lc.contains("gradleworkermain") { "Gradle worker".into() }
+            else if lc.contains("kotlincompiledaemon") { "Kotlin daemon".into() }
+            else if lc.contains("plexus-classworlds") || lc.contains("maven") { "Maven".into() }
+            else if lc.contains("springframework") || lc.contains("spring-boot") { "Spring Boot".into() }
+            else if lc.contains("quarkus") { "Quarkus".into() }
+            else if let Some(j) = after_flag("-jar") { base(&j) }
+            else { "java".into() };
+    } else if n.starts_with("python") {
+        if let Some(m) = after_flag("-m") {
+            label = m;
+        } else if let Some(s) = script_with(&[".py"]) {
+            label = s;
+        }
+    } else if n == "dotnet.exe" {
+        label = match args.get(1).map(|a| a.to_ascii_lowercase()) {
+            Some(a) if a == "watch" || a == "run" || a == "test" => format!("dotnet {a}"),
+            _ => script_with(&[".dll"]).unwrap_or_else(|| "dotnet".into()),
+        };
+    } else if n == "cargo.exe" || n == "go.exe" {
+        if let Some(sub) = args.get(1) {
+            label = format!("{} {}", label, sub);
+        }
+    } else if let Some(i) = lc.rfind("node_modules/") {
         let after = &c[i + "node_modules/".len()..];
         let pkg: Vec<&str> = after.split('/').filter(|s| !s.is_empty() && *s != ".bin" && *s != "..").collect();
         if let Some(first) = pkg.first() {
@@ -167,13 +299,10 @@ pub fn describe(name: &str, cmd: &str, cwd: &str) -> (String, String) {
         if let Some(j) = lc.find("node_modules/") {
             project = base(c[..j].trim_start_matches('"'));
         }
-    } else if let Some(script) = c.split_whitespace().skip(1).map(|s| s.trim_matches('"')).find(|s| {
-        let s = s.to_ascii_lowercase();
-        s.ends_with(".js") || s.ends_with(".mjs") || s.ends_with(".cjs") || s.ends_with(".ts")
-    }) {
-        label = base(script);
+    } else if let Some(s) = script_with(&[".js", ".mjs", ".cjs", ".ts", ".rb", ".php"]) {
+        label = s;
     }
-    if !cwd.is_empty() {
+    if !cwd.is_empty() && n != "vmmemwsl" {
         project = base(&cwd.replace('\\', "/"));
     }
     (label, project)
@@ -240,12 +369,13 @@ pub fn scan(sys: &System, tracker: &mut IdleTracker, idle_hours: u32) -> DevRepo
         (parent.start_time() <= p.start_time()).then_some(pp)
     };
 
-    let dev: HashMap<u32, &'static str> =
-        procs.iter().filter_map(|(pid, p)| dev_kind(p).map(|k| (pid.as_u32(), k))).collect();
+    let dev: HashMap<u32, Class> =
+        procs.iter().filter_map(|(pid, p)| classify(p).map(|k| (pid.as_u32(), k))).collect();
 
     let mut items = vec![];
     let mut alive = HashSet::new();
-    for (&pid, &kind) in &dev {
+    for (&pid, &class) in &dev {
+        let kind = class.kind;
         let Some(p) = get(pid) else { continue };
         // only list tree roots: a node spawned (even via cmd.exe) by another dev process is
         // shown inside that ancestor's tree, never twice
@@ -310,11 +440,14 @@ pub fn scan(sys: &System, tracker: &mut IdleTracker, idle_hours: u32) -> DevRepo
         let cmd = cmdline(p);
         let cwd = p.cwd().map(|c| c.display().to_string()).unwrap_or_default();
         let (label, project) = describe(&name, &cmd, &cwd);
-        let age = p.run_time();
+        // protected system processes (e.g. vmmemWSL) may not expose a start time: age unknown = 0
+        let age = if p.start_time() == 0 { 0 } else { p.run_time() };
         let observed_idle = tracker.idle_secs(pid, p.start_time(), cpu_ms);
-        let orphan = parent.is_none();
-        let idle = observed_idle.map(|s| s >= IDLE_OBSERVED_SECS).unwrap_or(false)
-            || (age >= idle_hours as u64 * 3600 && cpu < 0.2);
+        // the WSL VM is started by the system, so "no parent" / "idle" mean nothing for it
+        let orphan = parent.is_none() && kind != "vm";
+        let idle = kind != "vm"
+            && (observed_idle.map(|s| s >= IDLE_OBSERVED_SECS).unwrap_or(false)
+                || (age >= idle_hours as u64 * 3600 && cpu < 0.2));
         let protected = !owner.is_empty() || pid == me;
 
         let mut reasons = vec![];
@@ -327,18 +460,23 @@ pub fn scan(sys: &System, tracker: &mut IdleTracker, idle_hours: u32) -> DevRepo
         if !tree_ports.is_empty() {
             reasons.push("serving");
         }
+        if class.daemon {
+            reasons.push("daemon");
+        }
         if protected {
             reasons.push("owned");
         }
         // An orphan is stale even while holding a port: that's the classic zombie dev server.
         // An idle agent CLI in an open terminal is just waiting for you, so it's never pre-selected.
-        let stale = !protected && (orphan || (kind == "runtime" && idle && tree_ports.is_empty()));
+        // The WSL / Docker VM is never pre-selected: shutting it down stops every distro and container.
+        let stale = !protected && kind != "vm" && (orphan || (kind == "runtime" && idle && tree_ports.is_empty()));
 
         items.push(DevProc {
             pid,
             start_time: p.start_time(),
             name,
             kind,
+            eco: class.eco,
             label,
             project,
             cmd: cmd.chars().take(400).collect(),
@@ -383,7 +521,13 @@ pub fn kill(fresh: &DevReport, targets: &[KillTarget]) -> KillResult {
             continue;
         }
         let pid = item.pid.to_string();
-        match util::run("taskkill.exe", &["/PID", &pid, "/T", "/F"]) {
+        // the WSL 2 VM can't be killed like a process; shut it down cleanly instead
+        let res = if item.kind == "vm" {
+            util::run("wsl.exe", &["--shutdown"])
+        } else {
+            util::run("taskkill.exe", &["/PID", &pid, "/T", "/F"])
+        };
+        match res {
             Ok(o) if o.ok => {
                 r.freed_mem += item.tree_mem;
                 r.ended.push(format!("{} (PID {}, {} process(es))", item.label, item.pid, item.tree_count));
@@ -401,7 +545,7 @@ mod tests {
 
     fn row(pid: u32, project: &str, ports: Vec<u16>) -> DevProc {
         DevProc {
-            pid, start_time: 100, name: "node.exe".into(), kind: "runtime", label: "astro".into(),
+            pid, start_time: 100, name: "node.exe".into(), kind: "runtime", eco: "node", label: "astro".into(),
             project: project.into(), cmd: String::new(), parent_pid: 0, parent_name: String::new(), age_secs: 0,
             cpu: 0.0, tree_mem: 0, tree_count: 1, ports, reasons: vec![], stale: false, protected: false, owner: String::new(),
         }
@@ -424,6 +568,29 @@ mod tests {
         // extra port opened (HMR websocket): still the same server, allowed
         let extra = row(10, "site-a", vec![4321, 24678]);
         assert!(verify_target(&extra, &pick_a).is_ok());
+    }
+
+    #[test]
+    fn classifies_other_dev_stacks() {
+        use super::classify_parts as c;
+        let k = |n: &str, e: &str, cmd: &str| c(n, e, cmd).map(|x| (x.kind, x.eco, x.daemon));
+        assert_eq!(k("python.exe", r"C:\Python312\python.exe", "python -m uvicorn app:app --reload"), Some(("runtime", "python", false)));
+        assert_eq!(k("python.exe", r"C:\w\api\.venv\Scripts\python.exe", "python worker.py"), Some(("runtime", "python", false)));
+        // a random Python desktop tool is not a dev process
+        assert_eq!(k("python.exe", r"C:\Program Files\Tool\python.exe", "python tool_main.py --tray"), None);
+        assert_eq!(k("java.exe", "", "java -cp gradle.jar org.gradle.launcher.daemon.bootstrap.GradleDaemon 8.10"), Some(("runtime", "java", true)));
+        assert_eq!(k("java.exe", "", "java -jar minecraft.jar"), None);
+        assert_eq!(k("VBCSCompiler.exe", "", "VBCSCompiler.exe -pipename:abc"), Some(("runtime", "dotnet", true)));
+        assert_eq!(k("vmmemWSL", "", ""), Some(("vm", "wsl", false)));
+        assert_eq!(k("claude.exe", r"C:\Program Files\WindowsApps\Claude\claude.exe", ""), None);
+        assert_eq!(k("claude.exe", r"C:\Users\me\.local\bin\claude.exe", ""), Some(("agent", "agent", false)));
+        assert_eq!(k("notepad.exe", "", ""), None);
+        let (l, _) = super::describe("java.exe", "java org.gradle.launcher.daemon.bootstrap.GradleDaemon", "");
+        assert_eq!(l, "Gradle daemon");
+        let (l, p) = super::describe("python.exe", "python -m streamlit run app.py", r"C:\w\dash");
+        assert_eq!((l.as_str(), p.as_str()), ("streamlit", "dash"));
+        let (l, _) = super::describe("dotnet.exe", "dotnet watch run", "");
+        assert_eq!(l, "dotnet watch");
     }
 
     #[test]
@@ -454,8 +621,8 @@ mod live_tests {
         let r = a.dev_scan(2);
         for i in &r.items {
             println!(
-                "{:<6} {:<8} {:<28} {:<18} age {:>5.1}h  {:>6} MB x{:<3} ports {:?} {:?} stale={} owner={}",
-                i.pid, i.kind, i.label, i.project, i.age_secs as f64 / 3600.0, i.tree_mem / 1_048_576, i.tree_count, i.ports, i.reasons, i.stale, i.owner
+                "{:<6} {:<8} {:<7} {:<28} {:<18} age {:>5.1}h  {:>6} MB x{:<3} ports {:?} {:?} stale={} owner={}",
+                i.pid, i.kind, i.eco, i.label, i.project, i.age_secs as f64 / 3600.0, i.tree_mem / 1_048_576, i.tree_count, i.ports, i.reasons, i.stale, i.owner
             );
         }
         println!("total {} MB, stale {} MB ({} trees)", r.total_mem / 1_048_576, r.stale_mem / 1_048_576, r.stale_count);

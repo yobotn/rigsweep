@@ -152,12 +152,11 @@ impl Analyzer {
         self.sys.refresh_cpu_usage();
         self.sys.refresh_processes(ProcessesToUpdate::All, true);
         self.last = Instant::now();
-        let dev_names = ["node.exe", "bun.exe", "deno.exe", "esbuild.exe", "claude.exe", "codex.exe", "opencode.exe", "gemini.exe"];
         let pids: Vec<Pid> = self
             .sys
             .processes()
             .iter()
-            .filter(|(_, p)| dev_names.contains(&p.name().to_string_lossy().to_ascii_lowercase().as_str()))
+            .filter(|(_, p)| devclean::SCAN_NAMES.contains(&p.name().to_string_lossy().to_ascii_lowercase().as_str()))
             .map(|(pid, _)| *pid)
             .collect();
         self.sys.refresh_processes_specifics(

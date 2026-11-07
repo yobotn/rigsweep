@@ -166,3 +166,9 @@ code { font-family: Consolas, monospace; font-size: 12px; background: var(--pane
 .bar.a { background: var(--accent); }
 .bar.a.good { background: var(--safe); }
 .bar.a.bad { background: var(--caution); }
+
+.eco { display: inline-block; font-size: 11px; border-radius: 5px; padding: 0 6px; margin-left: 4px; background: var(--panel2); color: var(--muted); vertical-align: 1px; }
+.eco.node { color: #8cc84b; } .eco.python { color: #ffd43b; } .eco.java { color: #f89820; }
+.eco.dotnet { color: #b392f0; } .eco.ruby { color: #ff6b6b; } .eco.php { color: #8892bf; }
+.eco.rust { color: #f0a070; } .eco.go { color: #4fd1e8; } .eco.wsl { color: #4f8cff; } .eco.agent { color: #34c38f; }
+.badge.daemon { color: #b392f0; background: #b392f01f; }

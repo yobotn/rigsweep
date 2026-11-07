@@ -39,14 +39,28 @@ Rien de tout cela n'était « un virus » ni des « déchets » : c'étaient les
 
 ## ✨ Fonctionnalités
 
-### 🧹 Nettoyage dev : sessions Node et agents inactives
-Trouve les **serveurs Node, watchers de build et CLI d'agents IA** (Claude Code, Codex, Gemini CLI, opencode…) et regroupe chacun avec **tout son arbre de processus**, son dossier de projet, son âge, sa RAM et ses ports en écoute.
+### 🧹 Nettoyage dev : processus de dev oubliés, quel que soit le stack
+Trouve les **serveurs de dev, daemons de build et CLI d'agents IA** et regroupe chacun avec **tout son arbre de processus**, son dossier de projet, son âge, sa RAM et ses ports en écoute.
+
+| Stack | Ce qu'il trouve |
+|---|---|
+| ⬢ Node · Bun · Deno | serveurs de dev (Vite, Astro, Next…), watchers, esbuild |
+| 🐍 Python | uvicorn, Flask, Django, Jupyter, Streamlit, Celery, processus de venv, serveurs MCP en Python |
+| ☕ Java | daemons Gradle et Kotlin, Maven, Spring Boot, Quarkus |
+| 🟣 .NET | `dotnet watch/run`, serveur de compilation Roslyn, nœuds MSBuild restants |
+| 💎 Ruby · 🐘 PHP · 🦀 Rust · 🐹 Go | `rails`/`ruby`, `php -S`/artisan, `cargo watch/run`, `go run` |
+| 🤖 CLI d'agents | Claude Code, Codex, Gemini CLI, opencode, Aider, Goose |
+| 🐧 WSL 2 / Docker | la VM Linux (`vmmemWSL`), arrêtée proprement avec `wsl --shutdown`, jamais présélectionnée |
+
+Python et Java font aussi tourner des applications de bureau ordinaires, donc seuls leurs processus avec une signature de dev claire sont listés.
+
 
 <img src="docs/screenshots/cleanup-fr.png" alt="Nettoyage dev" width="860">
 
 - 🧟 **Orphelin** : son terminal a été fermé mais le processus tourne encore. Il est présélectionné même s'il occupe un port (le classique `localhost:3000` zombie).
 - 💤 **Inactif** : aucune activité CPU depuis longtemps. Les runtimes sans port ouvert sont présélectionnés. Une **session d'agent inactive dans un terminal ouvert n'est jamais présélectionnée**, car elle vous attend (et `claude --resume` la ramène de toute façon).
-- 🔒 **Verrouillé** : les processus Node de **VS Code, Cursor, JetBrains…** (vos serveurs de langage) ou d'une app de bureau ne peuvent jamais être fermés d'ici.
+- ♻️ **Daemon de build** : les serveurs Gradle, Kotlin et Roslyn sont faits pour rester en arrière-plan. Les fermer est sans danger ; ils redémarrent au prochain build.
+- 🔒 **Verrouillé** : les processus de **VS Code, Cursor, JetBrains, Visual Studio…** (vos serveurs de langage) ou d'une app de bureau ne peuvent jamais être fermés d'ici.
 - ✅ Rien n'est fermé sans votre confirmation, et la réutilisation de PID est vérifiée avant chaque fermeture.
 
 ### 📊 Rapport de gain : un vrai avant/après
@@ -125,6 +139,25 @@ npm run build                         # -> src-tauri/target/release/rigsweep.exe
 Voir le [README anglais](README.md#-build-from-source) pour la CLI, les tests et l'ajout de réglages.
 
 Vous venez d'**aiBoost** (l'ancien nom) ? Votre base de données est migrée automatiquement au premier démarrage.
+
+## 🐳 Réglage Docker / WSL (script ponctuel)
+La VM WSL2 de Docker Desktop peut grimper jusqu'à la moitié de votre RAM sans la rendre. C'est un changement de configuration ponctuel, il vit donc dans un script plutôt que dans l'app : [`scripts/tune-docker-wsl.ps1`](scripts/tune-docker-wsl.ps1).
+
+- Écrit `%USERPROFILE%\.wslconfig` (plafond mémoire = RAM/4, la moitié des CPU, `autoMemoryReclaim=gradual`, `sparseVhd=true`) en fusionnant avec le fichier existant.
+- Docker Desktop : active Resource Saver ; désactive Kubernetes, les extensions, l'indexation SBOM et Ask Gordon.
+- Sauvegarde d'abord (`%USERPROFILE%\.rigsweep\docker-wsl-backup`), redémarre WSL/Docker, relance les conteneurs qui tournaient et vérifie que tous les conteneurs, images et volumes sont toujours là. **Rien n'est jamais supprimé.**
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts	une-docker-wsl.ps1          # simulation
+powershell -ExecutionPolicy Bypass -File scripts	une-docker-wsl.ps1 -Apply   # appliquer
+powershell -ExecutionPolicy Bypass -File scripts	une-docker-wsl.ps1 -Revert  # annuler
+```
+
+## ⚠️ Avertissement
+
+RigSweep modifie des services Windows, des tâches planifiées, des stratégies du registre et la configuration de Microsoft Defender, et peut fermer des processus en cours. Chaque réglage est sauvegardé et restaurable, et rien ne se passe sans votre confirmation, mais **vous l'utilisez à vos propres risques**. Il est fourni **« tel quel », sans aucune garantie** (voir la [licence MIT](LICENSE)). Vérifiez chaque changement avant de l'appliquer, gardez vos propres sauvegardes et ne l'utilisez pas sur un appareil géré par votre employeur ou votre école sans l'accord de leur service informatique.
+
+RigSweep est un projet indépendant, **sans lien avec** Microsoft, Google, Anthropic, OpenAI ni aucun autre outil mentionné. Toutes les marques appartiennent à leurs propriétaires.
 
 ## 📄 Licence
 [MIT](LICENSE) : gratuit pour toujours, sans garantie.

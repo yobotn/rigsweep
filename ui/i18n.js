@@ -2,6 +2,12 @@
 // t("key", {n: 3}) replaces {n}. Missing keys fall back to English, then to the key itself.
 const I18N = {
   en: {
+    "disc.accept": "I understand",
+    "disc.body": "RigSweep changes Windows services, scheduled tasks, registry policies and Microsoft Defender settings, and it can end running processes. Every tweak is backed up and can be restored, and nothing happens without your confirmation, but you use it at your own risk. It is provided \"as is\", without warranty of any kind (MIT license). Review each change before applying it, keep your own backups, and don't use it on work- or school-managed devices without your IT team's approval. RigSweep is an independent project, not affiliated with Microsoft, Google, Anthropic, OpenAI or any other tool it mentions; all trademarks belong to their owners.",
+    "disc.title": "⚠️ Disclaimer",
+    "clean.vm.warn": "⚠ Shutting down WSL stops every Linux distro and Docker container on this PC. They start again the next time you open WSL or Docker.",
+    "kind.vm": "🐧 VM",
+    "reason.daemon": "♻️ build daemon (restarts when needed)",
     "nav.dashboard": "🏠 Dashboard", "nav.cleanup": "🧹 Dev Cleanup", "nav.report": "📊 Boost Report",
     "nav.tweaks": "⚙️ Tweaks", "nav.processes": "🔍 Processes", "nav.history": "🗂️ History & Backups", "nav.settings": "🛠️ Settings",
     "tagline": "Room for your agents",
@@ -17,7 +23,7 @@ const I18N = {
     "col.process": "Process", "col.cpu": "CPU", "col.ram": "RAM", "col.disk": "Disk/s", "col.pid": "PID", "col.services": "Hosted services",
 
     "clean.title": "Dev Cleanup",
-    "clean.hint": "Node servers, build watchers and AI-agent CLIs (Claude Code, Codex…) left behind by closed terminals and old sessions. Each row is a whole process tree. Nothing is ended until you confirm. Processes owned by your editor (language servers) or a desktop app are locked 🔒.",
+    "clean.hint": "Dev servers, build daemons and AI-agent CLIs left behind by closed terminals and old sessions: Node, Python, Java/Gradle, .NET, Ruby, PHP, Rust, Go, Claude Code, Codex, Aider… plus the WSL 2 / Docker VM. Each row is a whole process tree. Nothing is ended until you confirm. Processes owned by your editor (language servers) or a desktop app are locked 🔒.",
     "clean.scan": "Rescan", "clean.end": "End selected", "clean.selectStale": "Select stale",
     "clean.summary": "{n} dev process tree(s) using {mem} · {s} stale holding {sm}",
     "clean.none": "No Node / agent CLI processes running. Your rig is clean ✨",
@@ -96,6 +102,12 @@ const I18N = {
   },
 
   es: {
+    "disc.accept": "Entendido",
+    "disc.body": "RigSweep modifica servicios de Windows, tareas programadas, directivas del registro y la configuración de Microsoft Defender, y puede cerrar procesos en ejecución. Cada ajuste se respalda y se puede restaurar, y nada ocurre sin tu confirmación, pero lo usas bajo tu propia responsabilidad. Se proporciona \"tal cual\", sin garantía de ningún tipo (licencia MIT). Revisa cada cambio antes de aplicarlo, guarda tus propias copias de seguridad y no lo uses en equipos gestionados por tu empresa o centro educativo sin la aprobación de su equipo de TI. RigSweep es un proyecto independiente, sin relación con Microsoft, Google, Anthropic, OpenAI ni ninguna otra herramienta que mencione; todas las marcas pertenecen a sus dueños.",
+    "disc.title": "⚠️ Aviso legal",
+    "clean.vm.warn": "⚠ Apagar WSL detiene todas las distros Linux y contenedores Docker de este PC. Vuelven a arrancar la próxima vez que abras WSL o Docker.",
+    "kind.vm": "🐧 VM",
+    "reason.daemon": "♻️ daemon de compilación (se reinicia solo)",
     "nav.dashboard": "🏠 Panel", "nav.cleanup": "🧹 Limpieza dev", "nav.report": "📊 Informe de mejora",
     "nav.tweaks": "⚙️ Ajustes", "nav.processes": "🔍 Procesos", "nav.history": "🗂️ Historial y copias", "nav.settings": "🛠️ Configuración",
     "tagline": "Espacio para tus agentes",
@@ -111,7 +123,7 @@ const I18N = {
     "col.process": "Proceso", "col.cpu": "CPU", "col.ram": "RAM", "col.disk": "Disco/s", "col.pid": "PID", "col.services": "Servicios alojados",
 
     "clean.title": "Limpieza dev",
-    "clean.hint": "Servidores Node, watchers de compilación y CLIs de agentes IA (Claude Code, Codex…) que quedaron vivos tras cerrar terminales y sesiones antiguas. Cada fila es un árbol de procesos completo. Nada se cierra sin tu confirmación. Los procesos de tu editor (servidores de lenguaje) o de una app de escritorio están bloqueados 🔒.",
+    "clean.hint": "Servidores dev, daemons de compilación y CLIs de agentes IA que quedaron vivos tras cerrar terminales y sesiones antiguas: Node, Python, Java/Gradle, .NET, Ruby, PHP, Rust, Go, Claude Code, Codex, Aider… además de la VM de WSL 2 / Docker. Cada fila es un árbol de procesos completo. Nada se cierra sin tu confirmación. Los procesos de tu editor (servidores de lenguaje) o de una app de escritorio están bloqueados 🔒.",
     "clean.scan": "Volver a escanear", "clean.end": "Cerrar seleccionados", "clean.selectStale": "Seleccionar inactivos",
     "clean.summary": "{n} árbol(es) dev usan {mem} · {s} inactivos ocupan {sm}",
     "clean.none": "No hay procesos Node ni CLIs de agentes en ejecución. Tu equipo está limpio ✨",
@@ -190,6 +202,12 @@ const I18N = {
   },
 
   fr: {
+    "disc.accept": "J'ai compris",
+    "disc.body": "RigSweep modifie des services Windows, des tâches planifiées, des stratégies du registre et la configuration de Microsoft Defender, et peut fermer des processus en cours. Chaque réglage est sauvegardé et restaurable, et rien ne se passe sans votre confirmation, mais vous l'utilisez à vos propres risques. Il est fourni « tel quel », sans aucune garantie (licence MIT). Vérifiez chaque changement avant de l'appliquer, gardez vos propres sauvegardes et ne l'utilisez pas sur un appareil géré par votre employeur ou votre école sans l'accord de leur service informatique. RigSweep est un projet indépendant, sans lien avec Microsoft, Google, Anthropic, OpenAI ni aucun autre outil mentionné ; toutes les marques appartiennent à leurs propriétaires.",
+    "disc.title": "⚠️ Avertissement",
+    "clean.vm.warn": "⚠ Arrêter WSL stoppe toutes les distributions Linux et tous les conteneurs Docker de ce PC. Ils redémarrent à la prochaine ouverture de WSL ou de Docker.",
+    "kind.vm": "🐧 VM",
+    "reason.daemon": "♻️ daemon de build (redémarre au besoin)",
     "nav.dashboard": "🏠 Tableau de bord", "nav.cleanup": "🧹 Nettoyage dev", "nav.report": "📊 Rapport de gain",
     "nav.tweaks": "⚙️ Réglages", "nav.processes": "🔍 Processus", "nav.history": "🗂️ Historique et sauvegardes", "nav.settings": "🛠️ Paramètres",
     "tagline": "De la place pour vos agents",
@@ -205,7 +223,7 @@ const I18N = {
     "col.process": "Processus", "col.cpu": "CPU", "col.ram": "RAM", "col.disk": "Disque/s", "col.pid": "PID", "col.services": "Services hébergés",
 
     "clean.title": "Nettoyage dev",
-    "clean.hint": "Serveurs Node, watchers de build et CLI d'agents IA (Claude Code, Codex…) restés actifs après la fermeture de terminaux et d'anciennes sessions. Chaque ligne est un arbre de processus complet. Rien n'est fermé sans votre confirmation. Les processus de votre éditeur (serveurs de langage) ou d'une app de bureau sont verrouillés 🔒.",
+    "clean.hint": "Serveurs de dev, daemons de build et CLI d'agents IA restés actifs après la fermeture de terminaux et d'anciennes sessions : Node, Python, Java/Gradle, .NET, Ruby, PHP, Rust, Go, Claude Code, Codex, Aider… ainsi que la VM WSL 2 / Docker. Chaque ligne est un arbre de processus complet. Rien n'est fermé sans votre confirmation. Les processus de votre éditeur (serveurs de langage) ou d'une app de bureau sont verrouillés 🔒.",
     "clean.scan": "Relancer l'analyse", "clean.end": "Fermer la sélection", "clean.selectStale": "Sélectionner les inactifs",
     "clean.summary": "{n} arbre(s) dev utilisent {mem} · {s} inactifs occupent {sm}",
     "clean.none": "Aucun processus Node ni CLI d'agent en cours. Votre machine est propre ✨",

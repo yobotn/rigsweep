@@ -4,88 +4,144 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>RigSweep: room for your agents</title>
-  <meta name="description" content="Free, open-source Windows app that frees RAM and CPU on dev machines cluttered by AI-agent sessions: stale Node cleanup, reversible tweaks, real before/after reports." />
+  <meta name="description" content="Free, open-source Windows app that frees RAM and CPU on dev machines cluttered by AI-agent sessions: stale dev-process cleanup for Node, Python, Java, .NET and more, reversible tweaks, real before/after reports." />
   <meta property="og:title" content="RigSweep: room for your agents" />
   <meta property="og:description" content="Free up RAM and CPU on Windows dev machines cluttered by AI-agent sessions. MIT, free forever." />
   <meta property="og:image" content="https://yobotn.github.io/rigsweep/screenshots/dashboard.png" />
   <meta name="twitter:card" content="summary_large_image" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧹</text></svg>" />
   <style>
+    /* ---------- tokens ---------- */
     :root {
-      --bg: #0b0e13; --panel: #141922; --panel2: #1b2130; --border: #262e3f;
-      --text: #e8ebf1; --muted: #8e97ab; --accent: #4f8cff; --safe: #34c38f; --warn: #f1b44c; --bad: #f46a6a;
+      --bg: #0b0e13; --bg2: #0f131a; --panel: #141922; --panel2: #1b2130; --border: #262e3f; --border2: #323c52;
+      --text: #e8ebf1; --muted: #8e97ab; --accent: #4f8cff; --accent2: #34c38f; --warn: #f1b44c;
+      --r-sm: 8px; --r: 14px; --r-lg: 18px;
+      --s1: 8px; --s2: 16px; --s3: 24px; --s4: 40px; --s5: 72px;
+      --shadow: 0 24px 64px rgba(0,0,0,.55);
+      --font: "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif;
       color-scheme: dark;
     }
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
-    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.65 var(--font); -webkit-font-smoothing: antialiased; }
     a { color: var(--accent); text-decoration: none; }
     a:hover { text-decoration: underline; }
-    .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
-    nav.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 0; }
-    .logo { font-weight: 700; font-size: 20px; color: var(--text); }
-    .navlinks { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; font-size: 14px; }
-    .navlinks a { color: var(--muted); }
-    .lang { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    img { max-width: 100%; }
+    code { font-family: Consolas, ui-monospace, monospace; font-size: .9em; background: var(--panel2); border-radius: 5px; padding: 1px 6px; }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 0 var(--s3); }
+
+    /* ---------- nav ---------- */
+    .nav { position: sticky; top: 0; z-index: 10; background: rgba(11,14,19,.82); backdrop-filter: blur(10px); border-bottom: 1px solid transparent; }
+    .nav.scrolled { border-bottom-color: var(--border); }
+    .nav .wrap { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); height: 64px; }
+    .logo { font-weight: 700; font-size: 19px; color: var(--text); white-space: nowrap; }
+    .logo:hover { text-decoration: none; }
+    .links { display: flex; gap: var(--s3); align-items: center; font-size: 14px; }
+    .links a { color: var(--muted); }
+    .links a:hover { color: var(--text); text-decoration: none; }
+    .lang { display: inline-flex; border: 1px solid var(--border); border-radius: var(--r-sm); overflow: hidden; }
     .lang button { background: none; border: 0; color: var(--muted); padding: 5px 10px; font: inherit; font-size: 13px; cursor: pointer; }
     .lang button.on { background: var(--panel2); color: var(--text); }
 
-    .hero { text-align: center; padding: 56px 0 28px; }
-    .hero h1 { font-size: clamp(34px, 6vw, 58px); line-height: 1.1; margin: 0 0 16px; letter-spacing: -0.02em; }
-    .hero h1 span { background: linear-gradient(90deg, #4f8cff, #34c38f); -webkit-background-clip: text; background-clip: text; color: transparent; }
-    .hero p { color: var(--muted); font-size: clamp(16px, 2.2vw, 19px); max-width: 680px; margin: 0 auto 28px; }
-    .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 10px; font-weight: 600; border: 1px solid var(--border); color: var(--text); background: var(--panel); }
+    /* ---------- buttons ---------- */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--s1); min-height: 46px; padding: 0 22px;
+      border-radius: var(--r-sm); font-weight: 600; border: 1px solid var(--border2); color: var(--text); background: var(--panel); transition: transform .15s, filter .15s; }
+    .btn:hover { text-decoration: none; filter: brightness(1.12); transform: translateY(-1px); }
     .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
-    .btn:hover { text-decoration: none; filter: brightness(1.1); }
-    .meta { margin-top: 14px; color: var(--muted); font-size: 13px; }
-    .shot { margin: 40px auto 0; max-width: 980px; border-radius: 14px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 30px 80px #0009; }
-    .shot img { display: block; width: 100%; height: auto; }
+    .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 
-    section { padding: 64px 0 8px; }
-    h2 { font-size: clamp(24px, 3.5vw, 32px); margin: 0 0 10px; letter-spacing: -0.01em; }
-    .lead { color: var(--muted); max-width: 720px; margin: 0 0 28px; }
-    .story { display: grid; grid-template-columns: 1.2fr 1fr; gap: 28px; align-items: start; }
-    .story p { margin: 0 0 14px; }
-    .stats { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; }
-    .stat { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
-    .stat:last-child { border-bottom: 0; }
-    .stat b { font-size: 20px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    /* ---------- screenshot frame: fixed aspect ratio, never stretched ---------- */
+    .frame { background: var(--panel); border: 1px solid var(--border2); border-radius: var(--r-lg); box-shadow: var(--shadow); overflow: hidden; }
+    .frame .bar { display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px; background: var(--bg2); border-bottom: 1px solid var(--border); }
+    .frame .bar i { width: 10px; height: 10px; border-radius: 50%; background: var(--border2); }
+    .frame .bar span { margin-left: 10px; font-size: 12px; color: var(--muted); }
+    .frame img { display: block; width: 100%; height: auto; aspect-ratio: 1240 / 820; object-fit: cover; object-position: top left; }
+
+    /* ---------- sections ---------- */
+    section { padding: var(--s5) 0 0; }
+    .eyebrow { display: inline-block; font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-bottom: var(--s1); }
+    h1, h2, h3 { letter-spacing: -0.015em; }
+    h2 { font-size: clamp(26px, 3.4vw, 36px); line-height: 1.2; margin: 0 0 var(--s2); }
+    .lead { color: var(--muted); font-size: 17px; max-width: 700px; margin: 0 0 var(--s4); }
+    .center { text-align: center; }
+    .center .lead { margin-left: auto; margin-right: auto; }
+
+    /* hero */
+    .hero { text-align: center; padding: var(--s5) 0 0; }
+    .badge-top { display: inline-flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); border: 1px solid var(--border); border-radius: 999px; padding: 4px 14px; margin-bottom: var(--s3); background: var(--panel); }
+    .hero h1 { font-size: clamp(38px, 6.4vw, 66px); line-height: 1.06; margin: 0 0 var(--s3); }
+    .hero h1 span { background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .hero p.sub { color: var(--muted); font-size: clamp(17px, 2.2vw, 20px); max-width: 700px; margin: 0 auto var(--s4); }
+    .hero .meta { margin-top: var(--s2); color: var(--muted); font-size: 13px; }
+    .hero .frame { margin: var(--s4) auto 0; max-width: 1000px; }
+
+    /* ecosystem strip */
+    .chips { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .chip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px; background: var(--panel); border: 1px solid var(--border); font-size: 14px; white-space: nowrap; }
+
+    /* story */
+    .story { display: grid; grid-template-columns: 1.15fr 1fr; gap: var(--s4); align-items: center; }
+    .story p { margin: 0 0 var(--s2); color: var(--muted); }
+    .story p strong { color: var(--text); }
+    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: var(--r); padding: var(--s3); }
+    .stat { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s2); padding: 14px 0; border-bottom: 1px solid var(--border); }
+    .stat:first-child { padding-top: 0; }
+    .stat:last-of-type { border-bottom: 0; }
     .stat span { color: var(--muted); }
-    .stats .cap { color: var(--muted); font-size: 12px; margin-top: 8px; }
+    .stat b { font-size: 24px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .cap { color: var(--muted); font-size: 12px; margin-top: var(--s1); }
 
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
-    .card { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
-    .card .ic { font-size: 28px; }
-    .card h3 { margin: 8px 0 6px; font-size: 18px; }
+    /* feature grid */
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s2); }
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--r); padding: var(--s3); display: flex; flex-direction: column; gap: var(--s1); }
+    .card .ic { width: 44px; height: 44px; display: grid; place-items: center; font-size: 22px; border-radius: 12px; background: var(--panel2); }
+    .card h3 { margin: var(--s1) 0 0; font-size: 18px; }
     .card p { margin: 0; color: var(--muted); font-size: 15px; }
 
-    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: center; }
-    .split img { width: 100%; border-radius: 12px; border: 1px solid var(--border); }
-    ul.ticks { list-style: none; padding: 0; margin: 0; }
-    ul.ticks li { padding: 6px 0 6px 28px; position: relative; color: var(--muted); }
-    ul.ticks li::before { content: "✓"; position: absolute; left: 4px; color: var(--safe); font-weight: 700; }
-    ul.ticks li b { color: var(--text); }
+    /* feature rows: text + framed screenshot, same proportions every time */
+    .row { display: grid; grid-template-columns: 5fr 7fr; gap: var(--s4); align-items: center; }
+    .row.flip { grid-template-columns: 7fr 5fr; }
+    .row.flip .copy { order: 2; }
+    .ticks { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+    .ticks li { position: relative; padding-left: 30px; color: var(--muted); }
+    .ticks li::before { content: "✓"; position: absolute; left: 0; top: 1px; width: 20px; height: 20px; display: grid; place-items: center;
+      font-size: 12px; font-weight: 700; border-radius: 50%; background: rgba(52,195,143,.15); color: var(--accent2); }
+    .ticks li b { color: var(--text); }
 
-    .trust { background: var(--panel); border: 1px solid var(--border); border-left: 4px solid var(--warn); border-radius: 14px; padding: 20px 22px; }
-    .trust p { margin: 0 0 10px; color: var(--muted); }
-    .trust p:last-child { margin: 0; }
-    code { font-family: Consolas, monospace; font-size: 14px; background: var(--panel2); border-radius: 5px; padding: 1px 6px; }
+    /* notes */
+    .note { background: var(--panel); border: 1px solid var(--border); border-left: 4px solid var(--warn); border-radius: var(--r); padding: var(--s3); }
+    .note p { margin: 0 0 12px; color: var(--muted); }
+    .note p:last-child { margin: 0; }
+    .note.disc { border-left-color: var(--muted); }
 
-    footer { margin-top: 72px; padding: 28px 0 40px; border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .final { text-align: center; padding: var(--s5) var(--s3); margin-top: var(--s5); border-radius: var(--r-lg);
+      background: radial-gradient(ellipse at top, rgba(79,140,255,.16), transparent 70%), var(--panel); border: 1px solid var(--border); }
+    .final .lead { margin-bottom: var(--s3); }
 
-    @media (max-width: 820px) {
-      .story, .split { grid-template-columns: 1fr; }
-      .navlinks a.hide-sm { display: none; }
-      .hero { padding-top: 32px; }
+    footer { margin-top: var(--s5); padding: var(--s3) 0 var(--s4); border-top: 1px solid var(--border); color: var(--muted); font-size: 14px;
+      display: flex; justify-content: space-between; gap: var(--s2); flex-wrap: wrap; }
+
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: repeat(2, 1fr); }
+      .story, .row, .row.flip { grid-template-columns: 1fr; gap: var(--s3); }
+      .row.flip .copy { order: 0; }
+    }
+    @media (max-width: 600px) {
+      :root { --s5: 56px; --s4: 32px; }
+      .wrap { padding: 0 var(--s2); }
+      .grid { grid-template-columns: 1fr; }
+      .links a.hide-sm { display: none; }
+      .links { gap: var(--s2); }
+      .frame .bar { height: 26px; }
+      .btn { width: 100%; }
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <nav class="top">
+  <nav class="nav" id="nav">
+    <div class="wrap">
       <a class="logo" href="#">🧹 RigSweep</a>
-      <div class="navlinks">
+      <div class="links">
         <a class="hide-sm" href="#features" data-t="nav.features"></a>
         <a class="hide-sm" href="#trust" data-t="nav.trust"></a>
         <a href="https://github.com/yobotn/rigsweep">GitHub</a>
@@ -93,28 +149,46 @@
           <button data-lang="en">EN</button><button data-lang="es">ES</button><button data-lang="fr">FR</button>
         </div>
       </div>
-    </nav>
+    </div>
+  </nav>
 
+  <main class="wrap">
     <header class="hero">
+      <div class="badge-top" data-t="hero.badge"></div>
       <h1 data-t-html="hero.title"></h1>
-      <p data-t="hero.sub"></p>
+      <p class="sub" data-t="hero.sub"></p>
       <div class="cta">
         <a class="btn primary" href="https://github.com/yobotn/rigsweep/releases/latest" data-t="cta.download"></a>
         <a class="btn" href="https://github.com/yobotn/rigsweep" data-t="cta.source"></a>
       </div>
       <div class="meta" data-t="hero.meta"></div>
-      <div class="shot"><img id="hero-img" src="screenshots/dashboard.png" width="1240" height="820" alt="RigSweep dashboard" /></div>
+      <div class="frame">
+        <div class="bar"><i></i><i></i><i></i><span>RigSweep</span></div>
+        <img id="img-dashboard" src="screenshots/dashboard.png" alt="RigSweep dashboard" />
+      </div>
     </header>
+
+    <section class="center">
+      <span class="eyebrow" data-t="eco.eyebrow"></span>
+      <h2 data-t="eco.h"></h2>
+      <p class="lead" data-t="eco.p"></p>
+      <div class="chips">
+        <span class="chip">⬢ Node · Bun · Deno</span><span class="chip">🐍 Python</span><span class="chip">☕ Java · Gradle · Maven</span>
+        <span class="chip">🟣 .NET</span><span class="chip">💎 Ruby</span><span class="chip">🐘 PHP</span><span class="chip">🦀 Rust</span>
+        <span class="chip">🐹 Go</span><span class="chip">🐧 WSL 2 · Docker</span><span class="chip">🤖 Claude Code · Codex · Gemini CLI · Aider</span>
+      </div>
+    </section>
 
     <section id="story">
       <div class="story">
         <div>
+          <span class="eyebrow" data-t="story.eyebrow"></span>
           <h2 data-t="story.h"></h2>
           <p data-t="story.p1"></p>
           <p data-t="story.p2"></p>
-          <p data-t="story.p3"></p>
+          <p data-t-html="story.p3"></p>
         </div>
-        <div class="stats">
+        <div class="panel">
           <div class="stat"><span data-t="stat.chrome"></span><b>6.5 GB</b></div>
           <div class="stat"><span data-t="stat.node"></span><b>2.5 GB</b></div>
           <div class="stat"><span data-t="stat.services"></span><b>~150</b></div>
@@ -124,6 +198,7 @@
     </section>
 
     <section id="features">
+      <span class="eyebrow" data-t="feat.eyebrow"></span>
       <h2 data-t="feat.h"></h2>
       <p class="lead" data-t="feat.lead"></p>
       <div class="grid">
@@ -136,9 +211,10 @@
       </div>
     </section>
 
-    <section id="cleanup">
-      <div class="split">
-        <div>
+    <section>
+      <div class="row">
+        <div class="copy">
+          <span class="eyebrow" data-t="clean.eyebrow"></span>
           <h2 data-t="clean.h"></h2>
           <ul class="ticks">
             <li data-t-html="clean.l1"></li>
@@ -147,14 +223,17 @@
             <li data-t-html="clean.l4"></li>
           </ul>
         </div>
-        <img id="clean-img" src="screenshots/cleanup.png" width="1240" height="820" alt="Dev Cleanup" loading="lazy" />
+        <div class="frame">
+          <div class="bar"><i></i><i></i><i></i><span data-t="shot.cleanup"></span></div>
+          <img id="img-cleanup" src="screenshots/cleanup.png" alt="Dev Cleanup" loading="lazy" />
+        </div>
       </div>
     </section>
 
-    <section id="safe">
-      <div class="split">
-        <img src="screenshots/tweaks.png" width="1240" height="820" alt="Reversible tweaks" loading="lazy" />
-        <div>
+    <section>
+      <div class="row flip">
+        <div class="copy">
+          <span class="eyebrow" data-t="safe.eyebrow"></span>
           <h2 data-t="safe.h"></h2>
           <ul class="ticks">
             <li data-t-html="safe.l1"></li>
@@ -163,138 +242,163 @@
             <li data-t-html="safe.l4"></li>
           </ul>
         </div>
+        <div class="frame">
+          <div class="bar"><i></i><i></i><i></i><span data-t="shot.tweaks"></span></div>
+          <img src="screenshots/tweaks.png" alt="Reversible tweaks" loading="lazy" />
+        </div>
       </div>
     </section>
 
     <section id="trust">
+      <span class="eyebrow" data-t="trust.eyebrow"></span>
       <h2 data-t="trust.h"></h2>
-      <div class="trust">
+      <div class="note">
         <p data-t-html="trust.p1"></p>
         <p data-t-html="trust.p2"></p>
       </div>
     </section>
 
-    <section id="start" style="text-align:center">
+    <section id="disclaimer">
+      <h2 data-t="disc.h"></h2>
+      <div class="note disc"><p data-t="disc.p"></p></div>
+    </section>
+
+    <div class="final">
       <h2 data-t="start.h"></h2>
-      <p class="lead" style="margin:0 auto 24px" data-t="start.p"></p>
+      <p class="lead" data-t="start.p"></p>
       <div class="cta">
         <a class="btn primary" href="https://github.com/yobotn/rigsweep/releases/latest" data-t="cta.download"></a>
         <a class="btn" href="https://github.com/yobotn/rigsweep#-build-from-source" data-t="cta.build"></a>
       </div>
-    </section>
+    </div>
 
     <footer>
       <div data-t="foot.l"></div>
-      <div><a href="https://github.com/yobotn/rigsweep">GitHub</a> · <a href="https://github.com/yobotn/rigsweep/blob/main/LICENSE">MIT</a> · <a href="https://github.com/yobotn/rigsweep/issues" data-t="foot.issues"></a></div>
+      <div><a href="https://github.com/yobotn/rigsweep">GitHub</a> · <a href="https://github.com/yobotn/rigsweep/blob/main/LICENSE">MIT</a> · <a href="#disclaimer" data-t="foot.disc"></a> · <a href="https://github.com/yobotn/rigsweep/issues" data-t="foot.issues"></a></div>
     </footer>
-  </div>
+  </main>
 
   <script>
     const T = {
       en: {
         "nav.features": "Features", "nav.trust": "Antivirus FAQ",
+        "hero.badge": "🆓 Free & open source · MIT",
         "hero.title": "Room for your <span>agents</span>.",
-        "hero.sub": "Free up RAM and CPU on Windows dev machines cluttered by AI-agent sessions, leftover Node servers and background Windows services. Every change is reversible.",
-        "hero.meta": "Free & open source (MIT) · Windows 10 / 11 · ~2 MB installer",
+        "hero.sub": "Free up RAM and CPU on Windows dev machines cluttered by AI-agent sessions, forgotten dev servers and background Windows services. Every change is reversible.",
+        "hero.meta": "Windows 10 / 11 · ~2 MB installer · English · Español · Français",
         "cta.download": "⬇️ Download for Windows", "cta.source": "⭐ View on GitHub", "cta.build": "🛠️ Build from source",
-        "story.h": "📖 Why it exists",
+        "eco.eyebrow": "Any dev stack", "eco.h": "Not just Node",
+        "eco.p": "Dev Cleanup finds leftover dev servers, build daemons and agent sessions across the stacks you actually use, plus the WSL 2 / Docker VM that quietly holds gigabytes.",
+        "story.eyebrow": "The story", "story.h": "📖 Why it exists",
         "story.p1": "In the AI era a dev laptop doesn't run one thing anymore. A normal day means several Claude Code sessions in different terminals, a dev server per project, build watchers, and a browser full of docs and previews.",
-        "story.p2": "Every session spawns more Node processes, and many keep running after you close the terminal. Task Manager only shows a wall of node.exe and chrome.exe, with no idea which session or project they belong to.",
-        "story.p3": "RigSweep shows what's actually using your machine, sweeps what's stale, and keeps every change reversible.",
+        "story.p2": "Every session spawns more processes, and many keep running after you close the terminal. Task Manager only shows a wall of node.exe, python.exe and chrome.exe, with no idea which session or project they belong to.",
+        "story.p3": "<strong>RigSweep shows what's actually using your machine, sweeps what's stale, and keeps every change reversible.</strong>",
         "stat.chrome": "🌐 Chrome (37 processes)", "stat.node": "⬢ Node + Claude (14 processes)", "stat.services": "🧩 Windows services running",
         "stat.cap": "Measured on the author's 32 GB laptop in the middle of a working day.",
-        "feat.h": "✨ What it does", "feat.lead": "Built for developers who live in terminals and AI agents, not for 'PC booster' tricks.",
-        "f1.h": "Dev Cleanup", "f1.p": "Finds orphaned and idle Node servers, watchers and agent CLIs (Claude Code, Codex…) with their whole process tree, project, RAM and ports.",
+        "feat.eyebrow": "Features", "feat.h": "✨ What it does", "feat.lead": "Built for developers who live in terminals and AI agents, not for 'PC booster' tricks.",
+        "f1.h": "Dev Cleanup", "f1.p": "Orphaned and idle dev servers, build daemons and agent CLIs across Node, Python, Java, .NET and more, each with its process tree, project, RAM and ports.",
         "f2.h": "Boost Report", "f2.p": "Real before/after measurements instead of fake percentages. You can copy them as Markdown and share your result.",
         "f3.h": "Chrome tab helper", "f3.p": "A tiny extension to sleep idle tabs, close duplicates and close tabs by pattern like localhost:*. It has no network access.",
         "f4.h": "Reversible tweaks", "f4.p": "Telemetry, Xbox, indexer, background apps and more, each with a risk level. Originals are backed up and restorable in one click.",
         "f5.h": "Process analyzer", "f5.p": "CPU, RAM and disk per process, plus which services hide inside each svchost.exe.",
         "f6.h": "3 languages", "f6.p": "English, Español and Français in the app, the installer and the Chrome extension.",
-        "clean.h": "🧹 Sweep stale sessions, safely",
+        "clean.eyebrow": "Dev Cleanup", "clean.h": "🧹 Sweep stale sessions, safely", "shot.cleanup": "Dev Cleanup",
         "clean.l1": "<b>Orphans</b>: their terminal is closed but they're still running, like the classic zombie localhost:3000.",
         "clean.l2": "<b>Idle agents in open terminals are never pre-selected</b>, because they're waiting for you.",
-        "clean.l3": "<b>Editor language servers are locked</b> (VS Code, Cursor, JetBrains…).",
+        "clean.l3": "<b>Editor language servers are locked</b> (VS Code, Cursor, JetBrains, Visual Studio…).",
         "clean.l4": "<b>Kills by process tree, never by port.</b> Each row is re-verified right before ending it, so two projects are never confused.",
-        "safe.h": "🛟 Every change is reversible",
+        "safe.eyebrow": "Reversible", "safe.h": "🛟 Every change can be undone", "shot.tweaks": "Tweaks",
         "safe.l1": "<b>Original values are backed up</b> in SQLite before the first change.",
         "safe.l2": "<b>System Restore point</b> before the first apply.",
         "safe.l3": "<b>Watchdog</b> re-applies tweaks that Windows Update silently reverted.",
         "safe.l4": "<b>Never touches</b> Windows Update, the Defender engine, or ~60 core services.",
-        "trust.h": "🛡️ Did Defender delete it?",
+        "trust.eyebrow": "Antivirus", "trust.h": "🛡️ Did Defender delete it?",
         "trust.p1": "RigSweep is open source but not code-signed yet. Tools that change services look like malware to machine-learning heuristics, so Defender may flag it by mistake (e.g. <code>Trojan:Win32/Bearfoos!ml</code>, where <code>!ml</code> means a heuristic guess).",
         "trust.p2": "The installer <b>asks</b> whether to exclude only its own folder, and the uninstaller removes that exclusion again. Code signing through SignPath Foundation is planned. <a href=\"https://github.com/yobotn/rigsweep#%EF%B8%8F-antivirus-false-positives\">Read the full FAQ →</a>",
+        "disc.h": "⚠️ Disclaimer",
+        "disc.p": "RigSweep changes Windows services, scheduled tasks, registry policies and Microsoft Defender settings, and it can end running processes. Every tweak is backed up and can be restored, and nothing happens without your confirmation, but you use it at your own risk. It is provided \"as is\", without warranty of any kind (MIT license). Review each change before applying it, keep your own backups, and don't use it on work- or school-managed devices without your IT team's approval. RigSweep is an independent project, not affiliated with Microsoft, Google, Anthropic, OpenAI or any other tool it mentions; all trademarks belong to their owners.",
         "start.h": "🚀 Give your agents some room", "start.p": "Install, take a baseline measurement, sweep, then measure again.",
-        "foot.l": "🧹 RigSweep · free forever under the MIT license", "foot.issues": "Report an issue",
+        "foot.l": "🧹 RigSweep · free forever under the MIT license", "foot.issues": "Report an issue", "foot.disc": "Disclaimer",
       },
       es: {
         "nav.features": "Funciones", "nav.trust": "FAQ antivirus",
+        "hero.badge": "🆓 Gratis y de código abierto · MIT",
         "hero.title": "Espacio para tus <span>agentes</span>.",
-        "hero.sub": "Libera RAM y CPU en equipos Windows de desarrollo saturados por sesiones de agentes IA, servidores Node olvidados y servicios de fondo de Windows. Cada cambio es reversible.",
-        "hero.meta": "Gratis y de código abierto (MIT) · Windows 10 / 11 · instalador de ~2 MB",
+        "hero.sub": "Libera RAM y CPU en equipos Windows de desarrollo saturados por sesiones de agentes IA, servidores dev olvidados y servicios de fondo de Windows. Cada cambio es reversible.",
+        "hero.meta": "Windows 10 / 11 · instalador de ~2 MB · English · Español · Français",
         "cta.download": "⬇️ Descargar para Windows", "cta.source": "⭐ Ver en GitHub", "cta.build": "🛠️ Compilar",
-        "story.h": "📖 Por qué existe",
+        "eco.eyebrow": "Cualquier stack", "eco.h": "No solo Node",
+        "eco.p": "La Limpieza dev encuentra servidores dev, daemons de compilación y sesiones de agentes olvidados en los stacks que realmente usas, además de la VM de WSL 2 / Docker que acapara gigas en silencio.",
+        "story.eyebrow": "La historia", "story.h": "📖 Por qué existe",
         "story.p1": "En la era de la IA un portátil de desarrollo ya no ejecuta una sola cosa. Un día normal significa varias sesiones de Claude Code en distintas terminales, un servidor dev por proyecto, watchers de compilación y un navegador lleno de documentación y previsualizaciones.",
-        "story.p2": "Cada sesión lanza más procesos de Node, y muchos siguen vivos al cerrar la terminal. El Administrador de tareas solo muestra una pared de node.exe y chrome.exe, sin decir a qué sesión o proyecto pertenecen.",
-        "story.p3": "RigSweep muestra qué está usando realmente tu equipo, barre lo que sobra y que cada cambio sea reversible.",
+        "story.p2": "Cada sesión lanza más procesos, y muchos siguen vivos al cerrar la terminal. El Administrador de tareas solo muestra una pared de node.exe, python.exe y chrome.exe, sin decir a qué sesión o proyecto pertenecen.",
+        "story.p3": "<strong>RigSweep muestra qué está usando realmente tu equipo, barre lo que sobra y que cada cambio sea reversible.</strong>",
         "stat.chrome": "🌐 Chrome (37 procesos)", "stat.node": "⬢ Node + Claude (14 procesos)", "stat.services": "🧩 Servicios de Windows activos",
         "stat.cap": "Medido en el portátil de 32 GB del autor en plena jornada de trabajo.",
-        "feat.h": "✨ Qué hace", "feat.lead": "Hecho para desarrolladores que viven en terminales y agentes IA, no para trucos de 'acelerador de PC'.",
-        "f1.h": "Limpieza dev", "f1.p": "Encuentra servidores Node, watchers y CLIs de agentes (Claude Code, Codex…) huérfanos o inactivos, con todo su árbol de procesos, proyecto, RAM y puertos.",
+        "feat.eyebrow": "Funciones", "feat.h": "✨ Qué hace", "feat.lead": "Hecho para desarrolladores que viven en terminales y agentes IA, no para trucos de 'acelerador de PC'.",
+        "f1.h": "Limpieza dev", "f1.p": "Servidores dev, daemons de compilación y CLIs de agentes huérfanos o inactivos en Node, Python, Java, .NET y más, cada uno con su árbol de procesos, proyecto, RAM y puertos.",
         "f2.h": "Informe de mejora", "f2.p": "Mediciones reales de antes y después en lugar de porcentajes inventados. Puedes copiarlas como Markdown y compartir tu resultado.",
         "f3.h": "Asistente de pestañas", "f3.p": "Una pequeña extensión para dormir pestañas inactivas, cerrar duplicadas y cerrar por patrón como localhost:*. No tiene acceso a red.",
         "f4.h": "Ajustes reversibles", "f4.p": "Telemetría, Xbox, indexador, apps en segundo plano y más, cada uno con nivel de riesgo. Los originales se respaldan y se restauran con un clic.",
         "f5.h": "Analizador de procesos", "f5.p": "CPU, RAM y disco por proceso, y qué servicios se esconden dentro de cada svchost.exe.",
         "f6.h": "3 idiomas", "f6.p": "English, Español y Français en la app, el instalador y la extensión de Chrome.",
-        "clean.h": "🧹 Barre sesiones inactivas, con seguridad",
+        "clean.eyebrow": "Limpieza dev", "clean.h": "🧹 Barre sesiones inactivas, con seguridad", "shot.cleanup": "Limpieza dev",
         "clean.l1": "<b>Huérfanos</b>: su terminal se cerró pero siguen en ejecución, como el clásico localhost:3000 zombi.",
         "clean.l2": "<b>Los agentes inactivos en terminales abiertas nunca se preseleccionan</b>, porque te están esperando.",
-        "clean.l3": "<b>Los servidores de lenguaje del editor están bloqueados</b> (VS Code, Cursor, JetBrains…).",
+        "clean.l3": "<b>Los servidores de lenguaje del editor están bloqueados</b> (VS Code, Cursor, JetBrains, Visual Studio…).",
         "clean.l4": "<b>Cierra por árbol de procesos, nunca por puerto.</b> Cada fila se vuelve a verificar justo antes de cerrarla, así que nunca se confunden dos proyectos.",
-        "safe.h": "🛟 Cada cambio es reversible",
+        "safe.eyebrow": "Reversible", "safe.h": "🛟 Cada cambio se puede deshacer", "shot.tweaks": "Ajustes",
         "safe.l1": "<b>Los valores originales se respaldan</b> en SQLite antes del primer cambio.",
         "safe.l2": "<b>Punto de restauración del sistema</b> antes de la primera aplicación.",
         "safe.l3": "<b>El vigilante</b> reaplica los ajustes que Windows Update revirtió sin avisar.",
         "safe.l4": "<b>Nunca toca</b> Windows Update, el motor de Defender ni ~60 servicios esenciales.",
-        "trust.h": "🛡️ ¿Defender lo borró?",
+        "trust.eyebrow": "Antivirus", "trust.h": "🛡️ ¿Defender lo borró?",
         "trust.p1": "RigSweep es de código abierto pero aún no está firmado. Las herramientas que cambian servicios parecen malware para la heurística de aprendizaje automático, así que Defender puede marcarlo por error (p. ej. <code>Trojan:Win32/Bearfoos!ml</code>, donde <code>!ml</code> indica una suposición heurística).",
         "trust.p2": "El instalador <b>pregunta</b> si quieres excluir solo su propia carpeta, y el desinstalador quita esa exclusión. La firma de código con SignPath Foundation está prevista. <a href=\"https://github.com/yobotn/rigsweep/blob/main/README.es.md#%EF%B8%8F-falsos-positivos-del-antivirus\">Leer la FAQ completa →</a>",
+        "disc.h": "⚠️ Aviso legal",
+        "disc.p": "RigSweep modifica servicios de Windows, tareas programadas, directivas del registro y la configuración de Microsoft Defender, y puede cerrar procesos en ejecución. Cada ajuste se respalda y se puede restaurar, y nada ocurre sin tu confirmación, pero lo usas bajo tu propia responsabilidad. Se proporciona \"tal cual\", sin garantía de ningún tipo (licencia MIT). Revisa cada cambio antes de aplicarlo, guarda tus propias copias de seguridad y no lo uses en equipos gestionados por tu empresa o centro educativo sin la aprobación de su equipo de TI. RigSweep es un proyecto independiente, sin relación con Microsoft, Google, Anthropic, OpenAI ni ninguna otra herramienta que mencione; todas las marcas pertenecen a sus dueños.",
         "start.h": "🚀 Dale espacio a tus agentes", "start.p": "Instala, toma una medición base, limpia y vuelve a medir.",
-        "foot.l": "🧹 RigSweep · gratis para siempre bajo licencia MIT", "foot.issues": "Reportar un problema",
+        "foot.l": "🧹 RigSweep · gratis para siempre bajo licencia MIT", "foot.issues": "Reportar un problema", "foot.disc": "Aviso legal",
       },
       fr: {
         "nav.features": "Fonctionnalités", "nav.trust": "FAQ antivirus",
+        "hero.badge": "🆓 Gratuit et open source · MIT",
         "hero.title": "De la place pour vos <span>agents</span>.",
-        "hero.sub": "Libérez RAM et CPU sur les machines de dev Windows encombrées par les sessions d'agents IA, les serveurs Node oubliés et les services Windows en arrière-plan. Chaque changement est réversible.",
-        "hero.meta": "Gratuit et open source (MIT) · Windows 10 / 11 · installateur d'environ 2 Mo",
+        "hero.sub": "Libérez RAM et CPU sur les machines de dev Windows encombrées par les sessions d'agents IA, les serveurs de dev oubliés et les services Windows en arrière-plan. Chaque changement est réversible.",
+        "hero.meta": "Windows 10 / 11 · installateur d'environ 2 Mo · English · Español · Français",
         "cta.download": "⬇️ Télécharger pour Windows", "cta.source": "⭐ Voir sur GitHub", "cta.build": "🛠️ Compiler",
-        "story.h": "📖 Pourquoi ce projet",
+        "eco.eyebrow": "Tous les stacks", "eco.h": "Pas seulement Node",
+        "eco.p": "Le Nettoyage dev trouve les serveurs de dev, daemons de build et sessions d'agents oubliés dans les stacks que vous utilisez vraiment, ainsi que la VM WSL 2 / Docker qui garde discrètement des gigaoctets.",
+        "story.eyebrow": "L'histoire", "story.h": "📖 Pourquoi ce projet",
         "story.p1": "À l'ère de l'IA, un portable de dev ne fait plus tourner une seule chose. Une journée normale, ce sont plusieurs sessions Claude Code dans différents terminaux, un serveur de dev par projet, des watchers de build et un navigateur rempli de docs et de previews.",
-        "story.p2": "Chaque session lance de nouveaux processus Node, et beaucoup continuent de tourner après la fermeture du terminal. Le Gestionnaire des tâches n'affiche qu'un mur de node.exe et chrome.exe, sans dire à quelle session ou quel projet ils appartiennent.",
-        "story.p3": "RigSweep montre ce qui utilise vraiment votre machine, balaie ce qui traîne, et garde chaque changement réversible.",
+        "story.p2": "Chaque session lance de nouveaux processus, et beaucoup continuent de tourner après la fermeture du terminal. Le Gestionnaire des tâches n'affiche qu'un mur de node.exe, python.exe et chrome.exe, sans dire à quelle session ou quel projet ils appartiennent.",
+        "story.p3": "<strong>RigSweep montre ce qui utilise vraiment votre machine, balaie ce qui traîne, et garde chaque changement réversible.</strong>",
         "stat.chrome": "🌐 Chrome (37 processus)", "stat.node": "⬢ Node + Claude (14 processus)", "stat.services": "🧩 Services Windows actifs",
         "stat.cap": "Mesuré sur le portable de 32 Go de l'auteur en pleine journée de travail.",
-        "feat.h": "✨ Ce qu'il fait", "feat.lead": "Pensé pour les développeurs qui vivent dans les terminaux et les agents IA, pas pour des astuces de « booster de PC ».",
-        "f1.h": "Nettoyage dev", "f1.p": "Trouve les serveurs Node, watchers et CLI d'agents (Claude Code, Codex…) orphelins ou inactifs, avec tout leur arbre de processus, leur projet, leur RAM et leurs ports.",
+        "feat.eyebrow": "Fonctionnalités", "feat.h": "✨ Ce qu'il fait", "feat.lead": "Pensé pour les développeurs qui vivent dans les terminaux et les agents IA, pas pour des astuces de « booster de PC ».",
+        "f1.h": "Nettoyage dev", "f1.p": "Serveurs de dev, daemons de build et CLI d'agents orphelins ou inactifs pour Node, Python, Java, .NET et plus, chacun avec son arbre de processus, son projet, sa RAM et ses ports.",
         "f2.h": "Rapport de gain", "f2.p": "De vraies mesures avant/après au lieu de pourcentages inventés. Vous pouvez les copier en Markdown et partager votre résultat.",
         "f3.h": "Assistant d'onglets", "f3.p": "Une petite extension pour mettre en veille les onglets inactifs, fermer les doublons et fermer par motif comme localhost:*. Elle n'a aucun accès réseau.",
         "f4.h": "Réglages réversibles", "f4.p": "Télémétrie, Xbox, indexeur, apps en arrière-plan et plus, chacun avec un niveau de risque. Les originaux sont sauvegardés et restaurables en un clic.",
         "f5.h": "Analyseur de processus", "f5.p": "CPU, RAM et disque par processus, et quels services se cachent dans chaque svchost.exe.",
         "f6.h": "3 langues", "f6.p": "English, Español et Français dans l'app, l'installateur et l'extension Chrome.",
-        "clean.h": "🧹 Balayez les sessions inactives, en sécurité",
+        "clean.eyebrow": "Nettoyage dev", "clean.h": "🧹 Balayez les sessions inactives, en sécurité", "shot.cleanup": "Nettoyage dev",
         "clean.l1": "<b>Orphelins</b> : leur terminal est fermé mais ils tournent encore, comme le classique localhost:3000 zombie.",
         "clean.l2": "<b>Les agents inactifs dans un terminal ouvert ne sont jamais présélectionnés</b>, car ils vous attendent.",
-        "clean.l3": "<b>Les serveurs de langage de l'éditeur sont verrouillés</b> (VS Code, Cursor, JetBrains…).",
+        "clean.l3": "<b>Les serveurs de langage de l'éditeur sont verrouillés</b> (VS Code, Cursor, JetBrains, Visual Studio…).",
         "clean.l4": "<b>Ferme par arbre de processus, jamais par port.</b> Chaque ligne est revérifiée juste avant la fermeture, donc deux projets ne sont jamais confondus.",
-        "safe.h": "🛟 Chaque changement est réversible",
+        "safe.eyebrow": "Réversible", "safe.h": "🛟 Chaque changement peut être annulé", "shot.tweaks": "Réglages",
         "safe.l1": "<b>Les valeurs d'origine sont sauvegardées</b> dans SQLite avant le premier changement.",
         "safe.l2": "<b>Point de restauration système</b> avant la première application.",
         "safe.l3": "<b>La surveillance</b> réapplique les réglages annulés en silence par Windows Update.",
         "safe.l4": "<b>Ne touche jamais</b> Windows Update, le moteur Defender ni ~60 services essentiels.",
-        "trust.h": "🛡️ Defender l'a supprimé ?",
+        "trust.eyebrow": "Antivirus", "trust.h": "🛡️ Defender l'a supprimé ?",
         "trust.p1": "RigSweep est open source mais pas encore signé. Les outils qui modifient des services ressemblent à des malwares pour l'heuristique d'apprentissage automatique, donc Defender peut le signaler à tort (ex. <code>Trojan:Win32/Bearfoos!ml</code>, où <code>!ml</code> désigne une supposition heuristique).",
         "trust.p2": "L'installateur <b>demande</b> si vous voulez exclure uniquement son propre dossier, et le désinstallateur retire cette exclusion. La signature de code via SignPath Foundation est prévue. <a href=\"https://github.com/yobotn/rigsweep/blob/main/README.fr.md#%EF%B8%8F-faux-positifs-antivirus\">Lire la FAQ complète →</a>",
+        "disc.h": "⚠️ Avertissement",
+        "disc.p": "RigSweep modifie des services Windows, des tâches planifiées, des stratégies du registre et la configuration de Microsoft Defender, et peut fermer des processus en cours. Chaque réglage est sauvegardé et restaurable, et rien ne se passe sans votre confirmation, mais vous l'utilisez à vos propres risques. Il est fourni « tel quel », sans aucune garantie (licence MIT). Vérifiez chaque changement avant de l'appliquer, gardez vos propres sauvegardes et ne l'utilisez pas sur un appareil géré par votre employeur ou votre école sans l'accord de leur service informatique. RigSweep est un projet indépendant, sans lien avec Microsoft, Google, Anthropic, OpenAI ni aucun autre outil mentionné ; toutes les marques appartiennent à leurs propriétaires.",
         "start.h": "🚀 Donnez de la place à vos agents", "start.p": "Installez, prenez une mesure de référence, balayez, puis mesurez à nouveau.",
-        "foot.l": "🧹 RigSweep · gratuit pour toujours sous licence MIT", "foot.issues": "Signaler un problème",
+        "foot.l": "🧹 RigSweep · gratuit pour toujours sous licence MIT", "foot.issues": "Signaler un problème", "foot.disc": "Avertissement",
       },
     };
     const IMG = { en: ["dashboard", "cleanup"], es: ["dashboard-es", "cleanup-es"], fr: ["dashboard-fr", "cleanup-fr"] };
@@ -306,14 +410,16 @@
       // trusted static strings from the table above (no user input)
       document.querySelectorAll("[data-t-html]").forEach((el) => (el.innerHTML = T[lang][el.dataset.tHtml] ?? T.en[el.dataset.tHtml]));
       document.querySelectorAll(".lang button").forEach((b) => b.classList.toggle("on", b.dataset.lang === lang));
-      document.getElementById("hero-img").src = `screenshots/${IMG[lang][0]}.png`;
-      document.getElementById("clean-img").src = `screenshots/${IMG[lang][1]}.png`;
+      document.getElementById("img-dashboard").src = `screenshots/${IMG[lang][0]}.png`;
+      document.getElementById("img-cleanup").src = `screenshots/${IMG[lang][1]}.png`;
       try { localStorage.setItem("lang", lang); } catch {}
     }
     document.querySelectorAll(".lang button").forEach((b) => b.addEventListener("click", () => apply(b.dataset.lang)));
     let initial = "en";
     try { initial = localStorage.getItem("lang") || (navigator.language || "en").slice(0, 2); } catch {}
     apply(initial);
+    const nav = document.getElementById("nav");
+    addEventListener("scroll", () => nav.classList.toggle("scrolled", scrollY > 8), { passive: true });
   </script>
 </body>
 </html>

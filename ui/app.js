@@ -262,6 +262,10 @@ $("#btn-reapply").onclick = async (e) => {
 
 // ---------- dev cleanup ----------
 const devKey = (p) => `${p.pid}:${p.start_time}`;
+// ecosystem names are proper nouns, so only "agent" / "VM" are translated
+const ECO = { node: "⬢ Node", python: "🐍 Python", java: "☕ Java", dotnet: "🟣 .NET", ruby: "💎 Ruby",
+  php: "🐘 PHP", rust: "🦀 Rust", go: "🐹 Go" };
+const ecoLabel = (p) => p.kind === "agent" ? t("kind.agent") : p.kind === "vm" ? t("kind.vm") : (ECO[p.eco] || p.eco);
 
 async function loadDev(btn) {
   busy(btn, true);
@@ -288,11 +292,11 @@ function renderDev() {
     const badges = reasons.map((r) => `<span class="badge ${r}">${esc(t("reason." + r, { o: p.owner }))}</span>`).join(" ");
     return `<tr class="${p.stale ? "stale" : ""} ${p.protected ? "locked" : ""}">
       <td>${p.protected ? "🔒" : `<input type="checkbox" data-dev="${esc(k)}" ${devSel.has(k) ? "checked" : ""} />`}</td>
-      <td><b>${esc(p.label)}</b> <span class="sub">${esc(t("kind." + p.kind))}</span>
+      <td><b>${esc(p.label)}</b> <span class="eco ${esc(p.eco)}">${esc(ecoLabel(p))}</span>
         <div class="sub" title="${esc(p.cmd)}">PID ${p.pid} · ${esc(p.parent_name || "—")} · ${p.tree_count} proc</div></td>
       <td>${esc(p.project || "—")}</td>
-      <td class="num">${fmtAge(p.age_secs)}</td>
-      <td class="num">${fmtBytes(p.tree_mem)}</td>
+      <td class="num">${p.age_secs ? fmtAge(p.age_secs) : "—"}</td>
+      <td class="num">${p.tree_mem ? fmtBytes(p.tree_mem) : "—"}</td>
       <td>${p.ports.length ? p.ports.slice(0, 4).map((x) => `<code>${x}</code>`).join(" ") + (p.ports.length > 4 ? " …" : "") : "–"}</td>
       <td>${badges}</td>
     </tr>`;
@@ -313,6 +317,7 @@ $("#btn-clean-end").onclick = async (e) => {
   const html = `<p>${esc(t("clean.confirm.body"))}</p><ul>${picked.map((p) =>
     `<li><b>${esc(p.label)}</b> <span class="sub">${esc(p.project || "—")}${p.ports.length ? " · :" + p.ports.slice(0, 3).join(", :") : ""} · ${fmtBytes(p.tree_mem)} · PID ${p.pid} (+${p.tree_count - 1})</span></li>`).join("")}</ul>
     ${serving ? `<p class="warn-text">${esc(t("clean.serving.warn", { n: serving }))}</p>` : ""}
+    ${picked.some((p) => p.kind === "vm") ? `<p class="warn-text">${esc(t("clean.vm.warn"))}</p>` : ""}
     ${agents ? `<p class="sub">💡 <code>claude --resume</code> / <code>codex resume</code></p>` : ""}`;
   if (!(await modal(t("clean.confirm.title", { n: picked.length }), html, { okText: t("clean.end"), danger: true }))) return;
   busy(e.target, true);
@@ -640,10 +645,18 @@ listen("profile-changed", (e) => {
 listen("paused-changed", (e) => setPaused(e.payload));
 listen("request-restore-all", () => { showTab("history"); restoreAll(); });
 
+// ---------- disclaimer ----------
+async function ensureDisclaimer() {
+  if (safeGet("disclaimer_v1") === "1") return;
+  await modal(t("disc.title"), `<p>${esc(t("disc.body"))}</p>`, { okText: t("disc.accept"), cancel: false });
+  safeSet("disclaimer_v1", "1");
+}
+
 // ---------- boot ----------
 (async () => {
   applyI18n();
   await loadState().catch(() => {});
   currentTab = safeGet("tab") || "dashboard";
   rerender();
+  ensureDisclaimer();
 })();

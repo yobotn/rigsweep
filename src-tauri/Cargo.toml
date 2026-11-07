@@ -1,7 +1,7 @@
 [package]
 name = "rigsweep"
-version = "0.2.0"
-description = "Free resources on Windows dev machines cluttered by AI-agent sessions"
+version = "0.3.0"
+description = "Free resources on Windows dev machines cluttered by AI-agent sessions and stale dev processes"
 license = "MIT"
 repository = "https://github.com/yobotn/rigsweep"
 edition = "2021"
