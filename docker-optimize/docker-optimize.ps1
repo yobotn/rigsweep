@@ -11,9 +11,9 @@
   Containers, images and volumes are never removed. No prune, no VHD compaction.
 
 .EXAMPLE
-  powershell -ExecutionPolicy Bypass -File scripts\tune-docker-wsl.ps1
-  powershell -ExecutionPolicy Bypass -File scripts\tune-docker-wsl.ps1 -Apply
-  powershell -ExecutionPolicy Bypass -File scripts\tune-docker-wsl.ps1 -Revert
+  powershell -ExecutionPolicy Bypass -File docker-optimize\docker-optimize.ps1
+  powershell -ExecutionPolicy Bypass -File docker-optimize\docker-optimize.ps1 -Apply
+  powershell -ExecutionPolicy Bypass -File docker-optimize\docker-optimize.ps1 -Revert
 #>
 [CmdletBinding()]
 param(
@@ -179,7 +179,7 @@ function Confirm-Go([string]$Msg) {
 }
 
 # ================================================================ Phase 0: inspect
-Write-Host 'RigSweep - Docker / WSL one-time tuning' -ForegroundColor White
+Write-Host 'RigSweep docker-optimize - one-time Docker Desktop / WSL tuning' -ForegroundColor White
 $mode = 'DRY RUN (nothing will change)'
 if ($Apply) { $mode = 'APPLY' } elseif ($Revert) { $mode = 'REVERT' }
 Write-Host "Mode: $mode"
