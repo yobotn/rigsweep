@@ -6,6 +6,7 @@ use tauri::State;
 
 use crate::actions::defender;
 use crate::analyzer::{Analyzer, Metrics, Snapshot};
+use crate::browserclean::{self, BrowserReport, CleanResult, CleanTarget};
 use crate::devclean::{self, DevReport, KillResult, KillTarget};
 use crate::catalog::{custom_service_tweak, Category, Tweak};
 use crate::db::{Db, HistoryRow, SnapshotRow};
@@ -342,6 +343,30 @@ pub async fn kill_dev_processes(state: State<'_, AppState>, targets: Vec<KillTar
     let before = db.add_snapshot("before cleanup", &serde_json::to_value(before).map_err(err)?).map_err(err)?;
     let after = db.add_snapshot("after cleanup", &serde_json::to_value(after).map_err(err)?).map_err(err)?;
     Ok(CleanupResponse { result, before, after })
+}
+
+// ---------- browser cleanup ----------
+
+#[tauri::command]
+pub async fn get_browser_caches() -> R<BrowserReport> {
+    tauri::async_runtime::spawn_blocking(browserclean::report).await.map_err(err)
+}
+
+/// Empty the selected caches. Paths are re-derived from (browser, profile, key) on this side.
+#[tauri::command]
+pub async fn clean_browser_caches(state: State<'_, AppState>, targets: Vec<CleanTarget>) -> R<CleanResult> {
+    let r = tauri::async_runtime::spawn_blocking(move || browserclean::clean(&targets)).await.map_err(err)?;
+    let db = lock(&state)?;
+    for c in &r.cleaned {
+        db.log("gui", None, "browser_clean", true, c);
+    }
+    for b in &r.skipped_running {
+        db.log("gui", None, "browser_clean", false, &format!("{b} is open, skipped"));
+    }
+    if r.freed > 0 {
+        db.log("gui", None, "browser_clean", true, &format!("freed {:.1} MB, {} locked file(s) left", r.freed as f64 / 1048576.0, r.locked_files));
+    }
+    Ok(r)
 }
 
 // ---------- boost report ----------

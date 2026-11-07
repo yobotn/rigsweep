@@ -2,6 +2,7 @@
 
 mod actions;
 mod analyzer;
+mod browserclean;
 mod catalog;
 mod commands;
 mod db;
@@ -105,6 +106,8 @@ fn run_app(start_hidden: bool) {
             commands::import_profile,
             commands::get_dev_processes,
             commands::kill_dev_processes,
+            commands::get_browser_caches,
+            commands::clean_browser_caches,
             commands::take_snapshot,
             commands::get_snapshots,
             commands::clear_snapshots,

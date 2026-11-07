@@ -93,6 +93,7 @@ function showTab(name) {
   if (name === "processes") { loadProcesses(); procTimer = setInterval(() => $("#proc-auto").checked && loadProcesses(), 3000); }
   if (name === "dashboard") loadDashboard();
   if (name === "cleanup") loadDev();
+  if (name === "browser") loadBrowsers();
   if (name === "report") loadSnapshots();
   if (name === "history") loadHistory();
   if (name === "settings") renderSettings();
@@ -330,6 +331,83 @@ $("#btn-clean-end").onclick = async (e) => {
     picked.forEach((p) => devSel.delete(devKey(p)));
   } finally { busy(e.target, false); }
   loadDev();
+};
+
+// ---------- browser cleanup ----------
+let bc = null;            // BrowserReport
+let bcSel = new Set();    // "browser|profile|key"
+let bcSeen = new Set();
+const bcKey = (b, p, i) => `${b.id}|${p.dir}|${i.key}`;
+const bcRows = () => (bc?.browsers || []).flatMap((b) => b.profiles.flatMap((p) => p.items.map((i) => ({ b, p, i, k: bcKey(b, p, i) }))));
+const bcPreselect = (r) => r.i.tier === "safe" && r.i.bytes >= 1048576 && !r.b.running;
+
+async function loadBrowsers(btn) {
+  busy(btn, true, t("bc.scanning"));
+  if (!bc) $("#bc-body").innerHTML = `<tr><td colspan="5" class="loading">${esc(t("bc.scanning"))}</td></tr>`;
+  try { bc = await call("get_browser_caches"); } finally { busy(btn, false); }
+  const rows = bcRows(), keys = new Set(rows.map((r) => r.k));
+  bcSel = new Set([...bcSel].filter((k) => keys.has(k)));
+  rows.forEach((r) => {
+    if (r.b.running) bcSel.delete(r.k);
+    else if (!bcSeen.has(r.k) && bcPreselect(r)) bcSel.add(r.k);
+    bcSeen.add(r.k);
+  });
+  renderBrowsers();
+}
+
+function renderBrowsers() {
+  if (!bc) return;
+  if (!bc.browsers.length) {
+    $("#bc-summary").textContent = "";
+    $("#bc-body").innerHTML = `<tr><td colspan="5" class="loading">${esc(t("bc.none"))}</td></tr>`;
+    return;
+  }
+  const picked = bcRows().filter((r) => bcSel.has(r.k)).reduce((a, r) => a + r.i.bytes, 0);
+  $("#bc-summary").textContent = t("bc.summary", { safe: fmtBytes(bc.safe_total), site: fmtBytes(bc.site_total), sel: fmtBytes(picked) });
+  const total = (p) => p.items.reduce((a, i) => a + i.bytes, 0);
+  $("#bc-body").innerHTML = bc.browsers.map((b) => {
+    const head = `<tr class="group"><td colspan="5"><b>${esc(b.name)}</b> <span class="sub">${fmtBytes(b.profiles.reduce((a, p) => a + total(p), 0))}</span>
+      ${b.running ? ` <span class="badge idle">${esc(t("bc.running"))}</span>${b.id === "edge" ? `<div class="sub">${esc(t("bc.edgeHint"))}</div>` : ""}` : ""}</td></tr>`;
+    const profs = [...b.profiles].sort((x, y) => (x.dir === "") - (y.dir === "") || total(y) - total(x));
+    return head + profs.map((p) => p.items.map((i, n) => {
+      const k = bcKey(b, p, i);
+      const pname = p.dir === "" ? t("bc.shared") : p.name;
+      const showDir = p.dir && p.dir !== "." && p.dir !== p.name;
+      return `<tr class="${b.running ? "locked" : ""}">
+        <td>${b.running ? "🔒" : `<input type="checkbox" data-bc="${esc(k)}" ${bcSel.has(k) ? "checked" : ""} />`}</td>
+        <td>${n === 0 ? `<b>${esc(pname)}</b>${showDir ? `<div class="sub">${esc(p.dir)}</div>` : ""}` : ""}</td>
+        <td>${esc(t("bc.item." + i.key))}</td>
+        <td><span class="risk ${i.tier === "safe" ? "safe" : "caution"}">${esc(t("bc.tier." + i.tier))}</span></td>
+        <td class="num">${fmtBytes(i.bytes)}</td>
+      </tr>`;
+    }).join("")).join("");
+  }).join("");
+}
+
+$("#bc-body").addEventListener("change", (e) => {
+  const k = e.target.dataset.bc;
+  if (k) { e.target.checked ? bcSel.add(k) : bcSel.delete(k); renderBrowsers(); }
+});
+$("#btn-bc-scan").onclick = (e) => loadBrowsers(e.target);
+$("#btn-bc-safe").onclick = () => { bcRows().filter((r) => r.i.tier === "safe" && !r.b.running && r.i.bytes > 0).forEach((r) => bcSel.add(r.k)); renderBrowsers(); };
+$("#btn-bc-clean").onclick = async (e) => {
+  const picked = bcRows().filter((r) => bcSel.has(r.k) && !r.b.running);
+  if (!picked.length) return toast(t("bc.nothing"));
+  const size = picked.reduce((a, r) => a + r.i.bytes, 0);
+  const site = picked.filter((r) => r.i.tier === "site");
+  const html = `<p>${esc(t("bc.confirm.body"))}</p><ul>${picked.map((r) =>
+    `<li><b>${esc(r.b.name)}</b> · ${esc(r.p.dir === "" ? t("bc.shared") : r.p.name)} · ${esc(t("bc.item." + r.i.key))} <span class="sub">${fmtBytes(r.i.bytes)}</span></li>`).join("")}</ul>
+    ${site.length ? `<p class="warn-text">${esc(t("bc.site.warn"))}</p>` : ""}`;
+  if (!(await modal(t("bc.confirm.title", { size: fmtBytes(size) }), html, { okText: t("bc.clean"), danger: site.length > 0 }))) return;
+  busy(e.target, true);
+  try {
+    const r = await call("clean_browser_caches", { targets: picked.map((x) => ({ browser: x.b.id, profile: x.p.dir, key: x.i.key })) });
+    let msg = t("bc.done", { mem: fmtBytes(r.freed) });
+    if (r.locked_files) msg += "\n" + t("bc.locked", { n: r.locked_files });
+    if (r.skipped_running.length) msg += "\n" + t("bc.skipped", { b: r.skipped_running.join(", ") });
+    toast(msg, r.skipped_running.length > 0, 9000);
+  } finally { busy(e.target, false); }
+  loadBrowsers();
 };
 
 // ---------- boost report ----------

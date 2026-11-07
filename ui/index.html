@@ -12,6 +12,7 @@
     <nav>
       <button data-tab="dashboard" class="active" data-i18n="nav.dashboard"></button>
       <button data-tab="cleanup" data-i18n="nav.cleanup"></button>
+      <button data-tab="browser" data-i18n="nav.browser"></button>
       <button data-tab="report" data-i18n="nav.report"></button>
       <button data-tab="tweaks" data-i18n="nav.tweaks"></button>
       <button data-tab="processes" data-i18n="nav.processes"></button>
@@ -68,6 +69,27 @@
           <th data-i18n="clean.col.ports"></th><th data-i18n="clean.col.status"></th>
         </tr></thead>
         <tbody id="clean-body"><tr><td colspan="7" class="loading">…</td></tr></tbody>
+      </table>
+    </section>
+
+    <!-- BROWSER CLEANUP -->
+    <section id="tab-browser" class="tab">
+      <header>
+        <h1 data-i18n="bc.title"></h1>
+        <div class="actions">
+          <button id="btn-bc-scan" class="ghost" data-i18n="bc.scan"></button>
+          <button id="btn-bc-safe" class="ghost" data-i18n="bc.selectSafe"></button>
+          <button id="btn-bc-clean" class="danger" data-i18n="bc.clean"></button>
+        </div>
+      </header>
+      <p class="hint" data-i18n="bc.hint"></p>
+      <div id="bc-summary" class="summary"></div>
+      <table class="tbl">
+        <thead><tr>
+          <th></th><th data-i18n="bc.col.profile"></th><th data-i18n="bc.col.what"></th>
+          <th data-i18n="bc.col.type"></th><th class="num" data-i18n="bc.col.size"></th>
+        </tr></thead>
+        <tbody id="bc-body"><tr><td colspan="5" class="loading">…</td></tr></tbody>
       </table>
     </section>
 

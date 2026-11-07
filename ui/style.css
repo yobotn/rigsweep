@@ -172,3 +172,5 @@ code { font-family: Consolas, monospace; font-size: 12px; background: var(--pane
 .eco.dotnet { color: #b392f0; } .eco.ruby { color: #ff6b6b; } .eco.php { color: #8892bf; }
 .eco.rust { color: #f0a070; } .eco.go { color: #4fd1e8; } .eco.wsl { color: #4f8cff; } .eco.agent { color: #34c38f; }
 .badge.daemon { color: #b392f0; background: #b392f01f; }
+
+tr.group td { background: var(--panel2); padding-top: 9px; padding-bottom: 9px; }
