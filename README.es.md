@@ -4,6 +4,8 @@
 
 **Espacio para tus agentes.** Libera RAM, CPU y disco en equipos Windows de desarrollo saturados por sesiones de agentes IA.
 
+**[🌐 Sitio web](https://yobotn.github.io/rigsweep/)** · **[⬇️ Descargar](https://github.com/yobotn/rigsweep/releases/latest)** · **[📖 FAQ antivirus](#%EF%B8%8F-falsos-positivos-del-antivirus)**
+
 [🇬🇧 English](README.md) · 🇪🇸 Español · [🇫🇷 Français](README.fr.md)
 
 ![Windows 10/11](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows)
@@ -140,18 +142,8 @@ Consulta el [README en inglés](README.md#-build-from-source) para la CLI, las p
 
 ¿Vienes de **aiBoost** (el nombre anterior)? Tu base de datos se migra automáticamente en el primer inicio.
 
-## 🐳 Ajuste de Docker / WSL (script de una sola vez)
-La VM WSL2 de Docker Desktop puede crecer hasta la mitad de tu RAM y no devolverla. Es un cambio de configuración puntual, así que vive en un script y no en la app: [`scripts/tune-docker-wsl.ps1`](scripts/tune-docker-wsl.ps1).
-
-- Escribe `%USERPROFILE%\.wslconfig` (límite de memoria = RAM/4, la mitad de las CPU, `autoMemoryReclaim=gradual`, `sparseVhd=true`), fusionándolo con el archivo existente.
-- En Docker Desktop: activa Resource Saver; desactiva Kubernetes, extensiones, indexado SBOM y Ask Gordon.
-- Hace copia de seguridad antes (`%USERPROFILE%\.rigsweep\docker-wsl-backup`), reinicia WSL/Docker, vuelve a arrancar los contenedores que estaban en marcha y comprueba que siguen todos los contenedores, imágenes y volúmenes. **Nunca borra nada.**
-
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts	une-docker-wsl.ps1          # simulación
-powershell -ExecutionPolicy Bypass -File scripts	une-docker-wsl.ps1 -Apply   # aplicar
-powershell -ExecutionPolicy Bypass -File scripts	une-docker-wsl.ps1 -Revert  # deshacer
-```
+## 🐳 docker-optimize (herramienta aparte)
+No forma parte de la app. [`docker-optimize/`](docker-optimize/) es un script independiente, reversible y de una sola vez que limita la VM WSL2 de Docker Desktop (memoria, CPU, devolución de RAM, disco disperso) y desactiva extras de Docker Desktop que no necesitas. Nunca borra contenedores, imágenes ni volúmenes. Consulta su [README](docker-optimize/README.md) (en inglés).
 
 ## ⚠️ Aviso legal
 

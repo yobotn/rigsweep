@@ -4,6 +4,8 @@
 
 **Room for your agents.** Free up RAM, CPU and disk on Windows dev machines cluttered by AI-agent sessions.
 
+**[🌐 Homepage](https://yobotn.github.io/rigsweep/)** · **[⬇️ Download](https://github.com/yobotn/rigsweep/releases/latest)** · **[📖 Antivirus FAQ](#%EF%B8%8F-antivirus-false-positives)**
+
 🇬🇧 English · [🇪🇸 Español](README.es.md) · [🇫🇷 Français](README.fr.md)
 
 ![Windows 10/11](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows)
@@ -162,18 +164,8 @@ cargo test live_dev_scan -- --ignored --nocapture   # read-only: what Dev Cleanu
 ### ➕ Adding tweaks
 Add an entry to [`catalog/tweaks.json`](src-tauri/catalog/tweaks.json). Action types are `service` (start: disabled|manual), `task` (path), `registry` (HKLM|HKCU, dword|string), `defender_exclusion` and `power_plan`. `caution` items must include a `warning`. `cargo test` rejects protected services and malformed entries.
 
-## 🐳 Docker / WSL tuning (one-time script)
-Docker Desktop's WSL2 VM can grow to half your RAM and keep it. This is a one-time config change, so it lives in a script rather than in the app: [`scripts/tune-docker-wsl.ps1`](scripts/tune-docker-wsl.ps1).
-
-- Writes `%USERPROFILE%\.wslconfig` (memory cap = RAM/4, half the CPUs, `autoMemoryReclaim=gradual`, `sparseVhd=true`), merging with any existing file.
-- Sets Docker Desktop: Resource Saver on; Kubernetes, extensions, SBOM indexing and Ask Gordon off.
-- Backs up first (`%USERPROFILE%\.rigsweep\docker-wsl-backup`), restarts WSL/Docker, restarts the containers that were running, and checks that every container, image and volume is still there. **Nothing is ever deleted.**
-
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts	une-docker-wsl.ps1          # dry run
-powershell -ExecutionPolicy Bypass -File scripts	une-docker-wsl.ps1 -Apply   # apply
-powershell -ExecutionPolicy Bypass -File scripts	une-docker-wsl.ps1 -Revert  # undo
-```
+## 🐳 docker-optimize (separate tool)
+Not part of the app. [`docker-optimize/`](docker-optimize/) is a standalone, reversible one-time script that caps Docker Desktop's WSL2 VM (memory, CPU, RAM reclaim, sparse disk) and turns off Docker Desktop extras you don't need. It never deletes containers, images or volumes. See its [README](docker-optimize/README.md).
 
 ## 🗂️ Where things live
 | What | Where |
