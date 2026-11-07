@@ -118,6 +118,9 @@
       background: radial-gradient(ellipse at top, rgba(79,140,255,.16), transparent 70%), var(--panel); border: 1px solid var(--border); }
     .final .lead { margin-bottom: var(--s3); }
 
+    .signing { max-width: 680px; margin: var(--s4) auto 0; padding-top: var(--s3); border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; }
+    .signing h3 { color: var(--text); font-size: 16px; margin: 0 0 var(--s1); }
+    .signing p { margin: 0 0 var(--s1); }
     footer { margin-top: var(--s5); padding: var(--s3) 0 var(--s4); border-top: 1px solid var(--border); color: var(--muted); font-size: 14px;
       display: flex; justify-content: space-between; gap: var(--s2); flex-wrap: wrap; }
 
@@ -263,12 +266,17 @@
       <div class="note disc"><p data-t="disc.p"></p></div>
     </section>
 
-    <div class="final">
+    <div class="final" id="download">
       <h2 data-t="start.h"></h2>
       <p class="lead" data-t="start.p"></p>
       <div class="cta">
         <a class="btn primary" href="https://github.com/yobotn/rigsweep/releases/latest" data-t="cta.download"></a>
         <a class="btn" href="https://github.com/yobotn/rigsweep#-build-from-source" data-t="cta.build"></a>
+      </div>
+      <div class="signing">
+        <h3 data-t="sign.h"></h3>
+        <p data-t="sign.p"></p>
+        <a href="https://github.com/yobotn/rigsweep#-code-signing-policy" data-t="sign.link"></a>
       </div>
     </div>
 
@@ -317,7 +325,7 @@
         "trust.p2": "The installer <b>asks</b> whether to exclude only its own folder, and the uninstaller removes that exclusion again. Code signing through SignPath Foundation is planned. <a href=\"https://github.com/yobotn/rigsweep#%EF%B8%8F-antivirus-false-positives\">Read the full FAQ →</a>",
         "disc.h": "⚠️ Disclaimer",
         "disc.p": "RigSweep changes Windows services, scheduled tasks, registry policies and Microsoft Defender settings, and it can end running processes. Every tweak is backed up and can be restored, and nothing happens without your confirmation, but you use it at your own risk. It is provided \"as is\", without warranty of any kind (MIT license). Review each change before applying it, keep your own backups, and don't use it on work- or school-managed devices without your IT team's approval. RigSweep is an independent project, not affiliated with Microsoft, Google, Anthropic, OpenAI or any other tool it mentions; all trademarks belong to their owners.",
-        "start.h": "🚀 Give your agents some room", "start.p": "Install, take a baseline measurement, sweep, then measure again.",
+        "sign.h": "🔏 Code signing", "sign.p": "Free code signing provided by SignPath.io, certificate by SignPath Foundation (application in progress; current releases are not signed yet). Installers are built from the tagged source by GitHub Actions. RigSweep sends nothing over the network: no telemetry, no analytics.", "sign.link": "Code signing & privacy policy →", "start.h": "🚀 Give your agents some room", "start.p": "Install, take a baseline measurement, sweep, then measure again.",
         "foot.l": "🧹 RigSweep · free forever under the MIT license", "foot.issues": "Report an issue", "foot.disc": "Disclaimer",
       },
       es: {
@@ -357,7 +365,7 @@
         "trust.p2": "El instalador <b>pregunta</b> si quieres excluir solo su propia carpeta, y el desinstalador quita esa exclusión. La firma de código con SignPath Foundation está prevista. <a href=\"https://github.com/yobotn/rigsweep/blob/main/README.es.md#%EF%B8%8F-falsos-positivos-del-antivirus\">Leer la FAQ completa →</a>",
         "disc.h": "⚠️ Aviso legal",
         "disc.p": "RigSweep modifica servicios de Windows, tareas programadas, directivas del registro y la configuración de Microsoft Defender, y puede cerrar procesos en ejecución. Cada ajuste se respalda y se puede restaurar, y nada ocurre sin tu confirmación, pero lo usas bajo tu propia responsabilidad. Se proporciona \"tal cual\", sin garantía de ningún tipo (licencia MIT). Revisa cada cambio antes de aplicarlo, guarda tus propias copias de seguridad y no lo uses en equipos gestionados por tu empresa o centro educativo sin la aprobación de su equipo de TI. RigSweep es un proyecto independiente, sin relación con Microsoft, Google, Anthropic, OpenAI ni ninguna otra herramienta que mencione; todas las marcas pertenecen a sus dueños.",
-        "start.h": "🚀 Dale espacio a tus agentes", "start.p": "Instala, toma una medición base, limpia y vuelve a medir.",
+        "sign.h": "🔏 Firma de código", "sign.p": "Firma de código gratuita proporcionada por SignPath.io, certificado de SignPath Foundation (solicitud en curso; las versiones actuales aún no están firmadas). Los instaladores se compilan desde el código etiquetado con GitHub Actions. RigSweep no envía nada por la red: sin telemetría ni analíticas.", "sign.link": "Política de firma y privacidad →", "start.h": "🚀 Dale espacio a tus agentes", "start.p": "Instala, toma una medición base, limpia y vuelve a medir.",
         "foot.l": "🧹 RigSweep · gratis para siempre bajo licencia MIT", "foot.issues": "Reportar un problema", "foot.disc": "Aviso legal",
       },
       fr: {
@@ -397,7 +405,7 @@
         "trust.p2": "L'installateur <b>demande</b> si vous voulez exclure uniquement son propre dossier, et le désinstallateur retire cette exclusion. La signature de code via SignPath Foundation est prévue. <a href=\"https://github.com/yobotn/rigsweep/blob/main/README.fr.md#%EF%B8%8F-faux-positifs-antivirus\">Lire la FAQ complète →</a>",
         "disc.h": "⚠️ Avertissement",
         "disc.p": "RigSweep modifie des services Windows, des tâches planifiées, des stratégies du registre et la configuration de Microsoft Defender, et peut fermer des processus en cours. Chaque réglage est sauvegardé et restaurable, et rien ne se passe sans votre confirmation, mais vous l'utilisez à vos propres risques. Il est fourni « tel quel », sans aucune garantie (licence MIT). Vérifiez chaque changement avant de l'appliquer, gardez vos propres sauvegardes et ne l'utilisez pas sur un appareil géré par votre employeur ou votre école sans l'accord de leur service informatique. RigSweep est un projet indépendant, sans lien avec Microsoft, Google, Anthropic, OpenAI ni aucun autre outil mentionné ; toutes les marques appartiennent à leurs propriétaires.",
-        "start.h": "🚀 Donnez de la place à vos agents", "start.p": "Installez, prenez une mesure de référence, balayez, puis mesurez à nouveau.",
+        "sign.h": "🔏 Signature de code", "sign.p": "Signature de code gratuite fournie par SignPath.io, certificat de SignPath Foundation (demande en cours ; les versions actuelles ne sont pas encore signées). Les installateurs sont compilés à partir du code tagué par GitHub Actions. RigSweep n'envoie rien sur le réseau : ni télémétrie, ni analytique.", "sign.link": "Politique de signature et de confidentialité →", "start.h": "🚀 Donnez de la place à vos agents", "start.p": "Installez, prenez une mesure de référence, balayez, puis mesurez à nouveau.",
         "foot.l": "🧹 RigSweep · gratuit pour toujours sous licence MIT", "foot.issues": "Signaler un problème", "foot.disc": "Avertissement",
       },
     };

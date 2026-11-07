@@ -128,7 +128,7 @@ RigSweep is open source but **not code-signed yet**. Tools that change services 
 What we do about it:
 - ❓ **Installer prompt (opt-in):** "Allow RigSweep in Microsoft Defender?" Yes excludes **only the install folder**, and the uninstaller removes that exclusion again. Silent installs never add one.
 - 🛠️ **Settings → 🛡️ Antivirus trust:** see the status, and add or remove the exclusion at any time.
-- ✍️ **Code signing is planned** through [SignPath Foundation](https://signpath.org) (free for open-source projects). That's the real fix.
+- ✍️ **Code signing is planned** through [SignPath Foundation](https://signpath.org) (free for open-source projects). That's the real fix. See the [code signing policy](#-code-signing-policy).
 
 If it already got deleted: **Windows Security → Virus & threat protection → Protection history →** pick the RigSweep entry → **Actions → Restore**. Only do this for a download from this repo's Releases page, or for a build you made yourself. You can also [report the false positive to Microsoft](https://www.microsoft.com/wdsi/filesubmission) yourself.
 
@@ -175,6 +175,18 @@ Not part of the app. [`docker-optimize/`](docker-optimize/) is a standalone, rev
 | Exported profiles | `Documents\RigSweep-profile-*.json` |
 
 Coming from **aiBoost** (the old name)? Your database is migrated automatically on first start, and the old startup task is replaced.
+
+## 🔏 Code signing policy
+
+Free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/).
+*(Application in progress: releases up to v0.3.0 are **not signed** yet.)*
+
+- **Builds:** release installers are built from the tagged source by [GitHub Actions](.github/workflows/release.yml) on GitHub-hosted runners. Only those builds will be submitted for signing.
+- **Committers and reviewers:** [@yobotn](https://github.com/yobotn)
+- **Approvers:** [@yobotn](https://github.com/yobotn)
+
+### 🔒 Privacy policy
+This program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it. RigSweep has no telemetry, no analytics and no update check, and the Chrome extension makes no network requests. Everything it stores (backups, history, measurements) stays in `%ProgramData%\RigSweep` on your PC.
 
 ## ⚠️ Disclaimer
 

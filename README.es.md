@@ -145,6 +145,18 @@ Consulta el [README en inglés](README.md#-build-from-source) para la CLI, las p
 ## 🐳 docker-optimize (herramienta aparte)
 No forma parte de la app. [`docker-optimize/`](docker-optimize/) es un script independiente, reversible y de una sola vez que limita la VM WSL2 de Docker Desktop (memoria, CPU, devolución de RAM, disco disperso) y desactiva extras de Docker Desktop que no necesitas. Nunca borra contenedores, imágenes ni volúmenes. Consulta su [README](docker-optimize/README.md) (en inglés).
 
+## 🔏 Política de firma de código
+
+Firma de código gratuita proporcionada por [SignPath.io](https://about.signpath.io/), certificado de [SignPath Foundation](https://signpath.org/).
+*(Solicitud en curso: las versiones hasta la v0.3.0 aún **no están firmadas**.)*
+
+- **Compilaciones:** los instaladores se compilan desde el código etiquetado con [GitHub Actions](.github/workflows/release.yml) en servidores de GitHub. Solo esas compilaciones se enviarán a firmar.
+- **Committers y revisores:** [@yobotn](https://github.com/yobotn)
+- **Aprobadores:** [@yobotn](https://github.com/yobotn)
+
+### 🔒 Política de privacidad
+Este programa no transfiere ninguna información a otros sistemas en red salvo que lo solicite expresamente el usuario o la persona que lo instala o lo utiliza. RigSweep no tiene telemetría, analíticas ni comprobación de actualizaciones, y la extensión de Chrome no hace peticiones de red. Todo lo que guarda (copias, historial, mediciones) se queda en `%ProgramData%\RigSweep` en tu PC.
+
 ## ⚠️ Aviso legal
 
 RigSweep modifica servicios de Windows, tareas programadas, directivas del registro y la configuración de Microsoft Defender, y puede cerrar procesos en ejecución. Cada ajuste se respalda y se puede restaurar, y nada ocurre sin tu confirmación, pero **lo usas bajo tu propia responsabilidad**. Se proporciona **"tal cual", sin garantía de ningún tipo** (ver la [licencia MIT](LICENSE)). Revisa cada cambio antes de aplicarlo, guarda tus propias copias de seguridad y no lo uses en equipos gestionados por tu empresa o centro educativo sin la aprobación de su equipo de TI.

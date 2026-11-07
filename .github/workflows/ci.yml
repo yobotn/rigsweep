@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+      - name: Rust tests
+        working-directory: src-tauri
+        run: cargo test --locked
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: JS syntax + translation keys
+        run: |
+          node -e "const fs=require('fs');for(const f of ['ui/app.js','ui/i18n.js','chrome-extension/popup.js','chrome-extension/background.js'])new Function(fs.readFileSync(f,'utf8'));"
+          node -e "global.navigator={language:'en'};global.localStorage={getItem(){},setItem(){}};eval(require('fs').readFileSync('ui/i18n.js','utf8')+';global.I=I18N');const en=Object.keys(I.en);for(const l of ['es','fr']){const m=en.filter(k=>!(k in I[l]));if(m.length){console.error(l,'missing',m);process.exit(1)}}console.log('i18n ok',en.length)"

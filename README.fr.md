@@ -145,6 +145,18 @@ Vous venez d'**aiBoost** (l'ancien nom) ? Votre base de données est migrée aut
 ## 🐳 docker-optimize (outil séparé)
 Ce n'est pas une fonction de l'app. [`docker-optimize/`](docker-optimize/) est un script autonome, réversible et ponctuel qui plafonne la VM WSL2 de Docker Desktop (mémoire, CPU, restitution de RAM, disque clairsemé) et désactive les extras de Docker Desktop inutiles. Il ne supprime jamais de conteneurs, d'images ni de volumes. Voir son [README](docker-optimize/README.md) (en anglais).
 
+## 🔏 Politique de signature de code
+
+Signature de code gratuite fournie par [SignPath.io](https://about.signpath.io/), certificat de [SignPath Foundation](https://signpath.org/).
+*(Demande en cours : les versions jusqu'à la v0.3.0 ne sont **pas encore signées**.)*
+
+- **Builds :** les installateurs sont compilés à partir du code tagué par [GitHub Actions](.github/workflows/release.yml) sur des serveurs GitHub. Seuls ces builds seront soumis à la signature.
+- **Committers et relecteurs :** [@yobotn](https://github.com/yobotn)
+- **Approbateurs :** [@yobotn](https://github.com/yobotn)
+
+### 🔒 Politique de confidentialité
+Ce programme ne transfère aucune information vers d'autres systèmes en réseau, sauf demande expresse de l'utilisateur ou de la personne qui l'installe ou l'utilise. RigSweep n'a ni télémétrie, ni analytique, ni vérification de mises à jour, et l'extension Chrome ne fait aucune requête réseau. Tout ce qu'il enregistre (sauvegardes, historique, mesures) reste dans `%ProgramData%\RigSweep` sur votre PC.
+
 ## ⚠️ Avertissement
 
 RigSweep modifie des services Windows, des tâches planifiées, des stratégies du registre et la configuration de Microsoft Defender, et peut fermer des processus en cours. Chaque réglage est sauvegardé et restaurable, et rien ne se passe sans votre confirmation, mais **vous l'utilisez à vos propres risques**. Il est fourni **« tel quel », sans aucune garantie** (voir la [licence MIT](LICENSE)). Vérifiez chaque changement avant de l'appliquer, gardez vos propres sauvegardes et ne l'utilisez pas sur un appareil géré par votre employeur ou votre école sans l'accord de leur service informatique.
