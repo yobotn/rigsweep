@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::os::windows::fs::MetadataExt;
 use std::path::{Path, PathBuf};
-use sysinfo::{ProcessesToUpdate, System};
+use sysinfo::{ProcessRefreshKind, ProcessesToUpdate, System, UpdateKind};
 
 const FILE_ATTRIBUTE_REPARSE_POINT: u32 = 0x400;
 
@@ -288,11 +288,32 @@ fn discover() -> Vec<FoundBrowser> {
         .collect()
 }
 
-/// Lower-case exe names of running processes; None if the process list can't be read.
+/// Helper processes: Chromium children get `--type=...`, Firefox children get `-contentproc`.
+/// A helper alone (e.g. an orphaned utility process left after the browser closed) does not
+/// hold the profile open, so it must not block cleanup.
+fn is_helper_cmd(cmd: &[std::ffi::OsString]) -> bool {
+    cmd.iter().skip(1).any(|a| {
+        let a = a.to_string_lossy();
+        a.starts_with("--type=") || a.eq_ignore_ascii_case("-contentproc")
+    })
+}
+
+/// Lower-case exe names of running main (non-helper) processes; None if the process list
+/// can't be read. A process whose command line can't be read counts as main (fail safe).
 fn running_exes() -> Option<Vec<String>> {
     let mut sys = System::new().ok()?;
-    sys.refresh_processes(ProcessesToUpdate::All, true);
-    Some(sys.processes().values().map(|p| p.name().to_string_lossy().to_ascii_lowercase()).collect())
+    sys.refresh_processes_specifics(
+        ProcessesToUpdate::All,
+        true,
+        ProcessRefreshKind::nothing().with_cmd(UpdateKind::Always),
+    );
+    Some(
+        sys.processes()
+            .values()
+            .filter(|p| !is_helper_cmd(p.cmd()))
+            .map(|p| p.name().to_string_lossy().to_ascii_lowercase())
+            .collect(),
+    )
 }
 
 /// Unknown process list counts as "running", so nothing is deleted under an open browser.
@@ -454,6 +475,16 @@ mod tests {
         assert_eq!(fs::read_dir(&cache).unwrap().count(), 0);
         assert!(keep.exists());
         fs::remove_dir_all(&root).unwrap();
+    }
+
+    #[test]
+    fn helper_processes_do_not_count_as_running() {
+        let c = |v: &[&str]| v.iter().map(std::ffi::OsString::from).collect::<Vec<_>>();
+        assert!(!is_helper_cmd(&c(&["chrome.exe", "--source-shortcut-location=start-menu"])));
+        assert!(!is_helper_cmd(&c(&["firefox.exe"])));
+        assert!(!is_helper_cmd(&[])); // unreadable command line: treat as main (fail safe)
+        assert!(is_helper_cmd(&c(&["chrome.exe", "--type=utility", "--utility-sub-type=chrome.mojom.UtilWin"])));
+        assert!(is_helper_cmd(&c(&["firefox.exe", "-contentproc", "-childID", "3"])));
     }
 }
 
