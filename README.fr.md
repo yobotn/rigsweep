@@ -13,7 +13,7 @@
 ![Licence : MIT](https://img.shields.io/badge/Licence-MIT-green)
 ![Prix : gratuit](https://img.shields.io/badge/prix-gratuit-brightgreen)
 
-<img src="docs/screenshots/dashboard-fr.png" alt="Tableau de bord RigSweep" width="860">
+<img src="docs/screenshots/cleanup-fr.png" alt="Nettoyage dev RigSweep" width="860">
 
 </div>
 
@@ -52,14 +52,16 @@ Trouve les **serveurs de dev, daemons de build et CLI d'agents IA** et regroupe 
 | 🟣 .NET | `dotnet watch/run`, serveur de compilation Roslyn, nœuds MSBuild restants |
 | 💎 Ruby · 🐘 PHP · 🦀 Rust · 🐹 Go | `rails`/`ruby`, `php -S`/artisan, `cargo watch/run`, `go run` |
 | 🤖 CLI d'agents | Claude Code, Codex, Gemini CLI, opencode, Aider, Goose |
+| 🔌 Serveurs MCP | serveurs lancés par votre agent (`@modelcontextprotocol/*`, `@playwright/mcp`, `mcp-server-*`, FastMCP…) et restés actifs après sa fermeture, même derrière un lanceur `cmd /c npx` |
+| 🌐 Navigateurs automatisés | Chrome et Edge de Playwright / Puppeteer / `--headless` avec tout leur arbre de processus. Votre propre navigateur n'est jamais listé |
 | 🐧 WSL 2 / Docker | la VM Linux (`vmmemWSL`), arrêtée proprement avec `wsl --shutdown`, jamais présélectionnée |
 
 Python et Java font aussi tourner des applications de bureau ordinaires, donc seuls leurs processus avec une signature de dev claire sont listés.
 
-
-<img src="docs/screenshots/cleanup-fr.png" alt="Nettoyage dev" width="860">
-
 - 🧟 **Orphelin** : son terminal a été fermé mais le processus tourne encore. Il est présélectionné même s'il occupe un port (le classique `localhost:3000` zombie).
+- 🔌 **Serveur MCP** : signalé sur chaque ligne concernée, pour distinguer le serveur d'outils laissé par un agent de votre propre serveur de dev.
+- 👯 **Ancienne copie** : un serveur MCP dont une copie plus récente tourne aussi (par exemple dans votre session d'agent actuelle) est signalé, pour repérer facilement celui qui reste.
+- 📈 **Mesure en direct** : la RAM et le CPU sont mesurés toutes les 2 secondes tant que RigSweep tourne (fenêtre ou zone de notification). Juste après un nettoyage, manuel ou automatique, il affiche **la RAM réellement récupérée** et le CPU avant → après, mesurés et non estimés.
 - 💤 **Inactif** : aucune activité CPU depuis longtemps. Les runtimes sans port ouvert sont présélectionnés. Une **session d'agent inactive dans un terminal ouvert n'est jamais présélectionnée**, car elle vous attend (et `claude --resume` la ramène de toute façon).
 - ♻️ **Daemon de build** : les serveurs Gradle, Kotlin et Roslyn sont faits pour rester en arrière-plan. Les fermer est sans danger ; ils redémarrent au prochain build.
 - 🔒 **Verrouillé** : les processus de **VS Code, Cursor, JetBrains, Visual Studio…** (vos serveurs de langage) ou d'une app de bureau ne peuvent jamais être fermés d'ici.

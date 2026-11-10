@@ -13,7 +13,7 @@
 ![License: MIT](https://img.shields.io/badge/License-MIT-green)
 ![Price: free](https://img.shields.io/badge/price-free-brightgreen)
 
-<img src="docs/screenshots/dashboard.png" alt="RigSweep dashboard" width="860">
+<img src="docs/screenshots/cleanup.png" alt="RigSweep Dev Cleanup" width="860">
 
 </div>
 
@@ -52,15 +52,20 @@ Finds **dev servers, build daemons and AI-agent CLIs** and groups each one with 
 | 🟣 .NET | `dotnet watch/run`, Roslyn compiler server, leftover MSBuild nodes |
 | 💎 Ruby · 🐘 PHP · 🦀 Rust · 🐹 Go | `rails`/`ruby`, `php -S`/artisan, `cargo watch/run`, `go run` |
 | 🤖 Agent CLIs | Claude Code, Codex, Gemini CLI, opencode, Aider, Goose |
+| 🔌 MCP servers | servers your agent started (`@modelcontextprotocol/*`, `@playwright/mcp`, `mcp-server-*`, FastMCP…) and left running after it exited, even behind a `cmd /c npx` launcher |
+| 🌐 Automation browsers | Playwright / Puppeteer / `--headless` Chrome & Edge with their whole renderer tree. Your own browser is never listed |
 | 🐧 WSL 2 / Docker | the Linux VM (`vmmemWSL`), shut down cleanly with `wsl --shutdown`, never pre-selected |
 
 Python and Java also run ordinary desktop apps, so for those only processes with a clear dev signature are listed.
 
-
-<img src="docs/screenshots/cleanup.png" alt="Dev Cleanup" width="860">
-
 - 🧟 **Orphan**: its terminal was closed but it kept running. Pre-selected, even if it still holds a port (the classic zombie `localhost:3000`).
+- 🔌 **MCP server**: tagged on every row that is one, so you can tell an agent's leftover tool server from your own dev server.
+- 👯 **Older copy**: an MCP server that's also running as a newer copy (e.g. under your current agent session) is marked, so the leftover one is easy to spot.
+- 📈 **Live meter**: RAM and CPU are sampled every 2 seconds while RigSweep runs (window or tray). Right after a cleanup, manual or automatic, it shows **how much RAM was actually recovered** and CPU before → after, measured, not estimated.
 - 💤 **Idle**: no CPU activity for a long time. Runtimes with no open port get pre-selected. An **idle agent session in an open terminal is never pre-selected**, because it's just waiting for you (and `claude --resume` brings it back anyway).
+  How long counts as idle is set in **Settings** (in minutes, default 120; e.g. 5).
+- 🧹 **Auto-cleanup** (off by default, in Settings): every minute RigSweep ends stale dev runtimes it has watched sit with no CPU for the whole idle period. Agent CLIs, the WSL/Docker VM and editor-owned processes are never auto-ended, and each ended tree is logged in History.
+- 🟠🔴 **Tray indicator**: the tray icon (and the taskbar button while the window is open) gets an orange dot when stale dev processes hold ≥ 1 GB and a red dot at ≥ 2 GB. Hover the tray icon to see how much. Thresholds are set in Settings, where the dot can also be turned off.
 - ♻️ **Build daemon**: Gradle, Kotlin and Roslyn servers are meant to linger. Ending them is harmless; they restart on the next build.
 - 🔒 **Locked**: processes owned by **VS Code, Cursor, JetBrains, Visual Studio…** (your language servers) or by a desktop app are never killable from here.
 - ✅ Nothing is ended without your confirmation, and PID reuse is checked before every kill.

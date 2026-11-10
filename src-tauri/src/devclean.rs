@@ -1,5 +1,5 @@
 //! Dev Cleanup: find stale dev processes (Node, Python, Java/Gradle, .NET, Ruby, PHP, Rust, Go,
-//! AI-agent CLIs, the WSL 2 / Docker VM) left behind by closed terminals and old sessions, and end
+//! AI-agent CLIs, MCP servers, automation browsers, the WSL 2 / Docker VM) left behind by closed terminals and old sessions, and end
 //! them (whole process tree) on request. Nothing is ever killed automatically; the UI pre-selects
 //! only what is clearly stale.
 
@@ -35,6 +35,20 @@ pub const SCAN_NAMES: &[&str] = &[
     "vmmemwsl",
     // agents
     "claude.exe", "codex.exe", "opencode.exe", "gemini.exe", "aider.exe", "goose.exe",
+    // browsers: only automation instances (Playwright / Puppeteer / --headless) are kept
+    "chrome.exe", "msedge.exe", "chrome-headless-shell.exe", "headless_shell.exe",
+];
+
+/// Non-interactive shells that only exist to launch something (`cmd /c npx ...`). A process whose
+/// only living ancestors are such wrappers is orphaned once the wrapper's own parent is gone:
+/// that is how MCP servers started by an agent CLI on Windows outlive the agent.
+pub const WRAPPER_NAMES: &[&str] = &["cmd.exe", "powershell.exe", "pwsh.exe"];
+
+/// Command-line hints that a browser was started by an automation tool, with its own throwaway
+/// profile, not by the user.
+const AUTOMATION_BROWSER_MARKERS: &[&str] = &[
+    "--headless", "/ms-playwright/", "playwright_chromiumdev_profile", "/puppeteer/", "puppeteer_dev_chrome_profile",
+    "--remote-debugging-pipe", "chrome-headless-shell",
 ];
 
 /// Python also runs ordinary desktop tools, so it only counts with a dev signature.
@@ -61,8 +75,9 @@ const OWNER_APPS: &[&str] = &[
     "rubymine64.exe", "spyder.exe", "positron.exe",
 ];
 
-/// A tree with no CPU activity for this long (while RigSweep watched it) counts as idle.
-const IDLE_OBSERVED_SECS: u64 = 20 * 60;
+/// Before RigSweep has watched a tree long enough, "old and quiet right now" also counts as idle,
+/// but never sooner than this (a single quiet CPU sample means little).
+const IDLE_AGE_FLOOR_SECS: u64 = 2 * 3600;
 
 #[derive(Serialize, Clone, Debug)]
 pub struct DevProc {
@@ -72,7 +87,7 @@ pub struct DevProc {
     pub name: String,
     /// "agent" | "runtime" | "vm"
     pub kind: &'static str,
-    /// node | python | java | dotnet | ruby | php | rust | go | wsl | agent
+    /// node | python | java | dotnet | ruby | php | rust | go | browser | wsl | agent
     pub eco: &'static str,
     /// friendly label, e.g. "astro", "vite", "claude"
     pub label: String,
@@ -82,17 +97,21 @@ pub struct DevProc {
     pub parent_pid: u32,
     pub parent_name: String,
     pub age_secs: u64,
+    /// how long RigSweep has watched this tree use no CPU
+    pub quiet_secs: u64,
     pub cpu: f32,
     /// own memory + all descendants
     pub tree_mem: u64,
     pub tree_count: usize,
     pub ports: Vec<u16>,
-    /// reason codes for the UI: orphan | idle | serving | owned | daemon
+    /// reason codes for the UI: mcp | duplicate | orphan | idle | serving | owned | daemon
     pub reasons: Vec<&'static str>,
     pub stale: bool,
     /// owned by an editor / desktop app (language server, MCP server…): never killable here
     pub protected: bool,
     pub owner: String,
+    /// for a "duplicate" MCP server: PID of the newer copy of the same server that is also running
+    pub dup_of: u32,
 }
 
 #[derive(Serialize, Clone, Debug, Default)]
@@ -135,7 +154,10 @@ pub fn verify_target(item: &DevProc, t: &KillTarget) -> Result<(), String> {
 pub struct KillResult {
     pub ended: Vec<String>,
     pub failed: Vec<String>,
+    /// sum of the ended trees' memory as last measured (an estimate; the live meter shows the real drop)
     pub freed_mem: u64,
+    /// RAM in use right before the first kill, from the live meter (0 if it has no sample yet)
+    pub mem_before: u64,
 }
 
 /// Remembers when each process tree last used CPU, so "idle" is measured, not guessed.
@@ -189,6 +211,49 @@ fn has_any(hay: &str, needles: &[&str]) -> bool {
     needles.iter().any(|m| hay.contains(m))
 }
 
+/// A Chromium instance driven by Playwright / Puppeteer / an agent's browser tool. These run with
+/// a throwaway profile, so they never hold the user's real browser profile open.
+/// `hay` is the exe path and command line, lowercase with forward slashes.
+pub fn is_automation_browser(name: &str, hay: &str) -> bool {
+    let n = name.to_ascii_lowercase();
+    n == "chrome-headless-shell.exe" || n == "headless_shell.exe" || has_any(hay, AUTOMATION_BROWSER_MARKERS)
+}
+
+/// Is this a Model Context Protocol server? Looks for `mcp` as its own word in the package /
+/// script names (`@modelcontextprotocol/server-x`, `mcp-server-git`, `playwright-mcp`, `fastmcp`).
+pub fn is_mcp(cmd: &str) -> bool {
+    let c = cmd.to_ascii_lowercase();
+    if c.contains("modelcontextprotocol") || c.contains("fastmcp") {
+        return true;
+    }
+    c.split(['/', '\\', ' ', '"', '@', '=', '.', ':'])
+        .any(|tok| tok.split(['-', '_']).any(|w| w == "mcp"))
+}
+
+/// An MCP server is meant to run once per agent session. If a newer copy of the same server is
+/// running outside this row's own tree, this one is most likely a leftover: returns that newer PID.
+/// `copies` = every running MCP server process (pid, start time, label), nested ones included.
+pub fn newer_copy(label: &str, start: u64, own_tree: &HashSet<u32>, copies: &[(u32, u64, String)]) -> Option<u32> {
+    copies
+        .iter()
+        .filter(|(pid, st, l)| l == label && *st > start && !own_tree.contains(pid))
+        .max_by_key(|(_, st, _)| *st)
+        .map(|(pid, _, _)| *pid)
+}
+
+/// `cmd /c ...`, `powershell -Command ...`: a shell that exits when its command does.
+pub fn is_wrapper_cmd(name: &str, args: &[String]) -> bool {
+    let n = name.to_ascii_lowercase();
+    let has = |flags: &[&str]| args.iter().skip(1).any(|a| flags.iter().any(|f| a.eq_ignore_ascii_case(f)));
+    match n.as_str() {
+        "cmd.exe" => has(&["/c"]) && !has(&["/k"]),
+        "powershell.exe" | "pwsh.exe" => {
+            has(&["-c", "-command", "-file", "-encodedcommand", "-ec"]) && !has(&["-noexit"])
+        }
+        _ => false,
+    }
+}
+
 /// Pure classification from name / exe path / command line (lowercase handled here).
 pub fn classify_parts(name: &str, exe: &str, cmd: &str) -> Option<Class> {
     let n = name.to_ascii_lowercase();
@@ -225,6 +290,9 @@ pub fn classify_parts(name: &str, exe: &str, cmd: &str) -> Option<Class> {
         "php.exe" | "php-cgi.exe" => mk("runtime", "php"),
         "cargo.exe" => mk("runtime", "rust"),
         "go.exe" => mk("runtime", "go"),
+        "chrome.exe" | "msedge.exe" | "chrome-headless-shell.exe" | "headless_shell.exe" => {
+            if is_automation_browser(&n, &format!("{exe} {c}")) { mk("runtime", "browser") } else { None }
+        }
         _ => None,
     }
 }
@@ -259,8 +327,16 @@ pub fn describe(name: &str, cmd: &str, cwd: &str) -> (String, String) {
         args.iter().position(|a| *a == flag).and_then(|i| args.get(i + 1)).map(|s| s.to_string())
     };
 
+    let is_browser = matches!(n.as_str(), "chrome.exe" | "msedge.exe" | "chrome-headless-shell.exe" | "headless_shell.exe");
     if n == "vmmemwsl" {
         label = "WSL 2 / Docker".into();
+    } else if is_browser {
+        let tool = if lc.contains("playwright") { "Playwright " } else if lc.contains("puppeteer") { "Puppeteer " } else { "" };
+        let what = if n == "msedge.exe" { "Edge" } else if lc.contains("chromium") || lc.contains("ms-playwright") { "Chromium" } else { "Chrome" };
+        let headless = if lc.contains("--headless") || n.contains("headless") { " (headless)" } else { "" };
+        label = format!("{tool}{what}{headless}");
+    } else if let Some(pkg) = npx_package(&args) {
+        label = pkg;
     } else if n == "vbcscompiler.exe" {
         label = "Roslyn compiler server".into();
     } else if n == "msbuild.exe" {
@@ -302,10 +378,36 @@ pub fn describe(name: &str, cmd: &str, cwd: &str) -> (String, String) {
     } else if let Some(s) = script_with(&[".js", ".mjs", ".cjs", ".ts", ".rb", ".php"]) {
         label = s;
     }
-    if !cwd.is_empty() && n != "vmmemwsl" {
+    // a browser's working dir is its install folder, not a project
+    if !cwd.is_empty() && n != "vmmemwsl" && !is_browser {
         project = base(&cwd.replace('\\', "/"));
     }
     (label, project)
+}
+
+/// `node .../npx-cli.js -y @scope/pkg@1.2 arg` -> "@scope/pkg"
+fn npx_package(args: &[&str]) -> Option<String> {
+    let i = args.iter().position(|a| {
+        let a = a.to_ascii_lowercase().replace('\\', "/");
+        a.ends_with("/npx-cli.js") || a.ends_with("/npx") || a.ends_with("/npx.cmd") || a == "npx"
+    })?;
+    let mut rest = args[i + 1..].iter();
+    while let Some(a) = rest.next() {
+        if *a == "-p" || *a == "--package" {
+            rest.next();
+            continue;
+        }
+        if a.starts_with('-') || a.is_empty() {
+            continue;
+        }
+        // strip a version / tag suffix, keeping the scope's leading '@'
+        let s = match a.char_indices().skip(1).find(|&(_, c)| c == '@') {
+            Some((at, _)) => &a[..at],
+            None => a,
+        };
+        return Some(s.to_string());
+    }
+    None
 }
 
 /// Listening TCP ports per PID (IPv4 + IPv6), via GetExtendedTcpTable (locale independent).
@@ -349,7 +451,8 @@ pub fn listening_ports() -> HashMap<u32, Vec<u16>> {
     out
 }
 
-pub fn scan(sys: &System, tracker: &mut IdleTracker, idle_hours: u32) -> DevReport {
+pub fn scan(sys: &System, tracker: &mut IdleTracker, idle_minutes: u32) -> DevReport {
+    let idle_after = idle_minutes.max(1) as u64 * 60;
     let procs = sys.processes();
     let ncpu = sys.cpus().len().max(1) as f32;
     let ports = listening_ports();
@@ -369,8 +472,33 @@ pub fn scan(sys: &System, tracker: &mut IdleTracker, idle_hours: u32) -> DevRepo
         (parent.start_time() <= p.start_time()).then_some(pp)
     };
 
+    // nearest ancestor that isn't a launch-only shell; None = everything above us is gone
+    let real_parent = |p: &Process| -> Option<u32> {
+        let mut cur = live_parent(p)?;
+        for _ in 0..8 {
+            let q = get(cur)?;
+            let args: Vec<String> = q.cmd().iter().map(|s| s.to_string_lossy().into_owned()).collect();
+            if !is_wrapper_cmd(&q.name().to_string_lossy(), &args) {
+                return Some(cur);
+            }
+            cur = live_parent(q)?;
+        }
+        Some(cur)
+    };
+
     let dev: HashMap<u32, Class> =
         procs.iter().filter_map(|(pid, p)| classify(p).map(|k| (pid.as_u32(), k))).collect();
+
+    // every running MCP server, including ones nested under a live agent, to spot leftover copies
+    let mcp_copies: Vec<(u32, u64, String)> = dev
+        .iter()
+        .filter(|(_, c)| c.kind == "runtime")
+        .filter_map(|(&pid, _)| {
+            let q = get(pid)?;
+            let cmd = cmdline(q);
+            is_mcp(&cmd).then(|| (pid, q.start_time(), describe(&q.name().to_string_lossy(), &cmd, "").0))
+        })
+        .collect();
 
     let mut items = vec![];
     let mut alive = HashSet::new();
@@ -442,15 +570,22 @@ pub fn scan(sys: &System, tracker: &mut IdleTracker, idle_hours: u32) -> DevRepo
         let (label, project) = describe(&name, &cmd, &cwd);
         // protected system processes (e.g. vmmemWSL) may not expose a start time: age unknown = 0
         let age = if p.start_time() == 0 { 0 } else { p.run_time() };
-        let observed_idle = tracker.idle_secs(pid, p.start_time(), cpu_ms);
+        let quiet = tracker.idle_secs(pid, p.start_time(), cpu_ms).unwrap_or(0);
         // the WSL VM is started by the system, so "no parent" / "idle" mean nothing for it
-        let orphan = parent.is_none() && kind != "vm";
+        let orphan = kind != "vm" && real_parent(p).is_none();
+        let mcp = kind == "runtime" && is_mcp(&cmd);
+        let dup_of = if mcp { newer_copy(&label, p.start_time(), &seen, &mcp_copies).unwrap_or(0) } else { 0 };
         let idle = kind != "vm"
-            && (observed_idle.map(|s| s >= IDLE_OBSERVED_SECS).unwrap_or(false)
-                || (age >= idle_hours as u64 * 3600 && cpu < 0.2));
+            && (quiet >= idle_after || (age >= idle_after.max(IDLE_AGE_FLOOR_SECS) && cpu < 0.2));
         let protected = !owner.is_empty() || pid == me;
 
         let mut reasons = vec![];
+        if mcp {
+            reasons.push("mcp");
+        }
+        if dup_of != 0 {
+            reasons.push("duplicate");
+        }
         if orphan {
             reasons.push("orphan");
         }
@@ -483,6 +618,7 @@ pub fn scan(sys: &System, tracker: &mut IdleTracker, idle_hours: u32) -> DevRepo
             parent_pid: parent.unwrap_or(0),
             parent_name: parent.and_then(get).map(|q| q.name().to_string_lossy().into_owned()).unwrap_or_default(),
             age_secs: age,
+            quiet_secs: quiet,
             cpu,
             tree_mem: mem,
             tree_count: seen.len(),
@@ -491,6 +627,7 @@ pub fn scan(sys: &System, tracker: &mut IdleTracker, idle_hours: u32) -> DevRepo
             stale,
             protected,
             owner,
+            dup_of,
         });
     }
     tracker.retain(&alive);
@@ -503,10 +640,25 @@ pub fn scan(sys: &System, tracker: &mut IdleTracker, idle_hours: u32) -> DevRepo
     }
 }
 
+/// What the background auto-cleanup may end on its own: stale trees RigSweep has itself watched
+/// sit with no CPU for the whole idle period. Stricter than the UI's pre-selection, which also
+/// trusts the "old and quiet right now" guess and active orphans; those still need a click.
+pub fn auto_targets(r: &DevReport, idle_minutes: u32) -> Vec<KillTarget> {
+    let idle_after = idle_minutes.max(1) as u64 * 60;
+    r.items
+        .iter()
+        .filter(|i| i.stale && !i.protected && i.kind == "runtime" && i.quiet_secs >= idle_after)
+        .map(|i| KillTarget { pid: i.pid, start_time: i.start_time, label: i.label.clone(), project: i.project.clone(), ports: i.ports.clone() })
+        .collect()
+}
+
 /// End each target's whole process tree (only that PID and its own descendants).
 /// `fresh` must be a scan taken right before this call; every target is re-verified against it.
 pub fn kill(fresh: &DevReport, targets: &[KillTarget]) -> KillResult {
-    let mut r = KillResult::default();
+    let mut r = KillResult {
+        mem_before: crate::live::history().last().map(|s| s.mem_used).unwrap_or(0),
+        ..Default::default()
+    };
     for t in targets {
         let Some(item) = fresh.items.iter().find(|i| i.pid == t.pid && i.start_time == t.start_time) else {
             r.failed.push(format!("PID {}: no longer running (or PID was reused)", t.pid));
@@ -541,13 +693,34 @@ pub fn kill(fresh: &DevReport, targets: &[KillTarget]) -> KillResult {
 
 #[cfg(test)]
 mod tests {
-    use super::{describe, verify_target, DevProc, KillTarget};
+    use super::{auto_targets, describe, verify_target, DevProc, DevReport, KillTarget};
+
+    #[test]
+    fn auto_cleanup_only_takes_long_watched_quiet_stale_runtimes() {
+        let mut quiet = row(1, "a", vec![]);
+        quiet.stale = true;
+        quiet.quiet_secs = 600;
+        let mut busy_orphan = row(2, "b", vec![3000]);
+        busy_orphan.stale = true; // orphan, but used CPU recently
+        let mut agent = row(3, "c", vec![]);
+        agent.stale = true;
+        agent.kind = "agent";
+        agent.quiet_secs = 600;
+        let mut owned = row(4, "d", vec![]);
+        owned.stale = true;
+        owned.protected = true;
+        owned.quiet_secs = 600;
+        let r = DevReport { items: vec![quiet, busy_orphan, agent, owned], ..Default::default() };
+        let picked: Vec<u32> = auto_targets(&r, 5).iter().map(|t| t.pid).collect();
+        assert_eq!(picked, vec![1]);
+        assert!(auto_targets(&r, 11).is_empty()); // not quiet long enough yet
+    }
 
     fn row(pid: u32, project: &str, ports: Vec<u16>) -> DevProc {
         DevProc {
             pid, start_time: 100, name: "node.exe".into(), kind: "runtime", eco: "node", label: "astro".into(),
             project: project.into(), cmd: String::new(), parent_pid: 0, parent_name: String::new(), age_secs: 0,
-            cpu: 0.0, tree_mem: 0, tree_count: 1, ports, reasons: vec![], stale: false, protected: false, owner: String::new(),
+            quiet_secs: 0, cpu: 0.0, tree_mem: 0, tree_count: 1, ports, reasons: vec![], stale: false, protected: false, owner: String::new(), dup_of: 0,
         }
     }
 
@@ -591,6 +764,73 @@ mod tests {
         assert_eq!((l.as_str(), p.as_str()), ("streamlit", "dash"));
         let (l, _) = super::describe("dotnet.exe", "dotnet watch run", "");
         assert_eq!(l, "dotnet watch");
+    }
+
+    #[test]
+    fn finds_mcp_servers() {
+        use super::is_mcp;
+        assert!(is_mcp(r"node C:\Users\me\AppData\Local\npm-cache\_npx\ab12\node_modules\@modelcontextprotocol\server-filesystem\dist\index.js C:\w"));
+        assert!(is_mcp("node npx-cli.js -y @playwright/mcp@latest"));
+        assert!(is_mcp("python -m mcp_server_git --repository ."));
+        assert!(is_mcp("node C:/x/node_modules/context7-mcp/dist/index.js"));
+        assert!(is_mcp("uvx fastmcp run server.py"));
+        // "mcp" only as a whole word
+        assert!(!is_mcp("node C:/w/mcpherson-site/node_modules/vite/bin/vite.js"));
+        assert!(!is_mcp("node server.js --port 3000"));
+    }
+
+    #[test]
+    fn spots_older_copies_of_an_mcp_server() {
+        use super::newer_copy;
+        use std::collections::HashSet;
+        let copies = vec![
+            (10, 100, "@playwright/mcp".to_string()), // old leftover (this row)
+            (11, 101, "@playwright/mcp".to_string()), // its own npx child: same tree, ignored
+            (20, 500, "@playwright/mcp".to_string()), // newer copy under a live agent
+            (30, 900, "mcp-server-git".to_string()),
+        ];
+        let tree: HashSet<u32> = [10, 11].into();
+        assert_eq!(newer_copy("@playwright/mcp", 100, &tree, &copies), Some(20));
+        // the newest copy is never the duplicate
+        assert_eq!(newer_copy("@playwright/mcp", 500, &[20].into(), &copies), None);
+        assert_eq!(newer_copy("mcp-server-git", 900, &[30].into(), &copies), None);
+    }
+
+    #[test]
+    fn names_npx_packages() {
+        let (l, _) = describe("node.exe", r#""C:\Program Files\nodejs\node.exe" "C:\Program Files\nodejs\node_modules\npm\bin\npx-cli.js" -y @playwright/mcp@latest --headless"#, "");
+        assert_eq!(l, "@playwright/mcp");
+        let (l, _) = describe("node.exe", r"node C:\nodejs\node_modules\npm\bin\npx-cli.js --yes -p tsx mcp-server-fetch@1.2.0", "");
+        assert_eq!(l, "mcp-server-fetch");
+    }
+
+    #[test]
+    fn only_automation_browsers_count() {
+        use super::classify_parts as c;
+        let k = |n: &str, e: &str, cmd: &str| c(n, e, cmd).map(|x| (x.kind, x.eco));
+        let pw = r"C:\Users\me\AppData\Local\ms-playwright\chromium-1140\chrome-win\chrome.exe";
+        assert_eq!(k("chrome.exe", pw, "chrome.exe --remote-debugging-pipe --no-first-run"), Some(("runtime", "browser")));
+        assert_eq!(k("chrome-headless-shell.exe", "", ""), Some(("runtime", "browser")));
+        let real = r"C:\Program Files\Google\Chrome\Application\chrome.exe";
+        assert_eq!(k("chrome.exe", real, "chrome.exe --headless=new --user-data-dir=C:\\Temp\\x"), Some(("runtime", "browser")));
+        // the user's own browser is never listed
+        assert_eq!(k("chrome.exe", real, r#""chrome.exe" --profile-directory="Default""#), None);
+        assert_eq!(k("msedge.exe", r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe", "msedge.exe"), None);
+        let (l, p) = describe("chrome.exe", &format!("{pw} --headless --remote-debugging-pipe"), r"C:\Users\me\AppData\Local\ms-playwright\chromium-1140\chrome-win");
+        assert_eq!((l.as_str(), p.as_str()), ("Playwright Chromium (headless)", ""));
+    }
+
+    #[test]
+    fn launch_shells_are_wrappers_but_terminals_are_not() {
+        use super::is_wrapper_cmd as w;
+        let a = |v: &[&str]| v.iter().map(|s| s.to_string()).collect::<Vec<_>>();
+        assert!(w("cmd.exe", &a(&["cmd.exe", "/d", "/s", "/c", "npx -y @x/mcp"])));
+        assert!(w("pwsh.exe", &a(&["pwsh.exe", "-NoProfile", "-Command", "npm run dev"])));
+        assert!(!w("cmd.exe", &a(&["cmd.exe"]))); // interactive prompt
+        assert!(!w("cmd.exe", &a(&["cmd.exe", "/k", "dev.bat"])));
+        assert!(!w("pwsh.exe", &a(&["pwsh.exe", "-NoExit", "-Command", "cd C:\\w"])));
+        assert!(!w("cmd.exe", &[])); // unreadable command line: not a wrapper (fail safe)
+        assert!(!w("node.exe", &a(&["node.exe", "/c"])));
     }
 
     #[test]

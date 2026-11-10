@@ -12,13 +12,35 @@ pub struct Settings {
     pub stay_in_tray: bool,
     pub watchdog_minutes: u32,
     pub dev_folders: Vec<String>,
-    /// Dev Cleanup: a quiet dev process older than this many hours counts as idle
-    #[serde(default = "default_idle_hours")]
-    pub idle_hours: u32,
+    /// Dev Cleanup: a dev process tree with no CPU activity for this many minutes counts as idle
+    #[serde(default = "default_idle_minutes")]
+    pub idle_minutes: u32,
+    /// Dev Cleanup: end stale dev process trees automatically in the background
+    #[serde(default)]
+    pub auto_kill_stale: bool,
+    /// tray / taskbar dot showing how much memory stale dev processes hold
+    #[serde(default = "yes")]
+    pub badge_enabled: bool,
+    /// orange dot from this many GB
+    #[serde(default = "default_warn_gb")]
+    pub badge_warn_gb: f32,
+    /// red dot from this many GB
+    #[serde(default = "default_alert_gb")]
+    pub badge_alert_gb: f32,
 }
 
-fn default_idle_hours() -> u32 {
-    2
+fn yes() -> bool {
+    true
+}
+fn default_warn_gb() -> f32 {
+    1.0
+}
+fn default_alert_gb() -> f32 {
+    2.0
+}
+
+fn default_idle_minutes() -> u32 {
+    120
 }
 
 impl Settings {
@@ -37,7 +59,16 @@ impl Settings {
             stay_in_tray: db.get_setting("stay_in_tray").as_deref() != Some("0"),
             watchdog_minutes: db.get_setting("watchdog_minutes").and_then(|s| s.parse().ok()).unwrap_or(30),
             dev_folders,
-            idle_hours: db.get_setting("idle_hours").and_then(|s| s.parse().ok()).unwrap_or(2),
+            // older versions stored hours
+            idle_minutes: db
+                .get_setting("idle_minutes")
+                .and_then(|s| s.parse().ok())
+                .or_else(|| db.get_setting("idle_hours").and_then(|s| s.parse::<u32>().ok()).map(|h| h * 60))
+                .unwrap_or(default_idle_minutes()),
+            auto_kill_stale: db.get_setting("auto_kill_stale").as_deref() == Some("1"),
+            badge_enabled: db.get_setting("badge_enabled").as_deref() != Some("0"),
+            badge_warn_gb: db.get_setting("badge_warn_gb").and_then(|s| s.parse().ok()).unwrap_or(default_warn_gb()),
+            badge_alert_gb: db.get_setting("badge_alert_gb").and_then(|s| s.parse().ok()).unwrap_or(default_alert_gb()),
         }
     }
 
@@ -46,7 +77,13 @@ impl Settings {
         db.set_setting("stay_in_tray", if self.stay_in_tray { "1" } else { "0" })?;
         db.set_setting("watchdog_minutes", &self.watchdog_minutes.max(1).to_string())?;
         db.set_setting("dev_folders", &serde_json::to_string(&self.dev_folders)?)?;
-        db.set_setting("idle_hours", &self.idle_hours.clamp(1, 168).to_string())?;
+        db.set_setting("idle_minutes", &self.idle_minutes.clamp(1, 10080).to_string())?;
+        db.set_setting("auto_kill_stale", if self.auto_kill_stale { "1" } else { "0" })?;
+        db.set_setting("badge_enabled", if self.badge_enabled { "1" } else { "0" })?;
+        let warn = if self.badge_warn_gb.is_finite() { self.badge_warn_gb.clamp(0.1, 256.0) } else { default_warn_gb() };
+        let alert = if self.badge_alert_gb.is_finite() { self.badge_alert_gb.clamp(warn, 256.0) } else { default_alert_gb().max(warn) };
+        db.set_setting("badge_warn_gb", &warn.to_string())?;
+        db.set_setting("badge_alert_gb", &alert.to_string())?;
         Ok(())
     }
 }

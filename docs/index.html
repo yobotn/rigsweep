@@ -7,7 +7,7 @@
   <meta name="description" content="Free, open-source Windows app that frees RAM and CPU on dev machines cluttered by AI-agent sessions: stale dev-process cleanup for Node, Python, Java, .NET and more, reversible tweaks, real before/after reports." />
   <meta property="og:title" content="RigSweep: room for your agents" />
   <meta property="og:description" content="Free up RAM and CPU on Windows dev machines cluttered by AI-agent sessions. MIT, free forever." />
-  <meta property="og:image" content="https://yobotn.github.io/rigsweep/screenshots/dashboard.png" />
+  <meta property="og:image" content="https://yobotn.github.io/rigsweep/screenshots/cleanup.png" />
   <meta name="twitter:card" content="summary_large_image" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧹</text></svg>" />
   <style>
@@ -167,7 +167,7 @@
       <div class="meta" data-t="hero.meta"></div>
       <div class="frame">
         <div class="bar"><i></i><i></i><i></i><span>RigSweep</span></div>
-        <img id="img-dashboard" src="screenshots/dashboard.png" alt="RigSweep dashboard" />
+        <img id="img-hero" src="screenshots/cleanup.png" alt="RigSweep Dev Cleanup" />
       </div>
     </header>
 
@@ -224,11 +224,12 @@
             <li data-t-html="clean.l2"></li>
             <li data-t-html="clean.l3"></li>
             <li data-t-html="clean.l4"></li>
+            <li data-t-html="clean.l5"></li>
           </ul>
         </div>
         <div class="frame">
-          <div class="bar"><i></i><i></i><i></i><span data-t="shot.cleanup"></span></div>
-          <img id="img-cleanup" src="screenshots/cleanup.png" alt="Dev Cleanup" loading="lazy" />
+          <div class="bar"><i></i><i></i><i></i><span data-t="shot.dashboard"></span></div>
+          <img id="img-dashboard" src="screenshots/dashboard.png" alt="RigSweep dashboard" loading="lazy" />
         </div>
       </div>
     </section>
@@ -310,7 +311,7 @@
         "f4.h": "Reversible tweaks", "f4.p": "Telemetry, Xbox, indexer, background apps and more, each with a risk level. Originals are backed up and restorable in one click.",
         "f5.h": "Process analyzer", "f5.p": "CPU, RAM and disk per process, plus which services hide inside each svchost.exe.",
         "f6.h": "3 languages", "f6.p": "English, Español and Français in the app, the installer and the Chrome extension.",
-        "clean.eyebrow": "Dev Cleanup", "clean.h": "🧹 Sweep stale sessions, safely", "shot.cleanup": "Dev Cleanup",
+        "clean.eyebrow": "Dev Cleanup", "clean.h": "🧹 Sweep stale sessions, safely", "shot.cleanup": "Dev Cleanup", "shot.dashboard": "Dashboard", "clean.l5": "<b>MCP servers and headless browsers your agents left behind</b> are found too, and a live meter shows the RAM you got back seconds after each sweep.",
         "clean.l1": "<b>Orphans</b>: their terminal is closed but they're still running, like the classic zombie localhost:3000.",
         "clean.l2": "<b>Idle agents in open terminals are never pre-selected</b>, because they're waiting for you.",
         "clean.l3": "<b>Editor language servers are locked</b> (VS Code, Cursor, JetBrains, Visual Studio…).",
@@ -350,7 +351,7 @@
         "f4.h": "Ajustes reversibles", "f4.p": "Telemetría, Xbox, indexador, apps en segundo plano y más, cada uno con nivel de riesgo. Los originales se respaldan y se restauran con un clic.",
         "f5.h": "Analizador de procesos", "f5.p": "CPU, RAM y disco por proceso, y qué servicios se esconden dentro de cada svchost.exe.",
         "f6.h": "3 idiomas", "f6.p": "English, Español y Français en la app, el instalador y la extensión de Chrome.",
-        "clean.eyebrow": "Limpieza dev", "clean.h": "🧹 Barre sesiones inactivas, con seguridad", "shot.cleanup": "Limpieza dev",
+        "clean.eyebrow": "Limpieza dev", "clean.h": "🧹 Barre sesiones inactivas, con seguridad", "shot.cleanup": "Limpieza dev", "shot.dashboard": "Panel", "clean.l5": "<b>Servidores MCP y navegadores headless que dejaron tus agentes</b> también se detectan, y un medidor en vivo muestra la RAM recuperada segundos después de cada limpieza.",
         "clean.l1": "<b>Huérfanos</b>: su terminal se cerró pero siguen en ejecución, como el clásico localhost:3000 zombi.",
         "clean.l2": "<b>Los agentes inactivos en terminales abiertas nunca se preseleccionan</b>, porque te están esperando.",
         "clean.l3": "<b>Los servidores de lenguaje del editor están bloqueados</b> (VS Code, Cursor, JetBrains, Visual Studio…).",
@@ -390,7 +391,7 @@
         "f4.h": "Réglages réversibles", "f4.p": "Télémétrie, Xbox, indexeur, apps en arrière-plan et plus, chacun avec un niveau de risque. Les originaux sont sauvegardés et restaurables en un clic.",
         "f5.h": "Analyseur de processus", "f5.p": "CPU, RAM et disque par processus, et quels services se cachent dans chaque svchost.exe.",
         "f6.h": "3 langues", "f6.p": "English, Español et Français dans l'app, l'installateur et l'extension Chrome.",
-        "clean.eyebrow": "Nettoyage dev", "clean.h": "🧹 Balayez les sessions inactives, en sécurité", "shot.cleanup": "Nettoyage dev",
+        "clean.eyebrow": "Nettoyage dev", "clean.h": "🧹 Balayez les sessions inactives, en sécurité", "shot.cleanup": "Nettoyage dev", "shot.dashboard": "Tableau de bord", "clean.l5": "<b>Les serveurs MCP et navigateurs headless laissés par vos agents</b> sont aussi détectés, et une mesure en direct affiche la RAM récupérée quelques secondes après chaque nettoyage.",
         "clean.l1": "<b>Orphelins</b> : leur terminal est fermé mais ils tournent encore, comme le classique localhost:3000 zombie.",
         "clean.l2": "<b>Les agents inactifs dans un terminal ouvert ne sont jamais présélectionnés</b>, car ils vous attendent.",
         "clean.l3": "<b>Les serveurs de langage de l'éditeur sont verrouillés</b> (VS Code, Cursor, JetBrains, Visual Studio…).",
@@ -419,7 +420,7 @@
       document.querySelectorAll("[data-t-html]").forEach((el) => (el.innerHTML = T[lang][el.dataset.tHtml] ?? T.en[el.dataset.tHtml]));
       document.querySelectorAll(".lang button").forEach((b) => b.classList.toggle("on", b.dataset.lang === lang));
       document.getElementById("img-dashboard").src = `screenshots/${IMG[lang][0]}.png`;
-      document.getElementById("img-cleanup").src = `screenshots/${IMG[lang][1]}.png`;
+      document.getElementById("img-hero").src = `screenshots/${IMG[lang][1]}.png`;
       try { localStorage.setItem("lang", lang); } catch {}
     }
     document.querySelectorAll(".lang button").forEach((b) => b.addEventListener("click", () => apply(b.dataset.lang)));

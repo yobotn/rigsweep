@@ -298,6 +298,12 @@ fn is_helper_cmd(cmd: &[std::ffi::OsString]) -> bool {
     })
 }
 
+/// Playwright / Puppeteer / headless instances use a throwaway profile, not the user's.
+fn is_automation(p: &sysinfo::Process) -> bool {
+    let hay = p.cmd().iter().map(|a| a.to_string_lossy()).collect::<Vec<_>>().join(" ").to_ascii_lowercase().replace('\\', "/");
+    crate::devclean::is_automation_browser(&p.name().to_string_lossy(), &hay)
+}
+
 /// Lower-case exe names of running main (non-helper) processes; None if the process list
 /// can't be read. A process whose command line can't be read counts as main (fail safe).
 fn running_exes() -> Option<Vec<String>> {
@@ -310,7 +316,7 @@ fn running_exes() -> Option<Vec<String>> {
     Some(
         sys.processes()
             .values()
-            .filter(|p| !is_helper_cmd(p.cmd()))
+            .filter(|p| !is_helper_cmd(p.cmd()) && !is_automation(p))
             .map(|p| p.name().to_string_lossy().to_ascii_lowercase())
             .collect(),
     )

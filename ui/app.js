@@ -21,6 +21,7 @@ let procTimer = null;
 let currentTab = "dashboard";
 let dev = null;            // DevReport
 let devSel = new Set();    // "pid:start_time"
+const devUnticked = new Set(); // stale rows the user un-ticked on purpose: never re-tick those
 let snaps = [];            // saved Boost Report measurements
 let avState = null;
 
@@ -266,16 +267,18 @@ const devKey = (p) => `${p.pid}:${p.start_time}`;
 // ecosystem names are proper nouns, so only "agent" / "VM" are translated
 const ECO = { node: "⬢ Node", python: "🐍 Python", java: "☕ Java", dotnet: "🟣 .NET", ruby: "💎 Ruby",
   php: "🐘 PHP", rust: "🦀 Rust", go: "🐹 Go" };
-const ecoLabel = (p) => p.kind === "agent" ? t("kind.agent") : p.kind === "vm" ? t("kind.vm") : (ECO[p.eco] || p.eco);
+const ecoLabel = (p) => p.kind === "agent" ? t("kind.agent") : p.kind === "vm" ? t("kind.vm")
+  : p.eco === "browser" ? t("kind.browser") : (ECO[p.eco] || p.eco);
 
 async function loadDev(btn) {
   busy(btn, true);
   try { dev = await call("get_dev_processes"); } finally { busy(btn, false); }
-  // keep the user's ticks across rescans; pre-select stale ones the first time we see them
+  // keep the user's ticks across rescans, and tick every stale row, including ones that only
+  // became stale after a later scan (idle is measured over time), unless the user un-ticked it
   const keys = new Set(dev.items.map(devKey));
   devSel = new Set([...devSel].filter((k) => keys.has(k)));
-  if (!loadDev._seen) loadDev._seen = new Set();
-  dev.items.forEach((p) => { if (p.stale && !loadDev._seen.has(devKey(p))) devSel.add(devKey(p)); loadDev._seen.add(devKey(p)); });
+  [...devUnticked].forEach((k) => { if (!keys.has(k)) devUnticked.delete(k); });
+  dev.items.forEach((p) => { if (p.stale && !p.protected && !devUnticked.has(devKey(p))) devSel.add(devKey(p)); });
   renderDev();
 }
 
@@ -290,7 +293,7 @@ function renderDev() {
   $("#clean-body").innerHTML = dev.items.map((p) => {
     const k = devKey(p);
     const reasons = p.reasons.length ? p.reasons : ["active"];
-    const badges = reasons.map((r) => `<span class="badge ${r}">${esc(t("reason." + r, { o: p.owner }))}</span>`).join(" ");
+    const badges = reasons.map((r) => `<span class="badge ${r}">${esc(t("reason." + r, { o: p.owner, p: p.dup_of }))}</span>`).join(" ");
     return `<tr class="${p.stale ? "stale" : ""} ${p.protected ? "locked" : ""}">
       <td>${p.protected ? "🔒" : `<input type="checkbox" data-dev="${esc(k)}" ${devSel.has(k) ? "checked" : ""} />`}</td>
       <td><b>${esc(p.label)}</b> <span class="eco ${esc(p.eco)}">${esc(ecoLabel(p))}</span>
@@ -306,10 +309,17 @@ function renderDev() {
 
 $("#clean-body").addEventListener("change", (e) => {
   const k = e.target.dataset.dev;
-  if (k) e.target.checked ? devSel.add(k) : devSel.delete(k);
+  if (!k) return;
+  if (e.target.checked) { devSel.add(k); devUnticked.delete(k); } else { devSel.delete(k); devUnticked.add(k); }
 });
 $("#btn-clean-scan").onclick = (e) => loadDev(e.target);
-$("#btn-clean-stale").onclick = () => { dev?.items.filter((p) => p.stale).forEach((p) => devSel.add(devKey(p))); renderDev(); };
+$("#btn-clean-stale").onclick = async (e) => {
+  await loadDev(e.target); // fresh scan, so rows that just went stale are included
+  const stale = dev.items.filter((p) => p.stale && !p.protected);
+  stale.forEach((p) => { devSel.add(devKey(p)); devUnticked.delete(devKey(p)); });
+  renderDev();
+  if (!stale.length) toast(t("clean.noStale"));
+};
 $("#btn-clean-end").onclick = async (e) => {
   const picked = (dev?.items || []).filter((p) => devSel.has(devKey(p)) && !p.protected);
   if (!picked.length) return toast(t("clean.none"));
@@ -322,12 +332,15 @@ $("#btn-clean-end").onclick = async (e) => {
     ${agents ? `<p class="sub">💡 <code>claude --resume</code> / <code>codex resume</code></p>` : ""}`;
   if (!(await modal(t("clean.confirm.title", { n: picked.length }), html, { okText: t("clean.end"), danger: true }))) return;
   busy(e.target, true);
+  const estimate = picked.reduce((n, p) => n + p.tree_mem, 0);
+  startRecovery(live.at(-1)?.mem_used ?? 0, Date.now(), estimate, false);
   try {
     const r = await call("kill_dev_processes", { targets: picked.map((p) => ({ pid: p.pid, start_time: p.start_time, label: p.label, project: p.project, ports: p.ports })) });
     let msg = t("clean.done", { n: r.result.ended.length, mem: fmtBytes(r.result.freed_mem) });
     if (r.result.failed.length) msg += `\n\n${t("clean.failed")}\n• ` + r.result.failed.join("\n• ");
     toast(msg + `\n${t("clean.seeReport")}`, r.result.failed.length > 0, 10000);
     reportPick = { before: r.before.id, after: r.after.id };
+    if (r.result.mem_before && recovery) { recovery.before = r.result.mem_before; recovery.estimate = r.result.freed_mem; renderLive(); }
     picked.forEach((p) => devSel.delete(devKey(p)));
   } finally { busy(e.target, false); }
   loadDev();
@@ -668,7 +681,11 @@ function renderSettings() {
   $("#s-startup").checked = s.start_with_windows;
   $("#s-tray").checked = s.stay_in_tray;
   $("#s-watchdog").value = s.watchdog_minutes;
-  $("#s-idle").value = s.idle_hours ?? 2;
+  $("#s-idle").value = s.idle_minutes ?? 120;
+  $("#s-autokill").checked = !!s.auto_kill_stale;
+  $("#s-badge").checked = s.badge_enabled ?? true;
+  $("#s-badge-warn").value = s.badge_warn_gb ?? 1;
+  $("#s-badge-alert").value = s.badge_alert_gb ?? 2;
   $("#s-folders").value = s.dev_folders.join("\n");
   $("#s-info").textContent = t("set.info", { s: state.startup_registered ? t("set.registered") : t("set.notRegistered"), d: state.data_dir });
   loadAv();
@@ -702,7 +719,11 @@ $("#btn-save-settings").onclick = async (e) => {
     start_with_windows: $("#s-startup").checked,
     stay_in_tray: $("#s-tray").checked,
     watchdog_minutes: Math.max(1, Number($("#s-watchdog").value) || 30),
-    idle_hours: Math.min(168, Math.max(1, Number($("#s-idle").value) || 2)),
+    idle_minutes: Math.min(10080, Math.max(1, Math.round(Number($("#s-idle").value)) || 120)),
+    auto_kill_stale: $("#s-autokill").checked,
+    badge_enabled: $("#s-badge").checked,
+    badge_warn_gb: Number($("#s-badge-warn").value) || 1,
+    badge_alert_gb: Number($("#s-badge-alert").value) || 2,
     dev_folders: $("#s-folders").value.split(/\r?\n/).map((x) => x.trim()).filter(Boolean),
   };
   busy(e.target, true, t("set.saving"));
@@ -714,6 +735,88 @@ $("#btn-save-settings").onclick = async (e) => {
   renderSettings();
 };
 
+// ---------- live meter ----------
+// The backend samples CPU / RAM every 2 s for as long as RigSweep runs. After a cleanup the
+// recovered RAM is measured from those samples: RAM in use right before the kill minus the
+// lowest reading since, so it shows up within seconds instead of only in the Boost Report.
+let live = [];          // [{t, cpu, mem_used, mem_total}]
+let recovery = null;    // {before, since, estimate, auto, until}
+const RECOVERY_MS = 20000;
+const avg = (a) => a.length ? a.reduce((n, x) => n + x, 0) / a.length : 0;
+
+function startRecovery(before, since, estimate, auto) {
+  const cpuBefore = avg(live.filter((s) => s.t < since).slice(-3).map((s) => s.cpu));
+  recovery = { before, since, estimate, auto, cpuBefore, until: Date.now() + RECOVERY_MS };
+  renderLive();
+}
+
+function recoveredNow() {
+  if (!recovery?.before) return null;
+  const after = live.filter((s) => s.t >= recovery.since);
+  if (!after.length) return null;
+  const best = Math.max(0, ...after.map((s) => recovery.before - s.mem_used));
+  // the kill itself costs CPU: judge CPU on samples from 4 s after it
+  const settled = after.filter((s) => s.t >= recovery.since + 4000).map((s) => s.cpu);
+  return { best, cpuAfter: settled.length >= 2 ? avg(settled) : null };
+}
+
+function renderLive() {
+  const last = live.at(-1);
+  if (last) {
+    $("#live-mem").textContent = `${fmtBytes(last.mem_used)} / ${fmtBytes(last.mem_total)}`;
+    $("#live-cpu").textContent = `${last.cpu.toFixed(0)}%`;
+    if (currentTab === "dashboard") {
+      $("#t-cpu").textContent = `${last.cpu.toFixed(0)}%`;
+      $("#t-mem").textContent = `${fmtBytes(last.mem_used)} / ${fmtBytes(last.mem_total)}`;
+    }
+  }
+  renderSpark();
+  const win = $("#live-win");
+  if (!recovery) { win.className = "live-win hidden"; return; }
+  const r = recoveredNow();
+  const measuring = Date.now() < recovery.until;
+  const tag = recovery.auto ? ` <span class="sub">· ${esc(t("live.auto"))}</span>` : "";
+  if (!r || (measuring && r.best < 32 * 1048576)) {
+    win.className = "live-win pending";
+    win.innerHTML = esc(t("live.recovering"));
+    return;
+  }
+  win.className = "live-win";
+  const cpu = r.cpuAfter != null && recovery.cpuBefore
+    ? `<span class="sub">${esc(t("live.cpu", { a: recovery.cpuBefore.toFixed(0), b: r.cpuAfter.toFixed(0) }))}</span>` : "";
+  const note = r.best < 32 * 1048576 && recovery.estimate
+    ? `<span class="sub">${esc(t("live.estimate", { mem: fmtBytes(recovery.estimate) }))}</span>` : "";
+  win.innerHTML = `<span class="big">${esc(t("live.recovered", { mem: fmtBytes(r.best) }))}</span>${cpu}${tag}${note ? "<br>" + note : ""}`;
+}
+
+function renderSpark() {
+  const svg = $("#live-spark");
+  if (live.length < 2) { svg.innerHTML = ""; return; }
+  const W = 300, H = 48, t0 = live[0].t, span = Math.max(1, live.at(-1).t - t0);
+  // RAM is zoomed to its recent range (a 2 GB drop on a 32 GB machine would look flat otherwise)
+  const mems = live.map((s) => s.mem_used);
+  const lo0 = Math.min(...mems), hi0 = Math.max(...mems), pad = Math.max(hi0 - lo0, 512 * 1048576) * 0.35;
+  const lo = Math.max(0, lo0 - pad), range = hi0 + pad - lo;
+  const x = (s) => ((s.t - t0) / span) * W;
+  const ym = (s) => H - 2 - ((s.mem_used - lo) / range) * (H - 4);
+  const yc = (s) => H - 2 - (Math.min(100, s.cpu) / 100) * (H - 4);
+  const mem = live.map((s) => `${x(s).toFixed(1)},${ym(s).toFixed(1)}`).join(" ");
+  const cpu = live.map((s) => `${x(s).toFixed(1)},${yc(s).toFixed(1)}`).join(" ");
+  let mark = "";
+  if (recovery && recovery.since >= t0) {
+    const mx = (((recovery.since - t0) / span) * W).toFixed(1);
+    mark = `<line class="mark" x1="${mx}" x2="${mx}" y1="0" y2="${H}" />`;
+  }
+  svg.innerHTML = `<polygon class="area" points="0,${H} ${mem} ${W},${H}" /><polyline class="cpu" points="${cpu}" /><polyline class="mem" points="${mem}" />${mark}`;
+}
+
+listen("live", (e) => {
+  live.push(e.payload);
+  if (live.length > 150) live.shift();
+  renderLive();
+});
+invoke("get_live").then((h) => { if (h?.length) { live = h.concat(live.filter((s) => s.t > h.at(-1).t)); renderLive(); } }).catch(() => {});
+
 // ---------- backend events ----------
 listen("profile-changed", (e) => {
   const s = e.payload;
@@ -721,6 +824,13 @@ listen("profile-changed", (e) => {
   loadState();
 });
 listen("paused-changed", (e) => setPaused(e.payload));
+listen("dev-autocleaned", (e) => {
+  const r = e.payload;
+  // the trees were ended a moment before this event; samples from just before it count
+  if (r.mem_before) startRecovery(r.mem_before, Date.now() - 2500, r.freed_mem, true);
+  toast(t("clean.auto.done", { n: r.ended.length, mem: fmtBytes(r.freed_mem) }) + "\n• " + r.ended.join("\n• "), false, 8000);
+  if (currentTab === "cleanup") loadDev();
+});
 listen("request-restore-all", () => { showTab("history"); restoreAll(); });
 
 // ---------- disclaimer ----------

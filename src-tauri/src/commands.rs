@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
-use tauri::State;
+use tauri::{AppHandle, State};
 
 use crate::actions::defender;
 use crate::analyzer::{Analyzer, Metrics, Snapshot};
@@ -189,13 +189,17 @@ pub async fn get_history(state: State<'_, AppState>, limit: Option<i64>) -> R<Ve
 }
 
 #[tauri::command]
-pub async fn save_settings(state: State<'_, AppState>, settings: Settings) -> R<Vec<String>> {
+pub async fn save_settings(app: AppHandle, state: State<'_, AppState>, settings: Settings) -> R<Vec<String>> {
     let db = lock(&state)?;
     let old = Settings::load(&db);
     let mut notes = vec![];
     let mut s = settings;
     s.dev_folders = s.dev_folders.into_iter().map(|f| f.trim().to_string()).filter(|f| !f.is_empty()).collect();
     s.save(&db).map_err(err)?;
+    let s_saved = Settings::load(&db);
+    if let Ok(a) = state.analyzer.try_lock() {
+        crate::badge::update(&app, a.last_dev.stale_mem, &s_saved);
+    }
 
     // startup task
     if s.start_with_windows {
@@ -303,15 +307,16 @@ pub async fn import_profile(state: State<'_, AppState>, json: String) -> R<Vec<S
 
 // ---------- dev cleanup ----------
 
-fn idle_hours(state: &State<'_, AppState>) -> R<u32> {
-    Ok(Settings::load(&*lock(state)?).idle_hours)
+fn idle_minutes(state: &State<'_, AppState>) -> R<u32> {
+    Ok(Settings::load(&*lock(state)?).idle_minutes)
 }
 
 #[tauri::command]
-pub async fn get_dev_processes(state: State<'_, AppState>) -> R<DevReport> {
-    let h = idle_hours(&state)?;
-    let mut a = state.analyzer.lock().map_err(|_| "analyzer lock poisoned")?;
-    Ok(a.dev_scan(h))
+pub async fn get_dev_processes(app: AppHandle, state: State<'_, AppState>) -> R<DevReport> {
+    let s = Settings::load(&*lock(&state)?);
+    let r = state.analyzer.lock().map_err(|_| "analyzer lock poisoned")?.dev_scan(s.idle_minutes);
+    crate::badge::update(&app, r.stale_mem, &s);
+    Ok(r)
 }
 
 #[derive(Serialize)]
@@ -323,8 +328,8 @@ pub struct CleanupResponse {
 
 /// End the selected process trees, with a before/after measurement for the Boost Report.
 #[tauri::command]
-pub async fn kill_dev_processes(state: State<'_, AppState>, targets: Vec<KillTarget>) -> R<CleanupResponse> {
-    let h = idle_hours(&state)?;
+pub async fn kill_dev_processes(app: AppHandle, state: State<'_, AppState>, targets: Vec<KillTarget>) -> R<CleanupResponse> {
+    let h = idle_minutes(&state)?;
     let (before, result) = {
         let mut a = state.analyzer.lock().map_err(|_| "analyzer lock poisoned")?;
         let before = a.metrics(h); // includes a fresh dev scan, taken right now
@@ -334,6 +339,7 @@ pub async fn kill_dev_processes(state: State<'_, AppState>, targets: Vec<KillTar
     std::thread::sleep(std::time::Duration::from_millis(1500)); // let Windows reclaim the pages
     let after = measure(&state)?;
     let db = lock(&state)?;
+    crate::badge::update(&app, after.dev_stale_mem, &Settings::load(&db));
     for e in &result.ended {
         db.log("gui", None, "dev_cleanup", true, &format!("ended {e}"));
     }
@@ -372,7 +378,7 @@ pub async fn clean_browser_caches(state: State<'_, AppState>, targets: Vec<Clean
 // ---------- boost report ----------
 
 fn measure(state: &State<'_, AppState>) -> R<Metrics> {
-    let h = idle_hours(state)?;
+    let h = idle_minutes(state)?;
     let mut a = state.analyzer.lock().map_err(|_| "analyzer lock poisoned")?;
     Ok(a.metrics(h))
 }
@@ -433,6 +439,14 @@ pub async fn defender_self_allow(state: State<'_, AppState>, allow: bool) -> R<D
     lock(&state)?.log("gui", None, if allow { "av_allow" } else { "av_disallow" }, r.is_ok(), &folder);
     r.map_err(err)?;
     defender_status_now()
+}
+
+// ---------- live meter ----------
+
+/// The last few minutes of CPU / RAM samples (new ones arrive as `live` events).
+#[tauri::command]
+pub async fn get_live() -> R<Vec<crate::live::Sample>> {
+    Ok(crate::live::history())
 }
 
 // ---------- chrome helper ----------

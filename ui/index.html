@@ -61,6 +61,15 @@
         </div>
       </header>
       <p class="hint" data-i18n="clean.hint"></p>
+      <div id="live" class="live">
+        <div class="live-nums">
+          <div><span class="k">RAM</span> <b id="live-mem">–</b></div>
+          <div><span class="k">CPU</span> <b id="live-cpu">–</b></div>
+          <div class="sub" data-i18n="live.now"></div>
+        </div>
+        <svg id="live-spark" class="spark" viewBox="0 0 300 48" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div id="live-win" class="live-win hidden"></div>
+      </div>
       <div id="clean-summary" class="summary"></div>
       <table class="tbl">
         <thead><tr>
@@ -172,7 +181,11 @@
         <label class="chk"><input type="checkbox" id="s-startup" /> <span data-i18n="set.startup"></span></label>
         <label class="chk"><input type="checkbox" id="s-tray" /> <span data-i18n="set.tray"></span></label>
         <label><span data-i18n="set.watchdog"></span> <input type="number" id="s-watchdog" min="1" max="1440" /></label>
-        <label><span data-i18n="set.idle"></span> <input type="number" id="s-idle" min="1" max="168" /></label>
+        <label><span data-i18n="set.idle"></span> <input type="number" id="s-idle" min="1" max="10080" /></label>
+        <label class="chk"><input type="checkbox" id="s-autokill" /> <span data-i18n="set.autokill"></span></label>
+        <label class="chk"><input type="checkbox" id="s-badge" /> <span data-i18n="set.badge"></span></label>
+        <label><span data-i18n="set.badgeWarn"></span> <input type="number" id="s-badge-warn" min="0.1" max="256" step="0.5" /></label>
+        <label><span data-i18n="set.badgeAlert"></span> <input type="number" id="s-badge-alert" min="0.1" max="256" step="0.5" /></label>
         <label><span data-i18n="set.folders"></span>
           <textarea id="s-folders" rows="6" spellcheck="false"></textarea>
         </label>

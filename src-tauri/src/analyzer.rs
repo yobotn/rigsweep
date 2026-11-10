@@ -144,7 +144,7 @@ impl Analyzer {
     }
 
     /// Refresh everything dev-cleanup needs (command lines + working dirs only for dev processes).
-    pub fn dev_scan(&mut self, idle_hours: u32) -> DevReport {
+    pub fn dev_scan(&mut self, idle_minutes: u32) -> DevReport {
         let since = self.last.elapsed();
         if since.as_millis() < 300 {
             std::thread::sleep(std::time::Duration::from_millis(300 - since.as_millis() as u64));
@@ -156,7 +156,10 @@ impl Analyzer {
             .sys
             .processes()
             .iter()
-            .filter(|(_, p)| devclean::SCAN_NAMES.contains(&p.name().to_string_lossy().to_ascii_lowercase().as_str()))
+            .filter(|(_, p)| {
+                let n = p.name().to_string_lossy().to_ascii_lowercase();
+                devclean::SCAN_NAMES.contains(&n.as_str()) || devclean::WRAPPER_NAMES.contains(&n.as_str())
+            })
             .map(|(pid, _)| *pid)
             .collect();
         self.sys.refresh_processes_specifics(
@@ -167,13 +170,13 @@ impl Analyzer {
                 .with_cwd(UpdateKind::OnlyIfNotSet)
                 .with_exe(UpdateKind::OnlyIfNotSet),
         );
-        let r = devclean::scan(&self.sys, &mut self.idle, idle_hours);
+        let r = devclean::scan(&self.sys, &mut self.idle, idle_minutes);
         self.last_dev = r.clone();
         r
     }
 
     /// Measure the machine for the Boost Report. Takes ~1.5 s (CPU needs a sampling window).
-    pub fn metrics(&mut self, idle_hours: u32) -> Metrics {
+    pub fn metrics(&mut self, idle_minutes: u32) -> Metrics {
         self.sys.refresh_cpu_usage();
         let mut samples = vec![];
         for _ in 0..3 {
@@ -182,7 +185,7 @@ impl Analyzer {
             samples.push(self.sys.global_cpu_usage());
         }
         self.sys.refresh_memory();
-        let dev = self.dev_scan(idle_hours);
+        let dev = self.dev_scan(idle_minutes);
         let chrome: Vec<_> = self
             .sys
             .processes()

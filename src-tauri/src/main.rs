@@ -2,6 +2,7 @@
 
 mod actions;
 mod analyzer;
+mod badge;
 mod browserclean;
 mod catalog;
 mod commands;
@@ -9,6 +10,7 @@ mod db;
 mod devclean;
 mod elevation;
 mod engine;
+mod live;
 mod persistence;
 mod util;
 
@@ -60,6 +62,7 @@ fn main() {
 fn show_main(app: &AppHandle) {
     if let Some(w) = app.get_webview_window("main") {
         let _ = w.show();
+        badge::invalidate();
         let _ = w.unminimize();
         let _ = w.set_focus();
     }
@@ -114,10 +117,13 @@ fn run_app(start_hidden: bool) {
             commands::defender_self_status,
             commands::defender_self_allow,
             commands::open_chrome_helper,
+            commands::get_live,
         ])
         .setup(move |app| {
             build_tray(app.handle())?;
             spawn_watchdog(app.handle().clone());
+            spawn_dev_monitor(app.handle().clone());
+            live::spawn(app.handle().clone());
             if !start_hidden {
                 show_main(app.handle());
             }
@@ -186,6 +192,53 @@ fn build_tray(app: &AppHandle) -> tauri::Result<()> {
         })
         .build(app)?;
     Ok(())
+}
+
+/// Every minute: scan dev processes (that's also what measures "quiet for N minutes"), end the
+/// stale trees that stayed CPU-silent for the whole idle period if auto-cleanup is on, and update
+/// the tray / taskbar dot showing how much memory stale processes still hold.
+fn spawn_dev_monitor(app: AppHandle) {
+    std::thread::spawn(move || {
+        let mut first = true;
+        loop {
+            std::thread::sleep(Duration::from_secs(if first { 5 } else { 60 }));
+            first = false;
+            let state = app.state::<AppState>();
+            let s = match state.db.lock() {
+                Ok(db) => engine::Settings::load(&db),
+                Err(_) => continue,
+            };
+            let auto = s.auto_kill_stale && !state.paused.load(Ordering::Relaxed);
+            if !auto && !s.badge_enabled {
+                badge::update(&app, 0, &s);
+                continue;
+            }
+            let (stale_mem, result) = {
+                let Ok(mut a) = state.analyzer.lock() else { continue };
+                let report = a.dev_scan(s.idle_minutes);
+                let targets = if auto { devclean::auto_targets(&report, s.idle_minutes) } else { vec![] };
+                if targets.is_empty() {
+                    (report.stale_mem, None)
+                } else {
+                    let r = devclean::kill(&report, &targets);
+                    (report.stale_mem.saturating_sub(r.freed_mem), Some(r))
+                }
+            };
+            badge::update(&app, stale_mem, &s);
+            let Some(result) = result else { continue };
+            if let Ok(db) = state.db.lock() {
+                for e in &result.ended {
+                    db.log("auto", None, "dev_cleanup", true, &format!("ended {e}"));
+                }
+                for f in &result.failed {
+                    db.log("auto", None, "dev_cleanup", false, f);
+                }
+            }
+            if !result.ended.is_empty() {
+                let _ = app.emit("dev-autocleaned", &result);
+            }
+        }
+    });
 }
 
 /// Periodically verify the profile and re-apply anything Windows reverted.
