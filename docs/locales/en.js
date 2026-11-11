@@ -26,6 +26,7 @@ T["en"] = {
   "f8.h": "Updates, your choice", "f8.p": "Off by default. Check when you want, or turn on a daily check. Updates install only when you click, and only if they're signed.",
   "f9.h": "Browser Cleanup", "f9.p": "Empties caches for Chrome, Edge, Brave, Vivaldi, Opera and Firefox. Sign-ins, cookies, passwords and history are never touched.",
   "f10.h": "Dev Disk", "f10.p": "Deletes node_modules, .next, target and .venv in projects you stopped touching, and cleans package caches (npm, pnpm, pip, Cargo, Go…). Exclude anything, switch off any cache.",
+  "f11.h": "Hardware", "f11.p": "Disk health, a disk speed test and your CPU, GPU, RAM and battery details in one tab, instead of four separate tools. No driver installed.",
     "clean.eyebrow": "Dev Cleanup", "clean.h": "🧹 Sweep stale sessions, safely", "shot.cleanup": "Dev Cleanup", "shot.dashboard": "Dashboard", "clean.l5": "<b>MCP servers and headless browsers your agents left behind</b> are found too, and a live meter shows the RAM you got back seconds after each sweep.",
     "clean.l1": "<b>Orphans</b>: their terminal is closed but they're still running, like the classic zombie localhost:3000.",
     "clean.l2": "<b>Idle agents in open terminals are never pre-selected</b>, because they're waiting for you.",

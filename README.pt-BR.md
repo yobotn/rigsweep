@@ -76,9 +76,18 @@ Projetos antigos guardam gigas de `node_modules`, `.next`, `target`, `bin/obj` e
 
 - 🗂️ **Projetos**: pastas de build e de dependências de Node, Rust, .NET, Java/Gradle/Maven e Python. Uma pasta só conta se o arquivo do projeto estiver ao lado dela (`package.json`, `Cargo.toml`, `*.csproj`, `pyvenv.cfg`…), então uma pasta `build` qualquer nunca é tocada. Só vêm pré-selecionados os projetos que ninguém edita há 30 dias (ajustável), e os que um processo em execução está usando ficam bloqueados 🔒.
 - 📦 **Caches de pacotes**: npm, npx, pnpm, Yarn, Bun, pip, uv, Cargo, Go, NuGet, Gradle, Maven, Playwright, Puppeteer, Hugging Face. pnpm, uv e Go são limpos com os próprios comandos (`pnpm store prune`…); no Playwright e no Puppeteer só saem as versões antigas dos navegadores, a mais nova fica.
+- 🎯 **Seleção automática**: na própria aba Disco dev, escolha há quanto tempo um projeto precisa estar parado (de 3 a 365 dias), quais pastas são marcadas (saídas de build, dependências, caches de pacotes) e um tamanho mínimo.
 - 🚫 **Nunca limpar**: dá para desligar qualquer cache. Os que significam um download grande (Playwright, Puppeteer, Hugging Face, Gradle, Maven, pacotes do NuGet, módulos do Go) já vêm desligados.
 - 🙈 **Exclusões**: AppData, as pastas de ferramentas do seu perfil (`.cargo`, `.nvm`, `.vscode`…), `.git` e o Windows são sempre ignorados. Adicione seus próprios caminhos ou nomes de pasta (`vendor`, `old-*`) nas Configurações, ou clique em **Excluir** em um projeto.
 - ✅ Por padrão analisa o seu perfil de usuário (Área de Trabalho, Documentos, Downloads, OneDrive…). Nada é apagado sem a sua confirmação, e cada pasta é verificada de novo logo antes de ser apagada.
+
+### 🖥️ Hardware: uma aba no lugar de quatro ferramentas
+O básico que você abriria no CPU-Z, GPU-Z, CrystalDiskInfo e CrystalDiskMark, lido direto do Windows. Nenhum driver é instalado.
+
+- 💽 **Saúde dos discos**: Saudável / Desgastando / Problema para cada disco, com vida útil restante, temperatura, horas ligado e erros não corrigidos. Um disco falhando gera um aviso no painel.
+- ⚡ **Teste de velocidade**: leitura e gravação sequenciais, mais leituras aleatórias 4K, por unidade. Ele grava um arquivo temporário de 512 MB e depois o apaga.
+- 🧮 **CPU, GPU, memória**: modelo, núcleos e threads, cache, virtualização (exigida pelo WSL 2 e pelo Docker), memória de vídeo e driver, tipo de RAM, velocidade e slots livres.
+- 🔋 **Sistema e bateria**: placa-mãe, BIOS, build do Windows, tempo ligado e desgaste da bateria em notebooks.
 
 ### 📊 Relatório de ganhos: antes e depois reais
 Nada de números falsos como "seu PC está 87% mais rápido". O RigSweep **mede** sua máquina e compara dois snapshots: RAM usada/livre, CPU média, quantidade de processos, serviços em execução, RAM do Chrome, RAM de Node/agentes.

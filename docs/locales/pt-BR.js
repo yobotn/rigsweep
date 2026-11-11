@@ -25,6 +25,7 @@ T["pt-BR"] = {
   "f8.h": "Atualizações, quando você quiser", "f8.p": "Desativadas por padrão. Verifique quando quiser ou ative uma verificação diária. As atualizações só são instaladas quando você clica, e só se forem assinadas.",
   "f9.h": "Limpeza de navegador", "f9.p": "Esvazia os caches do Chrome, Edge, Brave, Vivaldi, Opera e Firefox. Logins, cookies, senhas e histórico nunca são tocados.",
   "f10.h": "Disco dev", "f10.p": "Apaga node_modules, .next, target e .venv dos projetos que você não mexe mais e limpa os caches de pacotes (npm, pnpm, pip, Cargo, Go…). Exclua o que quiser, desligue qualquer cache.",
+  "f11.h": "Hardware", "f11.p": "Saúde dos discos, um teste de velocidade e os detalhes de CPU, GPU, RAM e bateria em uma única aba, em vez de quatro ferramentas. Sem instalar drivers.",
     "clean.eyebrow": "Limpeza dev", "clean.h": "🧹 Limpe sessões abandonadas com segurança", "shot.cleanup": "Limpeza dev", "shot.dashboard": "Painel", "clean.l5": "<b>Servidores MCP e navegadores headless que seus agentes deixaram para trás</b> também são encontrados, e um medidor ao vivo mostra a RAM recuperada segundos depois de cada limpeza.",
     "clean.l1": "<b>Órfãos</b>: o terminal foi fechado, mas eles continuam rodando, como o clássico zumbi em localhost:3000.",
     "clean.l2": "<b>Agentes ociosos em terminais abertos nunca vêm pré-selecionados</b>, porque estão esperando por você.",

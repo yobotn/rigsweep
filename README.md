@@ -76,9 +76,18 @@ Old projects keep gigabytes of `node_modules`, `.next`, `target`, `bin/obj` and 
 
 - 🗂️ **Projects**: build output and dependency folders from Node, Rust, .NET, Java/Gradle/Maven and Python. A folder only counts if its project file sits next to it (`package.json`, `Cargo.toml`, `*.csproj`, `pyvenv.cfg`…), so a random `build` folder is never touched. Only projects nobody has edited for 30 days (adjustable) are pre-selected, and projects a running process is using are locked 🔒.
 - 📦 **Package caches**: npm, npx, pnpm, Yarn, Bun, pip, uv, Cargo, Go, NuGet, Gradle, Maven, Playwright, Puppeteer, Hugging Face. pnpm, uv and Go are cleaned with their own commands (`pnpm store prune`…); for Playwright and Puppeteer only older browser versions go, the newest stays.
+- 🎯 **Auto-select**: right on the Dev Disk tab, choose how long a project must sit untouched (3 to 365 days), which folders get ticked (build output, dependencies, package caches) and a minimum size.
 - 🚫 **Never clean**: switch off any cache. The ones that mean a big re-download (Playwright, Puppeteer, Hugging Face, Gradle, Maven, NuGet packages, Go modules) start switched off.
 - 🙈 **Exclusions**: AppData, tool folders in your profile (`.cargo`, `.nvm`, `.vscode`…), `.git` and Windows are always skipped. Add your own paths or folder names (`vendor`, `old-*`) in Settings, or click **Exclude** on a project.
 - ✅ Scans your user profile (Desktop, Documents, Downloads, OneDrive…) by default. Nothing is deleted without your confirmation, and every folder is checked again right before deletion.
+
+### 🖥️ Hardware: one tab instead of four tools
+The basics you'd otherwise open CPU-Z, GPU-Z, CrystalDiskInfo and CrystalDiskMark for, read from Windows itself. No driver is installed.
+
+- 💽 **Disk health**: Healthy / Wearing out / Problem for each disk, with life left, temperature, power-on hours and uncorrected errors. A failing disk raises a warning on the dashboard.
+- ⚡ **Speed test**: sequential read and write plus 4K random reads, per drive. It writes a 512 MB temporary file and deletes it afterwards.
+- 🧮 **CPU, GPU, memory**: model, cores and threads, cache, virtualization (needed by WSL 2 and Docker), video memory and driver, RAM type, speed and free slots.
+- 🔋 **System and battery**: motherboard, BIOS, Windows build, uptime, and battery wear on laptops.
 
 ### 📊 Boost Report: real before and after
 No fake "your PC is 87% faster" numbers. RigSweep **measures** your machine and compares two snapshots: RAM used/free, average CPU, process count, running services, Chrome RAM, Node/agent RAM.

@@ -76,9 +76,18 @@ Les vieux projets gardent des gigaoctets de `node_modules`, `.next`, `target`, `
 
 - 🗂️ **Projets** : dossiers de build et de dépendances de Node, Rust, .NET, Java/Gradle/Maven et Python. Un dossier ne compte que si son fichier de projet est juste à côté (`package.json`, `Cargo.toml`, `*.csproj`, `pyvenv.cfg`…), un dossier `build` quelconque n'est donc jamais touché. Seuls les projets que personne n'a modifiés depuis 30 jours (réglable) sont présélectionnés, et ceux qu'un processus utilise sont verrouillés 🔒.
 - 📦 **Caches de paquets** : npm, npx, pnpm, Yarn, Bun, pip, uv, Cargo, Go, NuGet, Gradle, Maven, Playwright, Puppeteer, Hugging Face. pnpm, uv et Go sont nettoyés avec leurs propres commandes (`pnpm store prune`…) ; pour Playwright et Puppeteer, seules les anciennes versions des navigateurs partent, la plus récente reste.
+- 🎯 **Sélection auto** : directement dans l'onglet Disque dev, choisissez depuis combien de temps un projet doit être inactif (3 à 365 jours), quels dossiers sont cochés (fichiers de build, dépendances, caches de paquets) et une taille minimale.
 - 🚫 **Ne jamais nettoyer** : chaque cache peut être désactivé. Ceux qui impliquent un gros retéléchargement (Playwright, Puppeteer, Hugging Face, Gradle, Maven, paquets NuGet, modules Go) sont désactivés au départ.
 - 🙈 **Exclusions** : AppData, les dossiers d'outils de votre profil (`.cargo`, `.nvm`, `.vscode`…), `.git` et Windows sont toujours ignorés. Ajoutez vos propres chemins ou noms de dossier (`vendor`, `old-*`) dans les Paramètres, ou cliquez sur **Exclure** sur un projet.
 - ✅ Analyse par défaut votre profil utilisateur (Bureau, Documents, Téléchargements, OneDrive…). Rien n'est supprimé sans votre confirmation, et chaque dossier est revérifié juste avant la suppression.
+
+### 🖥️ Matériel : un onglet au lieu de quatre outils
+L'essentiel de ce pour quoi vous ouvririez CPU-Z, GPU-Z, CrystalDiskInfo et CrystalDiskMark, lu directement dans Windows. Aucun pilote n'est installé.
+
+- 💽 **État des disques** : En bon état / Usé / Problème pour chaque disque, avec durée de vie restante, température, heures de fonctionnement et erreurs non corrigées. Un disque défaillant déclenche un avertissement sur le tableau de bord.
+- ⚡ **Test de vitesse** : lecture et écriture séquentielles, plus lectures aléatoires 4K, pour chaque lecteur. Il écrit un fichier temporaire de 512 Mo puis le supprime.
+- 🧮 **Processeur, carte graphique, mémoire** : modèle, cœurs et threads, cache, virtualisation (requise par WSL 2 et Docker), mémoire vidéo et pilote, type de RAM, vitesse et emplacements libres.
+- 🔋 **Système et batterie** : carte mère, BIOS, build de Windows, durée depuis le démarrage et usure de la batterie sur les portables.
 
 ### 📊 Rapport de gains : un vrai avant/après
 Pas de faux chiffres du genre « votre PC est 87 % plus rapide ». RigSweep **mesure** votre machine et compare deux relevés : RAM utilisée/libre, CPU moyen, nombre de processus, services en cours d'exécution, RAM de Chrome et RAM Node/agents.

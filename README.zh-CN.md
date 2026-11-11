@@ -76,9 +76,18 @@ Python 和 Java 也会运行普通的桌面应用，因此对于这两者，只�
 
 - 🗂️ **项目**：Node、Rust、.NET、Java/Gradle/Maven 和 Python 的构建产物与依赖文件夹。只有旁边有项目文件（`package.json`、`Cargo.toml`、`*.csproj`、`pyvenv.cfg` 等）的文件夹才算数，所以随便一个 `build` 文件夹绝不会被动到。只会预先勾选 30 天（可调整）没人编辑过的项目，正被运行中的进程使用的项目会被锁定 🔒。
 - 📦 **包缓存**：npm、npx、pnpm、Yarn、Bun、pip、uv、Cargo、Go、NuGet、Gradle、Maven、Playwright、Puppeteer、Hugging Face。pnpm、uv 和 Go 用它们自己的命令清理（`pnpm store prune` 等）；Playwright 和 Puppeteer 只删除旧版浏览器，保留最新版本。
+- 🎯 **自动选择**：直接在开发磁盘页设置项目闲置多久才算过期（3 到 365 天）、勾选哪些文件夹（构建产物、依赖、包缓存）以及最小体积。
 - 🚫 **从不清理**：任何缓存都可以关掉。需要大量重新下载的那些（Playwright、Puppeteer、Hugging Face、Gradle、Maven、NuGet 包、Go 模块）默认就是关闭的。
 - 🙈 **排除**：AppData、用户目录中的工具文件夹（`.cargo`、`.nvm`、`.vscode` 等）、`.git` 和 Windows 始终跳过。你可以在设置中添加自己的路径或文件夹名（`vendor`、`old-*`），也可以在项目上点击 **排除**。
 - ✅ 默认扫描你的用户目录（桌面、文档、下载、OneDrive 等）。未经你确认不会删除任何东西，每个文件夹在删除前都会再检查一次。
+
+### 🖥️ 硬件：一个页面代替四个工具
+以前要打开 CPU-Z、GPU-Z、CrystalDiskInfo 和 CrystalDiskMark 才能看到的基本信息，现在直接从 Windows 读取。不安装任何驱动。
+
+- 💽 **硬盘健康**：每块硬盘显示良好 / 磨损中 / 有问题，并附上剩余寿命、温度、通电时间和未纠正错误。硬盘出现故障迹象时，仪表板会发出警告。
+- ⚡ **测速**：按分区测试顺序读写和 4K 随机读取。会写入一个 512 MB 的临时文件，测完即删除。
+- 🧮 **CPU、显卡、内存**：型号、核心与线程、缓存、虚拟化（WSL 2 和 Docker 需要）、显存与驱动、内存类型、频率和空闲插槽。
+- 🔋 **系统与电池**：主板、BIOS、Windows 版本号、开机时长，以及笔记本的电池损耗。
 
 ### 📊 提速报告：真实的前后对比
 没有“你的电脑快了 87%”这种虚假数字。RigSweep 会**测量**你的电脑并比较两个快照：已用/可用内存、平均 CPU、进程数、正在运行的服务、Chrome 内存、Node/智能体内存。

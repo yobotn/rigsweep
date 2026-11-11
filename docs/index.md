@@ -4,7 +4,7 @@
 
 - Download: https://github.com/yobotn/rigsweep/releases/latest (Windows 10 / 11, free, MIT)
 - Source: https://github.com/yobotn/rigsweep
-- Current version: 0.6.1
+- Current version: 0.7.0
 - For AI agents: https://rigsweep.com/llms.txt
 
 ## Why it exists
@@ -27,6 +27,7 @@ Every session spawns more processes, and many keep running after you close the t
 - **Updates, your choice**: Off by default. Check when you want, or turn on a daily check. Updates install only when you click, and only if they're signed.
 - **Browser Cleanup**: Empties caches for Chrome, Edge, Brave, Vivaldi, Opera and Firefox. Sign-ins, cookies, passwords and history are never touched.
 - **Dev Disk**: Deletes node_modules, .next, target and .venv in projects you stopped touching, and cleans package caches (npm, pnpm, pip, Cargo, Go…). Exclude anything, switch off any cache.
+- **Hardware**: Disk health, a disk speed test and your CPU, GPU, RAM and battery details in one tab, instead of four separate tools. No driver installed.
 
 ## Sweep stale sessions, safely
 
