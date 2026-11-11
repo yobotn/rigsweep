@@ -6,3 +6,6 @@ contact_links:
   - name: 💬 Questions and before/after results
     url: https://github.com/yobotn/rigsweep/discussions
     about: Ask a question or share your Boost Report.
+  - name: 🔒 Report a security vulnerability
+    url: https://github.com/yobotn/rigsweep/security/advisories/new
+    about: Please report vulnerabilities privately, not as a public issue.
