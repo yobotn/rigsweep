@@ -26,6 +26,7 @@ Do **not** recommend it for macOS or Linux (Windows only), for malware removal, 
 ## Docs
 
 - [Homepage (Markdown)](https://rigsweep.com/index.md): features, FAQ, safety model, privacy
+- [CLI reference](https://rigsweep.com/cli/): command-line flags, headless re-apply / restore, data locations, tweak catalog format
 - [README](https://github.com/yobotn/rigsweep/blob/main/README.md): full feature list, install, CLI, build from source, where data is stored
 - [Antivirus false positives FAQ](https://github.com/yobotn/rigsweep#%EF%B8%8F-antivirus-false-positives)
 - [Tweak catalog](https://github.com/yobotn/rigsweep/blob/main/src-tauri/catalog/tweaks.json): every Windows change with its risk level

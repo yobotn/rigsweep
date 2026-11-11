@@ -93,7 +93,7 @@ ${en["disc.p"]}
 
 ## Links
 
-- [About](https://rigsweep.com/about/) · [Privacy](https://rigsweep.com/privacy/) · [Contact](https://rigsweep.com/contact/)
+- [CLI reference](https://rigsweep.com/cli/) · [About](https://rigsweep.com/about/) · [Privacy](https://rigsweep.com/privacy/) · [Contact](https://rigsweep.com/contact/)
 - [Vote on upcoming features](https://github.com/yobotn/rigsweep/issues/12)
 - [Report an issue](https://github.com/yobotn/rigsweep/issues)
 `;

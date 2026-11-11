@@ -28,3 +28,4 @@ jobs:
           node -e "const fs=require('fs');for(const f of ['ui/app.js','ui/i18n.js','chrome-extension/popup.js','chrome-extension/background.js',...fs.readdirSync('ui/locales').map(f=>'ui/locales/'+f),...fs.readdirSync('docs/locales').map(f=>'docs/locales/'+f)])new Function(fs.readFileSync(f,'utf8'));"
           node scripts/check-i18n.js
           node scripts/prerender-site.js --check
+          node scripts/check-site.js

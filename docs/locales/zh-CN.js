@@ -42,7 +42,7 @@ T["zh-CN"] = {
     "disc.p": "RigSweep 会更改 Windows 服务、计划任务、注册表策略和 Microsoft Defender 设置，并可以结束正在运行的进程。每项优化都会先备份，随时可以还原；未经你确认，不会执行任何操作。但使用风险由你自行承担。本软件按“原样”提供，不附带任何形式的担保（MIT 许可证）。应用每项更改前请仔细检查，自行做好备份；未经 IT 部门批准，请勿在工作单位或学校管理的设备上使用。RigSweep 是独立项目，与 Microsoft、Google、Anthropic、OpenAI 及文中提到的任何其他工具均无关联；所有商标归其各自所有者所有。",
     "sign.h": "🔏 代码签名", "sign.p": "免费代码签名由 SignPath.io 提供，证书由 SignPath Foundation 颁发（申请处理中，当前版本尚未签名）。安装程序由 GitHub Actions 基于带标签的源代码构建。没有遥测，没有分析。唯一的网络请求是更新检查，而且仅在你开启该功能或单击“立即检查”时才会发出。", "sign.link": "代码签名和隐私政策 →", "start.h": "🚀 给你的智能体腾出空间", "start.p": "安装，测量一次基线，清理，然后再测量一次。",
     "foot.l": "🧹 RigSweep · 基于 MIT 许可证，永久免费", "foot.issues": "报告问题", "foot.disc": "免责声明",
-    "nav.faq": "常见问题",
+    "foot.cli": "CLI", "nav.faq": "常见问题",
     "foot.vote": "为功能投票",
     "foot.about": "关于",
     "foot.privacy": "隐私",

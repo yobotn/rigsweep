@@ -42,7 +42,7 @@ T["pt-BR"] = {
     "disc.p": "O RigSweep altera serviços do Windows, tarefas agendadas, políticas do Registro e configurações do Microsoft Defender, e pode finalizar processos em execução. Todo ajuste tem backup e pode ser restaurado, e nada acontece sem a sua confirmação, mas o uso é por sua conta e risco. Ele é fornecido \"no estado em que se encontra\", sem garantias de qualquer tipo (licença MIT). Revise cada alteração antes de aplicá-la, mantenha seus próprios backups e não o use em dispositivos gerenciados pela empresa ou pela escola sem a aprovação da equipe de TI. O RigSweep é um projeto independente, sem vínculo com a Microsoft, o Google, a Anthropic, a OpenAI ou qualquer outra ferramenta mencionada; todas as marcas pertencem aos respectivos proprietários.",
     "sign.h": "🔏 Assinatura de código", "sign.p": "Assinatura de código gratuita fornecida pela SignPath.io, certificado da SignPath Foundation (solicitação em andamento; as versões atuais ainda não são assinadas). Os instaladores são compilados a partir do código-fonte com tag pelo GitHub Actions. Sem telemetria, sem análises. A única solicitação de rede é a verificação de atualizações, e somente se você ativá-la ou clicar em Verificar agora.", "sign.link": "Política de assinatura de código e privacidade →", "start.h": "🚀 Dê espaço para seus agentes", "start.p": "Instale, faça uma medição de linha de base, limpe e meça de novo.",
     "foot.l": "🧹 RigSweep · gratuito para sempre sob a licença MIT", "foot.issues": "Relatar um problema", "foot.disc": "Aviso legal",
-    "nav.faq": "FAQ",
+    "foot.cli": "CLI", "nav.faq": "FAQ",
     "foot.vote": "Vote em recursos",
     "foot.about": "Sobre",
     "foot.privacy": "Privacidade",
