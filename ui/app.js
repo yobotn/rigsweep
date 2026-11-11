@@ -3,12 +3,14 @@ const { listen } = window.__TAURI__.event;
 
 const $ = (s) => document.querySelector(s);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+// In Hebrew / Arabic, keep "1.2 GB" reading left to right inside right-to-left text (LRI … PDI).
+const ltr = (s) => (document.documentElement.dir === "rtl" ? `\u2066${s}\u2069` : s);
 const fmtBytes = (b) => {
   const neg = b < 0; b = Math.abs(b);
-  if (b < 1024) return `${neg ? "-" : ""}${b} B`;
+  if (b < 1024) return ltr(`${neg ? "-" : ""}${b} B`);
   const u = ["KB", "MB", "GB", "TB"]; let i = -1;
   do { b /= 1024; i++; } while (b >= 1024 && i < u.length - 1);
-  return `${neg ? "-" : ""}${b.toFixed(b < 10 ? 1 : 0)} ${u[i]}`;
+  return ltr(`${neg ? "-" : ""}${b.toFixed(b < 10 ? 1 : 0)} ${u[i]}`);
 };
 const fmtAge = (s) => s < 3600 ? `${Math.max(1, Math.round(s / 60))}m` : s < 86400 ? `${(s / 3600).toFixed(1)}h` : `${(s / 86400).toFixed(1)}d`;
 
@@ -329,7 +331,7 @@ $("#btn-clean-end").onclick = async (e) => {
   const serving = picked.filter((p) => p.ports.length).length;
   const agents = picked.filter((p) => p.kind === "agent").length;
   const html = `<p>${esc(t("clean.confirm.body"))}</p><ul>${picked.map((p) =>
-    `<li><b>${esc(p.label)}</b> <span class="sub">${esc(p.project_path || p.project || "—")}${p.ports.length ? " · :" + p.ports.slice(0, 3).join(", :") : ""} · ${fmtBytes(p.tree_mem)} · PID ${p.pid} (+${p.tree_count - 1})</span></li>`).join("")}</ul>
+    `<li><b>${esc(p.label)}</b> <span class="sub"><bdi dir="ltr">${esc(p.project_path || p.project || "—")}</bdi>${p.ports.length ? " · :" + p.ports.slice(0, 3).join(", :") : ""} · ${fmtBytes(p.tree_mem)} · PID ${p.pid} (+${p.tree_count - 1})</span></li>`).join("")}</ul>
     ${serving ? `<p class="warn-text">${esc(t("clean.serving.warn", { n: serving }))}</p>` : ""}
     ${picked.some((p) => p.kind === "vm") ? `<p class="warn-text">${esc(t("clean.vm.warn"))}</p>` : ""}
     ${agents ? `<p class="sub">💡 <code>claude --resume</code> / <code>codex resume</code></p>` : ""}`;
@@ -391,7 +393,7 @@ function renderBrowsers() {
       const showDir = p.dir && p.dir !== "." && p.dir !== p.name;
       return `<tr class="${b.running ? "locked" : ""}">
         <td>${b.running ? "🔒" : `<input type="checkbox" data-bc="${esc(k)}" ${bcSel.has(k) ? "checked" : ""} />`}</td>
-        <td>${n === 0 ? `<b>${esc(pname)}</b>${showDir ? `<div class="sub">${esc(p.dir)}</div>` : ""}` : ""}</td>
+        <td>${n === 0 ? `<b>${esc(pname)}</b>${showDir ? `<div class="sub"><bdi dir="ltr">${esc(p.dir)}</bdi></div>` : ""}` : ""}</td>
         <td>${esc(t("bc.item." + i.key))}</td>
         <td><span class="risk ${i.tier === "safe" ? "safe" : "caution"}">${esc(t("bc.tier." + i.tier))}</span></td>
         <td class="num">${fmtBytes(i.bytes)}</td>
@@ -531,7 +533,7 @@ function renderDisk() {
         : `<span class="badge active">${esc(p.idle_days === 0 ? t("disk.today") : t("disk.recent", { d: p.idle_days }))}</span>`,
       p.onedrive ? `<span class="badge orphan">${esc(t("disk.onedrive"))}</span>` : "",
     ].join("");
-    const head = `<tr class="group"><td></td><td colspan="2"><b title="${esc(p.path)}">${esc(shortPath(p.path))}</b></td>
+    const head = `<tr class="group"><td></td><td colspan="2"><b title="${esc(p.path)}"><bdi dir="ltr">${esc(shortPath(p.path))}</bdi></b></td>
       <td class="num sub">${fmtBytes(total)}</td><td>${badges}</td>
       <td><button class="small ghost" data-disk-exclude="${esc(p.path)}">${esc(t("disk.exclude"))}</button></td></tr>`;
     return head + p.items.map((a) => {
@@ -742,7 +744,7 @@ function renderProcesses() {
       return `<span class="svc ${s.tweak_id ? "known" : ""}" title="${esc(s.display)}">${esc(s.name)} ${btn}</span>`;
     }).join("");
     return `<tr>
-      <td><b>${esc(p.name)}</b><div class="sub" title="${esc(p.exe)}">${esc(p.exe.length > 60 ? "…" + p.exe.slice(-58) : p.exe)}</div></td>
+      <td><b>${esc(p.name)}</b><div class="sub" title="${esc(p.exe)}"><bdi dir="ltr">${esc(p.exe.length > 60 ? "…" + p.exe.slice(-58) : p.exe)}</bdi></div></td>
       <td class="num">${p.pid}</td>
       <td class="num ${cpuCls}">${p.cpu.toFixed(1)}%</td>
       <td class="num">${fmtBytes(p.mem)}</td>
@@ -1183,14 +1185,14 @@ function renderLive() {
 // GPU temperature from the same counter Task Manager uses. Either may be null.
 const HEAT = { warm: 80, hot: 90 };
 let heatF = (() => { const s = safeGet("heatUnit"); return s ? s === "F" : LANG === "en" && navigator.language === "en-US"; })();
-const fmtTemp = (c) => heatF ? `${Math.round(c * 9 / 5 + 32)} °F` : `${Math.round(c)} °C`;
+const fmtTemp = (c) => ltr(heatF ? `${Math.round(c * 9 / 5 + 32)} °F` : `${Math.round(c)} °C`);
 const heatCls = (c) => (c >= HEAT.hot ? "vhot" : c >= HEAT.warm ? "hot" : "");
 const heatOf = (s) => Math.max(s.cpu_temp ?? -1, s.gpu_temp ?? -1);
 
 function heatParts(s) {
   const parts = [];
-  if (s.cpu_temp != null) parts.push(`<span class="${heatCls(s.cpu_temp)}">${esc(t("heat.cpu"))} ${fmtTemp(s.cpu_temp)}</span>`);
-  if (s.gpu_temp != null) parts.push(`<span class="${heatCls(s.gpu_temp)}">${esc(t("heat.gpu"))} ${fmtTemp(s.gpu_temp)}</span>`);
+  if (s.cpu_temp != null) parts.push(`<span dir="ltr" class="${heatCls(s.cpu_temp)}">${esc(t("heat.cpu"))} ${fmtTemp(s.cpu_temp)}</span>`);
+  if (s.gpu_temp != null) parts.push(`<span dir="ltr" class="${heatCls(s.gpu_temp)}">${esc(t("heat.gpu"))} ${fmtTemp(s.gpu_temp)}</span>`);
   return parts.join(" · ");
 }
 

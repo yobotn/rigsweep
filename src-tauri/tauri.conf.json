@@ -58,7 +58,9 @@
           "Russian",
           "Japanese",
           "Korean",
-          "SimpChinese"
+          "SimpChinese",
+          "Hebrew",
+          "Arabic"
         ],
         "displayLanguageSelector": true
       }

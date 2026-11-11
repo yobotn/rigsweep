@@ -6,7 +6,7 @@
 
 **[🌐 Sitio web](https://rigsweep.com)** · **[⬇️ Descargar](https://github.com/yobotn/rigsweep/releases/latest)** · **[📖 FAQ antivirus](#%EF%B8%8F-falsos-positivos-del-antivirus)**
 
-[🇬🇧 English](README.md) · [🇩🇪 Deutsch](README.de.md) · 🇪🇸 Español · [🇫🇷 Français](README.fr.md) · [🇮🇹 Italiano](README.it.md) · [🇧🇷 Português](README.pt-BR.md) · [🇷🇺 Русский](README.ru.md) · [🇯🇵 日本語](README.ja.md) · [🇰🇷 한국어](README.ko.md) · [🇨🇳 简体中文](README.zh-CN.md)
+[🇬🇧 English](README.md) · [🇩🇪 Deutsch](README.de.md) · 🇪🇸 Español · [🇫🇷 Français](README.fr.md) · [🇮🇹 Italiano](README.it.md) · [🇧🇷 Português](README.pt-BR.md) · [🇷🇺 Русский](README.ru.md) · [🇯🇵 日本語](README.ja.md) · [🇰🇷 한국어](README.ko.md) · [🇨🇳 简体中文](README.zh-CN.md) · [🇮🇱 עברית](README.he.md) · [🇸🇦 العربية](README.ar.md)
 
 ![Windows 10/11](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows)
 ![Rust + Tauri 2](https://img.shields.io/badge/Rust-Tauri%202-orange?logo=rust)
@@ -125,8 +125,8 @@ CPU / RAM / disco por proceso, y **qué servicios se ejecutan dentro de cada `sv
 ### 🔄 Actualizaciones, tú decides
 **🛠️ Configuración → 🔄 Actualizaciones** tiene un botón **Buscar ahora** y la opción *Buscar actualizaciones automáticamente* (al iniciar y después una vez al día), que está **desactivada de forma predeterminada**. Cuando sale una versión nueva, aparece un botón en la barra lateral con las novedades. No se instala nada hasta que haces clic en **Instalar y reiniciar**, y solo si la descarga está firmada con la clave de RigSweep. Tus ajustes, copias de seguridad y configuración se conservan. Consulta la [política de privacidad](#-pol%C3%ADtica-de-privacidad) para saber exactamente qué hace una búsqueda.
 
-### 🌍 10 idiomas
-La interfaz está en **English, Deutsch, Español, Français, Italiano, Português (Brasil), Русский, 日本語, 한국어 y 简体中文** (se cambia en la barra lateral), igual que el instalador y la extensión de Chrome. Cada idioma usa los términos oficiales de Windows (Administrador de tareas, Servicios, Programador de tareas…) en lugar de una traducción palabra por palabra. ¿Ves algo raro? Abre un issue o un PR sobre `ui/locales/<código>.js` (app), `docs/locales/<código>.js` (sitio web) o `README.<código>.md`.
+### 🌍 12 idiomas
+La interfaz está en **English, Deutsch, Español, Français, Italiano, Português (Brasil), Русский, 日本語, 한국어, 简体中文, עברית y العربية** (se cambia en la barra lateral), igual que el instalador y la extensión de Chrome. Cada idioma usa los términos oficiales de Windows (Administrador de tareas, Servicios, Programador de tareas…) en lugar de una traducción palabra por palabra. ¿Ves algo raro? Abre un issue o un PR sobre `ui/locales/<código>.js` (app), `docs/locales/<código>.js` (sitio web) o `README.<código>.md`.
 
 ---
 

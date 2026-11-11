@@ -1,6 +1,8 @@
 # Renders the README / landing-page Dev Cleanup screenshots from the real UI with made-up demo
 # data (mock-tauri.js), in headless Edge (the same engine as the app's WebView2).
 # Usage: powershell -ExecutionPolicy Bypass -File scripts\screenshots\make-screenshots.ps1
+#        add -Langs he (one language) to render only that one
+param([string[]]$Langs = @("en", "de", "es", "fr", "it", "pt-BR", "ru", "ja", "ko", "zh-CN", "he", "ar"))
 $ErrorActionPreference = "Stop"
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $repo = Resolve-Path (Join-Path $here "..\..")
@@ -25,7 +27,7 @@ $html = $html.Replace('<script src="app.js"></script>', '<script src="app.js"></
 [IO.File]::WriteAllText($index, $html, (New-Object Text.UTF8Encoding $false))
 
 $url = ([Uri]$index).AbsoluteUri
-foreach ($lang in "en", "de", "es", "fr", "it", "pt-BR", "ru", "ja", "ko", "zh-CN") {
+foreach ($lang in $Langs) {
   $name = if ($lang -eq "en") { "cleanup.png" } else { "cleanup-$lang.png" }
   $png = Join-Path $out $name
   # separate profile so an open Edge window is never reused

@@ -6,7 +6,7 @@
 
 **[🌐 Website](https://rigsweep.com)** · **[⬇️ Herunterladen](https://github.com/yobotn/rigsweep/releases/latest)** · **[📖 Antivirus-FAQ](#%EF%B8%8F-antivirus-fehlalarme)**
 
-[🇬🇧 English](README.md) · 🇩🇪 Deutsch · [🇪🇸 Español](README.es.md) · [🇫🇷 Français](README.fr.md) · [🇮🇹 Italiano](README.it.md) · [🇧🇷 Português](README.pt-BR.md) · [🇷🇺 Русский](README.ru.md) · [🇯🇵 日本語](README.ja.md) · [🇰🇷 한국어](README.ko.md) · [🇨🇳 简体中文](README.zh-CN.md)
+[🇬🇧 English](README.md) · 🇩🇪 Deutsch · [🇪🇸 Español](README.es.md) · [🇫🇷 Français](README.fr.md) · [🇮🇹 Italiano](README.it.md) · [🇧🇷 Português](README.pt-BR.md) · [🇷🇺 Русский](README.ru.md) · [🇯🇵 日本語](README.ja.md) · [🇰🇷 한국어](README.ko.md) · [🇨🇳 简体中文](README.zh-CN.md) · [🇮🇱 עברית](README.he.md) · [🇸🇦 العربية](README.ar.md)
 
 ![Windows 10/11](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows)
 ![Rust + Tauri 2](https://img.shields.io/badge/Rust-Tauri%202-orange?logo=rust)
@@ -125,8 +125,8 @@ CPU / RAM / Datenträger pro Prozess und **welche Dienste in jeder `svchost.exe`
 ### 🔄 Updates nach Ihrer Wahl
 Unter **🛠️ Einstellungen → 🔄 Updates** gibt es die Schaltfläche **Jetzt suchen** und die optionale Einstellung *Automatisch nach Updates suchen* (beim Start, danach einmal täglich), die **standardmäßig deaktiviert** ist. Sobald eine neue Version erscheint, wird in der Seitenleiste eine Schaltfläche mit den Neuerungen angezeigt. Nichts wird installiert, bevor Sie auf **Installieren und neu starten** klicken, und nur, wenn der Download mit dem Schlüssel von RigSweep signiert ist. Ihre Optimierungen, Sicherungen und Einstellungen bleiben erhalten. Was genau bei einer Suche geschieht, steht in der [Datenschutzerklärung](#-datenschutzerkl%C3%A4rung).
 
-### 🌍 10 Sprachen
-Die Benutzeroberfläche gibt es auf **English, Deutsch, Español, Français, Italiano, Português (Brasil), Русский, 日本語, 한국어 und 简体中文** (Umschalten in der Seitenleiste), ebenso das Installationsprogramm und die Chrome-Erweiterung. Jede Sprache ist mit den offiziellen Windows-Begriffen dieser Sprache lokalisiert (Task-Manager, Dienste, Aufgabenplanung…), nicht Wort für Wort übersetzt. Etwas klingt holprig? Eröffnen Sie ein Issue oder einen PR zu `ui/locales/<code>.js` (App), `docs/locales/<code>.js` (Website) oder `README.<code>.md`.
+### 🌍 12 Sprachen
+Die Benutzeroberfläche gibt es auf **English, Deutsch, Español, Français, Italiano, Português (Brasil), Русский, 日本語, 한국어, 简体中文, עברית und العربية** (Umschalten in der Seitenleiste), ebenso das Installationsprogramm und die Chrome-Erweiterung. Jede Sprache ist mit den offiziellen Windows-Begriffen dieser Sprache lokalisiert (Task-Manager, Dienste, Aufgabenplanung…), nicht Wort für Wort übersetzt. Etwas klingt holprig? Eröffnen Sie ein Issue oder einen PR zu `ui/locales/<code>.js` (App), `docs/locales/<code>.js` (Website) oder `README.<code>.md`.
 
 ---
 

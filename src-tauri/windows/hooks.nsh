@@ -27,6 +27,10 @@
     StrCpy $R1 "Microsoft Defender에서 RigSweep을 허용할까요?$\r$\n$\r$\nRigSweep은 무료 오픈 소스(MIT)이며 아직 코드 서명이 되어 있지 않아 Defender의 휴리스틱이 실수로 삭제하는 경우가 있습니다.$\r$\n$\r$\n예 = 이 폴더만 검사에서 제외:$\r$\n$INSTDIR$\r$\n$\r$\n언제든지 RigSweep > 설정에서 취소할 수 있으며, 제거 프로그램이 제외 항목을 삭제합니다."
   StrCmp $LANGUAGE 2052 0 +2
     StrCpy $R1 "要在 Microsoft Defender 中允许 RigSweep 吗？$\r$\n$\r$\nRigSweep 是免费的开源软件（MIT），目前尚未进行代码签名，因此 Defender 的启发式检测有时会误删它。$\r$\n$\r$\n是 = 仅将此文件夹排除在扫描之外：$\r$\n$INSTDIR$\r$\n$\r$\n你可以随时在 RigSweep > 设置中撤消此操作，卸载时也会移除该排除项。"
+  StrCmp $LANGUAGE 1037 0 +2
+    StrCpy $R1 "לאפשר את RigSweep ב-Microsoft Defender?$\r$\n$\r$\nRigSweep היא תוכנה חינמית בקוד פתוח (MIT) שעדיין אינה חתומה דיגיטלית, ולכן ההיוריסטיקות של Defender מוחקות אותה לפעמים בטעות.$\r$\n$\r$\nכן = להחריג מהסריקה רק את התיקייה הזו:$\r$\n$INSTDIR$\r$\n$\r$\nאפשר לבטל זאת בכל עת ב-RigSweep ← הגדרות, ותוכנית ההסרה מסירה את אי ההכללה."
+  StrCmp $LANGUAGE 1025 0 +2
+    StrCpy $R1 "هل تريد السماح بـ RigSweep في Microsoft Defender؟$\r$\n$\r$\nإن RigSweep مجاني ومفتوح المصدر (MIT) لكنه غير موقّع رقميًا بعد، لذا قد تحذفه خوارزميات Defender الاستدلالية أحيانًا عن طريق الخطأ.$\r$\n$\r$\nنعم = استثناء هذا المجلد وحده من الفحص:$\r$\n$INSTDIR$\r$\n$\r$\nيمكنك التراجع عن ذلك في أي وقت من RigSweep ← الإعدادات، كما يزيله برنامج إلغاء التثبيت."
   MessageBox MB_YESNO|MB_ICONQUESTION "$R1" IDNO rigsweep_av_done
     nsExec::ExecToLog 'powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "Add-MpPreference -ExclusionPath $\'$INSTDIR$\'"'
     Pop $0
@@ -50,6 +54,10 @@
     StrCpy $R1 "Defender 제외 항목을 추가하지 못했습니다(다른 바이러스 백신이 활성화되어 있거나 변조 방지 기능이 차단했을 수 있음). RigSweep을 직접 허용하세요. README의 '바이러스 백신 오탐지' 섹션을 참조하세요."
   StrCmp $LANGUAGE 2052 0 +2
     StrCpy $R1 "无法添加 Defender 排除项（可能有其他防病毒软件处于活动状态，或篡改防护阻止了此操作）。你可以手动允许 RigSweep；请参阅 README 中的“防病毒软件误报”部分。"
+  StrCmp $LANGUAGE 1037 0 +2
+    StrCpy $R1 "לא ניתן היה להוסיף את אי ההכללה ל-Defender (ייתכן שאנטי-וירוס אחר פעיל, או שההגנה מפני חבלה חסמה זאת). אפשר לאפשר את RigSweep ידנית; פרטים בסעיף 'התראות שווא של אנטי-וירוס' ב-README."
+  StrCmp $LANGUAGE 1025 0 +2
+    StrCpy $R1 "تعذّرت إضافة استثناء Defender (ربما يكون برنامج آخر لمكافحة الفيروسات نشطًا، أو منعت ميزة «الحماية من العبث» ذلك). يمكنك السماح بـ RigSweep يدويًا؛ راجع القسم «الإنذارات الكاذبة من برامج مكافحة الفيروسات» في ملف README."
       MessageBox MB_OK|MB_ICONINFORMATION "$R1"
   rigsweep_av_done:
 !macroend

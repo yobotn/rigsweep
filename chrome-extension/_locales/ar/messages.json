@@ -1,0 +1,140 @@
+{
+  "extName": {
+    "message": "RigSweep Tabs"
+  },
+  "extDesc": {
+    "message": "حرّر ذاكرة RAM من علامات تبويب Chrome دون أن تفقد عملك: نوّم الخاملة منها، وأغلق المكررة وعلامات تبويب خوادم التطوير."
+  },
+  "statTabs": {
+    "message": "علامات تبويب"
+  },
+  "statSleeping": {
+    "message": "نائمة"
+  },
+  "statWindows": {
+    "message": "نوافذ"
+  },
+  "secSleep": {
+    "message": "تنويم علامات التبويب الخاملة"
+  },
+  "idleLabel": {
+    "message": "خاملة لأكثر من"
+  },
+  "minutesUnit": {
+    "message": "دقيقة"
+  },
+  "btnSleepIdle": {
+    "message": "تنويم علامات التبويب الخاملة"
+  },
+  "btnSleepAll": {
+    "message": "تنويم كل علامات التبويب الخلفية الآن"
+  },
+  "sleepNote": {
+    "message": "تبقى علامات التبويب النائمة في شريط علامات التبويب، وتُعاد تحميلها عند النقر عليها. لا يتم أبدًا تنويم علامات التبويب النشطة أو المثبّتة أو التي تُصدر صوتًا."
+  },
+  "autoSleep": {
+    "message": "تنويم علامات التبويب الخاملة تلقائيًا كل 10 دقائق"
+  },
+  "sleptResult": {
+    "message": "تم تنويم $COUNT$ من علامات التبويب.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "sleptFailed": {
+    "message": "تعذّر تنويم $COUNT$ منها.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "secDupes": {
+    "message": "إغلاق علامات التبويب المكررة"
+  },
+  "btnFindDupes": {
+    "message": "البحث عن التكرارات"
+  },
+  "dupesFound": {
+    "message": "تم العثور على $COUNT$ من علامات التبويب المكررة. يُحتفظ بأحدث نسخة من كل منها.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "noDupes": {
+    "message": "لم يتم العثور على علامات تبويب مكررة."
+  },
+  "btnCloseDupes": {
+    "message": "إغلاق $COUNT$ من التكرارات",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "dupesClosed": {
+    "message": "تم إغلاق $COUNT$ من علامات التبويب المكررة.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "secPatterns": {
+    "message": "إغلاق علامات التبويب المطابقة لأنماط"
+  },
+  "patternsHint": {
+    "message": "نمط واحد في كل سطر، تتم مطابقته مع المضيف والمسار. تطابق * أي شيء، مثل localhost:*"
+  },
+  "includePinned": {
+    "message": "تضمين علامات التبويب المثبّتة"
+  },
+  "btnSavePatterns": {
+    "message": "حفظ الأنماط"
+  },
+  "patternsSaved": {
+    "message": "تم حفظ الأنماط."
+  },
+  "btnFindMatches": {
+    "message": "البحث عن علامات التبويب المطابقة"
+  },
+  "matchesFound": {
+    "message": "عدد علامات التبويب المطابقة: $COUNT$. ألغِ تحديد أي علامة تريد إبقاءها، ثم أكّد.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "noMatches": {
+    "message": "لا توجد علامات تبويب تطابق هذه الأنماط."
+  },
+  "btnCloseSelected": {
+    "message": "إغلاق علامات التبويب المحددة"
+  },
+  "matchesClosed": {
+    "message": "تم إغلاق $COUNT$ من علامات التبويب.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "errorGeneric": {
+    "message": "حدث خطأ ما. يُرجى المحاولة مرة أخرى."
+  },
+  "footer": {
+    "message": "جزء من RigSweep · MIT"
+  }
+}

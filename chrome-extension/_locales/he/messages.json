@@ -1,0 +1,140 @@
+{
+  "extName": {
+    "message": "RigSweep Tabs"
+  },
+  "extDesc": {
+    "message": "פינוי RAM מכרטיסיות Chrome בלי לאבד עבודה: מצב שינה לכרטיסיות לא פעילות, סגירת כפילויות וכרטיסיות של שרתי פיתוח."
+  },
+  "statTabs": {
+    "message": "כרטיסיות"
+  },
+  "statSleeping": {
+    "message": "במצב שינה"
+  },
+  "statWindows": {
+    "message": "חלונות"
+  },
+  "secSleep": {
+    "message": "מצב שינה לכרטיסיות לא פעילות"
+  },
+  "idleLabel": {
+    "message": "לא פעילות יותר מ-"
+  },
+  "minutesUnit": {
+    "message": "דק׳"
+  },
+  "btnSleepIdle": {
+    "message": "העבר כרטיסיות לא פעילות למצב שינה"
+  },
+  "btnSleepAll": {
+    "message": "העבר עכשיו את כל כרטיסיות הרקע למצב שינה"
+  },
+  "sleepNote": {
+    "message": "כרטיסיות במצב שינה נשארות בשורת הכרטיסיות ונטענות מחדש בלחיצה. כרטיסיות פעילות, מוצמדות או כאלה שמשמיעות קול לעולם אינן עוברות למצב שינה."
+  },
+  "autoSleep": {
+    "message": "העברה אוטומטית של כרטיסיות לא פעילות למצב שינה כל 10 דקות"
+  },
+  "sleptResult": {
+    "message": "כרטיסיות שעברו למצב שינה: $COUNT$.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "sleptFailed": {
+    "message": "לא ניתן היה להעביר למצב שינה: $COUNT$.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "secDupes": {
+    "message": "סגירת כרטיסיות כפולות"
+  },
+  "btnFindDupes": {
+    "message": "חפש כפילויות"
+  },
+  "dupesFound": {
+    "message": "נמצאו $COUNT$ כרטיסיות כפולות. העותק האחרון של כל אחת נשמר.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "noDupes": {
+    "message": "לא נמצאו כרטיסיות כפולות."
+  },
+  "btnCloseDupes": {
+    "message": "סגור $COUNT$ כפילויות",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "dupesClosed": {
+    "message": "נסגרו $COUNT$ כרטיסיות כפולות.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "secPatterns": {
+    "message": "סגירת כרטיסיות לפי תבניות"
+  },
+  "patternsHint": {
+    "message": "תבנית אחת בכל שורה, מושווית מול המארח + הנתיב. * מתאים לכל דבר, למשל localhost:*"
+  },
+  "includePinned": {
+    "message": "כולל כרטיסיות מוצמדות"
+  },
+  "btnSavePatterns": {
+    "message": "שמור תבניות"
+  },
+  "patternsSaved": {
+    "message": "התבניות נשמרו."
+  },
+  "btnFindMatches": {
+    "message": "חפש כרטיסיות תואמות"
+  },
+  "matchesFound": {
+    "message": "כרטיסיות תואמות: $COUNT$. יש לבטל את הסימון של מה שצריך להישאר, ואז לאשר.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "noMatches": {
+    "message": "אין כרטיסיות שתואמות לתבניות האלה."
+  },
+  "btnCloseSelected": {
+    "message": "סגור את הכרטיסיות שנבחרו"
+  },
+  "matchesClosed": {
+    "message": "נסגרו $COUNT$ כרטיסיות.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "errorGeneric": {
+    "message": "משהו השתבש. יש לנסות שוב."
+  },
+  "footer": {
+    "message": "חלק מ-RigSweep · MIT"
+  }
+}

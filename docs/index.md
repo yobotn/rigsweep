@@ -22,7 +22,7 @@ Every session spawns more processes, and many keep running after you close the t
 - **Chrome tab helper**: A tiny extension to sleep idle tabs, close duplicates and close tabs by pattern like localhost:*. It has no network access.
 - **Reversible tweaks**: Telemetry, Xbox, indexer, background apps and more, each with a risk level. Originals are backed up and restorable in one click.
 - **Process analyzer**: CPU, RAM and disk per process, plus which services hide inside each svchost.exe.
-- **10 languages**: English, Deutsch, Español, Français, Italiano, Português, Русский, 日本語, 한국어 and 简体中文 in the app, the installer and the Chrome extension, using each language's official Windows terms.
+- **12 languages**: English, Deutsch, Español, Français, Italiano, Português, Русский, 日本語, 한국어, 简体中文, עברית and العربية in the app, the installer and the Chrome extension, using each language's official Windows terms.
 - **Temperatures**: CPU and GPU temperatures with a 5-minute trend and a warning when your PC stays hot. No driver, no admin rights.
 - **Updates, your choice**: Off by default. Check when you want, or turn on a daily check. Updates install only when you click, and only if they're signed.
 - **Browser Cleanup**: Empties caches for Chrome, Edge, Brave, Vivaldi, Opera and Firefox. Sign-ins, cookies, passwords and history are never touched.

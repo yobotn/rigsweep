@@ -6,7 +6,7 @@
 
 **[🌐 Site web](https://rigsweep.com)** · **[⬇️ Télécharger](https://github.com/yobotn/rigsweep/releases/latest)** · **[📖 FAQ antivirus](#%EF%B8%8F-faux-positifs-antivirus)**
 
-[🇬🇧 English](README.md) · [🇩🇪 Deutsch](README.de.md) · [🇪🇸 Español](README.es.md) · 🇫🇷 Français · [🇮🇹 Italiano](README.it.md) · [🇧🇷 Português](README.pt-BR.md) · [🇷🇺 Русский](README.ru.md) · [🇯🇵 日本語](README.ja.md) · [🇰🇷 한국어](README.ko.md) · [🇨🇳 简体中文](README.zh-CN.md)
+[🇬🇧 English](README.md) · [🇩🇪 Deutsch](README.de.md) · [🇪🇸 Español](README.es.md) · 🇫🇷 Français · [🇮🇹 Italiano](README.it.md) · [🇧🇷 Português](README.pt-BR.md) · [🇷🇺 Русский](README.ru.md) · [🇯🇵 日本語](README.ja.md) · [🇰🇷 한국어](README.ko.md) · [🇨🇳 简体中文](README.zh-CN.md) · [🇮🇱 עברית](README.he.md) · [🇸🇦 العربية](README.ar.md)
 
 ![Windows 10/11](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows)
 ![Rust + Tauri 2](https://img.shields.io/badge/Rust-Tauri%202-orange?logo=rust)
@@ -125,8 +125,8 @@ CPU / RAM / disque par processus, et **quels services tournent dans chaque `svch
 ### 🔄 Mises à jour, à vous de choisir
 **🛠️ Paramètres → 🔄 Mises à jour** propose un bouton **Rechercher maintenant** et l'option *Rechercher automatiquement les mises à jour* (au démarrage, puis une fois par jour), **désactivée par défaut**. Quand une nouvelle version sort, un bouton apparaît dans la barre latérale avec les nouveautés. Rien n'est installé tant que vous n'avez pas cliqué sur **Installer et redémarrer**, et seulement si le téléchargement est signé avec la clé de RigSweep. Vos réglages, sauvegardes et paramètres sont conservés. Consultez la [politique de confidentialité](#-politique-de-confidentialit%C3%A9) pour savoir exactement ce que fait une recherche.
 
-### 🌍 10 langues
-L'interface est en **English, Deutsch, Español, Français, Italiano, Português (Brasil), Русский, 日本語, 한국어 et 简体中文** (à changer dans la barre latérale), tout comme le programme d'installation et l'extension Chrome. Chaque langue reprend les termes officiels de Windows (Gestionnaire des tâches, Services, Planificateur de tâches…) plutôt qu'une traduction mot à mot. Une formulation vous gêne ? Ouvrez une issue ou une PR sur `ui/locales/<code>.js` (app), `docs/locales/<code>.js` (site web) ou `README.<code>.md`.
+### 🌍 12 langues
+L'interface est en **English, Deutsch, Español, Français, Italiano, Português (Brasil), Русский, 日本語, 한국어, 简体中文, עברית et العربية** (à changer dans la barre latérale), tout comme le programme d'installation et l'extension Chrome. Chaque langue reprend les termes officiels de Windows (Gestionnaire des tâches, Services, Planificateur de tâches…) plutôt qu'une traduction mot à mot. Une formulation vous gêne ? Ouvrez une issue ou une PR sur `ui/locales/<code>.js` (app), `docs/locales/<code>.js` (site web) ou `README.<code>.md`.
 
 ---
 

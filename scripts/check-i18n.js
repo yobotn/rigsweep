@@ -5,7 +5,7 @@
 const fs = require("fs"), path = require("path");
 const repo = path.join(__dirname, "..");
 const read = (f) => fs.readFileSync(path.join(repo, f), "utf8");
-const LANGS = ["de", "es", "fr", "it", "pt-BR", "ru", "ja", "ko", "zh-CN"];
+const LANGS = ["de", "es", "fr", "it", "pt-BR", "ru", "ja", "ko", "zh-CN", "he", "ar"];
 let problems = 0;
 const fail = (where, msg) => { problems++; console.log(`✗ ${where}: ${msg}`); };
 

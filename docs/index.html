@@ -69,7 +69,7 @@
         "screenshot": ["https://rigsweep.com/screenshots/cleanup.png", "https://rigsweep.com/screenshots/dashboard.png", "https://rigsweep.com/screenshots/tweaks.png"],
         "image": "https://rigsweep.com/icon.png",
         "keywords": "Windows dev cleanup, leftover node processes, free port 3000, node_modules cleaner, package cache cleaner, AI agent sessions, Claude Code, MCP servers, free RAM",
-        "featureList": ["Dev Cleanup: end orphaned and idle dev servers, build daemons, MCP servers and agent CLIs by process tree", "Dev Disk: delete old node_modules, build output and package caches", "Boost Report: measured before/after RAM and CPU", "Reversible Windows tweaks with backups and a System Restore point", "Browser cache cleanup", "Chrome tab helper extension", "CPU and GPU temperature tracking", "10 languages"],
+        "featureList": ["Dev Cleanup: end orphaned and idle dev servers, build daemons, MCP servers and agent CLIs by process tree", "Dev Disk: delete old node_modules, build output and package caches", "Boost Report: measured before/after RAM and CPU", "Reversible Windows tweaks with backups and a System Restore point", "Browser cache cleanup", "Chrome tab helper extension", "CPU and GPU temperature tracking", "12 languages"],
         "inLanguage": ["en", "de", "es", "fr", "it", "pt-BR", "ru", "ja", "ko", "zh-CN"],
         "codeRepository": "https://github.com/yobotn/rigsweep",
         "softwareHelp": { "@type": "CreativeWork", "name": "RigSweep CLI reference", "url": "https://rigsweep.com/cli/" },
@@ -133,7 +133,7 @@
     .frame { background: var(--panel); border: 1px solid var(--border2); border-radius: var(--r-lg); box-shadow: var(--shadow); overflow: hidden; }
     .frame .bar { display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px; background: var(--bg2); border-bottom: 1px solid var(--border); }
     .frame .bar i { width: 10px; height: 10px; border-radius: 50%; background: var(--border2); }
-    .frame .bar span { margin-left: 10px; font-size: 12px; color: var(--muted); }
+    .frame .bar span { margin-inline-start: 10px; font-size: 12px; color: var(--muted); }
     .frame img { display: block; width: 100%; height: auto; aspect-ratio: 1240 / 820; object-fit: cover; object-position: top left; }
 
     /* ---------- sections ---------- */
@@ -182,8 +182,8 @@
     .row.flip { grid-template-columns: 7fr 5fr; }
     .row.flip .copy { order: 2; }
     .ticks { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
-    .ticks li { position: relative; padding-left: 30px; color: var(--muted); }
-    .ticks li::before { content: "✓"; position: absolute; left: 0; top: 1px; width: 20px; height: 20px; display: grid; place-items: center;
+    .ticks li { position: relative; padding-inline-start: 30px; color: var(--muted); }
+    .ticks li::before { content: "✓"; position: absolute; inset-inline-start: 0; top: 1px; width: 20px; height: 20px; display: grid; place-items: center;
       font-size: 12px; font-weight: 700; border-radius: 50%; background: rgba(52,195,143,.15); color: var(--accent2); }
     .ticks li b { color: var(--text); }
 
@@ -193,10 +193,10 @@
     @media (max-width: 900px) { .faq { grid-template-columns: 1fr; } }
 
     /* notes */
-    .note { background: var(--panel); border: 1px solid var(--border); border-left: 4px solid var(--warn); border-radius: var(--r); padding: var(--s3); }
+    .note { background: var(--panel); border: 1px solid var(--border); border-inline-start: 4px solid var(--warn); border-radius: var(--r); padding: var(--s3); }
     .note p { margin: 0 0 12px; color: var(--muted); }
     .note p:last-child { margin: 0; }
-    .note.disc { border-left-color: var(--muted); }
+    .note.disc { border-inline-start-color: var(--muted); }
 
     .final { text-align: center; padding: var(--s5) var(--s3); margin-top: var(--s5); border-radius: var(--r-lg);
       background: radial-gradient(ellipse at top, rgba(79,140,255,.16), transparent 70%), var(--panel); border: 1px solid var(--border); }
@@ -247,7 +247,7 @@
         <a class="btn primary" href="https://github.com/yobotn/rigsweep/releases/latest" data-t="cta.download">⬇️ Download for Windows</a>
         <a class="btn" href="https://github.com/yobotn/rigsweep" data-t="cta.source">⭐ View on GitHub</a>
       </div>
-      <div class="meta" data-t="hero.meta">Windows 10 / 11 · ~3 MB installer · 10 languages</div>
+      <div class="meta" data-t="hero.meta">Windows 10 / 11 · ~3 MB installer · 12 languages</div>
       <div class="frame">
         <div class="bar"><i></i><i></i><i></i><span>RigSweep</span></div>
         <img id="img-hero" src="screenshots/cleanup.png" alt="RigSweep Dev Cleanup" />
@@ -293,7 +293,7 @@
         <div class="card"><div class="ic">🌐</div><h3 data-t="f3.h">Chrome tab helper</h3><p data-t="f3.p">A tiny extension to sleep idle tabs, close duplicates and close tabs by pattern like localhost:*. It has no network access.</p></div>
         <div class="card"><div class="ic">⚙️</div><h3 data-t="f4.h">Reversible tweaks</h3><p data-t="f4.p">Telemetry, Xbox, indexer, background apps and more, each with a risk level. Originals are backed up and restorable in one click.</p></div>
         <div class="card"><div class="ic">🔍</div><h3 data-t="f5.h">Process analyzer</h3><p data-t="f5.p">CPU, RAM and disk per process, plus which services hide inside each svchost.exe.</p></div>
-        <div class="card"><div class="ic">🌍</div><h3 data-t="f6.h">10 languages</h3><p data-t="f6.p">English, Deutsch, Español, Français, Italiano, Português, Русский, 日本語, 한국어 and 简体中文 in the app, the installer and the Chrome extension, using each language's official Windows terms.</p></div>
+        <div class="card"><div class="ic">🌍</div><h3 data-t="f6.h">12 languages</h3><p data-t="f6.p">English, Deutsch, Español, Français, Italiano, Português, Русский, 日本語, 한국어, 简体中文, עברית and العربية in the app, the installer and the Chrome extension, using each language's official Windows terms.</p></div>
         <div class="card"><div class="ic">🌡️</div><h3 data-t="f7.h">Temperatures</h3><p data-t="f7.p">CPU and GPU temperatures with a 5-minute trend and a warning when your PC stays hot. No driver, no admin rights.</p></div>
         <div class="card"><div class="ic">🔄</div><h3 data-t="f8.h">Updates, your choice</h3><p data-t="f8.p">Off by default. Check when you want, or turn on a daily check. Updates install only when you click, and only if they're signed.</p></div>
         <div class="card"><div class="ic">🧽</div><h3 data-t="f9.h">Browser Cleanup</h3><p data-t="f9.p">Empties caches for Chrome, Edge, Brave, Vivaldi, Opera and Firefox. Sign-ins, cookies, passwords and history are never touched.</p></div>
@@ -398,10 +398,14 @@
   <script src="locales/ja.js"></script>
   <script src="locales/ko.js"></script>
   <script src="locales/zh-CN.js"></script>
+  <script src="locales/he.js"></script>
+  <script src="locales/ar.js"></script>
   <script>
-    const LANGS = { "en": "English", "de": "Deutsch", "es": "Español", "fr": "Français", "it": "Italiano", "pt-BR": "Português (Brasil)", "ru": "Русский", "ja": "日本語", "ko": "한국어", "zh-CN": "简体中文" };
+    const LANGS = { "en": "English", "de": "Deutsch", "es": "Español", "fr": "Français", "it": "Italiano", "pt-BR": "Português (Brasil)", "ru": "Русский", "ja": "日本語", "ko": "한국어", "zh-CN": "简体中文", "he": "עברית", "ar": "العربية" };
     // the Dashboard shot is a real capture (en/es/fr); the Dev Cleanup shot exists in every language
     const DASH = { en: "dashboard", es: "dashboard-es", fr: "dashboard-fr" };
+    const HERO = ["de", "es", "fr", "it", "pt-BR", "ru", "ja", "ko", "zh-CN", "he", "ar"]; // languages with a localized Dev Cleanup shot
+    const RTL = ["he", "ar"];
     const ALIAS = { pt: "pt-BR", zh: "zh-CN" };
     const resolve = (tag) => {
       if (!tag) return null;
@@ -415,12 +419,13 @@
     function apply(lang) {
       if (!T[lang]) lang = "en";
       document.documentElement.lang = lang;
+      document.documentElement.dir = RTL.includes(lang) ? "rtl" : "ltr";
       document.querySelectorAll("[data-t]").forEach((el) => (el.textContent = T[lang][el.dataset.t] ?? T.en[el.dataset.t]));
       // trusted static strings from docs/locales (no user input)
       document.querySelectorAll("[data-t-html]").forEach((el) => (el.innerHTML = T[lang][el.dataset.tHtml] ?? T.en[el.dataset.tHtml]));
       sel.value = lang;
       document.getElementById("img-dashboard").src = `screenshots/${DASH[lang] || DASH.en}.png`;
-      document.getElementById("img-hero").src = `screenshots/${lang === "en" ? "cleanup" : "cleanup-" + lang}.png`;
+      document.getElementById("img-hero").src = `screenshots/${HERO.includes(lang) ? "cleanup-" + lang : "cleanup"}.png`;
       try { localStorage.setItem("lang", lang); } catch {}
     }
     sel.addEventListener("change", () => apply(sel.value));

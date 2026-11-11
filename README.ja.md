@@ -6,7 +6,7 @@
 
 **[🌐 ホームページ](https://rigsweep.com)** · **[⬇️ ダウンロード](https://github.com/yobotn/rigsweep/releases/latest)** · **[📖 ウイルス対策 FAQ](#%EF%B8%8F-ウイルス対策ソフトの誤検知)**
 
-[🇬🇧 English](README.md) · [🇩🇪 Deutsch](README.de.md) · [🇪🇸 Español](README.es.md) · [🇫🇷 Français](README.fr.md) · [🇮🇹 Italiano](README.it.md) · [🇧🇷 Português](README.pt-BR.md) · [🇷🇺 Русский](README.ru.md) · 🇯🇵 日本語 · [🇰🇷 한국어](README.ko.md) · [🇨🇳 简体中文](README.zh-CN.md)
+[🇬🇧 English](README.md) · [🇩🇪 Deutsch](README.de.md) · [🇪🇸 Español](README.es.md) · [🇫🇷 Français](README.fr.md) · [🇮🇹 Italiano](README.it.md) · [🇧🇷 Português](README.pt-BR.md) · [🇷🇺 Русский](README.ru.md) · 🇯🇵 日本語 · [🇰🇷 한국어](README.ko.md) · [🇨🇳 简体中文](README.zh-CN.md) · [🇮🇱 עברית](README.he.md) · [🇸🇦 العربية](README.ar.md)
 
 ![Windows 10/11](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows)
 ![Rust + Tauri 2](https://img.shields.io/badge/Rust-Tauri%202-orange?logo=rust)
@@ -125,8 +125,8 @@ CPU-Z、GPU-Z、CrystalDiskInfo、CrystalDiskMark を開いて確認していた
 ### 🔄 更新は自分で選択
 **🛠️ 設定 → 🔄 更新** には **[今すぐ確認]** ボタンと、オプションの *[更新プログラムを自動的に確認する]* (起動時と、その後 1 日 1 回) があり、後者は**既定ではオフ**です。新しいバージョンが公開されると、サイドバーにリリース ノート付きのボタンが表示されます。**[インストールして再起動]** をクリックするまで何もインストールされず、ダウンロードが RigSweep の鍵で署名されている場合に限りインストールされます。最適化、バックアップ、設定はそのまま保持されます。確認時に何が行われるかの詳細は、[プライバシー ポリシー](#-プライバシー-ポリシー)をご覧ください。
 
-### 🌍 10 言語対応
-UI は **English、Deutsch、Español、Français、Italiano、Português (Brasil)、Русский、日本語、한국어、简体中文** に対応し (サイドバーで切り替え)、インストーラーと Chrome 拡張機能も同様です。各言語は、単語ごとの直訳ではなく、その言語の Windows の公式用語 (タスク マネージャー、サービス、タスク スケジューラなど) に合わせてローカライズしています。不自然な表現を見つけたら、`ui/locales/<code>.js` (アプリ)、`docs/locales/<code>.js` (ホームページ)、または `README.<code>.md` について Issue か PR を作成してください。
+### 🌍 12 言語対応
+UI は **English、Deutsch、Español、Français、Italiano、Português (Brasil)、Русский、日本語、한국어、简体中文、עברית、العربية** に対応し (サイドバーで切り替え)、インストーラーと Chrome 拡張機能も同様です。各言語は、単語ごとの直訳ではなく、その言語の Windows の公式用語 (タスク マネージャー、サービス、タスク スケジューラなど) に合わせてローカライズしています。不自然な表現を見つけたら、`ui/locales/<code>.js` (アプリ)、`docs/locales/<code>.js` (ホームページ)、または `README.<code>.md` について Issue か PR を作成してください。
 
 ---
 

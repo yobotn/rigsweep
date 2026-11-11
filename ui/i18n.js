@@ -250,10 +250,13 @@ const I18N = {
   },
 };
 
+// Right-to-left languages: the whole UI mirrors (style.css uses logical properties).
+const RTL = ["he", "ar"];
+
 // Native names, in the order the picker shows them.
 const LANGS = {
   en: "English", de: "Deutsch", es: "Español", fr: "Français", it: "Italiano", "pt-BR": "Português (Brasil)",
-  ru: "Русский", ja: "日本語", ko: "한국어", "zh-CN": "简体中文",
+  ru: "Русский", ja: "日本語", ko: "한국어", "zh-CN": "简体中文", he: "עברית", ar: "العربية",
 };
 // a bare language code maps to the variant we ship (pt-PT → pt-BR, zh-TW → zh-CN is still better than English)
 const LANG_ALIAS = { pt: "pt-BR", zh: "zh-CN" };
@@ -284,6 +287,7 @@ function t(key, vars) {
 /** Fill every [data-i18n] / [data-i18n-ph] / [data-i18n-title] element. */
 function applyI18n(root = document) {
   document.documentElement.lang = LANG;
+  document.documentElement.dir = RTL.includes(LANG) ? "rtl" : "ltr";
   root.querySelectorAll("[data-i18n]").forEach((el) => (el.textContent = t(el.dataset.i18n)));
   root.querySelectorAll("[data-i18n-ph]").forEach((el) => (el.placeholder = t(el.dataset.i18nPh)));
   root.querySelectorAll("[data-i18n-title]").forEach((el) => (el.title = t(el.dataset.i18nTitle)));

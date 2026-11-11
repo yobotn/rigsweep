@@ -6,7 +6,7 @@
 
 **[🌐 홈페이지](https://rigsweep.com)** · **[⬇️ 다운로드](https://github.com/yobotn/rigsweep/releases/latest)** · **[📖 바이러스 백신 FAQ](#%EF%B8%8F-바이러스-백신-오탐지)**
 
-[🇬🇧 English](README.md) · [🇩🇪 Deutsch](README.de.md) · [🇪🇸 Español](README.es.md) · [🇫🇷 Français](README.fr.md) · [🇮🇹 Italiano](README.it.md) · [🇧🇷 Português](README.pt-BR.md) · [🇷🇺 Русский](README.ru.md) · [🇯🇵 日本語](README.ja.md) · 🇰🇷 한국어 · [🇨🇳 简体中文](README.zh-CN.md)
+[🇬🇧 English](README.md) · [🇩🇪 Deutsch](README.de.md) · [🇪🇸 Español](README.es.md) · [🇫🇷 Français](README.fr.md) · [🇮🇹 Italiano](README.it.md) · [🇧🇷 Português](README.pt-BR.md) · [🇷🇺 Русский](README.ru.md) · [🇯🇵 日本語](README.ja.md) · 🇰🇷 한국어 · [🇨🇳 简体中文](README.zh-CN.md) · [🇮🇱 עברית](README.he.md) · [🇸🇦 العربية](README.ar.md)
 
 ![Windows 10/11](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows)
 ![Rust + Tauri 2](https://img.shields.io/badge/Rust-Tauri%202-orange?logo=rust)
@@ -125,8 +125,8 @@ CPU-Z, GPU-Z, CrystalDiskInfo, CrystalDiskMark를 열어 확인하던 기본 정
 ### 🔄 업데이트는 원할 때만
 **🛠️ 설정 → 🔄 업데이트**에는 **지금 확인** 단추와, 선택 사항인 *자동으로 업데이트 확인*(시작할 때, 이후 하루에 한 번)이 있으며 이 옵션은 **기본적으로 꺼져 있습니다**. 새 버전이 나오면 사이드바에 릴리스 정보와 함께 단추가 나타납니다. **설치 후 다시 시작**을 클릭하기 전에는 아무것도 설치되지 않으며, 다운로드한 파일이 RigSweep의 키로 서명된 경우에만 설치됩니다. 시스템 조정, 백업, 설정은 그대로 유지됩니다. 확인할 때 정확히 무엇을 하는지는 [개인정보 처리방침](#-개인정보-처리방침)을 참조하세요.
 
-### 🌍 10개 언어
-UI는 **English, Deutsch, Español, Français, Italiano, Português (Brasil), Русский, 日本語, 한국어, 简体中文**을 지원하며(사이드바에서 전환), 설치 프로그램과 Chrome 확장 프로그램도 마찬가지입니다. 각 언어는 단어 그대로 번역하지 않고 해당 언어의 공식 Windows 용어(작업 관리자, 서비스, 작업 스케줄러…)로 현지화했습니다. 어색한 표현을 발견하셨나요? `ui/locales/<code>.js`(앱), `docs/locales/<code>.js`(홈페이지) 또는 `README.<code>.md`에 이슈나 PR을 올려 주세요.
+### 🌍 12개 언어
+UI는 **English, Deutsch, Español, Français, Italiano, Português (Brasil), Русский, 日本語, 한국어, 简体中文, עברית, العربية**을 지원하며(사이드바에서 전환), 설치 프로그램과 Chrome 확장 프로그램도 마찬가지입니다. 각 언어는 단어 그대로 번역하지 않고 해당 언어의 공식 Windows 용어(작업 관리자, 서비스, 작업 스케줄러…)로 현지화했습니다. 어색한 표현을 발견하셨나요? `ui/locales/<code>.js`(앱), `docs/locales/<code>.js`(홈페이지) 또는 `README.<code>.md`에 이슈나 PR을 올려 주세요.
 
 ---
 

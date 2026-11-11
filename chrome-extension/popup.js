@@ -8,7 +8,9 @@ function status(text, isError = false) {
   $('status').classList.toggle('err', isError);
 }
 
-// Fill every [data-i18n] element with its localized string.
+// Fill every [data-i18n] element with its localized string; Hebrew / Arabic lay out right-to-left.
+document.documentElement.lang = chrome.i18n.getUILanguage();
+document.documentElement.dir = chrome.i18n.getMessage('@@bidi_dir') || 'ltr';
 document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
 document.title = t('extName');
 
