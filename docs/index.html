@@ -18,15 +18,15 @@
   <meta property="og:title" content="RigSweep: room for your agents" />
   <meta property="og:description" content="Free up RAM, CPU and disk on Windows dev machines cluttered by AI-agent sessions. Every change is reversible. MIT, free forever." />
   <meta property="og:url" content="https://rigsweep.com/" />
-  <meta property="og:image" content="https://rigsweep.com/screenshots/cleanup.png" />
-  <meta property="og:image:width" content="1240" />
-  <meta property="og:image:height" content="820" />
-  <meta property="og:image:alt" content="RigSweep Dev Cleanup listing leftover dev servers and agent processes" />
+  <meta property="og:image" content="https://rigsweep.com/social.png" />
+  <meta property="og:image:width" content="1280" />
+  <meta property="og:image:height" content="640" />
+  <meta property="og:image:alt" content="RigSweep: room for your agents. Free up RAM, CPU and disk on Windows dev machines." />
   <meta property="og:locale" content="en_US" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="RigSweep: room for your agents" />
   <meta name="twitter:description" content="Free up RAM, CPU and disk on Windows dev machines cluttered by AI-agent sessions. Free and open source." />
-  <meta name="twitter:image" content="https://rigsweep.com/screenshots/cleanup.png" />
+  <meta name="twitter:image" content="https://rigsweep.com/social.png" />
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
   <link rel="icon" type="image/png" sizes="128x128" href="/icon.png" />
   <link rel="apple-touch-icon" href="/icon.png" />
@@ -79,12 +79,12 @@
         "@type": "FAQPage",
         "@id": "https://rigsweep.com/#faq",
         "mainEntity": [
-          { "@type": "Question", "name": "What does RigSweep do?", "acceptedAnswer": { "@type": "Answer", "text": "RigSweep is a free, open-source Windows app for developers who work with AI coding agents. It finds dev servers, build daemons, MCP servers and agent CLIs that keep running after you close a terminal, shows each one with its project, RAM and ports, and ends the ones you pick. It also deletes old node_modules and package caches, empties browser caches and applies reversible Windows tweaks." } },
-          { "@type": "Question", "name": "How do I stop node.exe processes that keep running after I close the terminal?", "acceptedAnswer": { "@type": "Answer", "text": "Open Dev Cleanup. Processes whose terminal is gone are marked as orphans and pre-selected, with their whole process tree, project folder and listening ports (like a stuck localhost:3000). Click End selected, and RigSweep ends each tree after checking that the process ID still belongs to the same program." } },
-          { "@type": "Question", "name": "Which AI agents and dev stacks does it support?", "acceptedAnswer": { "@type": "Answer", "text": "Claude Code, Codex, Gemini CLI, opencode, Aider and Goose, plus the MCP servers and headless browsers they start. Dev stacks: Node, Bun, Deno, Python, Java, Gradle, Maven, .NET, Ruby, PHP, Rust and Go, and the WSL 2 / Docker VM." } },
-          { "@type": "Question", "name": "Is it safe? Can I undo changes?", "acceptedAnswer": { "@type": "Answer", "text": "Nothing is ended or deleted without your confirmation. Every Windows tweak backs up the original value first and can be restored one by one or all at once, and a System Restore point is created before the first change. Editor language servers and core Windows services are locked." } },
-          { "@type": "Question", "name": "Is RigSweep free? Does it collect data?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, it's free forever under the MIT license. There is no telemetry, no analytics and no account. The only network request is the update check, which stays off unless you turn it on or click Check now." } },
-          { "@type": "Question", "name": "Does it run on macOS or Linux?", "acceptedAnswer": { "@type": "Answer", "text": "No. RigSweep is built for Windows 10 and 11, because it works with Windows services, Task Scheduler and Defender. It can still shut down the WSL 2 VM from the Windows side." } }
+          {"@type":"Question","name":"What does RigSweep do?","acceptedAnswer":{"@type":"Answer","text":"RigSweep is a free, open-source Windows app for developers who work with AI coding agents. It finds dev servers, build daemons, MCP servers and agent CLIs that keep running after you close a terminal, shows each one with its project, RAM and ports, and ends the ones you pick. It also deletes old node_modules and package caches, empties browser caches and applies reversible Windows tweaks."}},
+          {"@type":"Question","name":"How do I stop node.exe processes that keep running after I close the terminal?","acceptedAnswer":{"@type":"Answer","text":"Open Dev Cleanup. Processes whose terminal is gone are marked as orphans and pre-selected, with their whole process tree, project folder and listening ports (like a stuck localhost:3000). Click End selected, and RigSweep ends each tree after checking that the process ID still belongs to the same program."}},
+          {"@type":"Question","name":"Which AI agents and dev stacks does it support?","acceptedAnswer":{"@type":"Answer","text":"Claude Code, Codex, Gemini CLI, opencode, Aider and Goose, plus the MCP servers and headless browsers they start. Dev stacks: Node, Bun, Deno, Python, Java, Gradle, Maven, .NET, Ruby, PHP, Rust and Go, and the WSL 2 / Docker VM."}},
+          {"@type":"Question","name":"Is it safe? Can I undo changes?","acceptedAnswer":{"@type":"Answer","text":"Nothing is ended or deleted without your confirmation. Every Windows tweak backs up the original value first and can be restored one by one or all at once, and a System Restore point is created before the first change. Editor language servers and core Windows services are locked."}},
+          {"@type":"Question","name":"Is RigSweep free? Does it collect data?","acceptedAnswer":{"@type":"Answer","text":"Yes, it's free forever under the MIT license. There is no telemetry, no analytics and no account. The only network request is the update check, which stays off unless you turn it on or click Check now."}},
+          {"@type":"Question","name":"Does it run on macOS or Linux?","acceptedAnswer":{"@type":"Answer","text":"No. RigSweep is built for Windows 10 and 11, because it works with Windows services, Task Scheduler and Defender. It can still shut down the WSL 2 VM from the Windows side."}}
         ]
       }
     ]
