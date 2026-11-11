@@ -101,8 +101,9 @@ ${en["disc.p"]}
 const out = { "docs/index.html": html, "docs/index.md": index };
 let stale = 0;
 for (const [f, s] of Object.entries(out)) {
+  // compare without line endings: Windows CI checks files out with CRLF
   const cur = fs.existsSync(p(f)) ? read(f) : "";
-  if (cur === s) continue;
+  if (cur.replace(/\r\n/g, "\n") === s.replace(/\r\n/g, "\n")) continue;
   if (process.argv.includes("--check")) { stale++; console.log(`✗ ${f} is out of date: run node scripts/prerender-site.js`); }
   else { fs.writeFileSync(p(f), s); console.log(`✓ wrote ${f}`); }
 }
