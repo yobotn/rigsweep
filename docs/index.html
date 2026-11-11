@@ -62,7 +62,7 @@
         "applicationCategory": "DeveloperApplication",
         "applicationSubCategory": "System utility",
         "operatingSystem": "Windows 10, Windows 11",
-        "softwareVersion": "0.7.1",
+        "softwareVersion": "0.7.2",
         "license": "https://opensource.org/licenses/MIT",
         "isAccessibleForFree": true,
         "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
@@ -92,6 +92,9 @@
   }
   </script>
   <style>
+    /* Hebrew and Arabic: Heebo and Cairo (SIL OFL, docs/fonts), self-hosted and limited to their scripts */
+    @font-face { font-family: "Heebo"; src: url("fonts/heebo-hebrew.woff2") format("woff2"); font-weight: 100 900; font-display: swap; unicode-range: U+0590-05FF, U+FB1D-FB4F, U+200C-200F, U+20AA; }
+    @font-face { font-family: "Cairo"; src: url("fonts/cairo-arabic.woff2") format("woff2"); font-weight: 200 1000; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+FB50-FDFF, U+FE70-FEFF, U+200C-200F; }
     /* ---------- tokens ---------- */
     :root {
       --bg: #0b0e13; --bg2: #0f131a; --panel: #141922; --panel2: #1b2130; --border: #262e3f; --border2: #323c52;
@@ -99,7 +102,7 @@
       --r-sm: 8px; --r: 14px; --r-lg: 18px;
       --s1: 8px; --s2: 16px; --s3: 24px; --s4: 40px; --s5: 72px;
       --shadow: 0 24px 64px rgba(0,0,0,.55);
-      --font: "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif;
+      --font: "Heebo", "Cairo", "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif;
       color-scheme: dark;
     }
     * { box-sizing: border-box; }
