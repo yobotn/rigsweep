@@ -243,4 +243,5 @@ I18N["ja"] = {
     "set.diskExcludes": "スキャンしない (1 行に 1 つ): フルパス、または vendor や old-* のようなフォルダー名",
     "set.diskStale": "誰も編集していない期間がこの日数以上のプロジェクトを提案",
     "set.diskBuiltin": "常にスキップ: AppData、プロファイル内のツール用フォルダー (.cargo、.nuget、.gradle、.nvm、.vscode など、ドットで始まるすべてのフォルダー)、.git、Windows、Program Files。グローバルインストールやエディター拡張機能は、そこに独自の node_modules を持っています。",
+    "common.close": "閉じる", "err.failed": "問題が発生しました", "err.noData": "現在読み取れません。数秒後に再試行します。", "dash.cpuSub": "平均 {a}% · 最大 {p}%", "dash.memSub": "{u} / {t}", "dash.waiting": "データを収集中…", "act.apply": "設定を適用", "act.restore": "設定を元に戻しました", "act.drift": "Windows による巻き戻しを修正", "act.reapply": "プロファイルを確認", "act.kill": "プロセスを終了", "act.dev_cleanup": "開発クリーンアップ", "act.browser_clean": "ブラウザー クリーンアップ", "act.disk_clean": "開発ディスクのクリーンアップ", "act.disk_exclude": "フォルダーを除外", "act.settings": "設定を保存", "act.export": "プロファイルをエクスポート", "act.import": "プロファイルをインポート", "act.add_custom": "サービスを追加", "act.av_allow": "Defender の除外を追加", "act.av_disallow": "Defender の除外を削除", "src.gui": "ユーザー", "src.watchdog": "監視", "src.auto": "自動クリーンアップ", "src.cli": "コマンドライン", "src.import": "インポート",
 };

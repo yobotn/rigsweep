@@ -36,13 +36,43 @@
   <main>
     <!-- DASHBOARD -->
     <section id="tab-dashboard" class="tab active">
-      <header><h1 data-i18n="dash.title"></h1><button id="btn-refresh-dash" class="ghost" data-i18n="common.refresh"></button></header>
+      <header>
+        <div><h1 data-i18n="dash.title"></h1><div class="sub live-sub"><i class="pulse"></i><span data-i18n="live.now"></span></div></div>
+        <button id="btn-refresh-dash" class="ghost" data-i18n="common.refresh"></button>
+      </header>
+      <div id="heat-callout" class="callouts"></div>
+      <div id="hw-callout" class="callouts"></div>
+      <div id="dash-callouts" class="callouts"></div>
+      <div class="charts">
+        <div class="card chart" id="c-cpu">
+          <div class="chart-head">
+            <div class="label"><i class="swatch cpu"></i><span data-i18n="dash.cpu"></span></div>
+            <div class="sub" id="t-cpu-sub"></div>
+          </div>
+          <div class="value skel" id="t-cpu">–</div>
+          <div class="chart-plot" id="p-cpu">
+            <svg class="chart-svg cpu" viewBox="0 0 300 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+            <div class="chart-cursor hidden"></div><div class="chart-dot hidden"></div><div class="chart-tip hidden"></div>
+            <div class="chart-empty sub hidden" data-i18n="dash.waiting"></div>
+          </div>
+        </div>
+        <div class="card chart" id="c-mem">
+          <div class="chart-head">
+            <div class="label"><i class="swatch mem"></i><span data-i18n="dash.mem"></span></div>
+            <div class="sub" id="t-mem-sub"></div>
+          </div>
+          <div class="value skel" id="t-mem">–</div>
+          <div class="chart-plot" id="p-mem">
+            <svg class="chart-svg mem" viewBox="0 0 300 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+            <div class="chart-cursor hidden"></div><div class="chart-dot hidden"></div><div class="chart-tip hidden"></div>
+            <div class="chart-empty sub hidden" data-i18n="dash.waiting"></div>
+          </div>
+        </div>
+      </div>
       <div class="tiles">
-        <div class="tile"><div class="label" data-i18n="dash.cpu"></div><div class="value skel" id="t-cpu">–</div></div>
-        <div class="tile"><div class="label" data-i18n="dash.mem"></div><div class="value skel" id="t-mem">–</div></div>
-        <div class="tile"><div class="label" data-i18n="dash.procs"></div><div class="value skel" id="t-procs">–</div></div>
-        <div class="tile"><div class="label" data-i18n="dash.tweaks"></div><div class="value skel" id="t-tweaks">–</div></div>
-        <div class="tile"><div class="label" data-i18n="dash.drift"></div><div class="value skel" id="t-drift">–</div></div>
+        <div class="tile link" data-go="processes" role="button" tabindex="0"><div class="label" data-i18n="dash.procs"></div><div class="value skel" id="t-procs">–</div></div>
+        <div class="tile link" data-go="tweaks" role="button" tabindex="0"><div class="label" data-i18n="dash.tweaks"></div><div class="value skel" id="t-tweaks">–</div><div class="meter"><i id="t-tweaks-bar" style="width:0"></i></div></div>
+        <div class="tile link" data-go="history" role="button" tabindex="0"><div class="label" data-i18n="dash.drift"></div><div class="value skel" id="t-drift">–</div></div>
         <div class="tile heat" id="t-heat-tile" role="button" tabindex="0" data-i18n-title="heat.unitHint">
           <div class="label" data-i18n="heat.title"></div>
           <div class="value skel" id="t-heat">–</div>
@@ -50,9 +80,6 @@
           <div class="sub" id="t-heat-sub"></div>
         </div>
       </div>
-      <div id="heat-callout" class="callouts"></div>
-      <div id="hw-callout" class="callouts"></div>
-      <div id="dash-callouts" class="callouts"></div>
       <div class="grid2">
         <div class="card">
           <h2 data-i18n="dash.top"></h2>
@@ -78,8 +105,8 @@
       <p class="hint" data-i18n="clean.hint"></p>
       <div id="live" class="live">
         <div class="live-nums">
-          <div><span class="k" data-i18n="col.ram">RAM</span> <b id="live-mem">–</b></div>
-          <div><span class="k" data-i18n="col.cpu">CPU</span> <b id="live-cpu">–</b></div>
+          <div><span class="k"><i class="swatch mem"></i><span data-i18n="col.ram">RAM</span></span> <b id="live-mem">–</b></div>
+          <div><span class="k"><i class="swatch cpu"></i><span data-i18n="col.cpu">CPU</span></span> <b id="live-cpu">–</b></div>
           <div id="live-heat-row" class="hidden"><span class="k">🌡</span> <b id="live-heat">–</b></div>
           <div class="sub" data-i18n="live.now"></div>
         </div>
@@ -87,14 +114,14 @@
         <div id="live-win" class="live-win hidden"></div>
       </div>
       <div id="clean-summary" class="summary"></div>
-      <table class="tbl">
+      <div class="card flush"><table class="tbl">
         <thead><tr>
           <th></th><th data-i18n="clean.col.what"></th><th data-i18n="clean.col.project"></th>
           <th class="num" data-i18n="clean.col.age"></th><th class="num" data-i18n="clean.col.mem"></th>
           <th data-i18n="clean.col.ports"></th><th data-i18n="clean.col.status"></th>
         </tr></thead>
-        <tbody id="clean-body"><tr><td colspan="7" class="loading">…</td></tr></tbody>
-      </table>
+        <tbody id="clean-body"><tr><td colspan="7" class="loading"><span class="spinner"></span></td></tr></tbody>
+      </table></div>
     </section>
 
     <!-- DEV DISK -->
@@ -117,13 +144,13 @@
         <label><span data-i18n="disk.auto.min"></span> <select id="da-min"></select></label>
       </div>
       <div id="disk-summary" class="summary"></div>
-      <table class="tbl">
+      <div class="card flush"><table class="tbl">
         <thead><tr>
           <th></th><th data-i18n="disk.col.what"></th><th data-i18n="disk.col.type"></th>
           <th class="num" data-i18n="disk.col.size"></th><th data-i18n="disk.col.info"></th><th></th>
         </tr></thead>
-        <tbody id="disk-body"><tr><td colspan="6" class="loading">…</td></tr></tbody>
-      </table>
+        <tbody id="disk-body"><tr><td colspan="6" class="loading"><span class="spinner"></span></td></tr></tbody>
+      </table></div>
     </section>
 
     <!-- HARDWARE -->
@@ -147,13 +174,13 @@
       </header>
       <p class="hint" data-i18n="bc.hint"></p>
       <div id="bc-summary" class="summary"></div>
-      <table class="tbl">
+      <div class="card flush"><table class="tbl">
         <thead><tr>
           <th></th><th data-i18n="bc.col.profile"></th><th data-i18n="bc.col.what"></th>
           <th data-i18n="bc.col.type"></th><th class="num" data-i18n="bc.col.size"></th>
         </tr></thead>
-        <tbody id="bc-body"><tr><td colspan="5" class="loading">…</td></tr></tbody>
-      </table>
+        <tbody id="bc-body"><tr><td colspan="5" class="loading"><span class="spinner"></span></td></tr></tbody>
+      </table></div>
     </section>
 
     <!-- BOOST REPORT -->
@@ -187,7 +214,7 @@
         </div>
       </header>
       <p class="hint" id="tw-hint"></p>
-      <div id="tweak-list"><div class="loading" data-i18n="tw.loading"></div></div>
+      <div id="tweak-list"><div class="loading"><span class="spinner"></span> <span data-i18n="tw.loading"></span></div></div>
     </section>
 
     <!-- PROCESSES -->
@@ -200,14 +227,14 @@
           <button id="btn-refresh-proc" class="ghost" data-i18n="common.refresh"></button>
         </div>
       </header>
-      <table class="tbl sticky">
+      <div class="card flush"><table class="tbl sticky">
         <thead><tr>
           <th data-sort="name" data-i18n="col.process"></th><th data-sort="pid" class="num" data-i18n="col.pid"></th>
           <th data-sort="cpu" class="num" data-i18n="col.cpu"></th><th data-sort="mem" class="num" data-i18n="col.ram"></th>
           <th data-sort="disk" class="num" data-i18n="col.disk"></th><th data-i18n="col.services"></th><th></th>
         </tr></thead>
-        <tbody id="proc-body"></tbody>
-      </table>
+        <tbody id="proc-body"><tr><td colspan="7" class="loading"><span class="spinner"></span></td></tr></tbody>
+      </table></div>
     </section>
 
     <!-- HISTORY -->
@@ -221,10 +248,10 @@
         </div>
       </header>
       <p class="hint" id="backup-info"></p>
-      <table class="tbl"><thead><tr>
+      <div class="card flush"><table class="tbl"><thead><tr>
         <th data-i18n="hist.col.time"></th><th data-i18n="hist.col.source"></th><th data-i18n="hist.col.tweak"></th>
         <th data-i18n="hist.col.action"></th><th data-i18n="hist.col.result"></th><th data-i18n="hist.col.detail"></th>
-      </tr></thead><tbody id="hist-body"></tbody></table>
+      </tr></thead><tbody id="hist-body"><tr><td colspan="6" class="loading"><span class="spinner"></span></td></tr></tbody></table></div>
     </section>
 
     <!-- SETTINGS -->
@@ -291,7 +318,7 @@
   </main>
 
   <div id="modal" class="modal hidden">
-    <div class="modal-box">
+    <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <h3 id="modal-title"></h3>
       <div id="modal-body"></div>
       <div class="modal-actions">
@@ -300,7 +327,7 @@
       </div>
     </div>
   </div>
-  <div id="toast" class="toast hidden"></div>
+  <div id="toasts" class="toasts" aria-live="polite"></div>
 
   <script src="i18n.js"></script>
   <script src="locales/de.js"></script>

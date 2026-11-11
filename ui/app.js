@@ -31,39 +31,78 @@ function safeGet(k) { try { return localStorage.getItem(k); } catch { return nul
 function safeSet(k, v) { try { localStorage.setItem(k, v); } catch {} }
 
 // ---------- UI helpers ----------
-function toast(msg, isErr = false, ms = 5000) {
-  const el = $("#toast");
-  el.textContent = msg;
-  el.className = "toast" + (isErr ? " err" : "");
-  clearTimeout(el._h);
-  el._h = setTimeout(() => el.classList.add("hidden"), ms);
+// toast(msg, kind): kind is "ok" | "info" | "warn" | "err" (true = "err", for older call sites).
+// The first line reads as the title. Toasts stack, pause while hovered, and close on ×.
+const TOAST_ICON = { ok: "✓", info: "i", warn: "!", err: "!" };
+function toast(msg, kind = "info", ms) {
+  kind = kind === true ? "err" : kind || "info";
+  ms ??= kind === "err" ? 10000 : kind === "warn" ? 8000 : 4500;
+  const box = $("#toasts");
+  // the same message again (a refresh that keeps failing) replaces the old toast instead of piling up
+  [...box.children].forEach((x) => { if (x._msg === msg) x.remove(); });
+  while (box.children.length >= 4) box.firstElementChild.remove();
+  const el = document.createElement("div");
+  el.className = `toast ${kind}`;
+  el._msg = msg;
+  if (kind === "ok") msg = msg.replace(/^✅s*/u, ""); // the icon already says it
+  if (kind === "err") el.setAttribute("role", "alert");
+  el.innerHTML = `<span class="t-icon" aria-hidden="true">${TOAST_ICON[kind]}</span><div class="t-msg"></div><button class="t-close" aria-label="${esc(t("common.close"))}">×</button><i class="t-bar"></i>`;
+  el.querySelector(".t-msg").textContent = msg;
+  const bar = el.querySelector(".t-bar");
+  bar.style.animationDuration = `${ms}ms`;
+  const close = () => {
+    if (el._closing) return;
+    el._closing = true;
+    el.classList.add("out");
+    setTimeout(() => el.remove(), 180);
+  };
+  bar.addEventListener("animationend", close);
+  el.querySelector(".t-close").onclick = close;
+  box.appendChild(el);
 }
 
 function modal(title, html, { okText = t("common.ok"), danger = false, cancel = true } = {}) {
   return new Promise((resolve) => {
+    const box = $("#modal"), ok = $("#modal-ok"), cn = $("#modal-cancel");
+    const prev = document.activeElement;
     $("#modal-title").textContent = title;
     $("#modal-body").innerHTML = html;
-    const ok = $("#modal-ok"), cn = $("#modal-cancel");
     ok.textContent = okText;
     ok.className = danger ? "danger" : "primary";
     cn.style.display = cancel ? "" : "none";
-    $("#modal").classList.remove("hidden");
-    const done = (v) => { $("#modal").classList.add("hidden"); ok.onclick = cn.onclick = null; resolve(v); };
+    box.classList.remove("hidden");
+    // Esc and a click outside cancel; a destructive dialog starts on Cancel, not on the red button
+    const onKey = (e) => { if (e.key === "Escape" && cancel) { e.preventDefault(); done(false); } };
+    const done = (v) => {
+      box.classList.add("hidden");
+      ok.onclick = cn.onclick = box.onclick = null;
+      document.removeEventListener("keydown", onKey, true);
+      prev?.focus?.();
+      resolve(v);
+    };
     ok.onclick = () => done(true);
     cn.onclick = () => done(false);
+    box.onclick = (e) => { if (e.target === box && cancel) done(false); };
+    document.addEventListener("keydown", onKey, true);
+    (danger && cancel ? cn : ok).focus();
   });
 }
 
 async function call(cmd, args) {
   try { return await invoke(cmd, args); }
-  catch (e) { toast(`${cmd}: ${e}`, true, 8000); throw e; }
+  catch (e) { console.error(cmd, e); toast(`${t("err.failed")}\n${e}`, "err"); throw e; }
 }
 
 function busy(btn, on, label) {
   if (!btn) return;
-  if (on) { btn._t = btn.textContent; btn.disabled = true; btn.textContent = label || t("common.working"); }
-  else { btn.disabled = false; if (btn._t) btn.textContent = btn._t; }
+  if (on) { btn._t = btn.textContent; btn.disabled = true; btn.classList.add("is-busy"); btn.setAttribute("aria-busy", "true"); btn.textContent = label || t("common.working"); }
+  else { btn.disabled = false; btn.classList.remove("is-busy"); btn.removeAttribute("aria-busy"); if (btn._t) btn.textContent = btn._t; }
 }
+
+// label for a history row: translated action and tweak name, raw values as the fallback
+const tOr = (k, fb) => { const v = t(k); return v === k ? fb : v; };
+const actLabel = (h) => tOr("act." + h.action, h.action);
+const tweakName = (id) => (id && state?.tweaks.find((x) => x.id === id)?.name) || id || "";
 
 // ---------- language ----------
 initLang();
@@ -95,7 +134,7 @@ function showTab(name) {
   safeSet("tab", name);
   clearInterval(procTimer);
   if (name === "processes") { loadProcesses(); procTimer = setInterval(() => $("#proc-auto").checked && loadProcesses(), 3000); }
-  if (name === "dashboard") loadDashboard();
+  if (name === "dashboard") { loadDashboard(); procTimer = setInterval(() => document.visibilityState === "visible" && loadDashboard(), 10000); }
   if (name === "cleanup") loadDev();
   if (name === "disk") { renderDiskAuto(); if (!disk) loadDisk(); }
   if (name === "browser") loadBrowsers();
@@ -237,7 +276,7 @@ async function applyIds(ids, btn) {
     let msg = t("tw.applied", { ok: r.results.length - failed.length, n: r.results.length });
     if (r.restore_point) msg += `\n${r.restore_point}`;
     if (failed.length) msg += `\n\n${t("tw.issues")}\n` + failed.map((f) => `• ${f.tweak_id}: ${f.messages.filter((m) => !m.startsWith("applied")).join("; ")}`).join("\n");
-    toast(msg, failed.length > 0, failed.length ? 15000 : 5000);
+    toast(msg, failed.length ? "warn" : "ok", failed.length ? 15000 : 5000);
   } finally { busy(btn, false); }
   await loadState();
 }
@@ -248,7 +287,7 @@ async function restoreIds(ids, btn) {
     const r = await call("restore_tweaks", { ids });
     const failed = r.filter((x) => !x.ok);
     toast(failed.length ? `${t("tw.restoreFail")}\n` + failed.map((f) => `• ${f.tweak_id}: ${f.messages.join("; ")}`).join("\n")
-      : t("tw.restored", { n: r.length }), failed.length > 0, failed.length ? 12000 : 4000);
+      : t("tw.restored", { n: r.length }), failed.length ? "warn" : "ok", failed.length ? 12000 : 4000);
   } finally { busy(btn, false); }
   await loadState();
 }
@@ -262,7 +301,7 @@ $("#btn-reapply").onclick = async (e) => {
   busy(e.target, true, t("tw.verifying"));
   try {
     const s = await call("reapply_now");
-    toast(t("tw.checked", { c: s.checked, d: s.drifted, f: s.fixed }) + (s.errors.length ? `\n${s.errors.join("\n")}` : ""), s.errors.length > 0);
+    toast(t("tw.checked", { c: s.checked, d: s.drifted, f: s.fixed }) + (s.errors.length ? `\n${s.errors.join("\n")}` : ""), s.errors.length ? "warn" : "ok");
   } finally { busy(e.target, false); }
   loadState();
 };
@@ -343,7 +382,7 @@ $("#btn-clean-end").onclick = async (e) => {
     const r = await call("kill_dev_processes", { targets: picked.map((p) => ({ pid: p.pid, start_time: p.start_time, label: p.label, project: p.project, project_path: p.project_path, ports: p.ports })) });
     let msg = t("clean.done", { n: r.result.ended.length, mem: fmtBytes(r.result.freed_mem) });
     if (r.result.failed.length) msg += `\n\n${t("clean.failed")}\n• ` + r.result.failed.join("\n• ");
-    toast(msg + `\n${t("clean.seeReport")}`, r.result.failed.length > 0, 10000);
+    toast(msg + `\n${t("clean.seeReport")}`, r.result.failed.length ? "warn" : "ok", 10000);
     reportPick = { before: r.before.id, after: r.after.id };
     if (r.result.mem_before && recovery) { recovery.before = r.result.mem_before; recovery.estimate = r.result.freed_mem; renderLive(); }
     picked.forEach((p) => devSel.delete(devKey(p)));
@@ -361,7 +400,7 @@ const bcPreselect = (r) => r.i.tier === "safe" && r.i.bytes >= 1048576 && !r.b.r
 
 async function loadBrowsers(btn) {
   busy(btn, true, t("bc.scanning"));
-  if (!bc) $("#bc-body").innerHTML = `<tr><td colspan="5" class="loading">${esc(t("bc.scanning"))}</td></tr>`;
+  if (!bc) $("#bc-body").innerHTML = `<tr><td colspan="5" class="loading"><span class="spinner"></span> ${esc(t("bc.scanning"))}</td></tr>`;
   try { bc = await call("get_browser_caches"); } finally { busy(btn, false); }
   const rows = bcRows(), keys = new Set(rows.map((r) => r.k));
   bcSel = new Set([...bcSel].filter((k) => keys.has(k)));
@@ -423,7 +462,7 @@ $("#btn-bc-clean").onclick = async (e) => {
     let msg = t("bc.done", { mem: fmtBytes(r.freed) });
     if (r.locked_files) msg += "\n" + t("bc.locked", { n: r.locked_files });
     if (r.skipped_running.length) msg += "\n" + t("bc.skipped", { b: r.skipped_running.join(", ") });
-    toast(msg, r.skipped_running.length > 0, 9000);
+    toast(msg, r.skipped_running.length ? "warn" : "ok", 9000);
   } finally { busy(e.target, false); }
   loadBrowsers();
 };
@@ -488,7 +527,7 @@ function loadDisk() {
 async function scanDisk() {
   const btn = $("#btn-disk-scan");
   busy(btn, true, t("bc.scanning"));
-  if (!disk) $("#disk-body").innerHTML = `<tr><td colspan="6" class="loading">${esc(t("disk.scanning"))}</td></tr>`;
+  if (!disk) $("#disk-body").innerHTML = `<tr><td colspan="6" class="loading"><span class="spinner"></span> ${esc(t("disk.scanning"))}</td></tr>`;
   try { disk = await call("get_dev_disk"); } finally { busy(btn, false); }
   const rows = diskRows(), keys = new Set(rows.map((r) => r.k));
   diskSel = new Set([...diskSel].filter((k) => keys.has(k)));
@@ -568,7 +607,7 @@ $("#disk-body").addEventListener("click", async (e) => {
     const low = path.toLowerCase();
     disk.projects = disk.projects.filter((p) => { const l = p.path.toLowerCase(); return l !== low && !l.startsWith(low + "\\"); });
     [...diskSel].filter((k) => k.startsWith("p|") && !diskRows().some((r) => r.k === k)).forEach((k) => diskSel.delete(k));
-    toast(t("disk.excluded", { p: shortPath(path) }));
+    toast(t("disk.excluded", { p: shortPath(path) }), "ok");
     renderDisk();
   }
 });
@@ -596,7 +635,7 @@ $("#btn-disk-clean").onclick = async (e) => {
     let msg = t("disk.done", { mem: fmtBytes(r.freed) });
     if (r.locked_files) msg += "\n" + t("disk.locked", { n: r.locked_files });
     if (r.skipped.length) msg += "\n" + t("disk.skipped") + "\n• " + r.skipped.map(shortPath).join("\n• ");
-    toast(msg, r.skipped.length > 0, 10000);
+    toast(msg, r.skipped.length ? "warn" : "ok", 10000);
     picked.forEach((x) => diskSel.delete(x.k));
     // drop what's gone at once; the rescan below (slow on big trees) only refreshes the sizes
     const gone = new Set(r.done);
@@ -658,7 +697,7 @@ function renderReport() {
     win.classList.add("hidden");
     return;
   }
-  $("#report-body").innerHTML = `<table class="tbl report"><thead><tr><th></th>
+  $("#report-body").innerHTML = `<div class="card flush"><table class="tbl report"><thead><tr><th></th>
     <th class="num">${esc(t("report.before"))}</th><th class="num">${esc(t("report.after"))}</th><th class="num">${esc(t("report.change"))}</th><th class="barcol"></th></tr></thead><tbody>
     ${METRICS.map(([k, f, lower]) => {
       const vb = metricVal(b.metrics, k), va = metricVal(a.metrics, k), d = va - vb;
@@ -668,7 +707,7 @@ function renderReport() {
       return `<tr><td>${esc(t("m." + k))}</td><td class="num">${f(vb)}</td><td class="num">${f(va)}</td>
         <td class="num ${better}">${d > 0 ? "+" : ""}${f(d)}${pct}</td>
         <td class="barcol"><div class="bar b" style="width:${(vb / max) * 100}%"></div><div class="bar a ${better}" style="width:${(va / max) * 100}%"></div></td></tr>`;
-    }).join("")}</tbody></table>`;
+    }).join("")}</tbody></table></div>`;
   const freed = b.metrics.mem_used - a.metrics.mem_used;
   const fewer = b.metrics.process_count - a.metrics.process_count;
   win.classList.toggle("hidden", !(freed > 0 || fewer > 0));
@@ -707,7 +746,7 @@ $("#btn-copy-md").onclick = async () => {
     const ta = Object.assign(document.createElement("textarea"), { value: md });
     document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove();
   }
-  toast(t("report.copied"));
+  toast(t("report.copied"), "ok");
 };
 $("#btn-clear-snaps").onclick = async () => {
   if (!(await modal(t("report.clear"), esc(t("report.clear.confirm")), { okText: t("report.clear"), danger: true }))) return;
@@ -718,7 +757,7 @@ $("#btn-clear-snaps").onclick = async () => {
 
 // ---------- processes ----------
 async function loadProcesses() {
-  try { snapshot = await invoke("get_processes"); } catch (e) { return toast(`get_processes: ${e}`, true); }
+  try { snapshot = await invoke("get_processes"); } catch (e) { return toast(`${t("err.failed")}\n${e}`, "err"); }
   renderProcesses();
 }
 
@@ -768,7 +807,7 @@ $("#proc-body").addEventListener("click", async (e) => {
   if (el.dataset.kill) {
     if (!(await modal(t("proc.endTitle"), `<p>${t("proc.endBody", { name: esc(el.dataset.name), pid: esc(el.dataset.kill) })}</p>`, { okText: t("proc.end"), danger: true }))) return;
     const name = await call("kill_process", { pid: Number(el.dataset.kill), startTime: Number(el.dataset.start) });
-    toast(t("proc.ended", { name }));
+    toast(t("proc.ended", { name }), "ok");
     loadProcesses();
   } else if (el.dataset.goto) {
     showTab("tweaks");
@@ -781,7 +820,7 @@ $("#proc-body").addEventListener("click", async (e) => {
     const id = await call("add_custom_service", { name: el.dataset.disable, display: el.dataset.display });
     const r = await call("apply_tweaks", { ids: [id] });
     const res = r.results[0];
-    toast(res?.ok ? t("proc.disabled", { n: el.dataset.disable }) : t("proc.problem", { m: res?.messages.join("; ") }), !res?.ok, 8000);
+    toast(res?.ok ? t("proc.disabled", { n: el.dataset.disable }) : t("proc.problem", { m: res?.messages.join("; ") }), res?.ok ? "ok" : "err", 8000);
     selected.add(id);
     await loadState();
     loadProcesses();
@@ -789,44 +828,132 @@ $("#proc-body").addEventListener("click", async (e) => {
 });
 
 // ---------- dashboard ----------
+let dashLoading = false;
 async function loadDashboard() {
+  if (dashLoading) return;
+  dashLoading = true;
+  try { await renderDashboard(); } finally { dashLoading = false; }
+}
+
+// the watchdog logs a "checked, nothing drifted" row every few minutes: noise on the dashboard
+const quietRow = (h) => h.action === "reapply" && h.result === "ok" && /drifted 0\b/.test(h.detail || "");
+
+function feedItem(h) {
+  const cls = h.result !== "ok" ? "err" : h.action === "drift" || h.action === "reapply" ? "info" : "";
+  const name = tweakName(h.tweak_id);
+  return `<li title="${esc(h.detail)}"><i class="dot ${cls}"></i><div class="what"><b>${esc(actLabel(h))}</b>${name ? ` · ${esc(name)}` : ""}
+    <div class="sub">${esc(h.ts)} · ${esc(tOr("src." + h.source, h.source))}</div></div></li>`;
+}
+
+async function renderDashboard() {
   const [snap, hist, devr] = await Promise.all([
     invoke("get_processes").catch(() => null),
-    invoke("get_history", { limit: 12 }).catch(() => []),
+    invoke("get_history", { limit: 60 }).catch(() => []),
     invoke("get_dev_processes").catch(() => null),
   ]);
   const callouts = [];
   if (snap) {
     snapshot = snap;
-    $("#t-cpu").textContent = `${snap.cpu_total.toFixed(0)}%`;
-    $("#t-mem").textContent = `${fmtBytes(snap.mem_used)} / ${fmtBytes(snap.mem_total)}`;
-    $("#t-procs").textContent = `${snap.process_count} / ${snap.service_running}`;
-    const top = [...snap.processes].sort((a, b) => (b.cpu + diskOf(b) / 5e6) - (a.cpu + diskOf(a) / 5e6)).slice(0, 10);
+    $("#t-procs").textContent = ltr(`${snap.process_count} / ${snap.service_running}`);
+    const top = [...snap.processes].sort((a, b) => (b.cpu + diskOf(b) / 5e6) - (a.cpu + diskOf(a) / 5e6)).slice(0, 8);
     $("#dash-top").innerHTML = top.map((p) => `<tr><td><b>${esc(p.name)}</b>${p.services.length ? `<div class="sub">${esc(p.services.map((s) => s.name).join(", "))}</div>` : ""}</td>
-      <td class="num">${p.cpu.toFixed(1)}%</td><td class="num">${fmtBytes(p.mem)}</td><td class="num">${diskOf(p) ? fmtBytes(diskOf(p)) : "–"}</td></tr>`).join("");
+      <td class="num ${p.cpu > 25 ? "vhot" : p.cpu > 5 ? "hot" : ""}">${p.cpu.toFixed(1)}%</td><td class="num">${fmtBytes(p.mem)}</td><td class="num">${diskOf(p) ? fmtBytes(diskOf(p)) : "–"}</td></tr>`).join("");
     const chrome = snap.processes.filter((p) => p.name.toLowerCase() === "chrome.exe");
     const cmem = chrome.reduce((n, p) => n + p.mem, 0);
     if (cmem > 1.5 * 1024 ** 3) callouts.push(`<div class="callout">${esc(t("dash.chrome", { n: chrome.length, mem: fmtBytes(cmem) }))} <button class="small ghost" data-go="settings">${esc(t("dash.chrome.go"))}</button></div>`);
+  } else {
+    $("#dash-top").innerHTML = `<tr><td colspan="4" class="loading">${esc(t("err.noData"))}</td></tr>`;
   }
+  if (devr) dev = devr;
   if (devr?.stale_count) {
-    dev = devr;
     callouts.unshift(`<div class="callout hot">${esc(t("dash.stale", { n: devr.stale_count, mem: fmtBytes(devr.stale_mem) }))} <button class="small" data-go="cleanup">${esc(t("dash.stale.go"))}</button></div>`);
   }
   $("#dash-callouts").innerHTML = callouts.join("");
   // drop the loading skeletons even if a call failed; "–" then stands for "no data"
-  if (!snap) $("#dash-top").innerHTML = "";
-  ["#t-cpu", "#t-mem", "#t-procs", "#t-tweaks", "#t-drift"].forEach((id) => $(id).classList.remove("skel"));
+  ["#t-procs", "#t-tweaks", "#t-drift"].forEach((id) => $(id).classList.remove("skel"));
+  renderDashCharts();
   renderHeat();
   hardwareCallout();
   if (state) {
-    $("#t-tweaks").textContent = `${state.tweaks.filter((x) => x.status.overall === "applied").length} / ${state.tweaks.length}`;
+    const applied = state.tweaks.filter((x) => x.status.overall === "applied").length;
+    $("#t-tweaks").textContent = ltr(`${applied} / ${state.tweaks.length}`);
+    $("#t-tweaks-bar").style.width = `${state.tweaks.length ? (applied / state.tweaks.length) * 100 : 0}%`;
     $("#t-drift").textContent = state.tweaks.reduce((n, x) => n + x.drift_count, 0);
   }
-  $("#dash-history").innerHTML = hist.length ? hist.map((h) =>
-    `<li><span class="ts">${esc(h.ts)}</span>${h.result === "error" ? "⚠ " : ""}<b>${esc(h.action)}</b> ${esc(h.tweak_id || "")} <span class="sub">${esc(h.source)}</span></li>`).join("")
-    : `<li class="sub">${esc(t("dash.empty"))}</li>`;
+  const rows = hist.filter((h) => !quietRow(h)).slice(0, 8);
+  $("#dash-history").innerHTML = rows.length ? rows.map(feedItem).join("")
+    : `<li class="empty-state">${esc(t("dash.empty"))}</li>`;
 }
-$("#btn-refresh-dash").onclick = async () => { await loadState(); loadDashboard(); };
+
+// CPU and RAM charts: the backend's 2-second samples, last 5 minutes, both on a 0–100 % scale
+const memPct = (s) => (s.mem_total ? (s.mem_used / s.mem_total) * 100 : 0);
+const CHARTS = {
+  cpu: { val: (s) => Math.min(100, s.cpu), tip: (s) => `${s.cpu.toFixed(0)}%` },
+  mem: { val: memPct, tip: (s) => `${memPct(s).toFixed(0)}% · ${fmtBytes(s.mem_used)}` },
+};
+
+function renderDashCharts() {
+  const last = live.at(-1);
+  if (last) {
+    const cpus = live.map((s) => s.cpu);
+    $("#t-cpu").textContent = `${last.cpu.toFixed(0)}%`;
+    $("#t-cpu-sub").textContent = t("dash.cpuSub", { a: avg(cpus).toFixed(0), p: Math.max(...cpus).toFixed(0) });
+    $("#t-mem").textContent = `${memPct(last).toFixed(0)}%`;
+    $("#t-mem-sub").textContent = t("dash.memSub", { u: fmtBytes(last.mem_used), t: fmtBytes(last.mem_total) });
+    $("#t-cpu").classList.remove("skel");
+    $("#t-mem").classList.remove("skel");
+  }
+  Object.keys(CHARTS).forEach(drawChart);
+}
+
+function drawChart(id) {
+  const plot = $(`#p-${id}`), svg = plot.querySelector("svg"), c = CHARTS[id];
+  const enough = live.length >= 2;
+  plot.querySelector(".chart-empty").classList.toggle("hidden", enough);
+  if (!enough) { svg.innerHTML = ""; chartHover(id); return; }
+  const W = 300, H = 100, t0 = live[0].t, span = Math.max(1, live.at(-1).t - t0);
+  const pts = live.map((s) => `${(((s.t - t0) / span) * W).toFixed(1)},${(H - c.val(s)).toFixed(1)}`).join(" ");
+  svg.innerHTML = `<line class="grid" x1="0" x2="${W}" y1="50" y2="50" /><line class="grid" x1="0" x2="${W}" y1="0.5" y2="0.5" />
+    <polygon class="area" points="0,${H} ${pts} ${W},${H}" /><polyline class="line" points="${pts}" />`;
+  chartHover(id);
+}
+
+// crosshair + tooltip on the sample nearest the pointer
+function chartHover(id) {
+  const plot = $(`#p-${id}`), f = plot._hover, c = CHARTS[id];
+  const [cur, dot, tip] = [".chart-cursor", ".chart-dot", ".chart-tip"].map((q) => plot.querySelector(q));
+  const off = f == null || live.length < 2;
+  [cur, dot, tip].forEach((e) => e.classList.toggle("hidden", off));
+  if (off) return;
+  const t0 = live[0].t, span = Math.max(1, live.at(-1).t - t0), at = t0 + f * span;
+  const s = live.reduce((b, x) => (Math.abs(x.t - at) < Math.abs(b.t - at) ? x : b));
+  const x = ((s.t - t0) / span) * 100;
+  cur.style.left = dot.style.left = `${x}%`;
+  dot.style.top = `${100 - c.val(s)}%`;
+  tip.style.left = `${Math.min(85, Math.max(15, x))}%`;
+  const when = new Date(s.t).toLocaleTimeString(LANG, { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  tip.innerHTML = `<b>${esc(c.tip(s))}</b><span class="sub">${esc(when)}</span>`;
+}
+
+Object.keys(CHARTS).forEach((id) => {
+  const plot = $(`#p-${id}`);
+  plot.addEventListener("pointermove", (e) => {
+    const r = plot.getBoundingClientRect();
+    plot._hover = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width));
+    chartHover(id);
+  });
+  plot.addEventListener("pointerleave", () => { plot._hover = null; chartHover(id); });
+});
+
+document.querySelectorAll(".tile.link").forEach((el) => {
+  el.onclick = () => showTab(el.dataset.go);
+  el.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); showTab(el.dataset.go); } };
+});
+
+$("#btn-refresh-dash").onclick = async (e) => {
+  busy(e.target, true);
+  try { await loadState(); await loadDashboard(); } finally { busy(e.target, false); }
+};
 $("#dash-callouts").addEventListener("click", (e) => { if (e.target.dataset.go) showTab(e.target.dataset.go); });
 $("#hw-callout").addEventListener("click", (e) => { if (e.target.dataset.go) showTab(e.target.dataset.go); });
 
@@ -969,17 +1096,18 @@ async function hardwareCallout() {
 async function loadHistory() {
   const rows = await call("get_history", { limit: 500 });
   $("#backup-info").textContent = t("hist.info", { n: state?.backup_count ?? 0, dir: state?.data_dir ?? "" });
-  $("#hist-body").innerHTML = rows.map((h) => `<tr>
-    <td class="num">${esc(h.ts)}</td><td>${esc(h.source)}</td><td>${esc(h.tweak_id || "")}</td><td>${esc(h.action)}</td>
-    <td style="color:${h.result === "ok" ? "var(--safe)" : "var(--caution)"}">${esc(h.result)}</td>
-    <td class="sub">${esc(h.detail)}</td></tr>`).join("");
+  $("#hist-body").innerHTML = rows.length ? rows.map((h) => `<tr>
+    <td class="ts">${esc(h.ts)}</td><td>${esc(tOr("src." + h.source, h.source))}</td><td title="${esc(h.tweak_id || "")}">${esc(tweakName(h.tweak_id))}</td><td>${esc(actLabel(h))}</td>
+    <td><span class="badge ${h.result === "ok" ? "active" : "orphan"}">${esc(h.result)}</span></td>
+    <td class="sub">${esc(h.detail)}</td></tr>`).join("")
+    : `<tr><td colspan="6" class="loading">${esc(t("dash.empty"))}</td></tr>`;
 }
 
 async function restoreAll() {
   if (!(await modal(t("hist.restoreTitle"), `<p>${esc(t("hist.restoreBody"))}</p>`, { okText: t("hist.restoreAll"), danger: true }))) return;
   const r = await call("restore_all");
   const failed = r.filter((x) => !x.ok);
-  toast(failed.length ? t("hist.restoredErr", { n: failed.length }) : t("hist.restored", { n: r.length }), failed.length > 0);
+  toast(failed.length ? t("hist.restoredErr", { n: failed.length }) : t("hist.restored", { n: r.length }), failed.length ? "warn" : "ok");
   selected.clear();
   await loadState();
   loadHistory();
@@ -988,7 +1116,7 @@ $("#btn-restore-all").onclick = restoreAll;
 
 $("#btn-export").onclick = async () => {
   const path = await call("export_profile");
-  toast(t("hist.exported", { p: path }), false, 8000);
+  toast(t("hist.exported", { p: path }), "ok", 8000);
 };
 $("#file-import").addEventListener("change", async (e) => {
   const f = e.target.files[0];
@@ -1071,7 +1199,7 @@ $("#btn-save-settings").onclick = async (e) => {
   busy(e.target, true, t("set.saving"));
   try {
     const notes = await call("save_settings", { settings });
-    toast([t("set.saved"), ...notes].join("\n"));
+    toast([t("set.saved"), ...notes].join("\n"), "ok");
   } finally { busy(e.target, false); }
   await loadState();
   renderSettings();
@@ -1155,10 +1283,7 @@ function renderLive() {
   if (last) {
     $("#live-mem").textContent = `${fmtBytes(last.mem_used)} / ${fmtBytes(last.mem_total)}`;
     $("#live-cpu").textContent = `${last.cpu.toFixed(0)}%`;
-    if (currentTab === "dashboard") {
-      $("#t-cpu").textContent = `${last.cpu.toFixed(0)}%`;
-      $("#t-mem").textContent = `${fmtBytes(last.mem_used)} / ${fmtBytes(last.mem_total)}`;
-    }
+    if (currentTab === "dashboard") renderDashCharts();
   }
   renderSpark();
   renderHeat();
@@ -1276,7 +1401,7 @@ listen("dev-autocleaned", (e) => {
   const r = e.payload;
   // the trees were ended a moment before this event; samples from just before it count
   if (r.mem_before) startRecovery(r.mem_before, Date.now() - 2500, r.freed_mem, true);
-  toast(t("clean.auto.done", { n: r.ended.length, mem: fmtBytes(r.freed_mem) }) + "\n• " + r.ended.join("\n• "), false, 8000);
+  toast(t("clean.auto.done", { n: r.ended.length, mem: fmtBytes(r.freed_mem) }) + "\n• " + r.ended.join("\n• "), "ok", 8000);
   if (currentTab === "cleanup") loadDev();
 });
 listen("request-restore-all", () => { showTab("history"); restoreAll(); });

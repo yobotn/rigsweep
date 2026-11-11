@@ -243,4 +243,5 @@ I18N["ko"] = {
     "set.diskExcludes": "검색하지 않음 (한 줄에 하나): 전체 경로 또는 vendor, old-* 같은 폴더 이름",
     "set.diskStale": "아무도 수정하지 않은 기간이 이 일수 이상인 프로젝트 추천",
     "set.diskBuiltin": "항상 건너뜀: AppData, 프로필 안의 도구 폴더(.cargo, .nuget, .gradle, .nvm, .vscode 등 점으로 시작하는 모든 폴더), .git, Windows, Program Files. 전역 설치와 편집기 확장 프로그램은 그곳에 자체 node_modules를 둡니다.",
+    "common.close": "닫기", "err.failed": "문제가 발생했습니다", "err.noData": "지금은 읽을 수 없습니다. 몇 초 후 다시 시도합니다.", "dash.cpuSub": "평균 {a}% · 최고 {p}%", "dash.memSub": "{t} 중 {u}", "dash.waiting": "데이터 수집 중…", "act.apply": "설정 적용됨", "act.restore": "설정 복원됨", "act.drift": "Windows가 되돌린 항목 수정됨", "act.reapply": "프로필 확인됨", "act.kill": "프로세스 종료됨", "act.dev_cleanup": "개발 정리", "act.browser_clean": "브라우저 정리", "act.disk_clean": "개발 디스크 정리", "act.disk_exclude": "폴더 제외됨", "act.settings": "설정 저장됨", "act.export": "프로필 내보냄", "act.import": "프로필 가져옴", "act.add_custom": "서비스 추가됨", "act.av_allow": "Defender 예외 추가됨", "act.av_disallow": "Defender 예외 제거됨", "src.gui": "사용자", "src.watchdog": "감시", "src.auto": "자동 정리", "src.cli": "명령줄", "src.import": "가져오기",
 };

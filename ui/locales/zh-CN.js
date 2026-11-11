@@ -243,4 +243,5 @@ I18N["zh-CN"] = {
     "set.diskExcludes": "从不扫描（每行一个）：完整路径，或 vendor、old-* 这样的文件夹名",
     "set.diskStale": "建议清理至少这么多天没人编辑过的项目（天）",
     "set.diskBuiltin": "始终跳过：AppData、用户目录中的工具文件夹（.cargo、.nuget、.gradle、.nvm、.vscode 以及其他所有以点开头的文件夹）、.git、Windows 和 Program Files。全局安装和编辑器扩展会在那里保存自己的 node_modules。",
+    "common.close": "关闭", "err.failed": "出了点问题", "err.noData": "暂时无法读取，几秒后重试。", "dash.cpuSub": "平均 {a}% · 峰值 {p}%", "dash.memSub": "{u} / {t}", "dash.waiting": "正在收集数据…", "act.apply": "已应用优化", "act.restore": "已还原优化", "act.drift": "被 Windows 还原，已修复", "act.reapply": "已检查配置", "act.kill": "已结束进程", "act.dev_cleanup": "开发清理", "act.browser_clean": "浏览器清理", "act.disk_clean": "开发磁盘清理", "act.disk_exclude": "已排除文件夹", "act.settings": "已保存设置", "act.export": "已导出配置", "act.import": "已导入配置", "act.add_custom": "已添加服务", "act.av_allow": "已添加 Defender 排除项", "act.av_disallow": "已移除 Defender 排除项", "src.gui": "你", "src.watchdog": "看门狗", "src.auto": "自动清理", "src.cli": "命令行", "src.import": "导入",
 };
