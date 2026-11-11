@@ -138,6 +138,7 @@ mod tests {
             badge_enabled: true,
             badge_warn_gb: warn,
             badge_alert_gb: alert,
+            auto_update: false,
         }
     }
 

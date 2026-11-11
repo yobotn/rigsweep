@@ -48,6 +48,9 @@
       cpu: Math.max(2, (after ? 11 : 34) + rnd() * 10),
       mem_used: Math.round(25.1 * GB + i * 0.002 * GB - drop + rnd() * 0.06 * GB),
       mem_total: TOTAL,
+      // the CPU cools off a little after the sweep
+      cpu_temp: Math.round((after ? 64 : 78) + rnd() * 4),
+      gpu_temp: Math.round(52 + rnd() * 3),
     });
   }
   window.__DEMO__ = { sweepT: samples[sweepAt].t - 1, before: samples[sweepAt - 1].mem_used, estimate: 2.6 * GB };

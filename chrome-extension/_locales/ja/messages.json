@@ -1,0 +1,140 @@
+{
+  "extName": {
+    "message": "RigSweep Tabs"
+  },
+  "extDesc": {
+    "message": "作業を失わずに Chrome のタブから RAM を解放: アイドル状態のタブのスリープ、重複タブや開発サーバーのタブの整理。"
+  },
+  "statTabs": {
+    "message": "タブ"
+  },
+  "statSleeping": {
+    "message": "スリープ中"
+  },
+  "statWindows": {
+    "message": "ウィンドウ"
+  },
+  "secSleep": {
+    "message": "アイドル状態のタブをスリープ"
+  },
+  "idleLabel": {
+    "message": "次の時間以上アイドル状態"
+  },
+  "minutesUnit": {
+    "message": "分"
+  },
+  "btnSleepIdle": {
+    "message": "アイドル状態のタブをスリープ"
+  },
+  "btnSleepAll": {
+    "message": "バックグラウンドのタブをすべて今すぐスリープ"
+  },
+  "sleepNote": {
+    "message": "スリープ中のタブはタブ バーに残り、クリックすると再読み込みされます。アクティブなタブ、固定したタブ、音声を再生中のタブはスリープしません。"
+  },
+  "autoSleep": {
+    "message": "アイドル状態のタブを 10 分ごとに自動でスリープ"
+  },
+  "sleptResult": {
+    "message": "$COUNT$ 個のタブをスリープしました。",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "sleptFailed": {
+    "message": "$COUNT$ 個をスリープできませんでした。",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "secDupes": {
+    "message": "重複タブを閉じる"
+  },
+  "btnFindDupes": {
+    "message": "重複を検索"
+  },
+  "dupesFound": {
+    "message": "重複タブが $COUNT$ 個見つかりました。それぞれ最新のタブを残します。",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "noDupes": {
+    "message": "重複タブは見つかりませんでした。"
+  },
+  "btnCloseDupes": {
+    "message": "重複 $COUNT$ 個を閉じる",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "dupesClosed": {
+    "message": "重複タブを $COUNT$ 個閉じました。",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "secPatterns": {
+    "message": "パターンに一致するタブを閉じる"
+  },
+  "patternsHint": {
+    "message": "1 行に 1 パターン。ホスト + パスと照合します。* は任意の文字列に一致します (例: localhost:*)"
+  },
+  "includePinned": {
+    "message": "固定したタブも含める"
+  },
+  "btnSavePatterns": {
+    "message": "パターンを保存"
+  },
+  "patternsSaved": {
+    "message": "パターンを保存しました。"
+  },
+  "btnFindMatches": {
+    "message": "一致するタブを検索"
+  },
+  "matchesFound": {
+    "message": "一致するタブが $COUNT$ 個あります。残したいタブのチェックを外してから確定してください。",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "noMatches": {
+    "message": "これらのパターンに一致するタブはありません。"
+  },
+  "btnCloseSelected": {
+    "message": "選択したタブを閉じる"
+  },
+  "matchesClosed": {
+    "message": "$COUNT$ 個のタブを閉じました。",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "errorGeneric": {
+    "message": "問題が発生しました。もう一度お試しください。"
+  },
+  "footer": {
+    "message": "RigSweep の一部 · MIT"
+  }
+}

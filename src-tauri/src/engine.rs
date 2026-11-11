@@ -27,6 +27,9 @@ pub struct Settings {
     /// red dot from this many GB
     #[serde(default = "default_alert_gb")]
     pub badge_alert_gb: f32,
+    /// check GitHub for a new version at startup and once a day (off unless the user turns it on)
+    #[serde(default)]
+    pub auto_update: bool,
 }
 
 fn yes() -> bool {
@@ -69,6 +72,7 @@ impl Settings {
             badge_enabled: db.get_setting("badge_enabled").as_deref() != Some("0"),
             badge_warn_gb: db.get_setting("badge_warn_gb").and_then(|s| s.parse().ok()).unwrap_or(default_warn_gb()),
             badge_alert_gb: db.get_setting("badge_alert_gb").and_then(|s| s.parse().ok()).unwrap_or(default_alert_gb()),
+            auto_update: db.get_setting("auto_update").as_deref() == Some("1"),
         }
     }
 
@@ -84,6 +88,7 @@ impl Settings {
         let alert = if self.badge_alert_gb.is_finite() { self.badge_alert_gb.clamp(warn, 256.0) } else { default_alert_gb().max(warn) };
         db.set_setting("badge_warn_gb", &warn.to_string())?;
         db.set_setting("badge_alert_gb", &alert.to_string())?;
+        db.set_setting("auto_update", if self.auto_update { "1" } else { "0" })?;
         Ok(())
     }
 }

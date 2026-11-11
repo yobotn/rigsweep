@@ -512,3 +512,18 @@ mod demo_dump {
         println!("wrote {}", p.display());
     }
 }
+
+// ---------- updates ----------
+
+/// Asks GitHub for the latest release. Only runs when the user clicks "Check now", or in the
+/// background when they turned on automatic checks.
+#[tauri::command]
+pub async fn check_update(app: AppHandle) -> R<Option<crate::update::UpdateInfo>> {
+    crate::update::check(&app).await
+}
+
+/// Downloads, verifies and runs the new installer; RigSweep exits and restarts on the new version.
+#[tauri::command]
+pub async fn install_update(app: AppHandle) -> R<()> {
+    crate::update::install(&app).await
+}

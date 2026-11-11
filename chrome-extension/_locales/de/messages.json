@@ -1,0 +1,140 @@
+{
+  "extName": {
+    "message": "RigSweep Tabs"
+  },
+  "extDesc": {
+    "message": "RAM von Chrome-Tabs freigeben, ohne Arbeit zu verlieren: inaktive Tabs ruhen lassen, Duplikate und Dev-Server-Tabs schließen."
+  },
+  "statTabs": {
+    "message": "Tabs"
+  },
+  "statSleeping": {
+    "message": "ruhend"
+  },
+  "statWindows": {
+    "message": "Fenster"
+  },
+  "secSleep": {
+    "message": "Inaktive Tabs ruhen lassen"
+  },
+  "idleLabel": {
+    "message": "Inaktiv länger als"
+  },
+  "minutesUnit": {
+    "message": "Min."
+  },
+  "btnSleepIdle": {
+    "message": "Inaktive Tabs ruhen lassen"
+  },
+  "btnSleepAll": {
+    "message": "Alle Hintergrund-Tabs jetzt ruhen lassen"
+  },
+  "sleepNote": {
+    "message": "Ruhende Tabs bleiben in der Tableiste und werden beim Anklicken neu geladen. Aktive, angeheftete und Audio wiedergebende Tabs werden nie in den Ruhezustand versetzt."
+  },
+  "autoSleep": {
+    "message": "Inaktive Tabs alle 10 Minuten automatisch ruhen lassen"
+  },
+  "sleptResult": {
+    "message": "$COUNT$ Tab(s) in den Ruhezustand versetzt.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "sleptFailed": {
+    "message": "$COUNT$ konnte(n) nicht in den Ruhezustand versetzt werden.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "secDupes": {
+    "message": "Doppelte Tabs schließen"
+  },
+  "btnFindDupes": {
+    "message": "Duplikate suchen"
+  },
+  "dupesFound": {
+    "message": "$COUNT$ doppelte(r) Tab(s) gefunden. Jeweils die neueste Kopie bleibt erhalten.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "noDupes": {
+    "message": "Keine doppelten Tabs gefunden."
+  },
+  "btnCloseDupes": {
+    "message": "$COUNT$ Duplikat(e) schließen",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "dupesClosed": {
+    "message": "$COUNT$ doppelte(n) Tab(s) geschlossen.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "secPatterns": {
+    "message": "Tabs nach Muster schließen"
+  },
+  "patternsHint": {
+    "message": "Ein Muster pro Zeile, verglichen mit Host + Pfad. * steht für beliebige Zeichen, z. B. localhost:*"
+  },
+  "includePinned": {
+    "message": "Angeheftete Tabs einbeziehen"
+  },
+  "btnSavePatterns": {
+    "message": "Muster speichern"
+  },
+  "patternsSaved": {
+    "message": "Muster gespeichert."
+  },
+  "btnFindMatches": {
+    "message": "Passende Tabs suchen"
+  },
+  "matchesFound": {
+    "message": "$COUNT$ passende(r) Tab(s). Deaktivieren Sie die Tabs, die Sie behalten möchten, und bestätigen Sie dann.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "noMatches": {
+    "message": "Keine Tabs entsprechen diesen Mustern."
+  },
+  "btnCloseSelected": {
+    "message": "Ausgewählte Tabs schließen"
+  },
+  "matchesClosed": {
+    "message": "$COUNT$ Tab(s) geschlossen.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "errorGeneric": {
+    "message": "Etwas ist schiefgelaufen. Bitte versuchen Sie es erneut."
+  },
+  "footer": {
+    "message": "Teil von RigSweep · MIT"
+  }
+}

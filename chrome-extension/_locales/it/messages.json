@@ -1,0 +1,140 @@
+{
+  "extName": {
+    "message": "RigSweep Tabs"
+  },
+  "extDesc": {
+    "message": "Libera RAM dalle schede di Chrome senza perdere il lavoro: sospendi le schede inattive, chiudi i duplicati e le schede dei dev server."
+  },
+  "statTabs": {
+    "message": "schede"
+  },
+  "statSleeping": {
+    "message": "sospese"
+  },
+  "statWindows": {
+    "message": "finestre"
+  },
+  "secSleep": {
+    "message": "Sospendi schede inattive"
+  },
+  "idleLabel": {
+    "message": "Inattive da più di"
+  },
+  "minutesUnit": {
+    "message": "min"
+  },
+  "btnSleepIdle": {
+    "message": "Sospendi schede inattive"
+  },
+  "btnSleepAll": {
+    "message": "Sospendi ora tutte le schede in background"
+  },
+  "sleepNote": {
+    "message": "Le schede sospese restano nella barra delle schede e si ricaricano quando ci fai clic. Le schede attive, fissate o che riproducono audio non vengono mai sospese."
+  },
+  "autoSleep": {
+    "message": "Sospendi automaticamente le schede inattive ogni 10 minuti"
+  },
+  "sleptResult": {
+    "message": "Schede sospese: $COUNT$.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "sleptFailed": {
+    "message": "Impossibile sospendere: $COUNT$.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "secDupes": {
+    "message": "Chiudi schede duplicate"
+  },
+  "btnFindDupes": {
+    "message": "Trova duplicati"
+  },
+  "dupesFound": {
+    "message": "Schede duplicate trovate: $COUNT$. Di ognuna viene mantenuta la copia più recente.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "noDupes": {
+    "message": "Nessuna scheda duplicata trovata."
+  },
+  "btnCloseDupes": {
+    "message": "Chiudi duplicati ($COUNT$)",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "dupesClosed": {
+    "message": "Schede duplicate chiuse: $COUNT$.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "secPatterns": {
+    "message": "Chiudi schede in base a pattern"
+  },
+  "patternsHint": {
+    "message": "Un pattern per riga, confrontato con host + percorso. * corrisponde a qualsiasi cosa, ad es. localhost:*"
+  },
+  "includePinned": {
+    "message": "Includi schede fissate"
+  },
+  "btnSavePatterns": {
+    "message": "Salva pattern"
+  },
+  "patternsSaved": {
+    "message": "Pattern salvati."
+  },
+  "btnFindMatches": {
+    "message": "Trova schede corrispondenti"
+  },
+  "matchesFound": {
+    "message": "Schede corrispondenti: $COUNT$. Deseleziona quelle da mantenere, poi conferma.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "noMatches": {
+    "message": "Nessuna scheda corrisponde a questi pattern."
+  },
+  "btnCloseSelected": {
+    "message": "Chiudi schede selezionate"
+  },
+  "matchesClosed": {
+    "message": "Schede chiuse: $COUNT$.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "errorGeneric": {
+    "message": "Si è verificato un problema. Riprova."
+  },
+  "footer": {
+    "message": "Parte di RigSweep · MIT"
+  }
+}

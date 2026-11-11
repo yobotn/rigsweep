@@ -1,0 +1,140 @@
+{
+  "extName": {
+    "message": "RigSweep Tabs"
+  },
+  "extDesc": {
+    "message": "Libere a RAM das guias do Chrome sem perder trabalho: suspenda guias ociosas e feche duplicadas e guias de servidores de dev."
+  },
+  "statTabs": {
+    "message": "guias"
+  },
+  "statSleeping": {
+    "message": "suspensas"
+  },
+  "statWindows": {
+    "message": "janelas"
+  },
+  "secSleep": {
+    "message": "Suspender guias ociosas"
+  },
+  "idleLabel": {
+    "message": "Ociosas há mais de"
+  },
+  "minutesUnit": {
+    "message": "min"
+  },
+  "btnSleepIdle": {
+    "message": "Suspender guias ociosas"
+  },
+  "btnSleepAll": {
+    "message": "Suspender agora todas em segundo plano"
+  },
+  "sleepNote": {
+    "message": "As guias suspensas continuam na barra de guias e são recarregadas quando você clica nelas. Guias ativas, fixadas ou reproduzindo áudio nunca são suspensas."
+  },
+  "autoSleep": {
+    "message": "Suspender guias ociosas automaticamente a cada 10 minutos"
+  },
+  "sleptResult": {
+    "message": "$COUNT$ guia(s) suspensa(s).",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "sleptFailed": {
+    "message": "Não foi possível suspender $COUNT$.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "secDupes": {
+    "message": "Fechar guias duplicadas"
+  },
+  "btnFindDupes": {
+    "message": "Encontrar duplicadas"
+  },
+  "dupesFound": {
+    "message": "$COUNT$ guia(s) duplicada(s) encontrada(s). A cópia mais recente de cada uma é mantida.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "noDupes": {
+    "message": "Nenhuma guia duplicada encontrada."
+  },
+  "btnCloseDupes": {
+    "message": "Fechar $COUNT$ duplicada(s)",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "dupesClosed": {
+    "message": "$COUNT$ guia(s) duplicada(s) fechada(s).",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "secPatterns": {
+    "message": "Fechar guias por padrão"
+  },
+  "patternsHint": {
+    "message": "Um padrão por linha, comparado com host + caminho. * corresponde a qualquer coisa, por exemplo, localhost:*"
+  },
+  "includePinned": {
+    "message": "Incluir guias fixadas"
+  },
+  "btnSavePatterns": {
+    "message": "Salvar padrões"
+  },
+  "patternsSaved": {
+    "message": "Padrões salvos."
+  },
+  "btnFindMatches": {
+    "message": "Encontrar guias correspondentes"
+  },
+  "matchesFound": {
+    "message": "$COUNT$ guia(s) correspondente(s). Desmarque as que quiser manter e confirme.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "noMatches": {
+    "message": "Nenhuma guia corresponde a esses padrões."
+  },
+  "btnCloseSelected": {
+    "message": "Fechar guias selecionadas"
+  },
+  "matchesClosed": {
+    "message": "$COUNT$ guia(s) fechada(s).",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "errorGeneric": {
+    "message": "Algo deu errado. Tente novamente."
+  },
+  "footer": {
+    "message": "Parte do RigSweep · MIT"
+  }
+}

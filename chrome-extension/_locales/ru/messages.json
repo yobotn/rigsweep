@@ -1,0 +1,140 @@
+{
+  "extName": {
+    "message": "RigSweep Tabs"
+  },
+  "extDesc": {
+    "message": "Освобождайте память от вкладок Chrome, не теряя работу: усыпляйте неактивные вкладки, закрывайте дубликаты и вкладки dev-серверов."
+  },
+  "statTabs": {
+    "message": "вкладки"
+  },
+  "statSleeping": {
+    "message": "спят"
+  },
+  "statWindows": {
+    "message": "окна"
+  },
+  "secSleep": {
+    "message": "Усыпление неактивных вкладок"
+  },
+  "idleLabel": {
+    "message": "Неактивны дольше"
+  },
+  "minutesUnit": {
+    "message": "мин"
+  },
+  "btnSleepIdle": {
+    "message": "Усыпить неактивные"
+  },
+  "btnSleepAll": {
+    "message": "Усыпить все фоновые вкладки"
+  },
+  "sleepNote": {
+    "message": "Усыпленные вкладки остаются на панели вкладок и перезагружаются при нажатии. Активные, закрепленные и воспроизводящие звук вкладки никогда не усыпляются."
+  },
+  "autoSleep": {
+    "message": "Автоматически усыплять неактивные вкладки каждые 10 минут"
+  },
+  "sleptResult": {
+    "message": "Усыплено вкладок: $COUNT$.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "sleptFailed": {
+    "message": "Не удалось усыпить: $COUNT$.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "secDupes": {
+    "message": "Закрытие дубликатов"
+  },
+  "btnFindDupes": {
+    "message": "Найти дубликаты"
+  },
+  "dupesFound": {
+    "message": "Найдено дубликатов: $COUNT$. Самая свежая копия каждой вкладки сохраняется.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "noDupes": {
+    "message": "Дубликаты вкладок не найдены."
+  },
+  "btnCloseDupes": {
+    "message": "Закрыть дубликаты ($COUNT$)",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "dupesClosed": {
+    "message": "Закрыто дубликатов: $COUNT$.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "secPatterns": {
+    "message": "Закрытие вкладок по шаблонам"
+  },
+  "patternsHint": {
+    "message": "По одному шаблону в строке, сравнивается с хостом и путем. * означает что угодно, например localhost:*"
+  },
+  "includePinned": {
+    "message": "Включая закрепленные вкладки"
+  },
+  "btnSavePatterns": {
+    "message": "Сохранить шаблоны"
+  },
+  "patternsSaved": {
+    "message": "Шаблоны сохранены."
+  },
+  "btnFindMatches": {
+    "message": "Найти вкладки"
+  },
+  "matchesFound": {
+    "message": "Подходящих вкладок: $COUNT$. Снимите флажки с тех, что нужно оставить, и подтвердите.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "noMatches": {
+    "message": "Нет вкладок, подходящих под эти шаблоны."
+  },
+  "btnCloseSelected": {
+    "message": "Закрыть выбранные"
+  },
+  "matchesClosed": {
+    "message": "Закрыто вкладок: $COUNT$.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "errorGeneric": {
+    "message": "Что-то пошло не так. Повторите попытку."
+  },
+  "footer": {
+    "message": "Часть RigSweep · MIT"
+  }
+}

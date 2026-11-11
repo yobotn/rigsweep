@@ -1,0 +1,140 @@
+{
+  "extName": {
+    "message": "RigSweep Tabs"
+  },
+  "extDesc": {
+    "message": "작업을 잃지 않고 Chrome 탭의 RAM을 확보합니다. 유휴 탭을 절전 모드로 전환하고 중복 탭과 개발 서버 탭을 닫습니다."
+  },
+  "statTabs": {
+    "message": "탭"
+  },
+  "statSleeping": {
+    "message": "절전 중"
+  },
+  "statWindows": {
+    "message": "창"
+  },
+  "secSleep": {
+    "message": "유휴 탭 절전"
+  },
+  "idleLabel": {
+    "message": "유휴 시간 기준"
+  },
+  "minutesUnit": {
+    "message": "분 이상"
+  },
+  "btnSleepIdle": {
+    "message": "유휴 탭 절전"
+  },
+  "btnSleepAll": {
+    "message": "모든 백그라운드 탭 지금 절전"
+  },
+  "sleepNote": {
+    "message": "절전 중인 탭은 탭 표시줄에 그대로 남아 있으며 클릭하면 다시 로드됩니다. 활성 탭, 고정된 탭, 소리가 나는 탭은 절전 모드로 전환되지 않습니다."
+  },
+  "autoSleep": {
+    "message": "10분마다 유휴 탭 자동 절전"
+  },
+  "sleptResult": {
+    "message": "탭 $COUNT$개를 절전 모드로 전환했습니다.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "sleptFailed": {
+    "message": "$COUNT$개는 절전 모드로 전환하지 못했습니다.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "secDupes": {
+    "message": "중복 탭 닫기"
+  },
+  "btnFindDupes": {
+    "message": "중복 탭 찾기"
+  },
+  "dupesFound": {
+    "message": "중복 탭 $COUNT$개를 찾았습니다. 각 탭의 가장 최근 사본은 유지됩니다.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "noDupes": {
+    "message": "중복 탭이 없습니다."
+  },
+  "btnCloseDupes": {
+    "message": "중복 탭 $COUNT$개 닫기",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "dupesClosed": {
+    "message": "중복 탭 $COUNT$개를 닫았습니다.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "secPatterns": {
+    "message": "패턴과 일치하는 탭 닫기"
+  },
+  "patternsHint": {
+    "message": "한 줄에 패턴 하나씩 입력하세요. 호스트 + 경로와 비교하며, *는 모든 문자와 일치합니다(예: localhost:*)."
+  },
+  "includePinned": {
+    "message": "고정된 탭 포함"
+  },
+  "btnSavePatterns": {
+    "message": "패턴 저장"
+  },
+  "patternsSaved": {
+    "message": "패턴을 저장했습니다."
+  },
+  "btnFindMatches": {
+    "message": "일치하는 탭 찾기"
+  },
+  "matchesFound": {
+    "message": "일치하는 탭 $COUNT$개. 유지할 탭은 선택을 해제한 다음 확인하세요.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "noMatches": {
+    "message": "이 패턴과 일치하는 탭이 없습니다."
+  },
+  "btnCloseSelected": {
+    "message": "선택한 탭 닫기"
+  },
+  "matchesClosed": {
+    "message": "탭 $COUNT$개를 닫았습니다.",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "errorGeneric": {
+    "message": "문제가 발생했습니다. 다시 시도하세요."
+  },
+  "footer": {
+    "message": "RigSweep의 일부 · MIT"
+  }
+}

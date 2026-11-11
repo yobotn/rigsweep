@@ -10,7 +10,9 @@ mod db;
 mod devclean;
 mod elevation;
 mod engine;
+mod heat;
 mod live;
+mod update;
 mod persistence;
 mod util;
 
@@ -87,6 +89,7 @@ fn run_app(start_hidden: bool) {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| show_main(app)))
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(AppState {
             db: Mutex::new(db),
             analyzer: Mutex::new(analyzer),
@@ -118,12 +121,20 @@ fn run_app(start_hidden: bool) {
             commands::defender_self_allow,
             commands::open_chrome_helper,
             commands::get_live,
+            commands::check_update,
+            commands::install_update,
         ])
         .setup(move |app| {
             build_tray(app.handle())?;
             spawn_watchdog(app.handle().clone());
             spawn_dev_monitor(app.handle().clone());
             live::spawn(app.handle().clone());
+            let h = app.handle().clone();
+            update::spawn_auto_check(app.handle().clone(), move || {
+                let state = h.state::<AppState>();
+                let on = state.db.lock().map(|db| engine::Settings::load(&db).auto_update).unwrap_or(false);
+                on
+            });
             if !start_hidden {
                 show_main(app.handle());
             }

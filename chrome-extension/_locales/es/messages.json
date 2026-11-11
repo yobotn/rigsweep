@@ -3,7 +3,7 @@
     "message": "RigSweep Tabs"
   },
   "extDesc": {
-    "message": "Libera RAM de las pestañas de Chrome sin perder trabajo: suspende pestañas inactivas y cierra duplicadas y de servidores locales."
+    "message": "Libera RAM de las pestañas de Chrome sin perder trabajo: suspende las pestañas inactivas y cierra las duplicadas y las de servidores de desarrollo."
   },
   "statTabs": {
     "message": "pestañas"
@@ -18,7 +18,7 @@
     "message": "Suspender pestañas inactivas"
   },
   "idleLabel": {
-    "message": "Inactivas más de"
+    "message": "Inactivas durante más de"
   },
   "minutesUnit": {
     "message": "min"
@@ -27,16 +27,16 @@
     "message": "Suspender inactivas"
   },
   "btnSleepAll": {
-    "message": "Suspender ya todas en segundo plano"
+    "message": "Suspender ya todas las pestañas en segundo plano"
   },
   "sleepNote": {
-    "message": "Las pestañas suspendidas siguen en la barra y se recargan al hacer clic. Nunca se suspenden las activas, fijadas o con sonido."
+    "message": "Las pestañas suspendidas se quedan en la barra de pestañas y se vuelven a cargar al hacer clic en ellas. Nunca se suspenden las pestañas activas, fijadas o que reproducen sonido."
   },
   "autoSleep": {
-    "message": "Suspender automáticamente cada 10 minutos"
+    "message": "Suspender las pestañas inactivas automáticamente cada 10 minutos"
   },
   "sleptResult": {
-    "message": "$COUNT$ pestaña(s) suspendida(s).",
+    "message": "Se suspendieron $COUNT$ pestaña(s).",
     "placeholders": {
       "count": {
         "content": "$1",
@@ -45,7 +45,7 @@
     }
   },
   "sleptFailed": {
-    "message": "$COUNT$ no se pudieron suspender.",
+    "message": "No se pudieron suspender $COUNT$.",
     "placeholders": {
       "count": {
         "content": "$1",
@@ -60,7 +60,7 @@
     "message": "Buscar duplicadas"
   },
   "dupesFound": {
-    "message": "$COUNT$ pestaña(s) duplicada(s). Se conserva la copia más reciente de cada una.",
+    "message": "Se encontraron $COUNT$ pestaña(s) duplicada(s). Se conserva la copia más reciente de cada una.",
     "placeholders": {
       "count": {
         "content": "$1",
@@ -81,7 +81,7 @@
     }
   },
   "dupesClosed": {
-    "message": "$COUNT$ pestaña(s) duplicada(s) cerrada(s).",
+    "message": "Se cerraron $COUNT$ pestaña(s) duplicada(s).",
     "placeholders": {
       "count": {
         "content": "$1",
@@ -90,10 +90,10 @@
     }
   },
   "secPatterns": {
-    "message": "Cerrar pestañas por patrón"
+    "message": "Cerrar pestañas que coincidan con patrones"
   },
   "patternsHint": {
-    "message": "Un patrón por línea, comparado con host + ruta. * equivale a cualquier texto, p. ej. localhost:*"
+    "message": "Un patrón por línea; se compara con el host y la ruta. * equivale a cualquier texto, p. ej., localhost:*"
   },
   "includePinned": {
     "message": "Incluir pestañas fijadas"
@@ -105,7 +105,7 @@
     "message": "Patrones guardados."
   },
   "btnFindMatches": {
-    "message": "Buscar coincidencias"
+    "message": "Buscar pestañas que coincidan"
   },
   "matchesFound": {
     "message": "$COUNT$ pestaña(s) coinciden. Desmarca las que quieras conservar y confirma.",
@@ -120,10 +120,10 @@
     "message": "Ninguna pestaña coincide con estos patrones."
   },
   "btnCloseSelected": {
-    "message": "Cerrar seleccionadas"
+    "message": "Cerrar pestañas seleccionadas"
   },
   "matchesClosed": {
-    "message": "$COUNT$ pestaña(s) cerrada(s).",
+    "message": "Se cerraron $COUNT$ pestaña(s).",
     "placeholders": {
       "count": {
         "content": "$1",
@@ -132,7 +132,7 @@
     }
   },
   "errorGeneric": {
-    "message": "Algo salió mal. Inténtalo de nuevo."
+    "message": "Se produjo un error. Inténtalo de nuevo."
   },
   "footer": {
     "message": "Parte de RigSweep · MIT"

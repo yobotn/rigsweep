@@ -185,6 +185,15 @@ tr.group td { background: var(--panel2); padding-top: 9px; padding-bottom: 9px; 
 .spark .mem { fill: none; stroke: var(--accent); stroke-width: 1.6; vector-effect: non-scaling-stroke; }
 .spark .area { fill: #4f8cff22; stroke: none; }
 .spark .cpu { fill: none; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 2 2; opacity: .7; vector-effect: non-scaling-stroke; }
+.heat-spark { height: 28px; margin-top: 6px; }
+.heat-spark polyline { fill: none; stroke-width: 1.6; vector-effect: non-scaling-stroke; stroke: var(--safe); }
+.heat-spark polyline.hot { stroke: var(--moderate); } .heat-spark polyline.vhot { stroke: var(--caution); }
+.heat-spark .warn { stroke: var(--moderate); stroke-width: 1; stroke-dasharray: 3 3; opacity: .45; vector-effect: non-scaling-stroke; }
+.tile.heat { cursor: pointer; }
+.tile.heat .value { font-size: 18px; }
+.tile.heat.na .value { color: var(--muted); font-size: 16px; }
+.callout.vhot { border-left-color: var(--caution); }
+.hidden { display: none !important; }
 .spark .mark { stroke: var(--safe); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
 .live-win { color: var(--safe); font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; max-width: 300px; }
 .live-win .big { font-size: 18px; display: block; }
@@ -195,3 +204,11 @@ tr.group td { background: var(--panel2); padding-top: 9px; padding-bottom: 9px; 
 .badge.duplicate { color: #fb923c; background: #fb923c1f; }
 .badge.mcp { color: #e879f9; background: #e879f91f; }
 .eco.browser { color: #fbbf24; }
+
+/* Korean wraps between words, not inside them */
+:lang(ko) body { word-break: keep-all; overflow-wrap: anywhere; }
+
+/* updates */
+.pill.update { border: 0; cursor: pointer; color: var(--safe); background: #34c38f1f; text-align: left; font: inherit; font-size: 12px; }
+.upd-notes { margin-top: 8px; font-size: 12px; }
+.upd-notes pre { white-space: pre-wrap; font-family: inherit; color: var(--muted); max-height: 180px; overflow: auto; margin: 4px 0 0; }

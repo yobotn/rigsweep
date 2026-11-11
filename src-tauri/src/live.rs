@@ -1,4 +1,4 @@
-//! Live meter: samples total CPU and RAM every couple of seconds for as long as RigSweep runs
+//! Live meter: samples total CPU, RAM and temperatures every couple of seconds for as long as RigSweep runs
 //! (window or tray), keeps the last few minutes, and pushes each sample to the UI. That is what
 //! lets a cleanup show how much it recovered the moment it happens, not only in the Boost Report.
 
@@ -21,6 +21,9 @@ pub struct Sample {
     pub cpu: f32,
     pub mem_used: u64,
     pub mem_total: u64,
+    /// degrees C, `None` when this PC doesn't report it (see heat.rs)
+    pub cpu_temp: Option<f32>,
+    pub gpu_temp: Option<f32>,
 }
 
 static HISTORY: Mutex<VecDeque<Sample>> = Mutex::new(VecDeque::new());
@@ -44,15 +47,19 @@ pub fn spawn(app: AppHandle) {
     std::thread::spawn(move || {
         let Ok(mut sys) = System::new() else { return };
         sys.refresh_cpu_usage();
+        let mut sensors = crate::heat::Sensors::new();
         loop {
             std::thread::sleep(INTERVAL);
             sys.refresh_cpu_usage();
             sys.refresh_memory();
+            let (cpu_temp, gpu_temp) = sensors.read();
             let s = Sample {
                 t: SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0),
                 cpu: sys.global_cpu_usage(),
                 mem_used: sys.used_memory(),
                 mem_total: sys.total_memory(),
+                cpu_temp,
+                gpu_temp,
             };
             push(s);
             let _ = app.emit("live", s);
@@ -67,7 +74,7 @@ mod tests {
     #[test]
     fn history_is_bounded() {
         for i in 0..(KEEP as u64 + 10) {
-            push(Sample { t: i, cpu: 0.0, mem_used: i, mem_total: 1 });
+            push(Sample { t: i, cpu: 0.0, mem_used: i, mem_total: 1, cpu_temp: None, gpu_temp: None });
         }
         let h = history();
         assert_eq!(h.len(), KEEP);

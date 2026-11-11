@@ -4,7 +4,7 @@
 
 **Espacio para tus agentes.** Libera RAM, CPU y disco en equipos Windows de desarrollo saturados por sesiones de agentes IA.
 
-**[🌐 Sitio web](https://yobotn.github.io/rigsweep/)** · **[⬇️ Descargar](https://github.com/yobotn/rigsweep/releases/latest)** · **[📖 FAQ antivirus](#%EF%B8%8F-falsos-positivos-del-antivirus)**
+**[🌐 Sitio web](https://rigsweep.com)** · **[⬇️ Descargar](https://github.com/yobotn/rigsweep/releases/latest)** · **[📖 FAQ antivirus](#%EF%B8%8F-falsos-positivos-del-antivirus)**
 
 [🇬🇧 English](README.md) · 🇪🇸 Español · [🇫🇷 Français](README.fr.md)
 
@@ -62,6 +62,7 @@ Python y Java también ejecutan apps de escritorio normales, así que solo se li
 - 🔌 **Servidor MCP**: se marca en cada fila que lo es, para distinguir el servidor de herramientas que dejó un agente de tu propio servidor dev.
 - 👯 **Copia antigua**: un servidor MCP del que también corre una copia más nueva (por ejemplo, en tu sesión de agente actual) queda marcado, para que el sobrante sea fácil de identificar.
 - 📈 **Medidor en vivo**: la RAM y la CPU se miden cada 2 segundos mientras RigSweep está abierto (ventana o bandeja). Justo después de una limpieza, manual o automática, muestra **cuánta RAM se recuperó de verdad** y la CPU antes → después, medida y no estimada.
+- 🌡️ **Temperatura**: las temperaturas de CPU y GPU aparecen en el Panel con la tendencia y el pico de los últimos 5 minutos, y un aviso si el equipo se mantiene por encima de 90 °C. La GPU usa el mismo contador que el Administrador de tareas; la CPU, la zona térmica ACPI (sin instalar controladores ni requerir administrador; aproximada en muchos equipos de escritorio). Haz clic en el recuadro para cambiar entre °C y °F.
 - 💤 **Inactivo**: sin actividad de CPU durante mucho tiempo. Los runtimes sin puerto abierto se preseleccionan. Una **sesión de agente inactiva en una terminal abierta nunca se preselecciona**, porque solo te está esperando (y `claude --resume` la recupera de todos modos).
 - ♻️ **Daemon de compilación**: los servidores de Gradle, Kotlin y Roslyn están hechos para quedarse en segundo plano. Cerrarlos no hace daño; se reinician en la siguiente compilación.
 - 🔒 **Bloqueado**: los procesos de **VS Code, Cursor, JetBrains, Visual Studio…** (tus servidores de lenguaje) o de una app de escritorio nunca se pueden cerrar desde aquí.
@@ -98,8 +99,8 @@ Un catálogo curado ([`catalog/tweaks.json`](src-tauri/catalog/tweaks.json)) de 
 ### 🔍 Analizador de procesos
 CPU / RAM / disco por proceso, y **qué servicios viven dentro de cada `svchost.exe`**.
 
-### 🌍 3 idiomas
-La interfaz está en **English, Español y Français**, y también el instalador y la extensión de Chrome.
+### 🌍 10 idiomas
+La interfaz está en **English, Deutsch, Español, Français, Italiano, Português (Brasil), Русский, 日本語, 한국어 y 简体中文**, igual que el instalador y la extensión de Chrome. Cada idioma usa los términos oficiales de Windows (Administrador de tareas, Servicios, Programador de tareas…) en lugar de una traducción palabra por palabra. ¿Ves algo raro? Abre un issue o un PR sobre `ui/locales/<código>.js`.
 
 ---
 
@@ -157,7 +158,7 @@ Firma de código gratuita proporcionada por [SignPath.io](https://about.signpath
 - **Aprobadores:** [@yobotn](https://github.com/yobotn)
 
 ### 🔒 Política de privacidad
-Este programa no transfiere ninguna información a otros sistemas en red salvo que lo solicite expresamente el usuario o la persona que lo instala o lo utiliza. RigSweep no tiene telemetría, analíticas ni comprobación de actualizaciones, y la extensión de Chrome no hace peticiones de red. Todo lo que guarda (copias, historial, mediciones) se queda en `%ProgramData%\RigSweep` en tu PC.
+Este programa no transfiere ninguna información a otros sistemas en red salvo que lo solicite expresamente el usuario o la persona que lo instala o lo utiliza. RigSweep no tiene telemetría ni analíticas, y la extensión de Chrome no hace peticiones de red. La única petición de red que puede hacer RigSweep es la **búsqueda de actualizaciones**, y solo cuando tú la pides: al hacer clic en *Buscar ahora* en Configuración o al activar *Buscar actualizaciones automáticamente* (desactivado de forma predeterminada). Descarga `latest.json` de las versiones de GitHub de este repositorio y no envía ningún dato de tu equipo; una actualización solo se instala cuando haces clic en *Instalar* y si su firma coincide con la clave de RigSweep. Todo lo que guarda (copias, historial, mediciones) se queda en `%ProgramData%\RigSweep` en tu PC.
 
 ## ⚠️ Aviso legal
 

@@ -4,7 +4,7 @@
 
 **Room for your agents.** Free up RAM, CPU and disk on Windows dev machines cluttered by AI-agent sessions.
 
-**[🌐 Homepage](https://yobotn.github.io/rigsweep/)** · **[⬇️ Download](https://github.com/yobotn/rigsweep/releases/latest)** · **[📖 Antivirus FAQ](#%EF%B8%8F-antivirus-false-positives)**
+**[🌐 Homepage](https://rigsweep.com)** · **[⬇️ Download](https://github.com/yobotn/rigsweep/releases/latest)** · **[📖 Antivirus FAQ](#%EF%B8%8F-antivirus-false-positives)**
 
 🇬🇧 English · [🇪🇸 Español](README.es.md) · [🇫🇷 Français](README.fr.md)
 
@@ -62,6 +62,7 @@ Python and Java also run ordinary desktop apps, so for those only processes with
 - 🔌 **MCP server**: tagged on every row that is one, so you can tell an agent's leftover tool server from your own dev server.
 - 👯 **Older copy**: an MCP server that's also running as a newer copy (e.g. under your current agent session) is marked, so the leftover one is easy to spot.
 - 📈 **Live meter**: RAM and CPU are sampled every 2 seconds while RigSweep runs (window or tray). Right after a cleanup, manual or automatic, it shows **how much RAM was actually recovered** and CPU before → after, measured, not estimated.
+- 🌡️ **Temperature tracking**: CPU and GPU temperatures live on the Dashboard with a 5-minute trend and peak, and a warning when the machine stays above 90 °C. GPU comes from the same counter as Task Manager; CPU from the ACPI thermal zone (no driver installed, no admin needed; approximate on many desktops). Click the tile to switch °C / °F.
 - 💤 **Idle**: no CPU activity for a long time. Runtimes with no open port get pre-selected. An **idle agent session in an open terminal is never pre-selected**, because it's just waiting for you (and `claude --resume` brings it back anyway).
   How long counts as idle is set in **Settings** (in minutes, default 120; e.g. 5).
 - 🧹 **Auto-cleanup** (off by default, in Settings): every minute RigSweep ends stale dev runtimes it has watched sit with no CPU for the whole idle period. Agent CLIs, the WSL/Docker VM and editor-owned processes are never auto-ended, and each ended tree is logged in History.
@@ -103,8 +104,8 @@ A curated catalog ([`catalog/tweaks.json`](src-tauri/catalog/tweaks.json)) of te
 ### 🔍 Process analyzer
 CPU / RAM / disk per process, and **which services live inside each `svchost.exe`**. Disable a service or end a process right from the list (core items are locked 🔒).
 
-### 🌍 3 languages
-The UI is in **English, Español and Français** (switch in the sidebar), and so are the installer and the Chrome extension.
+### 🌍 10 languages
+The UI is in **English, Deutsch, Español, Français, Italiano, Português (Brasil), Русский, 日本語, 한국어 and 简体中文** (switch in the sidebar), and so are the installer and the Chrome extension. Each one is localized with the official Windows terms of that language (Task Manager, Services, Task Scheduler…), not translated word for word. Spotted something awkward? Open an issue or a PR on `ui/locales/<code>.js`.
 
 ---
 
@@ -191,7 +192,7 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 - **Approvers:** [@yobotn](https://github.com/yobotn)
 
 ### 🔒 Privacy policy
-This program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it. RigSweep has no telemetry, no analytics and no update check, and the Chrome extension makes no network requests. Everything it stores (backups, history, measurements) stays in `%ProgramData%\RigSweep` on your PC.
+This program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it. RigSweep has no telemetry and no analytics, and the Chrome extension makes no network requests. The only network request RigSweep can make is the **update check**, and only when you ask for it: clicking *Check now* in Settings, or turning on *Check for updates automatically* (off by default). It downloads `latest.json` from this repo's GitHub Releases and sends nothing about your PC; an update is installed only after you click *Install*, and only if its signature matches RigSweep's signing key. Everything it stores (backups, history, measurements) stays in `%ProgramData%\RigSweep` on your PC.
 
 ## ⚠️ Disclaimer
 

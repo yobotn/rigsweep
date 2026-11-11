@@ -2,7 +2,9 @@ name: Release
 
 # Builds the Windows installer from the tagged source on GitHub-hosted runners.
 # The unsigned installer is kept as a workflow artifact (the input for SignPath code signing)
-# and attached to the GitHub Release for that tag.
+# and attached to the GitHub Release for that tag, together with its updater signature (.sig)
+# and latest.json, the file RigSweep's opt-in update check reads.
+# Needs repo secrets TAURI_SIGNING_PRIVATE_KEY and TAURI_SIGNING_PRIVATE_KEY_PASSWORD.
 on:
   push:
     tags: ["v*"]
@@ -28,8 +30,11 @@ jobs:
       - name: Test
         working-directory: src-tauri
         run: cargo test --locked
-      - name: Build installer
+      - name: Build installer (+ updater signature)
         run: npm run build
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
       - name: Locate installer
         id: find
         shell: pwsh
@@ -56,4 +61,20 @@ jobs:
           $tag = "${{ github.ref_name }}"
           gh release view $tag 2>$null
           if ($LASTEXITCODE -ne 0) { gh release create $tag --title "RigSweep $($tag.TrimStart('v'))" --notes "Built by GitHub Actions from $tag." }
-          gh release upload $tag "${{ steps.find.outputs.path }}" "${{ steps.find.outputs.path }}.sha256" --clobber
+          $exe = "${{ steps.find.outputs.path }}"
+          if (-not (Test-Path "$exe.sig")) { throw "No updater signature: set the TAURI_SIGNING_PRIVATE_KEY(_PASSWORD) secrets" }
+          $name = "${{ steps.find.outputs.name }}"
+          # latest.json for the updater: version, notes from the release text, signed installer URL
+          $notes = gh release view $tag --json body --jq .body
+          $latest = [ordered]@{
+            version  = $tag.TrimStart('v')
+            notes    = ($notes -join "`n")
+            pub_date = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
+            platforms = @{ "windows-x86_64" = @{
+              signature = (Get-Content "$exe.sig" -Raw).Trim()
+              url       = "https://github.com/${{ github.repository }}/releases/download/$tag/$([uri]::EscapeDataString($name))"
+            } }
+          }
+          $json = Join-Path $env:RUNNER_TEMP "latest.json"
+          [IO.File]::WriteAllText($json, ($latest | ConvertTo-Json -Depth 5), (New-Object Text.UTF8Encoding $false))
+          gh release upload $tag $exe "$exe.sha256" "$exe.sig" $json --clobber

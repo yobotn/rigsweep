@@ -64,8 +64,9 @@ function busy(btn, on, label) {
 }
 
 // ---------- language ----------
+initLang();
 const langSel = $("#lang-select");
-langSel.innerHTML = Object.entries(LANGS).map(([k, v]) => `<option value="${k}">${v}</option>`).join("");
+langSel.innerHTML = Object.entries(LANGS).filter(([k]) => I18N[k]).map(([k, v]) => `<option value="${k}">${v}</option>`).join("");
 langSel.value = LANG;
 langSel.onchange = () => { setLang(langSel.value); rerender(); };
 
@@ -297,7 +298,7 @@ function renderDev() {
     return `<tr class="${p.stale ? "stale" : ""} ${p.protected ? "locked" : ""}">
       <td>${p.protected ? "🔒" : `<input type="checkbox" data-dev="${esc(k)}" ${devSel.has(k) ? "checked" : ""} />`}</td>
       <td><b>${esc(p.label)}</b> <span class="eco ${esc(p.eco)}">${esc(ecoLabel(p))}</span>
-        <div class="sub" title="${esc(p.cmd)}">PID ${p.pid} · ${esc(p.parent_name || "—")} · ${p.tree_count} proc</div></td>
+        <div class="sub" title="${esc(p.cmd)}">PID ${p.pid} · ${esc(p.parent_name || "—")} · ${esc(t("clean.procs", { n: p.tree_count }))}</div></td>
       <td>${esc(p.project || "—")}</td>
       <td class="num">${p.age_secs ? fmtAge(p.age_secs) : "—"}</td>
       <td class="num">${p.tree_mem ? fmtBytes(p.tree_mem) : "—"}</td>
@@ -623,6 +624,7 @@ async function loadDashboard() {
     callouts.unshift(`<div class="callout hot">${esc(t("dash.stale", { n: devr.stale_count, mem: fmtBytes(devr.stale_mem) }))} <button class="small" data-go="cleanup">${esc(t("dash.stale.go"))}</button></div>`);
   }
   $("#dash-callouts").innerHTML = callouts.join("");
+  renderHeat();
   if (state) {
     $("#t-tweaks").textContent = `${state.tweaks.filter((x) => x.status.overall === "applied").length} / ${state.tweaks.length}`;
     $("#t-drift").textContent = state.tweaks.reduce((n, x) => n + x.drift_count, 0);
@@ -687,6 +689,8 @@ function renderSettings() {
   $("#s-badge-warn").value = s.badge_warn_gb ?? 1;
   $("#s-badge-alert").value = s.badge_alert_gb ?? 2;
   $("#s-folders").value = s.dev_folders.join("\n");
+  $("#s-autoupdate").checked = !!s.auto_update;
+  renderUpdate();
   $("#s-info").textContent = t("set.info", { s: state.startup_registered ? t("set.registered") : t("set.notRegistered"), d: state.data_dir });
   loadAv();
 }
@@ -724,6 +728,7 @@ $("#btn-save-settings").onclick = async (e) => {
     badge_enabled: $("#s-badge").checked,
     badge_warn_gb: Number($("#s-badge-warn").value) || 1,
     badge_alert_gb: Number($("#s-badge-alert").value) || 2,
+    auto_update: $("#s-autoupdate").checked,
     dev_folders: $("#s-folders").value.split(/\r?\n/).map((x) => x.trim()).filter(Boolean),
   };
   busy(e.target, true, t("set.saving"));
@@ -735,11 +740,59 @@ $("#btn-save-settings").onclick = async (e) => {
   renderSettings();
 };
 
+// ---------- updates ----------
+// Nothing is checked unless the user clicks "Check now" or turns on automatic checks (off by
+// default); the backend then emits "update-available". Installing always needs a click.
+let update = null;      // {version, current, notes, date} when a newer version exists
+let appVersion = "";
+invoke("plugin:app|version").then((v) => { appVersion = v; renderUpdate(); }).catch(() => {});
+
+function renderUpdate(status) {
+  const pill = $("#update-pill");
+  pill.classList.toggle("hidden", !update);
+  if (update) pill.textContent = t("upd.pill", { v: update.version });
+  const st = $("#upd-status"), notes = $("#upd-notes"), btn = $("#btn-upd-install");
+  btn.classList.toggle("hidden", !update);
+  notes.classList.toggle("hidden", !update?.notes);
+  if (update?.notes) notes.innerHTML = `<b>${esc(t("upd.notes"))}</b><pre>${esc(update.notes)}</pre>`;
+  if (status != null) st.textContent = status;
+  else if (update) st.textContent = t("upd.available", { v: update.version, c: update.current });
+  else if (appVersion) st.textContent = t("upd.current", { v: appVersion });
+}
+
+$("#btn-upd-check").onclick = async (e) => {
+  busy(e.target, true, t("upd.checking"));
+  try {
+    update = await invoke("check_update");
+    renderUpdate(update ? null : t("upd.latest", { v: appVersion }));
+  } catch (err) {
+    renderUpdate(t("upd.error", { m: String(err) }));
+  } finally { busy(e.target, false); }
+};
+
+$("#btn-upd-install").onclick = async (e) => {
+  if (!update) return;
+  if (!(await modal(t("upd.confirm.title", { v: update.version }), `<p>${esc(t("upd.confirm.body"))}</p>`, { okText: t("upd.install") }))) return;
+  busy(e.target, true, t("upd.downloading", { p: "" }));
+  $("#btn-upd-check").disabled = true;
+  try { await invoke("install_update"); }  // on success RigSweep exits while the installer runs
+  catch (err) { renderUpdate(t("upd.error", { m: String(err) })); busy(e.target, false); $("#btn-upd-check").disabled = false; }
+};
+
+$("#update-pill").onclick = () => showTab("settings");
+
+listen("update-available", (e) => { update = e.payload; renderUpdate(); });
+listen("update-progress", (e) => {
+  const { done, total } = e.payload;
+  const p = total ? `${Math.floor((done / total) * 100)} %` : fmtBytes(done);
+  $("#btn-upd-install").textContent = t("upd.downloading", { p });
+});
+
 // ---------- live meter ----------
 // The backend samples CPU / RAM every 2 s for as long as RigSweep runs. After a cleanup the
 // recovered RAM is measured from those samples: RAM in use right before the kill minus the
 // lowest reading since, so it shows up within seconds instead of only in the Boost Report.
-let live = [];          // [{t, cpu, mem_used, mem_total}]
+let live = [];          // [{t, cpu, mem_used, mem_total, cpu_temp?, gpu_temp?}]
 let recovery = null;    // {before, since, estimate, auto, until}
 const RECOVERY_MS = 20000;
 const avg = (a) => a.length ? a.reduce((n, x) => n + x, 0) / a.length : 0;
@@ -771,6 +824,7 @@ function renderLive() {
     }
   }
   renderSpark();
+  renderHeat();
   const win = $("#live-win");
   if (!recovery) { win.className = "live-win hidden"; return; }
   const r = recoveredNow();
@@ -788,6 +842,62 @@ function renderLive() {
     ? `<span class="sub">${esc(t("live.estimate", { mem: fmtBytes(recovery.estimate) }))}</span>` : "";
   win.innerHTML = `<span class="big">${esc(t("live.recovered", { mem: fmtBytes(r.best) }))}</span>${cpu}${tag}${note ? "<br>" + note : ""}`;
 }
+
+// ---------- heat ----------
+// CPU temperature comes from the ACPI thermal zone (approximate, often missing on desktops),
+// GPU temperature from the same counter Task Manager uses. Either may be null.
+const HEAT = { warm: 80, hot: 90 };
+let heatF = (() => { const s = safeGet("heatUnit"); return s ? s === "F" : LANG === "en" && navigator.language === "en-US"; })();
+const fmtTemp = (c) => heatF ? `${Math.round(c * 9 / 5 + 32)} °F` : `${Math.round(c)} °C`;
+const heatCls = (c) => (c >= HEAT.hot ? "vhot" : c >= HEAT.warm ? "hot" : "");
+const heatOf = (s) => Math.max(s.cpu_temp ?? -1, s.gpu_temp ?? -1);
+
+function heatParts(s) {
+  const parts = [];
+  if (s.cpu_temp != null) parts.push(`<span class="${heatCls(s.cpu_temp)}">${esc(t("heat.cpu"))} ${fmtTemp(s.cpu_temp)}</span>`);
+  if (s.gpu_temp != null) parts.push(`<span class="${heatCls(s.gpu_temp)}">${esc(t("heat.gpu"))} ${fmtTemp(s.gpu_temp)}</span>`);
+  return parts.join(" · ");
+}
+
+function renderHeat() {
+  const last = live.at(-1);
+  const has = live.some((s) => s.cpu_temp != null || s.gpu_temp != null);
+  $("#live-heat-row").classList.toggle("hidden", !has);
+  if (last && has) $("#live-heat").innerHTML = heatParts(last) || "–";
+  if (currentTab !== "dashboard") return;
+  const tile = $("#t-heat-tile");
+  if (!last) return;
+  if (!has) {
+    $("#t-heat").textContent = t("heat.na");
+    $("#t-heat-sub").textContent = t("heat.naHint");
+    $("#heat-spark").innerHTML = "";
+    $("#heat-callout").innerHTML = "";
+    tile.classList.add("na");
+    return;
+  }
+  tile.classList.remove("na");
+  $("#t-heat").innerHTML = heatParts(last) || "–";
+  const peak = Math.max(...live.map(heatOf));
+  $("#t-heat-sub").textContent = t("heat.peak", { t: fmtTemp(peak) }) + (last.cpu_temp != null ? " · " + t("heat.acpi") : "");
+  // sparkline of the hotter sensor, scaled 30–100 °C so the warm/hot bands sit in the same place
+  const pts = live.filter((s) => heatOf(s) > 0);
+  if (pts.length >= 2) {
+    const W = 300, H = 28, t0 = pts[0].t, span = Math.max(1, pts.at(-1).t - t0);
+    const y = (c) => H - 1 - ((Math.min(100, Math.max(30, c)) - 30) / 70) * (H - 2);
+    const line = pts.map((s) => `${(((s.t - t0) / span) * W).toFixed(1)},${y(heatOf(s)).toFixed(1)}`).join(" ");
+    $("#heat-spark").innerHTML = `<line class="warn" x1="0" x2="${W}" y1="${y(HEAT.warm)}" y2="${y(HEAT.warm)}" /><polyline class="${heatCls(peak) || "ok"}" points="${line}" />`;
+  }
+  // warn only when it stays hot (last 3 samples), not on a single spike
+  const recent = live.slice(-3);
+  const hotNow = recent.length === 3 && recent.every((s) => heatOf(s) >= HEAT.hot);
+  const which = last.cpu_temp != null && last.cpu_temp >= (last.gpu_temp ?? -1) ? t("heat.cpu") : t("heat.gpu");
+  $("#heat-callout").innerHTML = hotNow
+    ? `<div class="callout vhot">${esc(t("heat.hotCallout", { what: which, t: fmtTemp(heatOf(last)) }))} <button class="small" data-go="cleanup">${esc(t("dash.stale.go"))}</button></div>` : "";
+}
+const toggleHeatUnit = () => { heatF = !heatF; safeSet("heatUnit", heatF ? "F" : "C"); renderHeat(); };
+$("#t-heat-tile").onclick = toggleHeatUnit;
+$("#t-heat-tile").onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleHeatUnit(); } };
+$("#heat-callout").addEventListener("click", (e) => { if (e.target.dataset.go) showTab(e.target.dataset.go); });
 
 function renderSpark() {
   const svg = $("#live-spark");

@@ -3,7 +3,7 @@
     "message": "RigSweep Tabs"
   },
   "extDesc": {
-    "message": "Libérez la RAM des onglets sans perdre votre travail : veille des onglets inactifs, fermeture des doublons et serveurs locaux."
+    "message": "Libérez la RAM des onglets Chrome sans perdre votre travail : mise en veille des onglets inactifs, fermeture des doublons et des onglets de serveurs de dev."
   },
   "statTabs": {
     "message": "onglets"
@@ -24,16 +24,16 @@
     "message": "min"
   },
   "btnSleepIdle": {
-    "message": "Mettre en veille"
+    "message": "Mettre en veille les onglets inactifs"
   },
   "btnSleepAll": {
-    "message": "Tout mettre en veille maintenant"
+    "message": "Mettre en veille tous les onglets en arrière-plan"
   },
   "sleepNote": {
-    "message": "Les onglets en veille restent dans la barre et se rechargent au clic. Les onglets actifs, épinglés ou qui jouent du son ne sont jamais mis en veille."
+    "message": "Les onglets en veille restent dans la barre d’onglets et se rechargent quand vous cliquez dessus. Les onglets actifs, épinglés ou qui émettent du son ne sont jamais mis en veille."
   },
   "autoSleep": {
-    "message": "Veille automatique toutes les 10 minutes"
+    "message": "Mettre en veille les onglets inactifs toutes les 10 minutes"
   },
   "sleptResult": {
     "message": "$COUNT$ onglet(s) mis en veille.",
@@ -57,10 +57,10 @@
     "message": "Fermer les onglets en double"
   },
   "btnFindDupes": {
-    "message": "Chercher les doublons"
+    "message": "Rechercher les doublons"
   },
   "dupesFound": {
-    "message": "$COUNT$ onglet(s) en double. La copie la plus récente de chacun est conservée.",
+    "message": "$COUNT$ onglet(s) en double trouvé(s). La copie la plus récente de chacun est conservée.",
     "placeholders": {
       "count": {
         "content": "$1",
@@ -90,25 +90,25 @@
     }
   },
   "secPatterns": {
-    "message": "Fermer les onglets par motif"
+    "message": "Fermer les onglets correspondant à des motifs"
   },
   "patternsHint": {
-    "message": "Un motif par ligne, comparé à hôte + chemin. * correspond à n’importe quoi, ex. localhost:*"
+    "message": "Un motif par ligne, comparé à l’hôte et au chemin. * correspond à n’importe quel texte, par ex. localhost:*"
   },
   "includePinned": {
     "message": "Inclure les onglets épinglés"
   },
   "btnSavePatterns": {
-    "message": "Enregistrer"
+    "message": "Enregistrer les motifs"
   },
   "patternsSaved": {
     "message": "Motifs enregistrés."
   },
   "btnFindMatches": {
-    "message": "Chercher les onglets"
+    "message": "Rechercher les onglets correspondants"
   },
   "matchesFound": {
-    "message": "$COUNT$ onglet(s) correspondent. Décochez ceux à garder, puis confirmez.",
+    "message": "$COUNT$ onglet(s) correspondant(s). Décochez ceux à conserver, puis confirmez.",
     "placeholders": {
       "count": {
         "content": "$1",
@@ -120,7 +120,7 @@
     "message": "Aucun onglet ne correspond à ces motifs."
   },
   "btnCloseSelected": {
-    "message": "Fermer la sélection"
+    "message": "Fermer les onglets sélectionnés"
   },
   "matchesClosed": {
     "message": "$COUNT$ onglet(s) fermé(s).",

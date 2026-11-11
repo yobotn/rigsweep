@@ -1,6 +1,6 @@
 [package]
 name = "rigsweep"
-version = "0.4.0"
+version = "0.5.0"
 description = "Free resources on Windows dev machines cluttered by AI-agent sessions and stale dev processes"
 license = "MIT"
 repository = "https://github.com/yobotn/rigsweep"
@@ -33,7 +33,9 @@ windows = { version = "0.62", features = [
   "Win32_System_Threading",
   "Win32_UI_Shell",
   "Win32_UI_WindowsAndMessaging",
+  "Wdk_Graphics_Direct3D",
 ] }
+tauri-plugin-updater = "2"
 
 [profile.release]
 codegen-units = 1

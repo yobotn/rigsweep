@@ -4,6 +4,7 @@
   "description": "__MSG_extDesc__",
   "version": "1.0.0",
   "default_locale": "en",
+  "homepage_url": "https://rigsweep.com",
   "permissions": ["tabs", "storage", "alarms"],
   "background": { "service_worker": "background.js" },
   "action": {

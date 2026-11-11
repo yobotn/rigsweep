@@ -1,0 +1,140 @@
+{
+  "extName": {
+    "message": "RigSweep Tabs"
+  },
+  "extDesc": {
+    "message": "释放 Chrome 标签页占用的内存，不丢失任何工作：让空闲标签页休眠，关闭重复标签页和开发服务器标签页。"
+  },
+  "statTabs": {
+    "message": "标签页"
+  },
+  "statSleeping": {
+    "message": "休眠中"
+  },
+  "statWindows": {
+    "message": "窗口"
+  },
+  "secSleep": {
+    "message": "让空闲标签页休眠"
+  },
+  "idleLabel": {
+    "message": "空闲时间超过"
+  },
+  "minutesUnit": {
+    "message": "分钟"
+  },
+  "btnSleepIdle": {
+    "message": "休眠空闲标签页"
+  },
+  "btnSleepAll": {
+    "message": "立即休眠所有后台标签页"
+  },
+  "sleepNote": {
+    "message": "休眠的标签页仍保留在标签栏中，点击即可重新加载。当前标签页、固定标签页和正在播放声音的标签页永远不会休眠。"
+  },
+  "autoSleep": {
+    "message": "每 10 分钟自动休眠空闲标签页"
+  },
+  "sleptResult": {
+    "message": "已休眠 $COUNT$ 个标签页。",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "sleptFailed": {
+    "message": "有 $COUNT$ 个标签页无法休眠。",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "secDupes": {
+    "message": "关闭重复的标签页"
+  },
+  "btnFindDupes": {
+    "message": "查找重复项"
+  },
+  "dupesFound": {
+    "message": "找到 $COUNT$ 个重复的标签页。每组只保留最近使用的一个。",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "noDupes": {
+    "message": "未找到重复的标签页。"
+  },
+  "btnCloseDupes": {
+    "message": "关闭 $COUNT$ 个重复项",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "dupesClosed": {
+    "message": "已关闭 $COUNT$ 个重复的标签页。",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "secPatterns": {
+    "message": "关闭匹配模式的标签页"
+  },
+  "patternsHint": {
+    "message": "每行一个模式，匹配主机名 + 路径。* 可匹配任意内容，例如 localhost:*"
+  },
+  "includePinned": {
+    "message": "包括固定的标签页"
+  },
+  "btnSavePatterns": {
+    "message": "保存模式"
+  },
+  "patternsSaved": {
+    "message": "模式已保存。"
+  },
+  "btnFindMatches": {
+    "message": "查找匹配的标签页"
+  },
+  "matchesFound": {
+    "message": "有 $COUNT$ 个匹配的标签页。取消勾选要保留的标签页，然后确认。",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "noMatches": {
+    "message": "没有与这些模式匹配的标签页。"
+  },
+  "btnCloseSelected": {
+    "message": "关闭所选标签页"
+  },
+  "matchesClosed": {
+    "message": "已关闭 $COUNT$ 个标签页。",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "errorGeneric": {
+    "message": "出了点问题，请重试。"
+  },
+  "footer": {
+    "message": "RigSweep 的一部分 · MIT"
+  }
+}

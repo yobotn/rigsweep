@@ -9,5 +9,9 @@ $repo = Split-Path -Parent $PSScriptRoot
 $flags += "--remap-path-prefix=$repo=."
 $env:CARGO_ENCODED_RUSTFLAGS = ($flags -join $sep)
 Remove-Item Env:RUSTFLAGS -ErrorAction SilentlyContinue
-& npx tauri build @args
+$extra = @()
+# With the updater signing key present (release CI), also produce the installer's .sig for the
+# opt-in updater. The config path must be absolute: a relative one is silently ignored here.
+if ($env:TAURI_SIGNING_PRIVATE_KEY) { $extra += @("--config", (Join-Path $repo "src-tauri/tauri.updater.conf.json")) }
+& npx tauri build @extra @args
 exit $LASTEXITCODE
