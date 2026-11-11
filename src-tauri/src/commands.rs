@@ -433,6 +433,27 @@ pub async fn set_disk_cache_enabled(state: State<'_, AppState>, id: String, enab
     Ok(Settings::load(&db))
 }
 
+/// Dev Disk auto-select rules, set from the Dev Disk tab itself.
+#[tauri::command]
+pub async fn set_disk_auto(
+    state: State<'_, AppState>,
+    days: u32,
+    build: bool,
+    deps: bool,
+    caches: bool,
+    min_mb: u32,
+) -> R<Settings> {
+    let db = lock(&state)?;
+    let mut s = Settings::load(&db);
+    s.disk_stale_days = days;
+    s.disk_auto_build = build;
+    s.disk_auto_deps = deps;
+    s.disk_auto_caches = caches;
+    s.disk_auto_min_mb = min_mb;
+    s.save(&db).map_err(err)?;
+    Ok(Settings::load(&db))
+}
+
 /// Add a project folder to the Dev Disk exclusions.
 #[tauri::command]
 pub async fn add_disk_exclude(state: State<'_, AppState>, path: String) -> R<Settings> {
@@ -517,6 +538,20 @@ pub async fn defender_self_allow(state: State<'_, AppState>, allow: bool) -> R<D
 }
 
 // ---------- live meter ----------
+
+// ---------- hardware ----------
+
+/// CPU, RAM, board, GPU, disk health and battery (cached; `fresh` re-reads).
+#[tauri::command]
+pub async fn get_hardware(fresh: bool) -> R<serde_json::Value> {
+    tauri::async_runtime::spawn_blocking(move || crate::hardware::inventory(fresh)).await.map_err(err)?
+}
+
+/// Disk speed test on one drive letter ("D:"); takes 10-30 seconds.
+#[tauri::command]
+pub async fn disk_speed_test(drive: String) -> R<crate::hardware::Bench> {
+    tauri::async_runtime::spawn_blocking(move || crate::hardware::bench(&drive)).await.map_err(err)?
+}
 
 /// The last few minutes of CPU / RAM samples (new ones arrive as `live` events).
 #[tauri::command]

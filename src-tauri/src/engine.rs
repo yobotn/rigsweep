@@ -42,10 +42,25 @@ pub struct Settings {
     /// Dev Disk: suggest projects nobody has edited for this many days
     #[serde(default = "crate::devdisk::default_stale_days")]
     pub disk_stale_days: u32,
+    /// Dev Disk auto-select: tick build output (dist, target, .next…) of stale projects
+    #[serde(default = "yes")]
+    pub disk_auto_build: bool,
+    /// Dev Disk auto-select: tick dependency folders (node_modules…) of stale projects
+    #[serde(default = "yes")]
+    pub disk_auto_deps: bool,
+    /// Dev Disk auto-select: tick package caches that rebuild themselves
+    #[serde(default = "yes")]
+    pub disk_auto_caches: bool,
+    /// Dev Disk auto-select: skip folders smaller than this
+    #[serde(default = "default_auto_min_mb")]
+    pub disk_auto_min_mb: u32,
 }
 
 fn yes() -> bool {
     true
+}
+fn default_auto_min_mb() -> u32 {
+    50
 }
 fn default_warn_gb() -> f32 {
     1.0
@@ -96,6 +111,10 @@ impl Settings {
                 .get_setting("disk_stale_days")
                 .and_then(|s| s.parse().ok())
                 .unwrap_or_else(crate::devdisk::default_stale_days),
+            disk_auto_build: db.get_setting("disk_auto_build").as_deref() != Some("0"),
+            disk_auto_deps: db.get_setting("disk_auto_deps").as_deref() != Some("0"),
+            disk_auto_caches: db.get_setting("disk_auto_caches").as_deref() != Some("0"),
+            disk_auto_min_mb: db.get_setting("disk_auto_min_mb").and_then(|s| s.parse().ok()).unwrap_or(default_auto_min_mb()),
         }
     }
 
@@ -117,6 +136,10 @@ impl Settings {
         db.set_setting("disk_excludes", &serde_json::to_string(&clean(&self.disk_excludes))?)?;
         db.set_setting("disk_disabled", &serde_json::to_string(&clean(&self.disk_disabled))?)?;
         db.set_setting("disk_stale_days", &self.disk_stale_days.clamp(1, 3650).to_string())?;
+        db.set_setting("disk_auto_build", if self.disk_auto_build { "1" } else { "0" })?;
+        db.set_setting("disk_auto_deps", if self.disk_auto_deps { "1" } else { "0" })?;
+        db.set_setting("disk_auto_caches", if self.disk_auto_caches { "1" } else { "0" })?;
+        db.set_setting("disk_auto_min_mb", &self.disk_auto_min_mb.min(100_000).to_string())?;
         Ok(())
     }
 }

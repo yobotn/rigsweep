@@ -11,6 +11,7 @@ mod devclean;
 mod devdisk;
 mod elevation;
 mod engine;
+mod hardware;
 mod heat;
 mod live;
 mod update;
@@ -119,6 +120,9 @@ fn run_app(start_hidden: bool) {
             commands::clean_dev_disk,
             commands::set_disk_cache_enabled,
             commands::add_disk_exclude,
+            commands::set_disk_auto,
+            commands::get_hardware,
+            commands::disk_speed_test,
             commands::take_snapshot,
             commands::get_snapshots,
             commands::clear_snapshots,

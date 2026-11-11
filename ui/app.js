@@ -95,9 +95,10 @@ function showTab(name) {
   if (name === "processes") { loadProcesses(); procTimer = setInterval(() => $("#proc-auto").checked && loadProcesses(), 3000); }
   if (name === "dashboard") loadDashboard();
   if (name === "cleanup") loadDev();
-  if (name === "disk" && !disk) loadDisk();
+  if (name === "disk") { renderDiskAuto(); if (!disk) loadDisk(); }
   if (name === "browser") loadBrowsers();
   if (name === "report") loadSnapshots();
+  if (name === "hardware") loadHardware();
   if (name === "history") loadHistory();
   if (name === "settings") renderSettings();
 }
@@ -438,8 +439,43 @@ const diskRows = () => [
   ...(disk?.projects || []).filter((p) => !p.busy).flatMap((p) => p.items.map((a) => ({ k: aKey(p, a), bytes: a.bytes, p, a }))),
 ];
 const shortPath = (p) => disk?.home && p.toLowerCase().startsWith(disk.home.toLowerCase() + "\\") ? "~" + p.slice(disk.home.length) : p;
-// caches: only the "rebuilds itself" ones worth the click; projects: what the backend suggests
-const diskSuggested = (r) => r.c ? r.c.tier === "safe" && r.bytes >= 50 * 1048576 : r.a.suggest;
+// auto-select rules (Dev Disk bar): stale = untouched for N days; caches only the "rebuilds itself" ones
+const diskAuto = () => {
+  const s = state?.settings || {};
+  return { days: s.disk_stale_days ?? 30, build: s.disk_auto_build ?? true, deps: s.disk_auto_deps ?? true,
+    caches: s.disk_auto_caches ?? true, min: (s.disk_auto_min_mb ?? 50) * 1048576 };
+};
+const isStale = (p) => !p.busy && p.idle_days >= diskAuto().days;
+const diskSuggested = (r) => {
+  const a = diskAuto();
+  if (r.bytes < a.min && r.a?.eco !== "leftover") return false;
+  if (r.c) return a.caches && r.c.tier === "safe";
+  if (r.a.eco === "leftover") return true;
+  // the backend already rules out OneDrive, pnpm and venvs; recheck staleness and kind here
+  const venv = r.a.eco === "python" && r.a.tier === "deps";
+  return isStale(r.p) && !r.p.onedrive && !r.a.pnpm && !venv && (r.a.tier === "deps" ? a.deps : a.build);
+};
+const DA_DAYS = [3, 7, 14, 30, 60, 90, 180, 365], DA_MIN = [0, 10, 50, 100, 500, 1024];
+function renderDiskAuto() {
+  const a = diskAuto();
+  const days = DA_DAYS.includes(a.days) ? DA_DAYS : [...DA_DAYS, a.days].sort((x, y) => x - y);
+  $("#da-days").innerHTML = days.map((d) => `<option value="${d}">${esc(t("disk.auto.dayN", { n: d }))}</option>`).join("");
+  $("#da-days").value = a.days;
+  const mb = a.min / 1048576, mins = DA_MIN.includes(mb) ? DA_MIN : [...DA_MIN, mb].sort((x, y) => x - y);
+  $("#da-min").innerHTML = mins.map((m) => `<option value="${m}">${m ? fmtBytes(m * 1048576) : "–"}</option>`).join("");
+  $("#da-min").value = mb;
+  $("#da-build").checked = a.build; $("#da-deps").checked = a.deps; $("#da-caches").checked = a.caches;
+}
+$("#disk-auto").addEventListener("change", async () => {
+  const s = await call("set_disk_auto", {
+    days: Number($("#da-days").value), build: $("#da-build").checked, deps: $("#da-deps").checked,
+    caches: $("#da-caches").checked, minMb: Number($("#da-min").value),
+  });
+  if (state) state.settings = s;
+  // the rules changed: the selection becomes exactly what they pick
+  diskSel = new Set(diskRows().filter(diskSuggested).map((r) => r.k));
+  renderDisk();
+});
 const DISK_ECO = { node: "Node", rust: "Rust", java: "Java", dotnet: ".NET", python: "Python", browser: "", go: "Go", leftover: "" };
 
 let diskLoading = null;     // the scan in flight: a second click or tab switch waits for it
@@ -459,11 +495,12 @@ async function scanDisk() {
 }
 
 function renderDisk() {
+  renderDiskAuto();
   if (!disk) return;
   const picked = diskRows().filter((r) => diskSel.has(r.k)).reduce((a, r) => a + r.bytes, 0);
   $("#disk-summary").textContent = t("disk.summary", {
     caches: fmtBytes(disk.cache_total), projects: fmtBytes(disk.project_total), n: disk.projects.length,
-    stale: fmtBytes(disk.stale_total), sel: fmtBytes(picked),
+    stale: fmtBytes(disk.projects.filter(isStale).reduce((a, p) => a + p.items.reduce((b, i) => b + i.bytes, 0), 0)), sel: fmtBytes(picked),
   });
   const chk = (k, locked) => locked ? "🔒" : `<input type="checkbox" data-disk="${esc(k)}" ${diskSel.has(k) ? "checked" : ""} />`;
   const tier = (x) => `<span class="risk ${x === "safe" || x === "build" ? "safe" : "moderate"}">${esc(t("disk.tier." + x))}</span>`;
@@ -490,7 +527,7 @@ function renderDisk() {
     const total = p.items.reduce((a, i) => a + i.bytes, 0);
     const badges = [
       p.busy ? `<span class="badge serving">${esc(t("disk.inUse"))}</span>` : "",
-      p.stale ? `<span class="badge idle">${esc(t("disk.untouched", { d: p.idle_days }))}</span>`
+      isStale(p) ? `<span class="badge idle">${esc(t("disk.untouched", { d: p.idle_days }))}</span>`
         : `<span class="badge active">${esc(p.idle_days === 0 ? t("disk.today") : t("disk.recent", { d: p.idle_days }))}</span>`,
       p.onedrive ? `<span class="badge orphan">${esc(t("disk.onedrive"))}</span>` : "",
     ].join("");
@@ -774,7 +811,11 @@ async function loadDashboard() {
     callouts.unshift(`<div class="callout hot">${esc(t("dash.stale", { n: devr.stale_count, mem: fmtBytes(devr.stale_mem) }))} <button class="small" data-go="cleanup">${esc(t("dash.stale.go"))}</button></div>`);
   }
   $("#dash-callouts").innerHTML = callouts.join("");
+  // drop the loading skeletons even if a call failed; "–" then stands for "no data"
+  if (!snap) $("#dash-top").innerHTML = "";
+  ["#t-cpu", "#t-mem", "#t-procs", "#t-tweaks", "#t-drift"].forEach((id) => $(id).classList.remove("skel"));
   renderHeat();
+  hardwareCallout();
   if (state) {
     $("#t-tweaks").textContent = `${state.tweaks.filter((x) => x.status.overall === "applied").length} / ${state.tweaks.length}`;
     $("#t-drift").textContent = state.tweaks.reduce((n, x) => n + x.drift_count, 0);
@@ -785,6 +826,142 @@ async function loadDashboard() {
 }
 $("#btn-refresh-dash").onclick = async () => { await loadState(); loadDashboard(); };
 $("#dash-callouts").addEventListener("click", (e) => { if (e.target.dataset.go) showTab(e.target.dataset.go); });
+$("#hw-callout").addEventListener("click", (e) => { if (e.target.dataset.go) showTab(e.target.dataset.go); });
+
+// ---------- hardware ----------
+let hw = null;              // hardware inventory (the backend caches it until Refresh)
+const bench = {};           // drive letter -> speed test result, or "run" while it runs
+const RAM_TYPES = { 20: "DDR", 21: "DDR2", 24: "DDR3", 26: "DDR4", 27: "LPDDR", 28: "LPDDR2", 29: "LPDDR3", 30: "LPDDR4", 34: "DDR5", 35: "LPDDR5" };
+const kv = (rows) => `<dl class="kv">${rows.filter(([, v]) => v != null && v !== "").map(([k, v]) => `<dt>${esc(t(k))}</dt><dd>${v}</dd>`).join("")}</dl>`;
+const nz = (v) => (v == null || v === 0 ? null : v);
+
+// ok | warn | bad
+function diskHealth(d) {
+  const errs = (d.read_err || 0) + (d.write_err || 0);
+  if ((d.health && d.health !== "Healthy") || errs > 0) return "bad";
+  if ((d.wear ?? 0) >= 80 || (d.temp ?? 0) >= 70) return "warn";
+  return "ok";
+}
+
+async function loadHardware(fresh = false) {
+  const btn = $("#btn-hw-refresh");
+  busy(btn, true);
+  try { hw = await call("get_hardware", { fresh }); } catch { hw = hw || {}; } finally { busy(btn, false); }
+  renderHardware();
+}
+$("#btn-hw-refresh").onclick = () => loadHardware(true);
+
+// identical sticks collapse into one "8 × 4 GB" line
+function groupModules(ram) {
+  const g = new Map();
+  for (const m of ram) {
+    const k = [m.bytes, m.maker, m.part].join("|");
+    g.set(k, { m, n: (g.get(k)?.n || 0) + 1 });
+  }
+  return [...g.values()].map(({ m, n }) => `${n > 1 ? `${n} × ` : ""}${fmtBytes(m.bytes)} <span class="sub">${esc([m.maker, m.part, n === 1 && m.slot].filter(Boolean).join(" · "))}</span>`).join("<br>");
+}
+
+function renderHardware() {
+  if (!hw) return;
+  const last = live.at(-1);
+  const disks = hw.disks || [];
+  const running = Object.values(bench).includes("run");
+  $("#hw-disks").innerHTML = disks.length ? disks.map((d) => {
+    const h = diskHealth(d);
+    const smart = d.temp != null || d.wear != null || d.hours != null;
+    const wear = d.wear != null ? `${100 - d.wear}% <div class="meter ${h === "ok" ? "" : h}"><i style="width:${100 - d.wear}%"></i></div>` : null;
+    const benches = (d.letters || []).map((l) => {
+      const b = bench[l];
+      if (b === "run") return `<div class="bench sub">${esc(t("hw.speed.running", { d: l }))}</div>`;
+      if (b) return `<div class="bench"><b>${esc(l)}</b> ${esc(t("hw.speed.result", { r: b.seq_read.toFixed(0), w: b.seq_write.toFixed(0), k: b.rnd_read.toFixed(1), iops: b.rnd_iops.toFixed(0) }))}</div>`;
+      return "";
+    }).join("");
+    return `<div class="card">
+      <h2><span>${d.media === "SSD" ? "⚡" : d.media === "HDD" ? "💿" : "💽"} ${esc(d.model || "Disk " + d.id)}</span><span class="health ${h}">${esc(t("hw.health." + h))}</span></h2>
+      ${kv([
+        ["hw.size", fmtBytes(d.bytes)],
+        ["hw.type", esc([d.media !== "Unspecified" ? d.media : "", d.bus].filter(Boolean).join(" · "))],
+        ["hw.drives", esc((d.letters || []).join(" "))],
+        ["hw.life", wear],
+        ["heat.title", nz(d.temp) != null ? `${fmtTemp(d.temp)}${nz(d.temp_max) ? ` <span class="sub">(${esc(t("hw.max"))} ${fmtTemp(d.temp_max)})</span>` : ""}` : null],
+        ["hw.hours", d.hours != null ? esc(t("hw.hoursVal", { n: d.hours.toLocaleString(), d: Math.round(d.hours / 24).toLocaleString() })) : null],
+        ["hw.errors", d.read_err != null || d.write_err != null ? String((d.read_err || 0) + (d.write_err || 0)) : null],
+        ["hw.status", d.status && d.status !== "OK" ? esc(d.status) : null],
+        ["hw.firmware", esc(d.firmware)],
+      ])}
+      ${smart ? "" : `<p class="sub">${esc(t("hw.noSmart"))}</p>`}
+      ${h === "bad" ? `<p class="warn-text">${esc(t("hw.backup"))}</p>` : ""}
+      ${benches}
+      <div class="hw-actions">${(d.letters || []).map((l) => `<button class="small ghost" data-bench="${esc(l)}" ${running ? "disabled" : ""}>${esc(t("hw.speed", { d: l }))}</button>`).join("")}</div>
+    </div>`;
+  }).join("") : `<div class="card sub">${esc(t("hw.none"))}</div>`;
+
+  const cards = [];
+  for (const c of hw.cpu || []) cards.push(`<div class="card"><h2>🧮 ${esc(t("hw.cpu"))}</h2>${kv([
+    ["hw.model", esc(c.name)],
+    ["hw.cores", esc(t("hw.coresVal", { c: c.cores, t: c.threads }))],
+    ["hw.clock", nz(c.max_mhz) ? `${(c.max_mhz / 1000).toFixed(2)} GHz` : null],
+    ["hw.cache", [nz(c.l2_kb) && `L2 ${fmtBytes(c.l2_kb * 1024)}`, nz(c.l3_kb) && `L3 ${fmtBytes(c.l3_kb * 1024)}`].filter(Boolean).join(" · ")],
+    ["hw.socket", esc(c.socket)],
+    ["hw.virt", c.virt == null ? null : esc(t(c.virt ? "hw.on" : "hw.virtOff"))],
+    ["heat.title", last?.cpu_temp != null ? `${fmtTemp(last.cpu_temp)} <span class="sub">${esc(t("heat.acpi"))}</span>` : null],
+  ])}</div>`);
+  for (const g of hw.gpu || []) cards.push(`<div class="card"><h2>🎮 ${esc(t("hw.gpu"))}</h2>${kv([
+    ["hw.model", esc(g.name)],
+    ["hw.vram", nz(g.vram) ? fmtBytes(g.vram) : null],
+    ["hw.driver", esc([g.driver, g.driver_date && `(${g.driver_date})`].filter(Boolean).join(" "))],
+    ["hw.display", nz(g.width) ? `${g.width}×${g.height}${nz(g.hz) ? ` @ ${g.hz} Hz` : ""}` : null],
+    ["heat.title", last?.gpu_temp != null ? fmtTemp(last.gpu_temp) : null],
+  ])}</div>`);
+  const ram = hw.ram || [];
+  if (ram.length) {
+    const total = ram.reduce((a, m) => a + (m.bytes || 0), 0), m0 = ram[0];
+    cards.push(`<div class="card"><h2>🧠 ${esc(t("hw.ram"))}</h2>${kv([
+      ["hw.installed", fmtBytes(total)],
+      ["hw.type", esc(RAM_TYPES[m0.type] || "")],
+      ["hw.ramSpeed", nz(m0.mhz || m0.rated) ? `${m0.mhz || m0.rated} MT/s` : null],
+      ["hw.slots", hw.ram_slots ? esc(t("hw.slotsVal", { u: ram.length, n: hw.ram_slots })) : null],
+      ["hw.modules", groupModules(ram)],
+    ])}</div>`);
+  }
+  const sys = hw.system || {}, bd = hw.board || {};
+  const up = sys.boot ? (Date.now() - Date.parse(sys.boot)) / 1000 : null;
+  cards.push(`<div class="card"><h2>💻 ${esc(t("hw.system"))}</h2>${kv([
+    ["hw.model", esc([sys.maker, sys.model].filter(Boolean).join(" "))],
+    ["hw.board", esc([bd.maker, bd.model].filter(Boolean).join(" "))],
+    ["hw.bios", esc([bd.bios, bd.bios_date && `(${bd.bios_date})`].filter(Boolean).join(" "))],
+    ["hw.windows", esc([sys.os, sys.build && `build ${sys.build}`].filter(Boolean).join(", "))],
+    ["hw.uptime", up > 0 ? esc(fmtAge(up)) : null],
+  ])}</div>`);
+  for (const b of hw.battery || []) {
+    if (!nz(b.full)) continue;
+    const pct = nz(b.design) ? Math.min(100, Math.round((b.full / b.design) * 100)) : null;
+    const cls = pct == null || pct >= 80 ? "" : pct >= 60 ? "warn" : "bad";
+    cards.push(`<div class="card"><h2>🔋 ${esc(t("hw.battery"))}</h2>${kv([
+      ["hw.batt.health", pct != null ? `${pct}% <div class="meter ${cls}"><i style="width:${pct}%"></i></div>` : null],
+      ["hw.batt.full", `${(b.full / 1000).toFixed(1)} Wh`],
+      ["hw.batt.design", nz(b.design) ? `${(b.design / 1000).toFixed(1)} Wh` : null],
+    ])}</div>`);
+  }
+  $("#hw-parts").innerHTML = cards.join("");
+}
+
+$("#hw-disks").addEventListener("click", async (e) => {
+  const d = e.target.closest("[data-bench]")?.dataset.bench;
+  if (!d) return;
+  if (!(await modal(t("hw.speed.title", { d }), `<p>${esc(t("hw.speed.note"))}</p>`, { okText: t("hw.speed.go") }))) return;
+  bench[d] = "run";
+  renderHardware();
+  try { bench[d] = await call("disk_speed_test", { drive: d }); } catch { delete bench[d]; }
+  renderHardware();
+});
+
+// a failing disk earns a dashboard warning; the inventory is read once, in the background
+async function hardwareCallout() {
+  try { hw = hw || await invoke("get_hardware", { fresh: false }); } catch { return; }
+  const bad = (hw.disks || []).filter((d) => diskHealth(d) === "bad");
+  $("#hw-callout").innerHTML = bad.map((d) => `<div class="callout hot">${esc(t("hw.diskCallout", { m: d.model, s: d.health }))} <button class="small" data-go="hardware">${esc(t("hw.go"))}</button></div>`).join("");
+}
 
 // ---------- history ----------
 async function loadHistory() {
@@ -873,6 +1050,7 @@ $("#btn-chrome").onclick = async () => {
 
 $("#btn-save-settings").onclick = async (e) => {
   const settings = {
+    ...state.settings,
     start_with_windows: $("#s-startup").checked,
     stay_in_tray: $("#s-tray").checked,
     watchdog_minutes: Math.max(1, Number($("#s-watchdog").value) || 30),
@@ -1024,6 +1202,7 @@ function renderHeat() {
   if (currentTab !== "dashboard") return;
   const tile = $("#t-heat-tile");
   if (!last) return;
+  $("#t-heat").classList.remove("skel");
   if (!has) {
     $("#t-heat").textContent = t("heat.na");
     $("#t-heat-sub").textContent = t("heat.naHint");
@@ -1114,4 +1293,6 @@ async function ensureDisclaimer() {
   currentTab = safeGet("tab") || "dashboard";
   rerender();
   ensureDisclaimer();
+  // the heat tile waits for the first live sample; never let a skeleton spin forever
+  setTimeout(() => document.querySelectorAll(".skel").forEach((el) => el.classList.remove("skel")), 8000);
 })();

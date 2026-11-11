@@ -11,12 +11,17 @@
     <div class="brand"><span class="bolt">🧹</span> RigSweep<div class="tagline" data-i18n="tagline"></div></div>
     <nav>
       <button data-tab="dashboard" class="active" data-i18n="nav.dashboard"></button>
+      <div class="nav-group" data-i18n="nav.g.clean"></div>
       <button data-tab="cleanup" data-i18n="nav.cleanup"></button>
       <button data-tab="disk" data-i18n="nav.disk"></button>
       <button data-tab="browser" data-i18n="nav.browser"></button>
-      <button data-tab="report" data-i18n="nav.report"></button>
+      <div class="nav-group" data-i18n="nav.g.tune"></div>
       <button data-tab="tweaks" data-i18n="nav.tweaks"></button>
       <button data-tab="processes" data-i18n="nav.processes"></button>
+      <div class="nav-group" data-i18n="nav.g.pc"></div>
+      <button data-tab="hardware" data-i18n="nav.hardware"></button>
+      <button data-tab="report" data-i18n="nav.report"></button>
+      <div class="nav-group"></div>
       <button data-tab="history" data-i18n="nav.history"></button>
       <button data-tab="settings" data-i18n="nav.settings"></button>
     </nav>
@@ -33,28 +38,29 @@
     <section id="tab-dashboard" class="tab active">
       <header><h1 data-i18n="dash.title"></h1><button id="btn-refresh-dash" class="ghost" data-i18n="common.refresh"></button></header>
       <div class="tiles">
-        <div class="tile"><div class="label" data-i18n="dash.cpu"></div><div class="value" id="t-cpu">–</div></div>
-        <div class="tile"><div class="label" data-i18n="dash.mem"></div><div class="value" id="t-mem">–</div></div>
-        <div class="tile"><div class="label" data-i18n="dash.procs"></div><div class="value" id="t-procs">–</div></div>
-        <div class="tile"><div class="label" data-i18n="dash.tweaks"></div><div class="value" id="t-tweaks">–</div></div>
-        <div class="tile"><div class="label" data-i18n="dash.drift"></div><div class="value" id="t-drift">–</div></div>
+        <div class="tile"><div class="label" data-i18n="dash.cpu"></div><div class="value skel" id="t-cpu">–</div></div>
+        <div class="tile"><div class="label" data-i18n="dash.mem"></div><div class="value skel" id="t-mem">–</div></div>
+        <div class="tile"><div class="label" data-i18n="dash.procs"></div><div class="value skel" id="t-procs">–</div></div>
+        <div class="tile"><div class="label" data-i18n="dash.tweaks"></div><div class="value skel" id="t-tweaks">–</div></div>
+        <div class="tile"><div class="label" data-i18n="dash.drift"></div><div class="value skel" id="t-drift">–</div></div>
         <div class="tile heat" id="t-heat-tile" role="button" tabindex="0" data-i18n-title="heat.unitHint">
           <div class="label" data-i18n="heat.title"></div>
-          <div class="value" id="t-heat">–</div>
+          <div class="value skel" id="t-heat">–</div>
           <svg id="heat-spark" class="spark heat-spark" viewBox="0 0 300 28" preserveAspectRatio="none" aria-hidden="true"></svg>
           <div class="sub" id="t-heat-sub"></div>
         </div>
       </div>
       <div id="heat-callout" class="callouts"></div>
+      <div id="hw-callout" class="callouts"></div>
       <div id="dash-callouts" class="callouts"></div>
       <div class="grid2">
         <div class="card">
           <h2 data-i18n="dash.top"></h2>
-          <table class="tbl"><thead><tr><th data-i18n="col.process"></th><th class="num" data-i18n="col.cpu"></th><th class="num" data-i18n="col.ram"></th><th class="num" data-i18n="col.disk"></th></tr></thead><tbody id="dash-top"></tbody></table>
+          <table class="tbl"><thead><tr><th data-i18n="col.process"></th><th class="num" data-i18n="col.cpu"></th><th class="num" data-i18n="col.ram"></th><th class="num" data-i18n="col.disk"></th></tr></thead><tbody id="dash-top"><tr class="skel-row"><td colspan="4"><span class="skel-bar"></span></td></tr><tr class="skel-row"><td colspan="4"><span class="skel-bar"></span></td></tr><tr class="skel-row"><td colspan="4"><span class="skel-bar"></span></td></tr><tr class="skel-row"><td colspan="4"><span class="skel-bar"></span></td></tr><tr class="skel-row"><td colspan="4"><span class="skel-bar"></span></td></tr><tr class="skel-row"><td colspan="4"><span class="skel-bar"></span></td></tr></tbody></table>
         </div>
         <div class="card">
           <h2 data-i18n="dash.recent"></h2>
-          <ul id="dash-history" class="feed"></ul>
+          <ul id="dash-history" class="feed"><li class="skel-row"><span class="skel-bar"></span></li><li class="skel-row"><span class="skel-bar"></span></li><li class="skel-row"><span class="skel-bar"></span></li><li class="skel-row"><span class="skel-bar"></span></li><li class="skel-row"><span class="skel-bar"></span></li></ul>
         </div>
       </div>
     </section>
@@ -102,6 +108,14 @@
         </div>
       </header>
       <p class="hint" data-i18n="disk.hint"></p>
+      <div id="disk-auto" class="autobar">
+        <b data-i18n="disk.auto.title"></b>
+        <label><span data-i18n="disk.auto.days"></span> <select id="da-days"></select></label>
+        <label><input type="checkbox" id="da-build" /> <span data-i18n="disk.auto.build"></span></label>
+        <label><input type="checkbox" id="da-deps" /> <span data-i18n="disk.auto.deps"></span></label>
+        <label><input type="checkbox" id="da-caches" /> <span data-i18n="disk.auto.caches"></span></label>
+        <label><span data-i18n="disk.auto.min"></span> <select id="da-min"></select></label>
+      </div>
       <div id="disk-summary" class="summary"></div>
       <table class="tbl">
         <thead><tr>
@@ -110,6 +124,15 @@
         </tr></thead>
         <tbody id="disk-body"><tr><td colspan="6" class="loading">…</td></tr></tbody>
       </table>
+    </section>
+
+    <!-- HARDWARE -->
+    <section id="tab-hardware" class="tab">
+      <header><h1 data-i18n="hw.title"></h1><button id="btn-hw-refresh" class="ghost" data-i18n="common.refresh"></button></header>
+      <p class="hint" data-i18n="hw.hint"></p>
+      <h2 class="hw-h" data-i18n="hw.disks"></h2>
+      <div id="hw-disks" class="hw-grid"><div class="card"><span class="skel-bar"></span><span class="skel-bar"></span><span class="skel-bar"></span><span class="skel-bar"></span></div></div>
+      <div id="hw-parts" class="hw-grid"><div class="card"><span class="skel-bar"></span><span class="skel-bar"></span><span class="skel-bar"></span><span class="skel-bar"></span></div><div class="card"><span class="skel-bar"></span><span class="skel-bar"></span><span class="skel-bar"></span><span class="skel-bar"></span></div><div class="card"><span class="skel-bar"></span><span class="skel-bar"></span><span class="skel-bar"></span><span class="skel-bar"></span></div><div class="card"><span class="skel-bar"></span><span class="skel-bar"></span><span class="skel-bar"></span><span class="skel-bar"></span></div></div>
     </section>
 
     <!-- BROWSER CLEANUP -->

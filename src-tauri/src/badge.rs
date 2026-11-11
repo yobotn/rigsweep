@@ -143,6 +143,10 @@ mod tests {
             disk_excludes: vec![],
             disk_disabled: vec![],
             disk_stale_days: 30,
+            disk_auto_build: true,
+            disk_auto_deps: true,
+            disk_auto_caches: true,
+            disk_auto_min_mb: 50,
         }
     }
 
