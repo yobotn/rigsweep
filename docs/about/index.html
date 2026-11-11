@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>About · RigSweep</title>
+  <meta name="description" content="Why RigSweep exists, who builds it, and how it is made: a free, open-source Windows app for developers who work with AI coding agents." />
+  <link rel="canonical" href="https://rigsweep.com/about/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="RigSweep" />
+  <meta property="og:title" content="About · RigSweep" />
+  <meta property="og:description" content="Why RigSweep exists, who builds it, and how it is made: a free, open-source Windows app for developers who work with AI coding agents." />
+  <meta property="og:url" content="https://rigsweep.com/about/" />
+  <meta property="og:image" content="https://rigsweep.com/screenshots/cleanup.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="theme-color" content="#0b0e13" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="alternate" type="text/plain" href="https://rigsweep.com/llms.txt" title="llms.txt" />
+  <style>
+    :root { --bg: #0b0e13; --panel: #141922; --border: #262e3f; --text: #e8ebf1; --muted: #a3abbd; --accent: #4f8cff; color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.7 "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif; }
+    a { color: var(--accent); }
+    code { font-family: Consolas, ui-monospace, monospace; font-size: .9em; background: var(--panel); border-radius: 5px; padding: 1px 6px; overflow-wrap: anywhere; }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+    nav { border-bottom: 1px solid var(--border); }
+    nav .wrap { display: flex; justify-content: space-between; align-items: center; gap: 16px; min-height: 60px; font-size: 14px; flex-wrap: wrap; }
+    nav .logo { font-weight: 700; font-size: 18px; color: var(--text); text-decoration: none; }
+    nav .links { display: flex; gap: 16px; flex-wrap: wrap; }
+    nav .links a { color: var(--muted); text-decoration: none; }
+    main { padding: 48px 16px 24px; }
+    h1 { font-size: clamp(30px, 5vw, 42px); line-height: 1.15; margin: 0 0 16px; letter-spacing: -0.015em; }
+    h2 { font-size: 22px; margin: 36px 0 8px; }
+    p, li { color: var(--muted); }
+    strong { color: var(--text); }
+    footer { margin-top: 48px; padding: 24px 16px 40px; border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; }
+  </style>
+</head>
+<body>
+  <nav><div class="wrap"><a class="logo" href="/">🧹 RigSweep</a><div class="links"><a href="/about/">About</a><a href="/privacy/">Privacy</a><a href="/contact/">Contact</a><a href="https://github.com/yobotn/rigsweep">GitHub</a></div></div></nav>
+  <main class="wrap">
+    <h1>About RigSweep</h1>
+    <p><strong>RigSweep is a free, open-source Windows app that gives your machine room back from AI-agent sessions.</strong> It finds dev servers, build daemons, MCP servers and agent CLIs that kept running after a terminal was closed, deletes stale <code>node_modules</code> and package caches, and applies reversible Windows tweaks.</p>
+    <h2>Why it exists</h2>
+    <p>In the AI era a dev laptop doesn't run one thing anymore. A normal day means several Claude Code sessions in different terminals, a dev server per project, build watchers and a browser full of docs and previews. Every session spawns more processes, and many keep running after you close the terminal. On the author's 32 GB laptop, a mid-day measurement found 37 Chrome processes using 6.5 GB and 14 Node and Claude processes using 2.5 GB. None of it was malware. It was the normal leftovers of working with agents.</p>
+    <p>Classic "PC booster" apps either do scary, irreversible things or know nothing about dev workflows. RigSweep was built to do the opposite: show what is actually using the machine, sweep what is stale, and keep every change reversible.</p>
+    <h2>Principles</h2>
+    <ul>
+    <li><strong>Nothing happens without confirmation.</strong> No process is ended and no folder is deleted until you click.</li>
+    <li><strong>Everything is reversible.</strong> Original values are backed up before any Windows tweak, and a System Restore point is created first.</li>
+    <li><strong>Measured, not marketed.</strong> The Boost Report compares real snapshots instead of showing fake percentages.</li>
+    <li><strong>No telemetry.</strong> No analytics, no account, no data leaves your PC.</li>
+    </ul>
+    <h2>Who builds it</h2>
+    <p>RigSweep is an independent open-source project maintained by <a href="https://github.com/yobotn">@yobotn</a>, written in Rust with Tauri 2 and released under the MIT license. Releases are built from tagged source by GitHub Actions. It is not affiliated with Microsoft, Google, Anthropic, OpenAI or any other tool it mentions.</p>
+    <h2>Get involved</h2>
+    <p>Pick what gets built next on the <a href="https://github.com/yobotn/rigsweep/issues/12">feature vote</a>, report bugs in <a href="https://github.com/yobotn/rigsweep/issues">Issues</a>, share your before/after results in <a href="https://github.com/yobotn/rigsweep/discussions">Discussions</a>, or improve a translation with a pull request.</p>
+  </main>
+  <footer class="wrap">🧹 RigSweep · free forever under the <a href="https://github.com/yobotn/rigsweep/blob/main/LICENSE">MIT license</a> · <a href="/">Home</a> · <a href="/llms.txt">llms.txt</a></footer>
+</body>
+</html>

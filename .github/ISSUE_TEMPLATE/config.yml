@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 🗳️ Vote on planned features
+    url: https://github.com/yobotn/rigsweep/issues/12
+    about: React 👍 on the ideas you want most.
+  - name: 💬 Questions and before/after results
+    url: https://github.com/yobotn/rigsweep/discussions
+    about: Ask a question or share your Boost Report.

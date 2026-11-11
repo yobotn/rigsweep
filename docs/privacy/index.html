@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Privacy policy · RigSweep</title>
+  <meta name="description" content="RigSweep has no telemetry, no analytics and no account. The only network request is an opt-in update check. Everything it stores stays on your PC." />
+  <link rel="canonical" href="https://rigsweep.com/privacy/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="RigSweep" />
+  <meta property="og:title" content="Privacy policy · RigSweep" />
+  <meta property="og:description" content="RigSweep has no telemetry, no analytics and no account. The only network request is an opt-in update check. Everything it stores stays on your PC." />
+  <meta property="og:url" content="https://rigsweep.com/privacy/" />
+  <meta property="og:image" content="https://rigsweep.com/screenshots/cleanup.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="theme-color" content="#0b0e13" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="alternate" type="text/plain" href="https://rigsweep.com/llms.txt" title="llms.txt" />
+  <style>
+    :root { --bg: #0b0e13; --panel: #141922; --border: #262e3f; --text: #e8ebf1; --muted: #a3abbd; --accent: #4f8cff; color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.7 "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif; }
+    a { color: var(--accent); }
+    code { font-family: Consolas, ui-monospace, monospace; font-size: .9em; background: var(--panel); border-radius: 5px; padding: 1px 6px; overflow-wrap: anywhere; }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+    nav { border-bottom: 1px solid var(--border); }
+    nav .wrap { display: flex; justify-content: space-between; align-items: center; gap: 16px; min-height: 60px; font-size: 14px; flex-wrap: wrap; }
+    nav .logo { font-weight: 700; font-size: 18px; color: var(--text); text-decoration: none; }
+    nav .links { display: flex; gap: 16px; flex-wrap: wrap; }
+    nav .links a { color: var(--muted); text-decoration: none; }
+    main { padding: 48px 16px 24px; }
+    h1 { font-size: clamp(30px, 5vw, 42px); line-height: 1.15; margin: 0 0 16px; letter-spacing: -0.015em; }
+    h2 { font-size: 22px; margin: 36px 0 8px; }
+    p, li { color: var(--muted); }
+    strong { color: var(--text); }
+    footer { margin-top: 48px; padding: 24px 16px 40px; border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; }
+  </style>
+</head>
+<body>
+  <nav><div class="wrap"><a class="logo" href="/">🧹 RigSweep</a><div class="links"><a href="/about/">About</a><a href="/privacy/">Privacy</a><a href="/contact/">Contact</a><a href="https://github.com/yobotn/rigsweep">GitHub</a></div></div></nav>
+  <main class="wrap">
+    <h1>Privacy policy</h1>
+    <p><em>Last updated: November 11, 2026</em></p>
+    <p><strong>Short version: RigSweep collects nothing.</strong> It has no telemetry, no analytics, no crash reporting and no account.</p>
+    <h2>The app</h2>
+    <p>This program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it. The only network request RigSweep can make is the <strong>update check</strong>, and only when you ask for it: clicking <em>Check now</em> in Settings, or turning on <em>Check for updates automatically</em> (off by default). It downloads <code>latest.json</code> from the project's GitHub Releases and sends nothing about your PC. An update is installed only after you click <em>Install</em>, and only if its signature matches RigSweep's signing key. Like any download, that request is handled by GitHub under <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub's privacy statement</a>.</p>
+    <h2>What is stored on your PC</h2>
+    <p>Backups of original Windows settings, cleanup history and before/after measurements are stored locally in <code>%ProgramData%\RigSweep\rigsweep.db</code>. Nothing is uploaded. Uninstalling RigSweep and deleting that folder removes it all.</p>
+    <h2>The Chrome tab helper</h2>
+    <p>The optional extension uses only the <code>tabs</code>, <code>storage</code> and <code>alarms</code> permissions and makes no network requests. Its settings stay in your browser.</p>
+    <h2>This website</h2>
+    <p>rigsweep.com is a static site hosted on GitHub Pages. It sets no cookies and runs no analytics or ads. The only thing it stores is your language choice, in your browser's local storage. GitHub may keep standard server logs (such as IP addresses) as described in its privacy statement.</p>
+    <h2>Questions</h2>
+    <p>Open an issue at <a href="https://github.com/yobotn/rigsweep/issues">github.com/yobotn/rigsweep/issues</a>, or see the <a href="/contact/">contact page</a>.</p>
+  </main>
+  <footer class="wrap">🧹 RigSweep · free forever under the <a href="https://github.com/yobotn/rigsweep/blob/main/LICENSE">MIT license</a> · <a href="/">Home</a> · <a href="/llms.txt">llms.txt</a></footer>
+</body>
+</html>

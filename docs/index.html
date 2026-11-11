@@ -3,15 +3,93 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>RigSweep: room for your agents</title>
-  <meta name="description" content="Free, open-source Windows app that frees RAM and CPU on dev machines cluttered by AI-agent sessions: stale dev-process cleanup for Node, Python, Java, .NET and more, reversible tweaks, real before/after reports." />
-  <meta property="og:title" content="RigSweep: room for your agents" />
-  <meta property="og:description" content="Free up RAM and CPU on Windows dev machines cluttered by AI-agent sessions. MIT, free forever." />
+  <title>RigSweep: free Windows cleaner for AI agent sessions and dev processes</title>
+  <meta name="description" content="Free, open-source Windows app that frees RAM, CPU and disk on dev machines cluttered by AI-agent sessions: ends leftover dev servers, MCP servers and agent CLIs, deletes old node_modules and package caches, reversible Windows tweaks, real before/after reports." />
+  <meta name="keywords" content="RigSweep, Windows dev cleanup, kill leftover node processes, free port 3000, node_modules cleaner, AI agent sessions, Claude Code, MCP servers, free RAM Windows, developer tools" />
+  <meta name="author" content="yobotn" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <meta name="theme-color" content="#0b0e13" />
   <link rel="canonical" href="https://rigsweep.com/" />
+  <link rel="alternate" type="text/markdown" href="https://rigsweep.com/index.md" title="RigSweep homepage as Markdown" />
+  <link rel="alternate" type="text/plain" href="https://rigsweep.com/llms.txt" title="llms.txt" />
+  <link rel="sitemap" type="application/xml" href="https://rigsweep.com/sitemap.xml" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="RigSweep" />
+  <meta property="og:title" content="RigSweep: room for your agents" />
+  <meta property="og:description" content="Free up RAM, CPU and disk on Windows dev machines cluttered by AI-agent sessions. Every change is reversible. MIT, free forever." />
   <meta property="og:url" content="https://rigsweep.com/" />
   <meta property="og:image" content="https://rigsweep.com/screenshots/cleanup.png" />
+  <meta property="og:image:width" content="1240" />
+  <meta property="og:image:height" content="820" />
+  <meta property="og:image:alt" content="RigSweep Dev Cleanup listing leftover dev servers and agent processes" />
+  <meta property="og:locale" content="en_US" />
   <meta name="twitter:card" content="summary_large_image" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧹</text></svg>" />
+  <meta name="twitter:title" content="RigSweep: room for your agents" />
+  <meta name="twitter:description" content="Free up RAM, CPU and disk on Windows dev machines cluttered by AI-agent sessions. Free and open source." />
+  <meta name="twitter:image" content="https://rigsweep.com/screenshots/cleanup.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="128x128" href="/icon.png" />
+  <link rel="apple-touch-icon" href="/icon.png" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://rigsweep.com/#org",
+        "name": "RigSweep",
+        "url": "https://rigsweep.com/",
+        "logo": "https://rigsweep.com/icon.png",
+        "sameAs": ["https://github.com/yobotn/rigsweep"],
+        "contactPoint": { "@type": "ContactPoint", "contactType": "customer support", "url": "https://github.com/yobotn/rigsweep/issues", "availableLanguage": ["en", "de", "es", "fr", "it", "pt", "ru", "ja", "ko", "zh"] }
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://rigsweep.com/#site",
+        "url": "https://rigsweep.com/",
+        "name": "RigSweep",
+        "publisher": { "@id": "https://rigsweep.com/#org" },
+        "inLanguage": ["en", "de", "es", "fr", "it", "pt-BR", "ru", "ja", "ko", "zh-CN"]
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://rigsweep.com/#app",
+        "name": "RigSweep",
+        "description": "Free, open-source Windows app that frees RAM, CPU and disk on dev machines cluttered by AI-agent sessions: ends leftover dev servers, MCP servers and agent CLIs, deletes old node_modules and package caches, and applies reversible Windows tweaks.",
+        "url": "https://rigsweep.com/",
+        "downloadUrl": "https://github.com/yobotn/rigsweep/releases/latest",
+        "installUrl": "https://github.com/yobotn/rigsweep/releases/latest",
+        "applicationCategory": "DeveloperApplication",
+        "applicationSubCategory": "System utility",
+        "operatingSystem": "Windows 10, Windows 11",
+        "softwareVersion": "0.6.1",
+        "license": "https://opensource.org/licenses/MIT",
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "screenshot": ["https://rigsweep.com/screenshots/cleanup.png", "https://rigsweep.com/screenshots/dashboard.png", "https://rigsweep.com/screenshots/tweaks.png"],
+        "image": "https://rigsweep.com/icon.png",
+        "keywords": "Windows dev cleanup, leftover node processes, free port 3000, node_modules cleaner, package cache cleaner, AI agent sessions, Claude Code, MCP servers, free RAM",
+        "featureList": ["Dev Cleanup: end orphaned and idle dev servers, build daemons, MCP servers and agent CLIs by process tree", "Dev Disk: delete old node_modules, build output and package caches", "Boost Report: measured before/after RAM and CPU", "Reversible Windows tweaks with backups and a System Restore point", "Browser cache cleanup", "Chrome tab helper extension", "CPU and GPU temperature tracking", "10 languages"],
+        "inLanguage": ["en", "de", "es", "fr", "it", "pt-BR", "ru", "ja", "ko", "zh-CN"],
+        "codeRepository": "https://github.com/yobotn/rigsweep",
+        "author": { "@type": "Person", "name": "yobotn", "url": "https://github.com/yobotn" },
+        "publisher": { "@id": "https://rigsweep.com/#org" }
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "https://rigsweep.com/#faq",
+        "mainEntity": [
+          { "@type": "Question", "name": "What does RigSweep do?", "acceptedAnswer": { "@type": "Answer", "text": "RigSweep is a free, open-source Windows app for developers who work with AI coding agents. It finds dev servers, build daemons, MCP servers and agent CLIs that keep running after you close a terminal, shows each one with its project, RAM and ports, and ends the ones you pick. It also deletes old node_modules and package caches, empties browser caches and applies reversible Windows tweaks." } },
+          { "@type": "Question", "name": "How do I stop node.exe processes that keep running after I close the terminal?", "acceptedAnswer": { "@type": "Answer", "text": "Open Dev Cleanup. Processes whose terminal is gone are marked as orphans and pre-selected, with their whole process tree, project folder and listening ports (like a stuck localhost:3000). Click End selected, and RigSweep ends each tree after checking that the process ID still belongs to the same program." } },
+          { "@type": "Question", "name": "Which AI agents and dev stacks does it support?", "acceptedAnswer": { "@type": "Answer", "text": "Claude Code, Codex, Gemini CLI, opencode, Aider and Goose, plus the MCP servers and headless browsers they start. Dev stacks: Node, Bun, Deno, Python, Java, Gradle, Maven, .NET, Ruby, PHP, Rust and Go, and the WSL 2 / Docker VM." } },
+          { "@type": "Question", "name": "Is it safe? Can I undo changes?", "acceptedAnswer": { "@type": "Answer", "text": "Nothing is ended or deleted without your confirmation. Every Windows tweak backs up the original value first and can be restored one by one or all at once, and a System Restore point is created before the first change. Editor language servers and core Windows services are locked." } },
+          { "@type": "Question", "name": "Is RigSweep free? Does it collect data?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, it's free forever under the MIT license. There is no telemetry, no analytics and no account. The only network request is the update check, which stays off unless you turn it on or click Check now." } },
+          { "@type": "Question", "name": "Does it run on macOS or Linux?", "acceptedAnswer": { "@type": "Answer", "text": "No. RigSweep is built for Windows 10 and 11, because it works with Windows services, Task Scheduler and Defender. It can still shut down the WSL 2 VM from the Windows side." } }
+        ]
+      }
+    ]
+  }
+  </script>
   <style>
     /* ---------- tokens ---------- */
     :root {
@@ -108,6 +186,11 @@
       font-size: 12px; font-weight: 700; border-radius: 50%; background: rgba(52,195,143,.15); color: var(--accent2); }
     .ticks li b { color: var(--text); }
 
+    /* faq */
+    .faq { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--s2); }
+    .faq .card h3 { margin: 0; font-size: 17px; }
+    @media (max-width: 900px) { .faq { grid-template-columns: 1fr; } }
+
     /* notes */
     .note { background: var(--panel); border: 1px solid var(--border); border-left: 4px solid var(--warn); border-radius: var(--r); padding: var(--s3); }
     .note p { margin: 0 0 12px; color: var(--muted); }
@@ -145,8 +228,9 @@
     <div class="wrap">
       <a class="logo" href="#">🧹 RigSweep</a>
       <div class="links">
-        <a class="hide-sm" href="#features" data-t="nav.features"></a>
-        <a class="hide-sm" href="#trust" data-t="nav.trust"></a>
+        <a class="hide-sm" href="#features" data-t="nav.features">Features</a>
+        <a class="hide-sm" href="#faq" data-t="nav.faq">FAQ</a>
+        <a class="hide-sm" href="#trust" data-t="nav.trust">Antivirus FAQ</a>
         <a href="https://github.com/yobotn/rigsweep">GitHub</a>
         <select class="lang" id="lang" aria-label="Language"></select>
       </div>
@@ -155,14 +239,14 @@
 
   <main class="wrap">
     <header class="hero">
-      <div class="badge-top" data-t="hero.badge"></div>
-      <h1 data-t-html="hero.title"></h1>
-      <p class="sub" data-t="hero.sub"></p>
+      <div class="badge-top" data-t="hero.badge">🆓 Free &amp; open source · MIT</div>
+      <h1 data-t-html="hero.title">Room for your <span>agents</span>.</h1>
+      <p class="sub" data-t="hero.sub">Free up RAM and CPU on Windows dev machines cluttered by AI-agent sessions, forgotten dev servers and background Windows services. Every change is reversible.</p>
       <div class="cta">
-        <a class="btn primary" href="https://github.com/yobotn/rigsweep/releases/latest" data-t="cta.download"></a>
-        <a class="btn" href="https://github.com/yobotn/rigsweep" data-t="cta.source"></a>
+        <a class="btn primary" href="https://github.com/yobotn/rigsweep/releases/latest" data-t="cta.download">⬇️ Download for Windows</a>
+        <a class="btn" href="https://github.com/yobotn/rigsweep" data-t="cta.source">⭐ View on GitHub</a>
       </div>
-      <div class="meta" data-t="hero.meta"></div>
+      <div class="meta" data-t="hero.meta">Windows 10 / 11 · ~3 MB installer · 10 languages</div>
       <div class="frame">
         <div class="bar"><i></i><i></i><i></i><span>RigSweep</span></div>
         <img id="img-hero" src="screenshots/cleanup.png" alt="RigSweep Dev Cleanup" />
@@ -170,9 +254,9 @@
     </header>
 
     <section class="center">
-      <span class="eyebrow" data-t="eco.eyebrow"></span>
-      <h2 data-t="eco.h"></h2>
-      <p class="lead" data-t="eco.p"></p>
+      <span class="eyebrow" data-t="eco.eyebrow">Any dev stack</span>
+      <h2 data-t="eco.h">Not just Node</h2>
+      <p class="lead" data-t="eco.p">Dev Cleanup finds leftover dev servers, build daemons and agent sessions across the stacks you actually use, plus the WSL 2 / Docker VM that quietly holds gigabytes.</p>
       <div class="chips">
         <span class="chip">⬢ Node · Bun · Deno</span><span class="chip">🐍 Python</span><span class="chip">☕ Java · Gradle · Maven</span>
         <span class="chip">🟣 .NET</span><span class="chip">💎 Ruby</span><span class="chip">🐘 PHP</span><span class="chip">🦀 Rust</span>
@@ -183,54 +267,54 @@
     <section id="story">
       <div class="story">
         <div>
-          <span class="eyebrow" data-t="story.eyebrow"></span>
-          <h2 data-t="story.h"></h2>
-          <p data-t="story.p1"></p>
-          <p data-t="story.p2"></p>
-          <p data-t-html="story.p3"></p>
+          <span class="eyebrow" data-t="story.eyebrow">The story</span>
+          <h2 data-t="story.h">📖 Why it exists</h2>
+          <p data-t="story.p1">In the AI era a dev laptop doesn't run one thing anymore. A normal day means several Claude Code sessions in different terminals, a dev server per project, build watchers, and a browser full of docs and previews.</p>
+          <p data-t="story.p2">Every session spawns more processes, and many keep running after you close the terminal. Task Manager only shows a wall of node.exe, python.exe and chrome.exe, with no idea which session or project they belong to.</p>
+          <p data-t-html="story.p3"><strong>RigSweep shows what's actually using your machine, sweeps what's stale, and keeps every change reversible.</strong></p>
         </div>
         <div class="panel">
-          <div class="stat"><span data-t="stat.chrome"></span><b>6.5 GB</b></div>
-          <div class="stat"><span data-t="stat.node"></span><b>2.5 GB</b></div>
-          <div class="stat"><span data-t="stat.services"></span><b>~150</b></div>
-          <div class="cap" data-t="stat.cap"></div>
+          <div class="stat"><span data-t="stat.chrome">🌐 Chrome (37 processes)</span><b>6.5 GB</b></div>
+          <div class="stat"><span data-t="stat.node">⬢ Node + Claude (14 processes)</span><b>2.5 GB</b></div>
+          <div class="stat"><span data-t="stat.services">🧩 Windows services running</span><b>~150</b></div>
+          <div class="cap" data-t="stat.cap">Measured on the author's 32 GB laptop in the middle of a working day.</div>
         </div>
       </div>
     </section>
 
     <section id="features">
-      <span class="eyebrow" data-t="feat.eyebrow"></span>
-      <h2 data-t="feat.h"></h2>
-      <p class="lead" data-t="feat.lead"></p>
+      <span class="eyebrow" data-t="feat.eyebrow">Features</span>
+      <h2 data-t="feat.h">✨ What it does</h2>
+      <p class="lead" data-t="feat.lead">Built for developers who live in terminals and AI agents, not for 'PC booster' tricks.</p>
       <div class="grid">
-        <div class="card"><div class="ic">🧹</div><h3 data-t="f1.h"></h3><p data-t="f1.p"></p></div>
-        <div class="card"><div class="ic">📊</div><h3 data-t="f2.h"></h3><p data-t="f2.p"></p></div>
-        <div class="card"><div class="ic">🌐</div><h3 data-t="f3.h"></h3><p data-t="f3.p"></p></div>
-        <div class="card"><div class="ic">⚙️</div><h3 data-t="f4.h"></h3><p data-t="f4.p"></p></div>
-        <div class="card"><div class="ic">🔍</div><h3 data-t="f5.h"></h3><p data-t="f5.p"></p></div>
-        <div class="card"><div class="ic">🌍</div><h3 data-t="f6.h"></h3><p data-t="f6.p"></p></div>
-        <div class="card"><div class="ic">🌡️</div><h3 data-t="f7.h"></h3><p data-t="f7.p"></p></div>
-        <div class="card"><div class="ic">🔄</div><h3 data-t="f8.h"></h3><p data-t="f8.p"></p></div>
-        <div class="card"><div class="ic">🧽</div><h3 data-t="f9.h"></h3><p data-t="f9.p"></p></div>
-        <div class="card"><div class="ic">💾</div><h3 data-t="f10.h"></h3><p data-t="f10.p"></p></div>
+        <div class="card"><div class="ic">🧹</div><h3 data-t="f1.h">Dev Cleanup</h3><p data-t="f1.p">Orphaned and idle dev servers, build daemons and agent CLIs across Node, Python, Java, .NET and more, each with its process tree, project, RAM and ports.</p></div>
+        <div class="card"><div class="ic">📊</div><h3 data-t="f2.h">Boost Report</h3><p data-t="f2.p">Real before/after measurements instead of fake percentages. You can copy them as Markdown and share your result.</p></div>
+        <div class="card"><div class="ic">🌐</div><h3 data-t="f3.h">Chrome tab helper</h3><p data-t="f3.p">A tiny extension to sleep idle tabs, close duplicates and close tabs by pattern like localhost:*. It has no network access.</p></div>
+        <div class="card"><div class="ic">⚙️</div><h3 data-t="f4.h">Reversible tweaks</h3><p data-t="f4.p">Telemetry, Xbox, indexer, background apps and more, each with a risk level. Originals are backed up and restorable in one click.</p></div>
+        <div class="card"><div class="ic">🔍</div><h3 data-t="f5.h">Process analyzer</h3><p data-t="f5.p">CPU, RAM and disk per process, plus which services hide inside each svchost.exe.</p></div>
+        <div class="card"><div class="ic">🌍</div><h3 data-t="f6.h">10 languages</h3><p data-t="f6.p">English, Deutsch, Español, Français, Italiano, Português, Русский, 日本語, 한국어 and 简体中文 in the app, the installer and the Chrome extension, using each language's official Windows terms.</p></div>
+        <div class="card"><div class="ic">🌡️</div><h3 data-t="f7.h">Temperatures</h3><p data-t="f7.p">CPU and GPU temperatures with a 5-minute trend and a warning when your PC stays hot. No driver, no admin rights.</p></div>
+        <div class="card"><div class="ic">🔄</div><h3 data-t="f8.h">Updates, your choice</h3><p data-t="f8.p">Off by default. Check when you want, or turn on a daily check. Updates install only when you click, and only if they're signed.</p></div>
+        <div class="card"><div class="ic">🧽</div><h3 data-t="f9.h">Browser Cleanup</h3><p data-t="f9.p">Empties caches for Chrome, Edge, Brave, Vivaldi, Opera and Firefox. Sign-ins, cookies, passwords and history are never touched.</p></div>
+        <div class="card"><div class="ic">💾</div><h3 data-t="f10.h">Dev Disk</h3><p data-t="f10.p">Deletes node_modules, .next, target and .venv in projects you stopped touching, and cleans package caches (npm, pnpm, pip, Cargo, Go…). Exclude anything, switch off any cache.</p></div>
       </div>
     </section>
 
     <section>
       <div class="row">
         <div class="copy">
-          <span class="eyebrow" data-t="clean.eyebrow"></span>
-          <h2 data-t="clean.h"></h2>
+          <span class="eyebrow" data-t="clean.eyebrow">Dev Cleanup</span>
+          <h2 data-t="clean.h">🧹 Sweep stale sessions, safely</h2>
           <ul class="ticks">
-            <li data-t-html="clean.l1"></li>
-            <li data-t-html="clean.l2"></li>
-            <li data-t-html="clean.l3"></li>
-            <li data-t-html="clean.l4"></li>
-            <li data-t-html="clean.l5"></li>
+            <li data-t-html="clean.l1"><b>Orphans</b>: their terminal is closed but they're still running, like the classic zombie localhost:3000.</li>
+            <li data-t-html="clean.l2"><b>Idle agents in open terminals are never pre-selected</b>, because they're waiting for you.</li>
+            <li data-t-html="clean.l3"><b>Editor language servers are locked</b> (VS Code, Cursor, JetBrains, Visual Studio…).</li>
+            <li data-t-html="clean.l4"><b>Kills by process tree, never by port.</b> Each row is re-verified right before ending it, so two projects are never confused.</li>
+            <li data-t-html="clean.l5"><b>MCP servers and headless browsers your agents left behind</b> are found too, and a live meter shows the RAM you got back seconds after each sweep.</li>
           </ul>
         </div>
         <div class="frame">
-          <div class="bar"><i></i><i></i><i></i><span data-t="shot.dashboard"></span></div>
+          <div class="bar"><i></i><i></i><i></i><span data-t="shot.dashboard">Dashboard</span></div>
           <img id="img-dashboard" src="screenshots/dashboard.png" alt="RigSweep dashboard" loading="lazy" />
         </div>
       </div>
@@ -239,53 +323,66 @@
     <section>
       <div class="row flip">
         <div class="copy">
-          <span class="eyebrow" data-t="safe.eyebrow"></span>
-          <h2 data-t="safe.h"></h2>
+          <span class="eyebrow" data-t="safe.eyebrow">Reversible</span>
+          <h2 data-t="safe.h">🛟 Every change can be undone</h2>
           <ul class="ticks">
-            <li data-t-html="safe.l1"></li>
-            <li data-t-html="safe.l2"></li>
-            <li data-t-html="safe.l3"></li>
-            <li data-t-html="safe.l4"></li>
+            <li data-t-html="safe.l1"><b>Original values are backed up</b> in SQLite before the first change.</li>
+            <li data-t-html="safe.l2"><b>System Restore point</b> before the first apply.</li>
+            <li data-t-html="safe.l3"><b>Watchdog</b> re-applies tweaks that Windows Update silently reverted.</li>
+            <li data-t-html="safe.l4"><b>Never touches</b> Windows Update, the Defender engine, or ~60 core services.</li>
           </ul>
         </div>
         <div class="frame">
-          <div class="bar"><i></i><i></i><i></i><span data-t="shot.tweaks"></span></div>
+          <div class="bar"><i></i><i></i><i></i><span data-t="shot.tweaks">Tweaks</span></div>
           <img src="screenshots/tweaks.png" alt="Reversible tweaks" loading="lazy" />
         </div>
       </div>
     </section>
 
     <section id="trust">
-      <span class="eyebrow" data-t="trust.eyebrow"></span>
-      <h2 data-t="trust.h"></h2>
+      <span class="eyebrow" data-t="trust.eyebrow">Antivirus</span>
+      <h2 data-t="trust.h">🛡️ Did Defender delete it?</h2>
       <div class="note">
-        <p data-t-html="trust.p1"></p>
-        <p data-t-html="trust.p2"></p>
+        <p data-t-html="trust.p1">RigSweep is open source but not code-signed yet. Tools that change services look like malware to machine-learning heuristics, so Defender may flag it by mistake (e.g. <code>Trojan:Win32/Bearfoos!ml</code>, where <code>!ml</code> means a heuristic guess).</p>
+        <p data-t-html="trust.p2">The installer <b>asks</b> whether to exclude only its own folder, and the uninstaller removes that exclusion again. Code signing through SignPath Foundation is planned. <a href="https://github.com/yobotn/rigsweep#%EF%B8%8F-antivirus-false-positives">Read the full FAQ →</a></p>
+      </div>
+    </section>
+
+    <section id="faq">
+      <span class="eyebrow" data-t="faq.eyebrow">FAQ</span>
+      <h2 data-t="faq.h">❓ Questions developers ask</h2>
+      <div class="faq">
+        <div class="card"><h3 data-t="faq.q1">What does RigSweep do?</h3><p data-t="faq.a1">RigSweep is a free, open-source Windows app for developers who work with AI coding agents. It finds dev servers, build daemons, MCP servers and agent CLIs that keep running after you close a terminal, shows each one with its project, RAM and ports, and ends the ones you pick. It also deletes old node_modules and package caches, empties browser caches and applies reversible Windows tweaks.</p></div>
+        <div class="card"><h3 data-t="faq.q2">How do I stop node.exe processes that keep running after I close the terminal?</h3><p data-t="faq.a2">Open Dev Cleanup. Processes whose terminal is gone are marked as orphans and pre-selected, with their whole process tree, project folder and listening ports (like a stuck localhost:3000). Click End selected, and RigSweep ends each tree after checking that the process ID still belongs to the same program.</p></div>
+        <div class="card"><h3 data-t="faq.q3">Which AI agents and dev stacks does it support?</h3><p data-t="faq.a3">Claude Code, Codex, Gemini CLI, opencode, Aider and Goose, plus the MCP servers and headless browsers they start. Dev stacks: Node, Bun, Deno, Python, Java, Gradle, Maven, .NET, Ruby, PHP, Rust and Go, and the WSL 2 / Docker VM.</p></div>
+        <div class="card"><h3 data-t="faq.q4">Is it safe? Can I undo changes?</h3><p data-t="faq.a4">Nothing is ended or deleted without your confirmation. Every Windows tweak backs up the original value first and can be restored one by one or all at once, and a System Restore point is created before the first change. Editor language servers and core Windows services are locked.</p></div>
+        <div class="card"><h3 data-t="faq.q5">Is RigSweep free? Does it collect data?</h3><p data-t="faq.a5">Yes, it's free forever under the MIT license. There is no telemetry, no analytics and no account. The only network request is the update check, which stays off unless you turn it on or click Check now.</p></div>
+        <div class="card"><h3 data-t="faq.q6">Does it run on macOS or Linux?</h3><p data-t="faq.a6">No. RigSweep is built for Windows 10 and 11, because it works with Windows services, Task Scheduler and Defender. It can still shut down the WSL 2 VM from the Windows side.</p></div>
       </div>
     </section>
 
     <section id="disclaimer">
-      <h2 data-t="disc.h"></h2>
-      <div class="note disc"><p data-t="disc.p"></p></div>
+      <h2 data-t="disc.h">⚠️ Disclaimer</h2>
+      <div class="note disc"><p data-t="disc.p">RigSweep changes Windows services, scheduled tasks, registry policies and Microsoft Defender settings, and it can end running processes. Every tweak is backed up and can be restored, and nothing happens without your confirmation, but you use it at your own risk. It is provided "as is", without warranty of any kind (MIT license). Review each change before applying it, keep your own backups, and don't use it on work- or school-managed devices without your IT team's approval. RigSweep is an independent project, not affiliated with Microsoft, Google, Anthropic, OpenAI or any other tool it mentions; all trademarks belong to their owners.</p></div>
     </section>
 
     <div class="final" id="download">
-      <h2 data-t="start.h"></h2>
-      <p class="lead" data-t="start.p"></p>
+      <h2 data-t="start.h">🚀 Give your agents some room</h2>
+      <p class="lead" data-t="start.p">Install, take a baseline measurement, sweep, then measure again.</p>
       <div class="cta">
-        <a class="btn primary" href="https://github.com/yobotn/rigsweep/releases/latest" data-t="cta.download"></a>
-        <a class="btn" href="https://github.com/yobotn/rigsweep#-build-from-source" data-t="cta.build"></a>
+        <a class="btn primary" href="https://github.com/yobotn/rigsweep/releases/latest" data-t="cta.download">⬇️ Download for Windows</a>
+        <a class="btn" href="https://github.com/yobotn/rigsweep#-build-from-source" data-t="cta.build">🛠️ Build from source</a>
       </div>
       <div class="signing">
-        <h3 data-t="sign.h"></h3>
-        <p data-t="sign.p"></p>
-        <a href="https://github.com/yobotn/rigsweep#-code-signing-policy" data-t="sign.link"></a>
+        <h3 data-t="sign.h">🔏 Code signing</h3>
+        <p data-t="sign.p">Free code signing provided by SignPath.io, certificate by SignPath Foundation (application in progress; current releases are not signed yet). Installers are built from the tagged source by GitHub Actions. No telemetry, no analytics. The only network request is the update check, and only if you turn it on or click Check now.</p>
+        <a href="https://github.com/yobotn/rigsweep#-code-signing-policy" data-t="sign.link">Code signing &amp; privacy policy →</a>
       </div>
     </div>
 
     <footer>
-      <div data-t="foot.l"></div>
-      <div><a href="https://github.com/yobotn/rigsweep">GitHub</a> · <a href="https://github.com/yobotn/rigsweep/blob/main/LICENSE">MIT</a> · <a href="#disclaimer" data-t="foot.disc"></a> · <a href="https://github.com/yobotn/rigsweep/issues" data-t="foot.issues"></a></div>
+      <div data-t="foot.l">🧹 RigSweep · free forever under the MIT license</div>
+      <div><a href="https://github.com/yobotn/rigsweep">GitHub</a> · <a href="https://github.com/yobotn/rigsweep/blob/main/LICENSE">MIT</a> · <a href="/about/" data-t="foot.about">About</a> · <a href="/privacy/" data-t="foot.privacy">Privacy</a> · <a href="/contact/" data-t="foot.contact">Contact</a> · <a href="#disclaimer" data-t="foot.disc">Disclaimer</a> · <a href="https://github.com/yobotn/rigsweep/issues/12" data-t="foot.vote">Vote on features</a> · <a href="https://github.com/yobotn/rigsweep/issues" data-t="foot.issues">Report an issue</a></div>
     </footer>
   </main>
 
