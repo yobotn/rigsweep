@@ -19,6 +19,8 @@ pub struct HostedService {
 #[derive(Serialize, Clone, Debug)]
 pub struct ProcInfo {
     pub pid: u32,
+    /// sent back on kill so a reused PID is never hit
+    pub start_time: u64,
     pub name: String,
     pub exe: String,
     pub cpu: f32,
@@ -119,6 +121,7 @@ impl Analyzer {
                 let pid_u = pid.as_u32();
                 ProcInfo {
                     pid: pid_u,
+                    start_time: p.start_time(),
                     protected: pid_u <= 4 || is_protected_process(&name) || pid_u == std::process::id(),
                     exe: p.exe().map(|e| e.display().to_string()).unwrap_or_default(),
                     cpu: p.cpu_usage() / ncpu,
@@ -207,17 +210,15 @@ impl Analyzer {
         }
     }
 
-    pub fn kill(&mut self, pid: u32) -> Result<String, String> {
+    /// End one process, only if it is still the one the user saw (same PID *and* start time).
+    pub fn kill(&mut self, pid: u32, start_time: u64) -> Result<String, String> {
         self.sys.refresh_processes(ProcessesToUpdate::Some(&[Pid::from_u32(pid)]), true);
         let p = self.sys.process(Pid::from_u32(pid)).ok_or("process no longer exists")?;
         let name = p.name().to_string_lossy().into_owned();
         if pid <= 4 || pid == std::process::id() || is_protected_process(&name) {
             return Err(format!("{name} is a protected system process"));
         }
-        if p.kill() {
-            Ok(name)
-        } else {
-            Err(format!("couldn't end {name} (access denied or already exiting)"))
-        }
+        crate::kill::terminate(pid, start_time).map_err(|e| format!("couldn't end {name}: {e}"))?;
+        Ok(name)
     }
 }

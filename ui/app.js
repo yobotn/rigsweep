@@ -301,7 +301,7 @@ function renderDev() {
       <td>${p.protected ? "🔒" : `<input type="checkbox" data-dev="${esc(k)}" ${devSel.has(k) ? "checked" : ""} />`}</td>
       <td><b>${esc(p.label)}</b> <span class="eco ${esc(p.eco)}">${esc(ecoLabel(p))}</span>
         <div class="sub" title="${esc(p.cmd)}">PID ${p.pid} · ${esc(p.parent_name || "—")} · ${esc(t("clean.procs", { n: p.tree_count }))}</div></td>
-      <td>${esc(p.project || "—")}</td>
+      <td title="${esc(p.project_path)}">${esc(p.project || "—")}</td>
       <td class="num">${p.age_secs ? fmtAge(p.age_secs) : "—"}</td>
       <td class="num">${p.tree_mem ? fmtBytes(p.tree_mem) : "—"}</td>
       <td>${p.ports.length ? p.ports.slice(0, 4).map((x) => `<code>${x}</code>`).join(" ") + (p.ports.length > 4 ? " …" : "") : "–"}</td>
@@ -329,7 +329,7 @@ $("#btn-clean-end").onclick = async (e) => {
   const serving = picked.filter((p) => p.ports.length).length;
   const agents = picked.filter((p) => p.kind === "agent").length;
   const html = `<p>${esc(t("clean.confirm.body"))}</p><ul>${picked.map((p) =>
-    `<li><b>${esc(p.label)}</b> <span class="sub">${esc(p.project || "—")}${p.ports.length ? " · :" + p.ports.slice(0, 3).join(", :") : ""} · ${fmtBytes(p.tree_mem)} · PID ${p.pid} (+${p.tree_count - 1})</span></li>`).join("")}</ul>
+    `<li><b>${esc(p.label)}</b> <span class="sub">${esc(p.project_path || p.project || "—")}${p.ports.length ? " · :" + p.ports.slice(0, 3).join(", :") : ""} · ${fmtBytes(p.tree_mem)} · PID ${p.pid} (+${p.tree_count - 1})</span></li>`).join("")}</ul>
     ${serving ? `<p class="warn-text">${esc(t("clean.serving.warn", { n: serving }))}</p>` : ""}
     ${picked.some((p) => p.kind === "vm") ? `<p class="warn-text">${esc(t("clean.vm.warn"))}</p>` : ""}
     ${agents ? `<p class="sub">💡 <code>claude --resume</code> / <code>codex resume</code></p>` : ""}`;
@@ -338,7 +338,7 @@ $("#btn-clean-end").onclick = async (e) => {
   const estimate = picked.reduce((n, p) => n + p.tree_mem, 0);
   startRecovery(live.at(-1)?.mem_used ?? 0, Date.now(), estimate, false);
   try {
-    const r = await call("kill_dev_processes", { targets: picked.map((p) => ({ pid: p.pid, start_time: p.start_time, label: p.label, project: p.project, ports: p.ports })) });
+    const r = await call("kill_dev_processes", { targets: picked.map((p) => ({ pid: p.pid, start_time: p.start_time, label: p.label, project: p.project, project_path: p.project_path, ports: p.ports })) });
     let msg = t("clean.done", { n: r.result.ended.length, mem: fmtBytes(r.result.freed_mem) });
     if (r.result.failed.length) msg += `\n\n${t("clean.failed")}\n• ` + r.result.failed.join("\n• ");
     toast(msg + `\n${t("clean.seeReport")}`, r.result.failed.length > 0, 10000);
@@ -748,7 +748,7 @@ function renderProcesses() {
       <td class="num">${fmtBytes(p.mem)}</td>
       <td class="num">${diskOf(p) ? fmtBytes(diskOf(p)) : "–"}</td>
       <td>${svcs}</td>
-      <td>${p.protected ? `<span class="sub">🔒</span>` : `<button class="small ghost" data-kill="${p.pid}" data-name="${esc(p.name)}">${esc(t("proc.end"))}</button>`}</td>
+      <td>${p.protected ? `<span class="sub">🔒</span>` : `<button class="small ghost" data-kill="${p.pid}" data-start="${p.start_time}" data-name="${esc(p.name)}">${esc(t("proc.end"))}</button>`}</td>
     </tr>`;
   }).join("");
 }
@@ -765,7 +765,7 @@ $("#proc-body").addEventListener("click", async (e) => {
   const el = e.target;
   if (el.dataset.kill) {
     if (!(await modal(t("proc.endTitle"), `<p>${t("proc.endBody", { name: esc(el.dataset.name), pid: esc(el.dataset.kill) })}</p>`, { okText: t("proc.end"), danger: true }))) return;
-    const name = await call("kill_process", { pid: Number(el.dataset.kill) });
+    const name = await call("kill_process", { pid: Number(el.dataset.kill), startTime: Number(el.dataset.start) });
     toast(t("proc.ended", { name }));
     loadProcesses();
   } else if (el.dataset.goto) {

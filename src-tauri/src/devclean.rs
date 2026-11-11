@@ -91,8 +91,10 @@ pub struct DevProc {
     pub eco: &'static str,
     /// friendly label, e.g. "astro", "vite", "claude"
     pub label: String,
-    /// project folder guessed from cwd / command line
+    /// project folder name guessed from cwd / command line (for display)
     pub project: String,
+    /// the same folder as a full path: two projects can share a folder name
+    pub project_path: String,
     pub cmd: String,
     pub parent_pid: u32,
     pub parent_name: String,
@@ -112,6 +114,9 @@ pub struct DevProc {
     pub owner: String,
     /// for a "duplicate" MCP server: PID of the newer copy of the same server that is also running
     pub dup_of: u32,
+    /// (pid, start_time) of the root and every descendant counted in this tree, root first
+    #[serde(skip)]
+    pub members: Vec<(u32, u64)>,
 }
 
 #[derive(Serialize, Clone, Debug, Default)]
@@ -132,6 +137,8 @@ pub struct KillTarget {
     #[serde(default)]
     pub project: String,
     #[serde(default)]
+    pub project_path: String,
+    #[serde(default)]
     pub ports: Vec<u16>,
 }
 
@@ -141,7 +148,8 @@ pub fn verify_target(item: &DevProc, t: &KillTarget) -> Result<(), String> {
     if item.pid != t.pid || item.start_time != t.start_time {
         return Err("no longer running (or PID was reused)".into());
     }
-    if (!t.label.is_empty() && item.label != t.label) || (!t.project.is_empty() && item.project != t.project) {
+    let path_changed = !t.project_path.is_empty() && !item.project_path.eq_ignore_ascii_case(&t.project_path);
+    if (!t.label.is_empty() && item.label != t.label) || (!t.project.is_empty() && item.project != t.project) || path_changed {
         return Err(format!("now looks like {} in {}; rescan before ending it", item.label, item.project));
     }
     if !t.ports.is_empty() && !item.ports.is_empty() && !t.ports.iter().any(|p| item.ports.contains(p)) {
@@ -309,6 +317,16 @@ fn classify(p: &Process) -> Option<Class> {
 /// Friendly label + project folder from the command line / working dir.
 /// "C:\x\proj\node_modules\.bin\..\astro\bin\astro.mjs dev" -> ("astro", "proj")
 pub fn describe(name: &str, cmd: &str, cwd: &str) -> (String, String) {
+    let (label, path) = describe_ex(name, cmd, cwd);
+    (label, folder_name(&path))
+}
+
+fn folder_name(path: &str) -> String {
+    path.rsplit('\\').next().unwrap_or("").to_string()
+}
+
+/// Like `describe`, but the project is the full folder path (Windows separators).
+pub fn describe_ex(name: &str, cmd: &str, cwd: &str) -> (String, String) {
     let c = cmd.replace('\\', "/");
     let lc = c.to_ascii_lowercase();
     let n = name.to_ascii_lowercase();
@@ -373,15 +391,16 @@ pub fn describe(name: &str, cmd: &str, cwd: &str) -> (String, String) {
             label = label.trim_matches('"').to_string();
         }
         if let Some(j) = lc.find("node_modules/") {
-            project = base(c[..j].trim_start_matches('"'));
+            project = c[..j].trim_start_matches('"').to_string();
         }
     } else if let Some(s) = script_with(&[".js", ".mjs", ".cjs", ".ts", ".rb", ".php"]) {
         label = s;
     }
     // a browser's working dir is its install folder, not a project
     if !cwd.is_empty() && n != "vmmemwsl" && !is_browser {
-        project = base(&cwd.replace('\\', "/"));
+        project = cwd.to_string();
     }
+    let project = project.replace('/', "\\").trim_end_matches('\\').to_string();
     (label, project)
 }
 
@@ -527,6 +546,7 @@ pub fn scan(sys: &System, tracker: &mut IdleTracker, idle_minutes: u32) -> DevRe
         let mut stack = vec![pid];
         let mut seen = HashSet::new();
         let (mut mem, mut cpu, mut cpu_ms, mut tree_ports) = (0u64, 0f32, 0u64, vec![]);
+        let mut members = vec![];
         while let Some(x) = stack.pop() {
             if !seen.insert(x) {
                 continue;
@@ -535,6 +555,7 @@ pub fn scan(sys: &System, tracker: &mut IdleTracker, idle_minutes: u32) -> DevRe
                 if x != pid && q.start_time() < p.start_time() {
                     continue; // reused PID, not really our child
                 }
+                members.push((x, q.start_time()));
                 mem += q.memory();
                 cpu += q.cpu_usage() / ncpu;
                 cpu_ms += q.accumulated_cpu_time();
@@ -567,7 +588,8 @@ pub fn scan(sys: &System, tracker: &mut IdleTracker, idle_minutes: u32) -> DevRe
         let name = p.name().to_string_lossy().into_owned();
         let cmd = cmdline(p);
         let cwd = p.cwd().map(|c| c.display().to_string()).unwrap_or_default();
-        let (label, project) = describe(&name, &cmd, &cwd);
+        let (label, project_path) = describe_ex(&name, &cmd, &cwd);
+        let project = folder_name(&project_path);
         // protected system processes (e.g. vmmemWSL) may not expose a start time: age unknown = 0
         let age = if p.start_time() == 0 { 0 } else { p.run_time() };
         let quiet = tracker.idle_secs(pid, p.start_time(), cpu_ms).unwrap_or(0);
@@ -614,6 +636,7 @@ pub fn scan(sys: &System, tracker: &mut IdleTracker, idle_minutes: u32) -> DevRe
             eco: class.eco,
             label,
             project,
+            project_path,
             cmd: cmd.chars().take(400).collect(),
             parent_pid: parent.unwrap_or(0),
             parent_name: parent.and_then(get).map(|q| q.name().to_string_lossy().into_owned()).unwrap_or_default(),
@@ -621,13 +644,14 @@ pub fn scan(sys: &System, tracker: &mut IdleTracker, idle_minutes: u32) -> DevRe
             quiet_secs: quiet,
             cpu,
             tree_mem: mem,
-            tree_count: seen.len(),
+            tree_count: members.len(),
             ports: tree_ports,
             reasons,
             stale,
             protected,
             owner,
             dup_of,
+            members,
         });
     }
     tracker.retain(&alive);
@@ -648,7 +672,7 @@ pub fn auto_targets(r: &DevReport, idle_minutes: u32) -> Vec<KillTarget> {
     r.items
         .iter()
         .filter(|i| i.stale && !i.protected && i.kind == "runtime" && i.quiet_secs >= idle_after)
-        .map(|i| KillTarget { pid: i.pid, start_time: i.start_time, label: i.label.clone(), project: i.project.clone(), ports: i.ports.clone() })
+        .map(|i| KillTarget { pid: i.pid, start_time: i.start_time, label: i.label.clone(), project: i.project.clone(), project_path: i.project_path.clone(), ports: i.ports.clone() })
         .collect()
 }
 
@@ -672,19 +696,22 @@ pub fn kill(fresh: &DevReport, targets: &[KillTarget]) -> KillResult {
             r.failed.push(format!("{} (PID {}): owned by {}, skipped", item.label, item.pid, item.owner));
             continue;
         }
-        let pid = item.pid.to_string();
         // the WSL 2 VM can't be killed like a process; shut it down cleanly instead
         let res = if item.kind == "vm" {
-            util::run("wsl.exe", &["--shutdown"])
+            match util::run("wsl.exe", &["--shutdown"]) {
+                Ok(o) if o.ok => Ok(item.tree_count),
+                Ok(o) => Err(o.stderr.trim().to_string()),
+                Err(e) => Err(e.to_string()),
+            }
         } else {
-            util::run("taskkill.exe", &["/PID", &pid, "/T", "/F"])
+            // by handle, against the exact processes (and start times) this scan counted
+            crate::kill::terminate_tree(&item.members)
         };
         match res {
-            Ok(o) if o.ok => {
+            Ok(n) => {
                 r.freed_mem += item.tree_mem;
-                r.ended.push(format!("{} (PID {}, {} process(es))", item.label, item.pid, item.tree_count));
+                r.ended.push(format!("{} (PID {}, {} process(es))", item.label, item.pid, n));
             }
-            Ok(o) => r.failed.push(format!("{} (PID {}): {}", item.label, item.pid, o.stderr.trim())),
             Err(e) => r.failed.push(format!("{} (PID {}): {e}", item.label, item.pid)),
         }
     }
@@ -716,11 +743,26 @@ mod tests {
         assert!(auto_targets(&r, 11).is_empty()); // not quiet long enough yet
     }
 
+    #[test]
+    fn same_folder_name_in_two_places_is_never_confused() {
+        let (_, a) = super::describe_ex("node.exe", "node vite.js", "C:/dev/shop/web/");
+        assert_eq!(a, r"C:\dev\shop\web");
+        assert_eq!(describe("node.exe", "node vite.js", "C:/dev/shop/web/").1, "web");
+        let mut item = row(10, "web", vec![5173]);
+        item.start_time = 100;
+        item.project_path = r"C:\dev\blog\web".into();
+        let t = KillTarget { pid: 10, start_time: 100, label: item.label.clone(), project: "web".into(), project_path: r"C:\dev\shop\web".into(), ports: vec![5173] };
+        assert!(verify_target(&item, &t).is_err());
+        item.project_path = r"c:\DEV\shop\web".into(); // Windows paths: case doesn't matter
+        assert!(verify_target(&item, &t).is_ok());
+    }
+
     fn row(pid: u32, project: &str, ports: Vec<u16>) -> DevProc {
         DevProc {
             pid, start_time: 100, name: "node.exe".into(), kind: "runtime", eco: "node", label: "astro".into(),
             project: project.into(), cmd: String::new(), parent_pid: 0, parent_name: String::new(), age_secs: 0,
-            quiet_secs: 0, cpu: 0.0, tree_mem: 0, tree_count: 1, ports, reasons: vec![], stale: false, protected: false, owner: String::new(), dup_of: 0,
+            quiet_secs: 0, cpu: 0.0, tree_mem: 0, tree_count: 1, ports, reasons: vec![], stale: false, protected: false, owner: String::new(), dup_of: 0, members: vec![(pid, 0)],
+            project_path: String::new(),
         }
     }
 
@@ -728,7 +770,7 @@ mod tests {
     fn two_astro_projects_are_never_confused() {
         let site_a = row(10, "site-a", vec![4321]);
         let site_b = row(20, "site-b", vec![4322]);
-        let pick_a = KillTarget { pid: 10, start_time: 100, label: "astro".into(), project: "site-a".into(), ports: vec![4321] };
+        let pick_a = KillTarget { pid: 10, start_time: 100, label: "astro".into(), project: "site-a".into(), project_path: String::new(), ports: vec![4321] };
         assert!(verify_target(&site_a, &pick_a).is_ok());
         // same label, other project / PID: refused
         assert!(verify_target(&site_b, &pick_a).is_err());

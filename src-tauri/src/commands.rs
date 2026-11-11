@@ -141,8 +141,8 @@ pub async fn get_processes(state: State<'_, AppState>) -> R<Snapshot> {
 }
 
 #[tauri::command]
-pub async fn kill_process(state: State<'_, AppState>, pid: u32) -> R<String> {
-    let r = state.analyzer.lock().map_err(|_| "analyzer lock poisoned")?.kill(pid);
+pub async fn kill_process(state: State<'_, AppState>, pid: u32, start_time: u64) -> R<String> {
+    let r = state.analyzer.lock().map_err(|_| "analyzer lock poisoned")?.kill(pid, start_time);
     let db = lock(&state)?;
     match &r {
         Ok(name) => db.log("gui", None, "kill", true, &format!("ended {name} (pid {pid})")),

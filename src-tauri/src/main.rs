@@ -13,6 +13,7 @@ mod elevation;
 mod engine;
 mod hardware;
 mod heat;
+mod kill;
 mod live;
 mod update;
 mod persistence;
