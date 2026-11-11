@@ -6,7 +6,7 @@
 
 **[🌐 Homepage](https://rigsweep.com)** · **[⬇️ Download](https://github.com/yobotn/rigsweep/releases/latest)** · **[📖 Antivirus FAQ](#%EF%B8%8F-antivirus-false-positives)**
 
-🇬🇧 English · [🇪🇸 Español](README.es.md) · [🇫🇷 Français](README.fr.md)
+🇬🇧 English · [🇩🇪 Deutsch](README.de.md) · [🇪🇸 Español](README.es.md) · [🇫🇷 Français](README.fr.md) · [🇮🇹 Italiano](README.it.md) · [🇧🇷 Português](README.pt-BR.md) · [🇷🇺 Русский](README.ru.md) · [🇯🇵 日本語](README.ja.md) · [🇰🇷 한국어](README.ko.md) · [🇨🇳 简体中文](README.zh-CN.md)
 
 ![Windows 10/11](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows)
 ![Rust + Tauri 2](https://img.shields.io/badge/Rust-Tauri%202-orange?logo=rust)
@@ -104,8 +104,11 @@ A curated catalog ([`catalog/tweaks.json`](src-tauri/catalog/tweaks.json)) of te
 ### 🔍 Process analyzer
 CPU / RAM / disk per process, and **which services live inside each `svchost.exe`**. Disable a service or end a process right from the list (core items are locked 🔒).
 
+### 🔄 Updates, your choice
+**🛠️ Settings → 🔄 Updates** has a **Check now** button and an optional *Check for updates automatically* (at startup, then once a day), which is **off by default**. When a new version is out, a button appears in the sidebar with the release notes. Nothing is installed until you click **Install and restart**, and only if the download is signed with RigSweep's key. Your tweaks, backups and settings are kept. See the [privacy policy](#-privacy-policy) for exactly what a check does.
+
 ### 🌍 10 languages
-The UI is in **English, Deutsch, Español, Français, Italiano, Português (Brasil), Русский, 日本語, 한국어 and 简体中文** (switch in the sidebar), and so are the installer and the Chrome extension. Each one is localized with the official Windows terms of that language (Task Manager, Services, Task Scheduler…), not translated word for word. Spotted something awkward? Open an issue or a PR on `ui/locales/<code>.js`.
+The UI is in **English, Deutsch, Español, Français, Italiano, Português (Brasil), Русский, 日本語, 한국어 and 简体中文** (switch in the sidebar), and so are the installer and the Chrome extension. Each one is localized with the official Windows terms of that language (Task Manager, Services, Task Scheduler…), not translated word for word. Spotted something awkward? Open an issue or a PR on `ui/locales/<code>.js` (app), `docs/locales/<code>.js` (homepage) or `README.<code>.md`.
 
 ---
 
@@ -124,6 +127,7 @@ Install, open **📊 Boost Report → 📸 Measure now**, do a Dev Cleanup and a
 1. Download `RigSweep_x.y.z_x64-setup.exe` from [**Releases**](../../releases).
 2. Run it. It asks for admin rights, because RigSweep manages services and policies.
 3. The installer asks whether to allow RigSweep in Microsoft Defender (see below). This is your choice.
+4. Later versions can be installed from **🛠️ Settings → 🔄 Updates** (from 0.5.0 on).
 
 🌐 **Chrome helper:** in RigSweep go to **🛠️ Settings → 🌐 Chrome tab helper → Open extension folder**, then in Chrome: `chrome://extensions` → **Developer mode** → **Load unpacked** → pick that folder.
 

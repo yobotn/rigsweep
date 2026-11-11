@@ -41,9 +41,7 @@
     .links { display: flex; gap: var(--s3); align-items: center; font-size: 14px; }
     .links a { color: var(--muted); }
     .links a:hover { color: var(--text); text-decoration: none; }
-    .lang { display: inline-flex; border: 1px solid var(--border); border-radius: var(--r-sm); overflow: hidden; }
-    .lang button { background: none; border: 0; color: var(--muted); padding: 5px 10px; font: inherit; font-size: 13px; cursor: pointer; }
-    .lang button.on { background: var(--panel2); color: var(--text); }
+    .lang { border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--panel); color: var(--text); padding: 5px 8px; font: inherit; font-size: 13px; cursor: pointer; }
 
     /* ---------- buttons ---------- */
     .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--s1); min-height: 46px; padding: 0 22px;
@@ -150,9 +148,7 @@
         <a class="hide-sm" href="#features" data-t="nav.features"></a>
         <a class="hide-sm" href="#trust" data-t="nav.trust"></a>
         <a href="https://github.com/yobotn/rigsweep">GitHub</a>
-        <div class="lang" role="group" aria-label="Language">
-          <button data-lang="en">EN</button><button data-lang="es">ES</button><button data-lang="fr">FR</button>
-        </div>
+        <select class="lang" id="lang" aria-label="Language"></select>
       </div>
     </div>
   </nav>
@@ -213,6 +209,9 @@
         <div class="card"><div class="ic">⚙️</div><h3 data-t="f4.h"></h3><p data-t="f4.p"></p></div>
         <div class="card"><div class="ic">🔍</div><h3 data-t="f5.h"></h3><p data-t="f5.p"></p></div>
         <div class="card"><div class="ic">🌍</div><h3 data-t="f6.h"></h3><p data-t="f6.p"></p></div>
+        <div class="card"><div class="ic">🌡️</div><h3 data-t="f7.h"></h3><p data-t="f7.p"></p></div>
+        <div class="card"><div class="ic">🔄</div><h3 data-t="f8.h"></h3><p data-t="f8.p"></p></div>
+        <div class="card"><div class="ic">🧽</div><h3 data-t="f9.h"></h3><p data-t="f9.p"></p></div>
       </div>
     </section>
 
@@ -289,146 +288,45 @@
     </footer>
   </main>
 
+  <script src="locales/en.js"></script>
+  <script src="locales/de.js"></script>
+  <script src="locales/es.js"></script>
+  <script src="locales/fr.js"></script>
+  <script src="locales/it.js"></script>
+  <script src="locales/pt-BR.js"></script>
+  <script src="locales/ru.js"></script>
+  <script src="locales/ja.js"></script>
+  <script src="locales/ko.js"></script>
+  <script src="locales/zh-CN.js"></script>
   <script>
-    const T = {
-      en: {
-        "nav.features": "Features", "nav.trust": "Antivirus FAQ",
-        "hero.badge": "🆓 Free & open source · MIT",
-        "hero.title": "Room for your <span>agents</span>.",
-        "hero.sub": "Free up RAM and CPU on Windows dev machines cluttered by AI-agent sessions, forgotten dev servers and background Windows services. Every change is reversible.",
-        "hero.meta": "Windows 10 / 11 · ~2 MB installer · English · Español · Français",
-        "cta.download": "⬇️ Download for Windows", "cta.source": "⭐ View on GitHub", "cta.build": "🛠️ Build from source",
-        "eco.eyebrow": "Any dev stack", "eco.h": "Not just Node",
-        "eco.p": "Dev Cleanup finds leftover dev servers, build daemons and agent sessions across the stacks you actually use, plus the WSL 2 / Docker VM that quietly holds gigabytes.",
-        "story.eyebrow": "The story", "story.h": "📖 Why it exists",
-        "story.p1": "In the AI era a dev laptop doesn't run one thing anymore. A normal day means several Claude Code sessions in different terminals, a dev server per project, build watchers, and a browser full of docs and previews.",
-        "story.p2": "Every session spawns more processes, and many keep running after you close the terminal. Task Manager only shows a wall of node.exe, python.exe and chrome.exe, with no idea which session or project they belong to.",
-        "story.p3": "<strong>RigSweep shows what's actually using your machine, sweeps what's stale, and keeps every change reversible.</strong>",
-        "stat.chrome": "🌐 Chrome (37 processes)", "stat.node": "⬢ Node + Claude (14 processes)", "stat.services": "🧩 Windows services running",
-        "stat.cap": "Measured on the author's 32 GB laptop in the middle of a working day.",
-        "feat.eyebrow": "Features", "feat.h": "✨ What it does", "feat.lead": "Built for developers who live in terminals and AI agents, not for 'PC booster' tricks.",
-        "f1.h": "Dev Cleanup", "f1.p": "Orphaned and idle dev servers, build daemons and agent CLIs across Node, Python, Java, .NET and more, each with its process tree, project, RAM and ports.",
-        "f2.h": "Boost Report", "f2.p": "Real before/after measurements instead of fake percentages. You can copy them as Markdown and share your result.",
-        "f3.h": "Chrome tab helper", "f3.p": "A tiny extension to sleep idle tabs, close duplicates and close tabs by pattern like localhost:*. It has no network access.",
-        "f4.h": "Reversible tweaks", "f4.p": "Telemetry, Xbox, indexer, background apps and more, each with a risk level. Originals are backed up and restorable in one click.",
-        "f5.h": "Process analyzer", "f5.p": "CPU, RAM and disk per process, plus which services hide inside each svchost.exe.",
-        "f6.h": "3 languages", "f6.p": "English, Español and Français in the app, the installer and the Chrome extension.",
-        "clean.eyebrow": "Dev Cleanup", "clean.h": "🧹 Sweep stale sessions, safely", "shot.cleanup": "Dev Cleanup", "shot.dashboard": "Dashboard", "clean.l5": "<b>MCP servers and headless browsers your agents left behind</b> are found too, and a live meter shows the RAM you got back seconds after each sweep.",
-        "clean.l1": "<b>Orphans</b>: their terminal is closed but they're still running, like the classic zombie localhost:3000.",
-        "clean.l2": "<b>Idle agents in open terminals are never pre-selected</b>, because they're waiting for you.",
-        "clean.l3": "<b>Editor language servers are locked</b> (VS Code, Cursor, JetBrains, Visual Studio…).",
-        "clean.l4": "<b>Kills by process tree, never by port.</b> Each row is re-verified right before ending it, so two projects are never confused.",
-        "safe.eyebrow": "Reversible", "safe.h": "🛟 Every change can be undone", "shot.tweaks": "Tweaks",
-        "safe.l1": "<b>Original values are backed up</b> in SQLite before the first change.",
-        "safe.l2": "<b>System Restore point</b> before the first apply.",
-        "safe.l3": "<b>Watchdog</b> re-applies tweaks that Windows Update silently reverted.",
-        "safe.l4": "<b>Never touches</b> Windows Update, the Defender engine, or ~60 core services.",
-        "trust.eyebrow": "Antivirus", "trust.h": "🛡️ Did Defender delete it?",
-        "trust.p1": "RigSweep is open source but not code-signed yet. Tools that change services look like malware to machine-learning heuristics, so Defender may flag it by mistake (e.g. <code>Trojan:Win32/Bearfoos!ml</code>, where <code>!ml</code> means a heuristic guess).",
-        "trust.p2": "The installer <b>asks</b> whether to exclude only its own folder, and the uninstaller removes that exclusion again. Code signing through SignPath Foundation is planned. <a href=\"https://github.com/yobotn/rigsweep#%EF%B8%8F-antivirus-false-positives\">Read the full FAQ →</a>",
-        "disc.h": "⚠️ Disclaimer",
-        "disc.p": "RigSweep changes Windows services, scheduled tasks, registry policies and Microsoft Defender settings, and it can end running processes. Every tweak is backed up and can be restored, and nothing happens without your confirmation, but you use it at your own risk. It is provided \"as is\", without warranty of any kind (MIT license). Review each change before applying it, keep your own backups, and don't use it on work- or school-managed devices without your IT team's approval. RigSweep is an independent project, not affiliated with Microsoft, Google, Anthropic, OpenAI or any other tool it mentions; all trademarks belong to their owners.",
-        "sign.h": "🔏 Code signing", "sign.p": "Free code signing provided by SignPath.io, certificate by SignPath Foundation (application in progress; current releases are not signed yet). Installers are built from the tagged source by GitHub Actions. No telemetry, no analytics. The only network request is the update check, and only if you turn it on or click Check now.", "sign.link": "Code signing & privacy policy →", "start.h": "🚀 Give your agents some room", "start.p": "Install, take a baseline measurement, sweep, then measure again.",
-        "foot.l": "🧹 RigSweep · free forever under the MIT license", "foot.issues": "Report an issue", "foot.disc": "Disclaimer",
-      },
-      es: {
-        "nav.features": "Funciones", "nav.trust": "FAQ antivirus",
-        "hero.badge": "🆓 Gratis y de código abierto · MIT",
-        "hero.title": "Espacio para tus <span>agentes</span>.",
-        "hero.sub": "Libera RAM y CPU en equipos Windows de desarrollo saturados por sesiones de agentes IA, servidores dev olvidados y servicios de fondo de Windows. Cada cambio es reversible.",
-        "hero.meta": "Windows 10 / 11 · instalador de ~2 MB · English · Español · Français",
-        "cta.download": "⬇️ Descargar para Windows", "cta.source": "⭐ Ver en GitHub", "cta.build": "🛠️ Compilar",
-        "eco.eyebrow": "Cualquier stack", "eco.h": "No solo Node",
-        "eco.p": "La Limpieza dev encuentra servidores dev, daemons de compilación y sesiones de agentes olvidados en los stacks que realmente usas, además de la VM de WSL 2 / Docker que acapara gigas en silencio.",
-        "story.eyebrow": "La historia", "story.h": "📖 Por qué existe",
-        "story.p1": "En la era de la IA un portátil de desarrollo ya no ejecuta una sola cosa. Un día normal significa varias sesiones de Claude Code en distintas terminales, un servidor dev por proyecto, watchers de compilación y un navegador lleno de documentación y previsualizaciones.",
-        "story.p2": "Cada sesión lanza más procesos, y muchos siguen vivos al cerrar la terminal. El Administrador de tareas solo muestra una pared de node.exe, python.exe y chrome.exe, sin decir a qué sesión o proyecto pertenecen.",
-        "story.p3": "<strong>RigSweep muestra qué está usando realmente tu equipo, barre lo que sobra y que cada cambio sea reversible.</strong>",
-        "stat.chrome": "🌐 Chrome (37 procesos)", "stat.node": "⬢ Node + Claude (14 procesos)", "stat.services": "🧩 Servicios de Windows activos",
-        "stat.cap": "Medido en el portátil de 32 GB del autor en plena jornada de trabajo.",
-        "feat.eyebrow": "Funciones", "feat.h": "✨ Qué hace", "feat.lead": "Hecho para desarrolladores que viven en terminales y agentes IA, no para trucos de 'acelerador de PC'.",
-        "f1.h": "Limpieza dev", "f1.p": "Servidores dev, daemons de compilación y CLIs de agentes huérfanos o inactivos en Node, Python, Java, .NET y más, cada uno con su árbol de procesos, proyecto, RAM y puertos.",
-        "f2.h": "Informe de mejora", "f2.p": "Mediciones reales de antes y después en lugar de porcentajes inventados. Puedes copiarlas como Markdown y compartir tu resultado.",
-        "f3.h": "Asistente de pestañas", "f3.p": "Una pequeña extensión para dormir pestañas inactivas, cerrar duplicadas y cerrar por patrón como localhost:*. No tiene acceso a red.",
-        "f4.h": "Ajustes reversibles", "f4.p": "Telemetría, Xbox, indexador, apps en segundo plano y más, cada uno con nivel de riesgo. Los originales se respaldan y se restauran con un clic.",
-        "f5.h": "Analizador de procesos", "f5.p": "CPU, RAM y disco por proceso, y qué servicios se esconden dentro de cada svchost.exe.",
-        "f6.h": "3 idiomas", "f6.p": "English, Español y Français en la app, el instalador y la extensión de Chrome.",
-        "clean.eyebrow": "Limpieza dev", "clean.h": "🧹 Barre sesiones inactivas, con seguridad", "shot.cleanup": "Limpieza dev", "shot.dashboard": "Panel", "clean.l5": "<b>Servidores MCP y navegadores headless que dejaron tus agentes</b> también se detectan, y un medidor en vivo muestra la RAM recuperada segundos después de cada limpieza.",
-        "clean.l1": "<b>Huérfanos</b>: su terminal se cerró pero siguen en ejecución, como el clásico localhost:3000 zombi.",
-        "clean.l2": "<b>Los agentes inactivos en terminales abiertas nunca se preseleccionan</b>, porque te están esperando.",
-        "clean.l3": "<b>Los servidores de lenguaje del editor están bloqueados</b> (VS Code, Cursor, JetBrains, Visual Studio…).",
-        "clean.l4": "<b>Cierra por árbol de procesos, nunca por puerto.</b> Cada fila se vuelve a verificar justo antes de cerrarla, así que nunca se confunden dos proyectos.",
-        "safe.eyebrow": "Reversible", "safe.h": "🛟 Cada cambio se puede deshacer", "shot.tweaks": "Ajustes",
-        "safe.l1": "<b>Los valores originales se respaldan</b> en SQLite antes del primer cambio.",
-        "safe.l2": "<b>Punto de restauración del sistema</b> antes de la primera aplicación.",
-        "safe.l3": "<b>El vigilante</b> reaplica los ajustes que Windows Update revirtió sin avisar.",
-        "safe.l4": "<b>Nunca toca</b> Windows Update, el motor de Defender ni ~60 servicios esenciales.",
-        "trust.eyebrow": "Antivirus", "trust.h": "🛡️ ¿Defender lo borró?",
-        "trust.p1": "RigSweep es de código abierto pero aún no está firmado. Las herramientas que cambian servicios parecen malware para la heurística de aprendizaje automático, así que Defender puede marcarlo por error (p. ej. <code>Trojan:Win32/Bearfoos!ml</code>, donde <code>!ml</code> indica una suposición heurística).",
-        "trust.p2": "El instalador <b>pregunta</b> si quieres excluir solo su propia carpeta, y el desinstalador quita esa exclusión. La firma de código con SignPath Foundation está prevista. <a href=\"https://github.com/yobotn/rigsweep/blob/main/README.es.md#%EF%B8%8F-falsos-positivos-del-antivirus\">Leer la FAQ completa →</a>",
-        "disc.h": "⚠️ Aviso legal",
-        "disc.p": "RigSweep modifica servicios de Windows, tareas programadas, directivas del registro y la configuración de Microsoft Defender, y puede cerrar procesos en ejecución. Cada ajuste se respalda y se puede restaurar, y nada ocurre sin tu confirmación, pero lo usas bajo tu propia responsabilidad. Se proporciona \"tal cual\", sin garantía de ningún tipo (licencia MIT). Revisa cada cambio antes de aplicarlo, guarda tus propias copias de seguridad y no lo uses en equipos gestionados por tu empresa o centro educativo sin la aprobación de su equipo de TI. RigSweep es un proyecto independiente, sin relación con Microsoft, Google, Anthropic, OpenAI ni ninguna otra herramienta que mencione; todas las marcas pertenecen a sus dueños.",
-        "sign.h": "🔏 Firma de código", "sign.p": "Firma de código gratuita proporcionada por SignPath.io, certificado de SignPath Foundation (solicitud en curso; las versiones actuales aún no están firmadas). Los instaladores se compilan desde el código etiquetado con GitHub Actions. Sin telemetría ni analíticas. La única petición de red es la búsqueda de actualizaciones, y solo si la activas o haces clic en Buscar ahora.", "sign.link": "Política de firma y privacidad →", "start.h": "🚀 Dale espacio a tus agentes", "start.p": "Instala, toma una medición base, limpia y vuelve a medir.",
-        "foot.l": "🧹 RigSweep · gratis para siempre bajo licencia MIT", "foot.issues": "Reportar un problema", "foot.disc": "Aviso legal",
-      },
-      fr: {
-        "nav.features": "Fonctionnalités", "nav.trust": "FAQ antivirus",
-        "hero.badge": "🆓 Gratuit et open source · MIT",
-        "hero.title": "De la place pour vos <span>agents</span>.",
-        "hero.sub": "Libérez RAM et CPU sur les machines de dev Windows encombrées par les sessions d'agents IA, les serveurs de dev oubliés et les services Windows en arrière-plan. Chaque changement est réversible.",
-        "hero.meta": "Windows 10 / 11 · installateur d'environ 2 Mo · English · Español · Français",
-        "cta.download": "⬇️ Télécharger pour Windows", "cta.source": "⭐ Voir sur GitHub", "cta.build": "🛠️ Compiler",
-        "eco.eyebrow": "Tous les stacks", "eco.h": "Pas seulement Node",
-        "eco.p": "Le Nettoyage dev trouve les serveurs de dev, daemons de build et sessions d'agents oubliés dans les stacks que vous utilisez vraiment, ainsi que la VM WSL 2 / Docker qui garde discrètement des gigaoctets.",
-        "story.eyebrow": "L'histoire", "story.h": "📖 Pourquoi ce projet",
-        "story.p1": "À l'ère de l'IA, un portable de dev ne fait plus tourner une seule chose. Une journée normale, ce sont plusieurs sessions Claude Code dans différents terminaux, un serveur de dev par projet, des watchers de build et un navigateur rempli de docs et de previews.",
-        "story.p2": "Chaque session lance de nouveaux processus, et beaucoup continuent de tourner après la fermeture du terminal. Le Gestionnaire des tâches n'affiche qu'un mur de node.exe, python.exe et chrome.exe, sans dire à quelle session ou quel projet ils appartiennent.",
-        "story.p3": "<strong>RigSweep montre ce qui utilise vraiment votre machine, balaie ce qui traîne, et garde chaque changement réversible.</strong>",
-        "stat.chrome": "🌐 Chrome (37 processus)", "stat.node": "⬢ Node + Claude (14 processus)", "stat.services": "🧩 Services Windows actifs",
-        "stat.cap": "Mesuré sur le portable de 32 Go de l'auteur en pleine journée de travail.",
-        "feat.eyebrow": "Fonctionnalités", "feat.h": "✨ Ce qu'il fait", "feat.lead": "Pensé pour les développeurs qui vivent dans les terminaux et les agents IA, pas pour des astuces de « booster de PC ».",
-        "f1.h": "Nettoyage dev", "f1.p": "Serveurs de dev, daemons de build et CLI d'agents orphelins ou inactifs pour Node, Python, Java, .NET et plus, chacun avec son arbre de processus, son projet, sa RAM et ses ports.",
-        "f2.h": "Rapport de gain", "f2.p": "De vraies mesures avant/après au lieu de pourcentages inventés. Vous pouvez les copier en Markdown et partager votre résultat.",
-        "f3.h": "Assistant d'onglets", "f3.p": "Une petite extension pour mettre en veille les onglets inactifs, fermer les doublons et fermer par motif comme localhost:*. Elle n'a aucun accès réseau.",
-        "f4.h": "Réglages réversibles", "f4.p": "Télémétrie, Xbox, indexeur, apps en arrière-plan et plus, chacun avec un niveau de risque. Les originaux sont sauvegardés et restaurables en un clic.",
-        "f5.h": "Analyseur de processus", "f5.p": "CPU, RAM et disque par processus, et quels services se cachent dans chaque svchost.exe.",
-        "f6.h": "3 langues", "f6.p": "English, Español et Français dans l'app, l'installateur et l'extension Chrome.",
-        "clean.eyebrow": "Nettoyage dev", "clean.h": "🧹 Balayez les sessions inactives, en sécurité", "shot.cleanup": "Nettoyage dev", "shot.dashboard": "Tableau de bord", "clean.l5": "<b>Les serveurs MCP et navigateurs headless laissés par vos agents</b> sont aussi détectés, et une mesure en direct affiche la RAM récupérée quelques secondes après chaque nettoyage.",
-        "clean.l1": "<b>Orphelins</b> : leur terminal est fermé mais ils tournent encore, comme le classique localhost:3000 zombie.",
-        "clean.l2": "<b>Les agents inactifs dans un terminal ouvert ne sont jamais présélectionnés</b>, car ils vous attendent.",
-        "clean.l3": "<b>Les serveurs de langage de l'éditeur sont verrouillés</b> (VS Code, Cursor, JetBrains, Visual Studio…).",
-        "clean.l4": "<b>Ferme par arbre de processus, jamais par port.</b> Chaque ligne est revérifiée juste avant la fermeture, donc deux projets ne sont jamais confondus.",
-        "safe.eyebrow": "Réversible", "safe.h": "🛟 Chaque changement peut être annulé", "shot.tweaks": "Réglages",
-        "safe.l1": "<b>Les valeurs d'origine sont sauvegardées</b> dans SQLite avant le premier changement.",
-        "safe.l2": "<b>Point de restauration système</b> avant la première application.",
-        "safe.l3": "<b>La surveillance</b> réapplique les réglages annulés en silence par Windows Update.",
-        "safe.l4": "<b>Ne touche jamais</b> Windows Update, le moteur Defender ni ~60 services essentiels.",
-        "trust.eyebrow": "Antivirus", "trust.h": "🛡️ Defender l'a supprimé ?",
-        "trust.p1": "RigSweep est open source mais pas encore signé. Les outils qui modifient des services ressemblent à des malwares pour l'heuristique d'apprentissage automatique, donc Defender peut le signaler à tort (ex. <code>Trojan:Win32/Bearfoos!ml</code>, où <code>!ml</code> désigne une supposition heuristique).",
-        "trust.p2": "L'installateur <b>demande</b> si vous voulez exclure uniquement son propre dossier, et le désinstallateur retire cette exclusion. La signature de code via SignPath Foundation est prévue. <a href=\"https://github.com/yobotn/rigsweep/blob/main/README.fr.md#%EF%B8%8F-faux-positifs-antivirus\">Lire la FAQ complète →</a>",
-        "disc.h": "⚠️ Avertissement",
-        "disc.p": "RigSweep modifie des services Windows, des tâches planifiées, des stratégies du registre et la configuration de Microsoft Defender, et peut fermer des processus en cours. Chaque réglage est sauvegardé et restaurable, et rien ne se passe sans votre confirmation, mais vous l'utilisez à vos propres risques. Il est fourni « tel quel », sans aucune garantie (licence MIT). Vérifiez chaque changement avant de l'appliquer, gardez vos propres sauvegardes et ne l'utilisez pas sur un appareil géré par votre employeur ou votre école sans l'accord de leur service informatique. RigSweep est un projet indépendant, sans lien avec Microsoft, Google, Anthropic, OpenAI ni aucun autre outil mentionné ; toutes les marques appartiennent à leurs propriétaires.",
-        "sign.h": "🔏 Signature de code", "sign.p": "Signature de code gratuite fournie par SignPath.io, certificat de SignPath Foundation (demande en cours ; les versions actuelles ne sont pas encore signées). Les installateurs sont compilés à partir du code tagué par GitHub Actions. Ni télémétrie ni analytique. La seule requête réseau est la recherche de mises à jour, et seulement si vous l'activez ou cliquez sur Rechercher maintenant.", "sign.link": "Politique de signature et de confidentialité →", "start.h": "🚀 Donnez de la place à vos agents", "start.p": "Installez, prenez une mesure de référence, balayez, puis mesurez à nouveau.",
-        "foot.l": "🧹 RigSweep · gratuit pour toujours sous licence MIT", "foot.issues": "Signaler un problème", "foot.disc": "Avertissement",
-      },
+    const LANGS = { "en": "English", "de": "Deutsch", "es": "Español", "fr": "Français", "it": "Italiano", "pt-BR": "Português (Brasil)", "ru": "Русский", "ja": "日本語", "ko": "한국어", "zh-CN": "简体中文" };
+    // the Dashboard shot is a real capture (en/es/fr); the Dev Cleanup shot exists in every language
+    const DASH = { en: "dashboard", es: "dashboard-es", fr: "dashboard-fr" };
+    const ALIAS = { pt: "pt-BR", zh: "zh-CN" };
+    const resolve = (tag) => {
+      if (!tag) return null;
+      if (T[tag]) return tag;
+      const b = tag.split("-")[0].toLowerCase();
+      return T[b] ? b : (T[ALIAS[b]] ? ALIAS[b] : null);
     };
-    const IMG = { en: ["dashboard", "cleanup"], es: ["dashboard-es", "cleanup-es"], fr: ["dashboard-fr", "cleanup-fr"] };
+    const sel = document.getElementById("lang");
+    sel.innerHTML = Object.entries(LANGS).filter(([c]) => T[c]).map(([c, n]) => `<option value="${c}">${n}</option>`).join("");
 
     function apply(lang) {
       if (!T[lang]) lang = "en";
       document.documentElement.lang = lang;
       document.querySelectorAll("[data-t]").forEach((el) => (el.textContent = T[lang][el.dataset.t] ?? T.en[el.dataset.t]));
-      // trusted static strings from the table above (no user input)
+      // trusted static strings from docs/locales (no user input)
       document.querySelectorAll("[data-t-html]").forEach((el) => (el.innerHTML = T[lang][el.dataset.tHtml] ?? T.en[el.dataset.tHtml]));
-      document.querySelectorAll(".lang button").forEach((b) => b.classList.toggle("on", b.dataset.lang === lang));
-      document.getElementById("img-dashboard").src = `screenshots/${IMG[lang][0]}.png`;
-      document.getElementById("img-hero").src = `screenshots/${IMG[lang][1]}.png`;
+      sel.value = lang;
+      document.getElementById("img-dashboard").src = `screenshots/${DASH[lang] || DASH.en}.png`;
+      document.getElementById("img-hero").src = `screenshots/${lang === "en" ? "cleanup" : "cleanup-" + lang}.png`;
       try { localStorage.setItem("lang", lang); } catch {}
     }
-    document.querySelectorAll(".lang button").forEach((b) => b.addEventListener("click", () => apply(b.dataset.lang)));
-    let initial = "en";
-    try { initial = localStorage.getItem("lang") || (navigator.language || "en").slice(0, 2); } catch {}
-    apply(initial);
+    sel.addEventListener("change", () => apply(sel.value));
+    let saved = null;
+    try { saved = localStorage.getItem("lang"); } catch {}
+    apply(resolve(saved) || (navigator.languages || [navigator.language]).map(resolve).find(Boolean) || "en");
     const nav = document.getElementById("nav");
     addEventListener("scroll", () => nav.classList.toggle("scrolled", scrollY > 8), { passive: true });
   </script>

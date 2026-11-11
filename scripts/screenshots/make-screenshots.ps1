@@ -25,7 +25,7 @@ $html = $html.Replace('<script src="app.js"></script>', '<script src="app.js"></
 [IO.File]::WriteAllText($index, $html, (New-Object Text.UTF8Encoding $false))
 
 $url = ([Uri]$index).AbsoluteUri
-foreach ($lang in "en", "es", "fr") {
+foreach ($lang in "en", "de", "es", "fr", "it", "pt-BR", "ru", "ja", "ko", "zh-CN") {
   $name = if ($lang -eq "en") { "cleanup.png" } else { "cleanup-$lang.png" }
   $png = Join-Path $out $name
   # separate profile so an open Edge window is never reused

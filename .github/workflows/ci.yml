@@ -25,5 +25,5 @@ jobs:
           node-version: 20
       - name: JS syntax + translation keys
         run: |
-          node -e "const fs=require('fs');for(const f of ['ui/app.js','ui/i18n.js','chrome-extension/popup.js','chrome-extension/background.js'])new Function(fs.readFileSync(f,'utf8'));"
-          node -e "global.navigator={language:'en'};global.localStorage={getItem(){},setItem(){}};eval(require('fs').readFileSync('ui/i18n.js','utf8')+';global.I=I18N');const en=Object.keys(I.en);for(const l of ['es','fr']){const m=en.filter(k=>!(k in I[l]));if(m.length){console.error(l,'missing',m);process.exit(1)}}console.log('i18n ok',en.length)"
+          node -e "const fs=require('fs');for(const f of ['ui/app.js','ui/i18n.js','chrome-extension/popup.js','chrome-extension/background.js',...fs.readdirSync('ui/locales').map(f=>'ui/locales/'+f),...fs.readdirSync('docs/locales').map(f=>'docs/locales/'+f)])new Function(fs.readFileSync(f,'utf8'));"
+          node scripts/check-i18n.js
