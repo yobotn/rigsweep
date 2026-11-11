@@ -30,6 +30,18 @@ pub struct Settings {
     /// check GitHub for a new version at startup and once a day (off unless the user turns it on)
     #[serde(default)]
     pub auto_update: bool,
+    /// Dev Disk: folders scanned for projects
+    #[serde(default = "crate::devdisk::default_roots")]
+    pub disk_roots: Vec<String>,
+    /// Dev Disk: never scanned (full paths or folder-name patterns), on top of the built-in list
+    #[serde(default)]
+    pub disk_excludes: Vec<String>,
+    /// Dev Disk: package caches marked "never clean"
+    #[serde(default = "crate::devdisk::default_disabled")]
+    pub disk_disabled: Vec<String>,
+    /// Dev Disk: suggest projects nobody has edited for this many days
+    #[serde(default = "crate::devdisk::default_stale_days")]
+    pub disk_stale_days: u32,
 }
 
 fn yes() -> bool {
@@ -40,6 +52,10 @@ fn default_warn_gb() -> f32 {
 }
 fn default_alert_gb() -> f32 {
     2.0
+}
+
+fn json_list(db: &Db, key: &str) -> Option<Vec<String>> {
+    db.get_setting(key).and_then(|s| serde_json::from_str(&s).ok())
 }
 
 fn default_idle_minutes() -> u32 {
@@ -73,6 +89,13 @@ impl Settings {
             badge_warn_gb: db.get_setting("badge_warn_gb").and_then(|s| s.parse().ok()).unwrap_or(default_warn_gb()),
             badge_alert_gb: db.get_setting("badge_alert_gb").and_then(|s| s.parse().ok()).unwrap_or(default_alert_gb()),
             auto_update: db.get_setting("auto_update").as_deref() == Some("1"),
+            disk_roots: json_list(db, "disk_roots").unwrap_or_else(crate::devdisk::default_roots),
+            disk_excludes: json_list(db, "disk_excludes").unwrap_or_default(),
+            disk_disabled: json_list(db, "disk_disabled").unwrap_or_else(crate::devdisk::default_disabled),
+            disk_stale_days: db
+                .get_setting("disk_stale_days")
+                .and_then(|s| s.parse().ok())
+                .unwrap_or_else(crate::devdisk::default_stale_days),
         }
     }
 
@@ -89,6 +112,11 @@ impl Settings {
         db.set_setting("badge_warn_gb", &warn.to_string())?;
         db.set_setting("badge_alert_gb", &alert.to_string())?;
         db.set_setting("auto_update", if self.auto_update { "1" } else { "0" })?;
+        let clean = |v: &[String]| v.iter().map(|x| x.trim().to_string()).filter(|x| !x.is_empty()).collect::<Vec<_>>();
+        db.set_setting("disk_roots", &serde_json::to_string(&clean(&self.disk_roots))?)?;
+        db.set_setting("disk_excludes", &serde_json::to_string(&clean(&self.disk_excludes))?)?;
+        db.set_setting("disk_disabled", &serde_json::to_string(&clean(&self.disk_disabled))?)?;
+        db.set_setting("disk_stale_days", &self.disk_stale_days.clamp(1, 3650).to_string())?;
         Ok(())
     }
 }

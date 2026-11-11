@@ -71,6 +71,15 @@ Python et Java font aussi tourner des applications de bureau ordinaires : pour 
 - 🔒 **Verrouillé** : les processus appartenant à **VS Code, Cursor, JetBrains, Visual Studio…** (vos serveurs de langage) ou à une app de bureau ne peuvent jamais être terminés d'ici.
 - ✅ Rien n'est terminé sans votre confirmation, et la réutilisation de PID est vérifiée avant chaque arrêt.
 
+### 💾 Disque dev : node_modules et caches de paquets
+Les vieux projets gardent des gigaoctets de `node_modules`, `.next`, `target`, `bin/obj` et `.venv` bien après que vous ayez arrêté d'y travailler, et les caches de paquets ne font que grossir. RigSweep repère les deux et supprime ce que vous choisissez.
+
+- 🗂️ **Projets** : dossiers de build et de dépendances de Node, Rust, .NET, Java/Gradle/Maven et Python. Un dossier ne compte que si son fichier de projet est juste à côté (`package.json`, `Cargo.toml`, `*.csproj`, `pyvenv.cfg`…), un dossier `build` quelconque n'est donc jamais touché. Seuls les projets que personne n'a modifiés depuis 30 jours (réglable) sont présélectionnés, et ceux qu'un processus utilise sont verrouillés 🔒.
+- 📦 **Caches de paquets** : npm, npx, pnpm, Yarn, Bun, pip, uv, Cargo, Go, NuGet, Gradle, Maven, Playwright, Puppeteer, Hugging Face. pnpm, uv et Go sont nettoyés avec leurs propres commandes (`pnpm store prune`…) ; pour Playwright et Puppeteer, seules les anciennes versions des navigateurs partent, la plus récente reste.
+- 🚫 **Ne jamais nettoyer** : chaque cache peut être désactivé. Ceux qui impliquent un gros retéléchargement (Playwright, Puppeteer, Hugging Face, Gradle, Maven, paquets NuGet, modules Go) sont désactivés au départ.
+- 🙈 **Exclusions** : AppData, les dossiers d'outils de votre profil (`.cargo`, `.nvm`, `.vscode`…), `.git` et Windows sont toujours ignorés. Ajoutez vos propres chemins ou noms de dossier (`vendor`, `old-*`) dans les Paramètres, ou cliquez sur **Exclure** sur un projet.
+- ✅ Analyse par défaut votre profil utilisateur (Bureau, Documents, Téléchargements, OneDrive…). Rien n'est supprimé sans votre confirmation, et chaque dossier est revérifié juste avant la suppression.
+
 ### 📊 Rapport de gains : un vrai avant/après
 Pas de faux chiffres du genre « votre PC est 87 % plus rapide ». RigSweep **mesure** votre machine et compare deux relevés : RAM utilisée/libre, CPU moyen, nombre de processus, services en cours d'exécution, RAM de Chrome et RAM Node/agents.
 

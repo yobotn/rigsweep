@@ -71,6 +71,15 @@ Mit Python und Java laufen auch gewöhnliche Desktop-Apps, daher werden dort nur
 - 🔒 **Gesperrt**: Prozesse, die zu **VS Code, Cursor, JetBrains, Visual Studio…** (Ihren Language Servern) oder zu einer Desktop-App gehören, können hier nie beendet werden.
 - ✅ Nichts wird ohne Ihre Bestätigung beendet, und vor jedem Beenden wird geprüft, ob die PID inzwischen wiederverwendet wurde.
 
+### 💾 Dev-Speicher: node_modules und Paket-Caches
+Alte Projekte behalten gigabyteweise `node_modules`, `.next`, `target`, `bin/obj` und `.venv`, lange nachdem Sie nicht mehr daran arbeiten, und Paket-Caches wachsen nur. RigSweep findet beides und löscht, was Sie auswählen.
+
+- 🗂️ **Projekte**: Build-Ausgaben und Abhängigkeitsordner von Node, Rust, .NET, Java/Gradle/Maven und Python. Ein Ordner zählt nur, wenn seine Projektdatei daneben liegt (`package.json`, `Cargo.toml`, `*.csproj`, `pyvenv.cfg`…), ein beliebiger `build`-Ordner bleibt also unangetastet. Vorausgewählt werden nur Projekte, die 30 Tage (einstellbar) niemand bearbeitet hat, und Projekte, die ein laufender Prozess verwendet, sind gesperrt 🔒.
+- 📦 **Paket-Caches**: npm, npx, pnpm, Yarn, Bun, pip, uv, Cargo, Go, NuGet, Gradle, Maven, Playwright, Puppeteer, Hugging Face. pnpm, uv und Go werden mit ihren eigenen Befehlen bereinigt (`pnpm store prune`…); bei Playwright und Puppeteer werden nur ältere Browserversionen entfernt, die neueste bleibt.
+- 🚫 **Nie bereinigen**: Jeder Cache lässt sich ausschalten. Die mit großem erneutem Download (Playwright, Puppeteer, Hugging Face, Gradle, Maven, NuGet-Pakete, Go-Module) sind anfangs ausgeschaltet.
+- 🙈 **Ausnahmen**: AppData, Tool-Ordner in Ihrem Profil (`.cargo`, `.nvm`, `.vscode`…), `.git` und Windows werden immer übersprungen. Eigene Pfade oder Ordnernamen (`vendor`, `old-*`) fügen Sie in den Einstellungen hinzu, oder Sie klicken bei einem Projekt auf **Ausschließen**.
+- ✅ Durchsucht standardmäßig Ihr Benutzerprofil (Desktop, Dokumente, Downloads, OneDrive…). Ohne Ihre Bestätigung wird nichts gelöscht, und jeder Ordner wird direkt vor dem Löschen noch einmal geprüft.
+
 ### 📊 Boost-Bericht: echtes Vorher und Nachher
 Keine erfundenen Angaben wie „Ihr PC ist 87 % schneller“. RigSweep **misst** Ihren Rechner und vergleicht zwei Momentaufnahmen: belegter/freier RAM, durchschnittliche CPU-Last, Anzahl der Prozesse, laufende Dienste, Chrome-RAM, Node-/Agent-RAM.
 

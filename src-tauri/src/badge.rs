@@ -139,6 +139,10 @@ mod tests {
             badge_warn_gb: warn,
             badge_alert_gb: alert,
             auto_update: false,
+            disk_roots: vec![],
+            disk_excludes: vec![],
+            disk_disabled: vec![],
+            disk_stale_days: 30,
         }
     }
 

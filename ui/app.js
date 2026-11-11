@@ -95,6 +95,7 @@ function showTab(name) {
   if (name === "processes") { loadProcesses(); procTimer = setInterval(() => $("#proc-auto").checked && loadProcesses(), 3000); }
   if (name === "dashboard") loadDashboard();
   if (name === "cleanup") loadDev();
+  if (name === "disk" && !disk) loadDisk();
   if (name === "browser") loadBrowsers();
   if (name === "report") loadSnapshots();
   if (name === "history") loadHistory();
@@ -424,6 +425,138 @@ $("#btn-bc-clean").onclick = async (e) => {
   loadBrowsers();
 };
 
+// ---------- dev disk ----------
+// Paths are only display data here: the backend re-verifies every (project, folder) or cache id.
+function lines(v) { return v.split(/\r?\n/).map((x) => x.trim()).filter(Boolean); }
+let disk = null;            // DiskReport
+let diskSel = new Set();    // "c|id" or "p|path|name"
+const diskSeen = new Set();
+const cKey = (c) => `c|${c.id}`;
+const aKey = (p, a) => `p|${p.path}|${a.name}`;
+const diskRows = () => [
+  ...(disk?.caches || []).filter((c) => !c.disabled && !c.busy && c.bytes > 0).map((c) => ({ k: cKey(c), bytes: c.bytes, c })),
+  ...(disk?.projects || []).filter((p) => !p.busy).flatMap((p) => p.items.map((a) => ({ k: aKey(p, a), bytes: a.bytes, p, a }))),
+];
+const shortPath = (p) => disk?.home && p.toLowerCase().startsWith(disk.home.toLowerCase() + "\\") ? "~" + p.slice(disk.home.length) : p;
+// caches: only the "rebuilds itself" ones worth the click; projects: what the backend suggests
+const diskSuggested = (r) => r.c ? r.c.tier === "safe" && r.bytes >= 50 * 1048576 : r.a.suggest;
+const DISK_ECO = { node: "Node", rust: "Rust", java: "Java", dotnet: ".NET", python: "Python", browser: "", go: "Go", leftover: "" };
+
+async function loadDisk(btn) {
+  busy(btn, true, t("disk.scanning"));
+  if (!disk) $("#disk-body").innerHTML = `<tr><td colspan="6" class="loading">${esc(t("disk.scanning"))}</td></tr>`;
+  try { disk = await call("get_dev_disk"); } finally { busy(btn, false); }
+  const rows = diskRows(), keys = new Set(rows.map((r) => r.k));
+  diskSel = new Set([...diskSel].filter((k) => keys.has(k)));
+  rows.forEach((r) => { if (!diskSeen.has(r.k) && diskSuggested(r)) diskSel.add(r.k); diskSeen.add(r.k); });
+  renderDisk();
+}
+
+function renderDisk() {
+  if (!disk) return;
+  const picked = diskRows().filter((r) => diskSel.has(r.k)).reduce((a, r) => a + r.bytes, 0);
+  $("#disk-summary").textContent = t("disk.summary", {
+    caches: fmtBytes(disk.cache_total), projects: fmtBytes(disk.project_total), n: disk.projects.length,
+    stale: fmtBytes(disk.stale_total), sel: fmtBytes(picked),
+  });
+  const chk = (k, locked) => locked ? "🔒" : `<input type="checkbox" data-disk="${esc(k)}" ${diskSel.has(k) ? "checked" : ""} />`;
+  const tier = (x) => `<span class="risk ${x === "safe" || x === "build" ? "safe" : "moderate"}">${esc(t("disk.tier." + x))}</span>`;
+  let html = "";
+  if (disk.caches.length) {
+    html += `<tr class="group"><td colspan="6"><b>${esc(t("disk.caches"))}</b> <span class="sub">${fmtBytes(disk.cache_total)}</span></td></tr>`;
+    html += disk.caches.map((c) => {
+      const info = [];
+      if (c.disabled) info.push(`<span class="badge">${esc(t("disk.disabled"))}</span>`);
+      if (c.busy) info.push(`<span class="badge idle">${esc(t("disk.cacheBusy"))}</span>`);
+      if (c.keep_newest) info.push(esc(t("disk.keepNewest", { total: fmtBytes(c.total) })));
+      if (c.tool) info.push(esc(t("disk.tool", { c: c.tool })));
+      return `<tr class="${c.disabled || c.busy ? "locked" : ""}" title="${esc(c.paths.join("\n"))}">
+        <td>${c.disabled ? "🚫" : chk(cKey(c), c.busy || c.bytes === 0)}</td>
+        <td>${esc(t("disk.cache." + c.id))}</td><td>${tier(c.tier)}</td>
+        <td class="num">${fmtBytes(c.bytes)}</td><td class="sub">${info.join(" · ")}</td>
+        <td><button class="small ghost" data-disk-toggle="${esc(c.id)}" data-on="${c.disabled ? 1 : 0}">${esc(t(c.disabled ? "disk.enable" : "disk.disable"))}</button></td>
+      </tr>`;
+    }).join("");
+  }
+  html += `<tr class="group"><td colspan="6"><b>${esc(t("disk.projects"))}</b> <span class="sub">${fmtBytes(disk.project_total)}</span></td></tr>`;
+  if (!disk.projects.length) html += `<tr><td colspan="6" class="loading">${esc(t("disk.none", { roots: disk.roots.map(shortPath).join(", ") }))}</td></tr>`;
+  html += disk.projects.map((p) => {
+    const total = p.items.reduce((a, i) => a + i.bytes, 0);
+    const badges = [
+      p.busy ? `<span class="badge serving">${esc(t("disk.inUse"))}</span>` : "",
+      p.stale ? `<span class="badge idle">${esc(t("disk.untouched", { d: p.idle_days }))}</span>`
+        : `<span class="badge active">${esc(p.idle_days === 0 ? t("disk.today") : t("disk.recent", { d: p.idle_days }))}</span>`,
+      p.onedrive ? `<span class="badge orphan">${esc(t("disk.onedrive"))}</span>` : "",
+    ].join("");
+    const head = `<tr class="group"><td></td><td colspan="2"><b title="${esc(p.path)}">${esc(shortPath(p.path))}</b></td>
+      <td class="num sub">${fmtBytes(total)}</td><td>${badges}</td>
+      <td><button class="small ghost" data-disk-exclude="${esc(p.path)}">${esc(t("disk.exclude"))}</button></td></tr>`;
+    return head + p.items.map((a) => {
+      const note = a.eco === "leftover" ? t("disk.leftover") : a.pnpm ? t("disk.pnpm") : a.eco === "python" && a.tier === "deps" ? t("disk.venv") : "";
+      return `<tr class="${p.busy ? "locked" : ""}">
+        <td>${chk(aKey(p, a), p.busy)}</td><td><code>${esc(a.name)}</code> <span class="sub">${esc(DISK_ECO[a.eco] ?? a.eco)}</span></td>
+        <td>${tier(a.tier)}</td><td class="num">${fmtBytes(a.bytes)}</td><td class="sub">${esc(note)}</td><td></td>
+      </tr>`;
+    }).join("");
+  }).join("");
+  $("#disk-body").innerHTML = html;
+}
+
+$("#disk-body").addEventListener("change", (e) => {
+  const k = e.target.dataset.disk;
+  if (k) { e.target.checked ? diskSel.add(k) : diskSel.delete(k); renderDisk(); }
+});
+$("#disk-body").addEventListener("click", async (e) => {
+  const tg = e.target.closest("[data-disk-toggle]"), ex = e.target.closest("[data-disk-exclude]");
+  if (tg) {
+    const id = tg.dataset.diskToggle, enabled = tg.dataset.on === "1";
+    state.settings = await call("set_disk_cache_enabled", { id, enabled });
+    const c = disk.caches.find((x) => x.id === id);
+    if (c) c.disabled = !enabled;
+    if (!enabled) diskSel.delete(`c|${id}`);
+    disk.cache_total = disk.caches.filter((x) => !x.disabled).reduce((a, x) => a + x.bytes, 0);
+    renderDisk();
+  } else if (ex) {
+    const path = ex.dataset.diskExclude;
+    if (!(await modal(t("disk.excludeConfirm", { p: shortPath(path) }), `<p>${esc(t("disk.excludeBody"))}</p>`, { okText: t("disk.exclude") }))) return;
+    state.settings = await call("add_disk_exclude", { path });
+    const low = path.toLowerCase();
+    disk.projects = disk.projects.filter((p) => { const l = p.path.toLowerCase(); return l !== low && !l.startsWith(low + "\\"); });
+    [...diskSel].filter((k) => k.startsWith("p|") && !diskRows().some((r) => r.k === k)).forEach((k) => diskSel.delete(k));
+    toast(t("disk.excluded", { p: shortPath(path) }));
+    renderDisk();
+  }
+});
+$("#btn-disk-scan").onclick = (e) => loadDisk(e.target);
+$("#btn-disk-suggest").onclick = () => { diskRows().filter(diskSuggested).forEach((r) => diskSel.add(r.k)); renderDisk(); };
+$("#btn-disk-clean").onclick = async (e) => {
+  const picked = diskRows().filter((r) => diskSel.has(r.k));
+  if (!picked.length) return toast(t("disk.nothing"));
+  const size = picked.reduce((a, r) => a + r.bytes, 0);
+  const deps = picked.some((r) => r.a?.tier === "deps");
+  const redl = picked.some((r) => r.c?.tier === "redownload");
+  const od = picked.some((r) => r.p?.onedrive);
+  const li = picked.map((r) => r.c
+    ? `<li>${esc(t("disk.cache." + r.c.id))} <span class="sub">${fmtBytes(r.bytes)}</span></li>`
+    : `<li>${esc(shortPath(r.p.path))}\\<b>${esc(r.a.name)}</b> <span class="sub">${fmtBytes(r.bytes)}</span></li>`).join("");
+  const html = `<p>${esc(t("disk.confirm.body"))}</p><ul class="scroll-list">${li}</ul>
+    ${deps ? `<p class="warn-text">${esc(t("disk.deps.warn"))}</p>` : ""}
+    ${redl ? `<p class="warn-text">${esc(t("disk.redl.warn"))}</p>` : ""}
+    ${od ? `<p class="warn-text">${esc(t("disk.od.warn"))}</p>` : ""}`;
+  if (!(await modal(t("disk.confirm.title", { size: fmtBytes(size) }), html, { okText: t("disk.clean"), danger: true }))) return;
+  busy(e.target, true, t("disk.cleaning"));
+  try {
+    const targets = picked.map((r) => r.c ? { kind: "cache", id: r.c.id, name: "" } : { kind: "project", id: r.p.path, name: r.a.name });
+    const r = await call("clean_dev_disk", { targets });
+    let msg = t("disk.done", { mem: fmtBytes(r.freed) });
+    if (r.locked_files) msg += "\n" + t("disk.locked", { n: r.locked_files });
+    if (r.skipped.length) msg += "\n" + t("disk.skipped") + "\n• " + r.skipped.map(shortPath).join("\n• ");
+    toast(msg, r.skipped.length > 0, 10000);
+    picked.forEach((x) => diskSel.delete(x.k));
+  } finally { busy(e.target, false); }
+  loadDisk();
+};
+
 // ---------- boost report ----------
 let reportPick = null; // {before, after} snapshot ids
 const METRICS = [
@@ -690,6 +823,9 @@ function renderSettings() {
   $("#s-badge-alert").value = s.badge_alert_gb ?? 2;
   $("#s-folders").value = s.dev_folders.join("\n");
   $("#s-autoupdate").checked = !!s.auto_update;
+  $("#s-disk-roots").value = (s.disk_roots || []).join("\n");
+  $("#s-disk-excludes").value = (s.disk_excludes || []).join("\n");
+  $("#s-disk-stale").value = s.disk_stale_days ?? 30;
   renderUpdate();
   $("#s-info").textContent = t("set.info", { s: state.startup_registered ? t("set.registered") : t("set.notRegistered"), d: state.data_dir });
   loadAv();
@@ -729,7 +865,11 @@ $("#btn-save-settings").onclick = async (e) => {
     badge_warn_gb: Number($("#s-badge-warn").value) || 1,
     badge_alert_gb: Number($("#s-badge-alert").value) || 2,
     auto_update: $("#s-autoupdate").checked,
-    dev_folders: $("#s-folders").value.split(/\r?\n/).map((x) => x.trim()).filter(Boolean),
+    dev_folders: lines($("#s-folders").value),
+    disk_roots: lines($("#s-disk-roots").value),
+    disk_excludes: lines($("#s-disk-excludes").value),
+    disk_disabled: state.settings.disk_disabled || [],
+    disk_stale_days: Math.min(3650, Math.max(1, Math.round(Number($("#s-disk-stale").value)) || 30)),
   };
   busy(e.target, true, t("set.saving"));
   try {

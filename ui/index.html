@@ -12,6 +12,7 @@
     <nav>
       <button data-tab="dashboard" class="active" data-i18n="nav.dashboard"></button>
       <button data-tab="cleanup" data-i18n="nav.cleanup"></button>
+      <button data-tab="disk" data-i18n="nav.disk"></button>
       <button data-tab="browser" data-i18n="nav.browser"></button>
       <button data-tab="report" data-i18n="nav.report"></button>
       <button data-tab="tweaks" data-i18n="nav.tweaks"></button>
@@ -87,6 +88,27 @@
           <th data-i18n="clean.col.ports"></th><th data-i18n="clean.col.status"></th>
         </tr></thead>
         <tbody id="clean-body"><tr><td colspan="7" class="loading">…</td></tr></tbody>
+      </table>
+    </section>
+
+    <!-- DEV DISK -->
+    <section id="tab-disk" class="tab">
+      <header>
+        <h1 data-i18n="disk.title"></h1>
+        <div class="actions">
+          <button id="btn-disk-scan" class="ghost" data-i18n="disk.scan"></button>
+          <button id="btn-disk-suggest" class="ghost" data-i18n="disk.selectSuggested"></button>
+          <button id="btn-disk-clean" class="danger" data-i18n="disk.clean"></button>
+        </div>
+      </header>
+      <p class="hint" data-i18n="disk.hint"></p>
+      <div id="disk-summary" class="summary"></div>
+      <table class="tbl">
+        <thead><tr>
+          <th></th><th data-i18n="disk.col.what"></th><th data-i18n="disk.col.type"></th>
+          <th class="num" data-i18n="disk.col.size"></th><th data-i18n="disk.col.info"></th><th></th>
+        </tr></thead>
+        <tbody id="disk-body"><tr><td colspan="6" class="loading">…</td></tr></tbody>
       </table>
     </section>
 
@@ -199,6 +221,18 @@
           <textarea id="s-folders" rows="6" spellcheck="false"></textarea>
         </label>
         <p class="hint" id="s-info"></p>
+      </div>
+
+      <div class="card form">
+        <h2 data-i18n="set.disk"></h2>
+        <label><span data-i18n="set.diskRoots"></span>
+          <textarea id="s-disk-roots" rows="4" spellcheck="false"></textarea>
+        </label>
+        <label><span data-i18n="set.diskExcludes"></span>
+          <textarea id="s-disk-excludes" rows="4" spellcheck="false" placeholder="D:\work\legacy-app&#10;vendor&#10;old-*"></textarea>
+        </label>
+        <label><span data-i18n="set.diskStale"></span> <input type="number" id="s-disk-stale" min="1" max="3650" /></label>
+        <p class="hint" data-i18n="set.diskBuiltin"></p>
       </div>
 
       <div class="card form" id="upd-card">

@@ -8,6 +8,7 @@ mod catalog;
 mod commands;
 mod db;
 mod devclean;
+mod devdisk;
 mod elevation;
 mod engine;
 mod heat;
@@ -114,6 +115,10 @@ fn run_app(start_hidden: bool) {
             commands::kill_dev_processes,
             commands::get_browser_caches,
             commands::clean_browser_caches,
+            commands::get_dev_disk,
+            commands::clean_dev_disk,
+            commands::set_disk_cache_enabled,
+            commands::add_disk_exclude,
             commands::take_snapshot,
             commands::get_snapshots,
             commands::clear_snapshots,

@@ -71,6 +71,15 @@ Python과 Java로는 일반 데스크톱 앱도 실행되므로, 이 두 언어�
 - 🔒 **잠김**: **VS Code, Cursor, JetBrains, Visual Studio…**(언어 서버)나 데스크톱 앱이 소유한 프로세스는 여기서 종료할 수 없습니다.
 - ✅ 사용자가 확인하기 전에는 아무것도 종료되지 않으며, 종료할 때마다 PID 재사용 여부를 확인합니다.
 
+### 💾 개발 디스크: node_modules와 패키지 캐시
+오래된 프로젝트는 작업을 그만둔 뒤에도 수 GB의 `node_modules`, `.next`, `target`, `bin/obj`, `.venv`를 그대로 갖고 있고, 패키지 캐시는 계속 늘어나기만 합니다. RigSweep이 둘 다 찾아서 선택한 것을 삭제합니다.
+
+- 🗂️ **프로젝트**: Node, Rust, .NET, Java/Gradle/Maven, Python의 빌드 출력과 의존성 폴더. 옆에 프로젝트 파일(`package.json`, `Cargo.toml`, `*.csproj`, `pyvenv.cfg` 등)이 있는 폴더만 대상이라, 아무 `build` 폴더나 건드리는 일은 없습니다. 30일(변경 가능) 동안 아무도 수정하지 않은 프로젝트만 미리 선택되며, 실행 중인 프로세스가 사용하는 프로젝트는 잠깁니다 🔒.
+- 📦 **패키지 캐시**: npm, npx, pnpm, Yarn, Bun, pip, uv, Cargo, Go, NuGet, Gradle, Maven, Playwright, Puppeteer, Hugging Face. pnpm, uv, Go는 각자의 명령(`pnpm store prune` 등)으로 정리하고, Playwright와 Puppeteer는 이전 브라우저 버전만 지우고 최신 버전은 남깁니다.
+- 🚫 **정리 안 함**: 어떤 캐시든 끌 수 있습니다. 다시 받으려면 다운로드가 큰 것(Playwright, Puppeteer, Hugging Face, Gradle, Maven, NuGet 패키지, Go 모듈)은 처음부터 꺼져 있습니다.
+- 🙈 **제외**: AppData, 프로필 안의 도구 폴더(`.cargo`, `.nvm`, `.vscode` 등), `.git`, Windows는 항상 건너뜁니다. 직접 경로나 폴더 이름(`vendor`, `old-*`)을 설정에서 추가하거나, 프로젝트에서 **제외**를 클릭하세요.
+- ✅ 기본적으로 사용자 프로필(바탕 화면, 문서, 다운로드, OneDrive 등)을 검색합니다. 확인 없이는 아무것도 삭제하지 않으며, 각 폴더는 삭제 직전에 한 번 더 확인합니다.
+
 ### 📊 부스트 보고서: 실제 전후 비교
 "PC가 87% 빨라졌습니다" 같은 가짜 숫자는 없습니다. RigSweep은 PC를 **측정**하고 두 스냅샷을 비교합니다: 사용 중/사용 가능한 RAM, 평균 CPU, 프로세스 수, 실행 중인 서비스, Chrome RAM, Node/에이전트 RAM.
 

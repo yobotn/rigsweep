@@ -212,3 +212,7 @@ tr.group td { background: var(--panel2); padding-top: 9px; padding-bottom: 9px; 
 .pill.update { border: 0; cursor: pointer; color: var(--safe); background: #34c38f1f; text-align: left; font: inherit; font-size: 12px; }
 .upd-notes { margin-top: 8px; font-size: 12px; }
 .upd-notes pre { white-space: pre-wrap; font-family: inherit; color: var(--muted); max-height: 180px; overflow: auto; margin: 4px 0 0; }
+
+/* dev disk */
+.scroll-list { max-height: 260px; overflow: auto; padding-left: 18px; }
+#disk-body code { font-size: 12px; }

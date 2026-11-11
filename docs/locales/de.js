@@ -24,6 +24,7 @@ T["de"] = {
   "f7.h": "Temperaturen", "f7.p": "CPU- und GPU-Temperaturen mit 5-Minuten-Verlauf und einer Warnung, wenn Ihr PC dauerhaft heiß läuft. Kein Treiber, keine Administratorrechte.",
   "f8.h": "Updates nach Ihrer Wahl", "f8.p": "Standardmäßig aus. Suchen Sie bei Bedarf oder aktivieren Sie eine tägliche Suche. Updates werden nur installiert, wenn Sie klicken, und nur, wenn sie signiert sind.",
   "f9.h": "Browser-Bereinigung", "f9.p": "Leert die Caches von Chrome, Edge, Brave, Vivaldi, Opera und Firefox. Anmeldungen, Cookies, Passwörter und Verlauf bleiben immer unberührt.",
+  "f10.h": "Dev-Speicher", "f10.p": "Löscht node_modules, .next, target und .venv in Projekten, die Sie nicht mehr anfassen, und bereinigt Paket-Caches (npm, pnpm, pip, Cargo, Go…). Alles lässt sich ausschließen, jeder Cache abschalten.",
     "clean.eyebrow": "Dev-Bereinigung", "clean.h": "🧹 Liegen gebliebene Sitzungen sicher aufräumen", "shot.cleanup": "Dev-Bereinigung", "shot.dashboard": "Übersicht", "clean.l5": "<b>MCP-Server und Headless-Browser, die Ihre Agents zurückgelassen haben,</b> werden ebenfalls gefunden, und eine Live-Anzeige zeigt Sekunden nach jeder Bereinigung, wie viel RAM Sie zurückbekommen haben.",
     "clean.l1": "<b>Verwaiste Prozesse</b>: Ihr Terminal ist geschlossen, aber sie laufen weiter, wie der klassische Zombie localhost:3000.",
     "clean.l2": "<b>Inaktive Agents in offenen Terminals werden nie vorausgewählt</b>, denn sie warten auf Sie.",

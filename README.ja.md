@@ -71,6 +71,15 @@ Python と Java は一般的なデスクトップ アプリでも使われるた
 - 🔒 **ロック**: **VS Code、Cursor、JetBrains、Visual Studio など** (言語サーバー) やデスクトップ アプリが所有するプロセスは、ここから終了することはできません。
 - ✅ 確認なしに終了されることはなく、終了の前には毎回 PID の再利用をチェックします。
 
+### 💾 開発ディスク: node_modules とパッケージキャッシュ
+古いプロジェクトには、作業をやめたあとも何 GB もの `node_modules`、`.next`、`target`、`bin/obj`、`.venv` が残り続け、パッケージキャッシュは増える一方です。RigSweep はその両方を見つけて、選んだものを削除します。
+
+- 🗂️ **プロジェクト**: Node、Rust、.NET、Java/Gradle/Maven、Python のビルド出力と依存関係のフォルダー。隣にプロジェクトファイル (`package.json`、`Cargo.toml`、`*.csproj`、`pyvenv.cfg` など) があるフォルダーだけが対象なので、無関係な `build` フォルダーに触れることはありません。あらかじめ選択されるのは 30 日間 (変更可) 誰も編集していないプロジェクトだけで、実行中のプロセスが使っているプロジェクトはロックされます 🔒。
+- 📦 **パッケージキャッシュ**: npm、npx、pnpm、Yarn、Bun、pip、uv、Cargo、Go、NuGet、Gradle、Maven、Playwright、Puppeteer、Hugging Face。pnpm、uv、Go はそれぞれのコマンド (`pnpm store prune` など) でクリーンアップし、Playwright と Puppeteer は古いブラウザーのバージョンだけを削除して最新版を残します。
+- 🚫 **クリーンアップしない**: どのキャッシュもオフにできます。再ダウンロードが大きいもの (Playwright、Puppeteer、Hugging Face、Gradle、Maven、NuGet パッケージ、Go モジュール) は最初からオフです。
+- 🙈 **除外**: AppData、プロファイル内のツール用フォルダー (`.cargo`、`.nvm`、`.vscode` など)、`.git`、Windows は常にスキップします。独自のパスやフォルダー名 (`vendor`、`old-*`) は設定で追加するか、プロジェクトの **除外** をクリックします。
+- ✅ 既定ではユーザープロファイル (デスクトップ、ドキュメント、ダウンロード、OneDrive など) をスキャンします。確認なしに削除されることはなく、各フォルダーは削除の直前にもう一度チェックされます。
+
 ### 📊 ブースト レポート: 実際の前後比較
 「PC が 87% 高速になりました」のような見せかけの数値はありません。RigSweep はマシンを**測定**し、2 つのスナップショットを比較します: 使用中/空きの RAM、平均 CPU、プロセス数、実行中のサービス、Chrome の RAM、Node/エージェントの RAM。
 

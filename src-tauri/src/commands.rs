@@ -8,6 +8,7 @@ use crate::actions::defender;
 use crate::analyzer::{Analyzer, Metrics, Snapshot};
 use crate::browserclean::{self, BrowserReport, CleanResult, CleanTarget};
 use crate::devclean::{self, DevReport, KillResult, KillTarget};
+use crate::devdisk::{self, DiskCleanResult, DiskReport, DiskTarget};
 use crate::catalog::{custom_service_tweak, Category, Tweak};
 use crate::db::{Db, HistoryRow, SnapshotRow};
 use crate::engine::{self, OpResult, ReapplySummary, Settings, TweakStatus};
@@ -297,6 +298,14 @@ pub async fn import_profile(state: State<'_, AppState>, json: String) -> R<Vec<S
         if let Some(m) = s.get("watchdog_minutes").and_then(|v| v.as_u64()) {
             cur.watchdog_minutes = m as u32;
         }
+        for (key, slot) in [("disk_roots", &mut cur.disk_roots), ("disk_excludes", &mut cur.disk_excludes), ("disk_disabled", &mut cur.disk_disabled)] {
+            if let Some(v) = s.get(key).and_then(|v| serde_json::from_value::<Vec<String>>(v.clone()).ok()) {
+                *slot = v;
+            }
+        }
+        if let Some(d) = s.get("disk_stale_days").and_then(|v| v.as_u64()) {
+            cur.disk_stale_days = d as u32;
+        }
         cur.save(&db).map_err(err)?;
     }
     let catalog = engine::load_catalog(&db);
@@ -373,6 +382,72 @@ pub async fn clean_browser_caches(state: State<'_, AppState>, targets: Vec<Clean
         db.log("gui", None, "browser_clean", true, &format!("freed {:.1} MB, {} locked file(s) left", r.freed as f64 / 1048576.0, r.locked_files));
     }
     Ok(r)
+}
+
+// ---------- dev disk ----------
+
+fn disk_config(s: &Settings) -> devdisk::Config {
+    devdisk::Config {
+        roots: s.disk_roots.clone(),
+        excludes: s.disk_excludes.clone(),
+        disabled: s.disk_disabled.clone(),
+        stale_days: s.disk_stale_days,
+    }
+}
+
+#[tauri::command]
+pub async fn get_dev_disk(state: State<'_, AppState>) -> R<DiskReport> {
+    let cfg = disk_config(&Settings::load(&*lock(&state)?));
+    tauri::async_runtime::spawn_blocking(move || devdisk::report(&cfg)).await.map_err(err)
+}
+
+/// Delete the selected folders / empty the selected caches. Every target is verified again on
+/// this side (scan roots, exclusions, links, manifest, in use) before anything is removed.
+#[tauri::command]
+pub async fn clean_dev_disk(state: State<'_, AppState>, targets: Vec<DiskTarget>) -> R<DiskCleanResult> {
+    let cfg = disk_config(&Settings::load(&*lock(&state)?));
+    let r = tauri::async_runtime::spawn_blocking(move || devdisk::clean(&cfg, &targets)).await.map_err(err)?;
+    let db = lock(&state)?;
+    for c in &r.cleaned {
+        db.log("gui", None, "disk_clean", true, c);
+    }
+    for s in &r.skipped {
+        db.log("gui", None, "disk_clean", false, s);
+    }
+    if r.freed > 0 {
+        db.log("gui", None, "disk_clean", true, &format!("freed {:.1} MB, {} locked file(s) left", r.freed as f64 / 1048576.0, r.locked_files));
+    }
+    Ok(r)
+}
+
+/// "Never clean" switch for one package cache.
+#[tauri::command]
+pub async fn set_disk_cache_enabled(state: State<'_, AppState>, id: String, enabled: bool) -> R<Settings> {
+    let db = lock(&state)?;
+    let mut s = Settings::load(&db);
+    s.disk_disabled.retain(|d| d != &id);
+    if !enabled {
+        s.disk_disabled.push(id);
+    }
+    s.save(&db).map_err(err)?;
+    Ok(Settings::load(&db))
+}
+
+/// Add a project folder to the Dev Disk exclusions.
+#[tauri::command]
+pub async fn add_disk_exclude(state: State<'_, AppState>, path: String) -> R<Settings> {
+    let path = path.trim().to_string();
+    if !std::path::Path::new(&path).is_absolute() {
+        return Err("not an absolute path".into());
+    }
+    let db = lock(&state)?;
+    let mut s = Settings::load(&db);
+    if !s.disk_excludes.iter().any(|x| x.eq_ignore_ascii_case(&path)) {
+        s.disk_excludes.push(path.clone());
+    }
+    s.save(&db).map_err(err)?;
+    db.log("gui", None, "disk_exclude", true, &path);
+    Ok(Settings::load(&db))
 }
 
 // ---------- boost report ----------

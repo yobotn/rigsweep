@@ -71,6 +71,15 @@ Python y Java también ejecutan apps de escritorio normales, así que en esos ca
 - 🔒 **Bloqueado**: los procesos que pertenecen a **VS Code, Cursor, JetBrains, Visual Studio…** (tus servidores de lenguaje) o a una app de escritorio nunca se pueden finalizar desde aquí.
 - ✅ Nada se finaliza sin tu confirmación, y antes de cada cierre se comprueba que el PID no se haya reutilizado.
 
+### 💾 Disco dev: node_modules y cachés de paquetes
+Los proyectos antiguos conservan gigas de `node_modules`, `.next`, `target`, `bin/obj` y `.venv` mucho después de que dejes de trabajar en ellos, y las cachés de paquetes no paran de crecer. RigSweep encuentra ambas cosas y borra lo que elijas.
+
+- 🗂️ **Proyectos**: carpetas de compilación y de dependencias de Node, Rust, .NET, Java/Gradle/Maven y Python. Una carpeta solo cuenta si su archivo de proyecto está al lado (`package.json`, `Cargo.toml`, `*.csproj`, `pyvenv.cfg`…), así que nunca se toca una carpeta `build` cualquiera. Solo se preseleccionan los proyectos que nadie ha editado en 30 días (ajustable), y los que usa un proceso en marcha quedan bloqueados 🔒.
+- 📦 **Cachés de paquetes**: npm, npx, pnpm, Yarn, Bun, pip, uv, Cargo, Go, NuGet, Gradle, Maven, Playwright, Puppeteer, Hugging Face. pnpm, uv y Go se limpian con sus propios comandos (`pnpm store prune`…); en Playwright y Puppeteer solo se quitan las versiones antiguas del navegador y se conserva la más reciente.
+- 🚫 **No limpiar nunca**: puedes desactivar cualquier caché. Las que implican una descarga grande (Playwright, Puppeteer, Hugging Face, Gradle, Maven, paquetes de NuGet, módulos de Go) vienen desactivadas.
+- 🙈 **Exclusiones**: AppData, las carpetas de herramientas de tu perfil (`.cargo`, `.nvm`, `.vscode`…), `.git` y Windows se omiten siempre. Añade tus propias rutas o nombres de carpeta (`vendor`, `old-*`) en Ajustes, o pulsa **Excluir** en un proyecto.
+- ✅ Por defecto analiza tu perfil de usuario (Escritorio, Documentos, Descargas, OneDrive…). No se borra nada sin tu confirmación, y cada carpeta se vuelve a comprobar justo antes de borrarla.
+
 ### 📊 Informe de mejora: antes y después reales
 Nada de cifras falsas como "tu PC es un 87 % más rápido". RigSweep **mide** tu equipo y compara dos capturas: RAM usada/libre, CPU media, número de procesos, servicios en ejecución, RAM de Chrome y RAM de Node/agentes.
 

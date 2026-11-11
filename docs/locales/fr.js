@@ -24,6 +24,7 @@ T["fr"] = {
     "f7.h": "Températures", "f7.p": "Températures du CPU et du GPU avec la tendance sur 5 minutes et une alerte si votre PC reste trop chaud. Sans pilote ni droits d'administrateur.",
     "f8.h": "Mises à jour, à vous de choisir", "f8.p": "Désactivées par défaut. Recherchez quand vous voulez, ou activez une vérification quotidienne. Les mises à jour ne s'installent que sur un clic de votre part, et seulement si elles sont signées.",
     "f9.h": "Nettoyage des navigateurs", "f9.p": "Vide le cache de Chrome, Edge, Brave, Vivaldi, Opera et Firefox. Les sessions ouvertes, cookies, mots de passe et l'historique ne sont jamais touchés.",
+    "f10.h": "Disque dev", "f10.p": "Supprime node_modules, .next, target et .venv des projets délaissés et nettoie les caches de paquets (npm, pnpm, pip, Cargo, Go…). Excluez ce que vous voulez, désactivez n'importe quel cache.",
     "clean.eyebrow": "Nettoyage dev", "clean.h": "🧹 Balayez les sessions inactives, en sécurité", "shot.cleanup": "Nettoyage dev", "shot.dashboard": "Tableau de bord", "clean.l5": "<b>Les serveurs MCP et navigateurs headless laissés par vos agents</b> sont aussi détectés, et une mesure en direct affiche la RAM récupérée quelques secondes après chaque nettoyage.",
     "clean.l1": "<b>Orphelins</b> : leur terminal est fermé mais ils tournent encore, comme le classique localhost:3000 zombie.",
     "clean.l2": "<b>Les agents inactifs dans un terminal ouvert ne sont jamais présélectionnés</b>, car ils vous attendent.",
