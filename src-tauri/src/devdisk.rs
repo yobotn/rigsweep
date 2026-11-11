@@ -808,6 +808,9 @@ pub struct DiskTarget {
 pub struct DiskCleanResult {
     pub freed: u64,
     pub cleaned: Vec<String>,
+    /// UI keys of the targets that are gone ("c|id" / "p|path|name"), so the list can drop them
+    /// right away instead of waiting for a full rescan
+    pub done: Vec<String>,
     pub skipped: Vec<String>,
     pub locked_files: u64,
 }
@@ -931,6 +934,7 @@ pub fn clean(cfg: &Config, targets: &[DiskTarget]) -> DiskCleanResult {
                     r.freed += freed;
                     r.locked_files += left;
                     r.cleaned.push(format!("cache {} ({:.1} MB)", def.id, freed as f64 / 1048576.0));
+                    r.done.push(format!("c|{}", def.id));
                 }
                 Err(e) => r.skipped.push(format!("{}: {e}", def.id)),
             }
@@ -941,6 +945,7 @@ pub fn clean(cfg: &Config, targets: &[DiskTarget]) -> DiskCleanResult {
                     r.freed += freed;
                     r.locked_files += left;
                     r.cleaned.push(format!("{label} ({:.1} MB)", freed as f64 / 1048576.0));
+                    r.done.push(format!("p|{}|{}", t.id, t.name));
                 }
                 Err(e) => r.skipped.push(format!("{label}: {e}")),
             }

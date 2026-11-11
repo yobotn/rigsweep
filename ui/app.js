@@ -442,8 +442,14 @@ const shortPath = (p) => disk?.home && p.toLowerCase().startsWith(disk.home.toLo
 const diskSuggested = (r) => r.c ? r.c.tier === "safe" && r.bytes >= 50 * 1048576 : r.a.suggest;
 const DISK_ECO = { node: "Node", rust: "Rust", java: "Java", dotnet: ".NET", python: "Python", browser: "", go: "Go", leftover: "" };
 
-async function loadDisk(btn) {
-  busy(btn, true, t("disk.scanning"));
+let diskLoading = null;     // the scan in flight: a second click or tab switch waits for it
+function loadDisk() {
+  if (!diskLoading) diskLoading = scanDisk().finally(() => { diskLoading = null; });
+  return diskLoading;
+}
+async function scanDisk() {
+  const btn = $("#btn-disk-scan");
+  busy(btn, true, t("bc.scanning"));
   if (!disk) $("#disk-body").innerHTML = `<tr><td colspan="6" class="loading">${esc(t("disk.scanning"))}</td></tr>`;
   try { disk = await call("get_dev_disk"); } finally { busy(btn, false); }
   const rows = diskRows(), keys = new Set(rows.map((r) => r.k));
@@ -527,7 +533,7 @@ $("#disk-body").addEventListener("click", async (e) => {
     renderDisk();
   }
 });
-$("#btn-disk-scan").onclick = (e) => loadDisk(e.target);
+$("#btn-disk-scan").onclick = () => loadDisk();
 $("#btn-disk-suggest").onclick = () => { diskRows().filter(diskSuggested).forEach((r) => diskSel.add(r.k)); renderDisk(); };
 $("#btn-disk-clean").onclick = async (e) => {
   const picked = diskRows().filter((r) => diskSel.has(r.k));
@@ -553,6 +559,17 @@ $("#btn-disk-clean").onclick = async (e) => {
     if (r.skipped.length) msg += "\n" + t("disk.skipped") + "\n• " + r.skipped.map(shortPath).join("\n• ");
     toast(msg, r.skipped.length > 0, 10000);
     picked.forEach((x) => diskSel.delete(x.k));
+    // drop what's gone at once; the rescan below (slow on big trees) only refreshes the sizes
+    const gone = new Set(r.done);
+    disk.caches.forEach((c) => { if (gone.has(cKey(c))) { c.bytes = 0; c.total = 0; } });
+    disk.caches = disk.caches.filter((c) => c.total > 0);
+    disk.projects.forEach((p) => { p.items = p.items.filter((a) => !gone.has(aKey(p, a))); });
+    disk.projects = disk.projects.filter((p) => p.items.length);
+    const sum = (p) => p.items.reduce((a, i) => a + i.bytes, 0);
+    disk.cache_total = disk.caches.filter((c) => !c.disabled).reduce((a, c) => a + c.bytes, 0);
+    disk.project_total = disk.projects.reduce((a, p) => a + sum(p), 0);
+    disk.stale_total = disk.projects.filter((p) => p.stale).reduce((a, p) => a + sum(p), 0);
+    renderDisk();
   } finally { busy(e.target, false); }
   loadDisk();
 };
