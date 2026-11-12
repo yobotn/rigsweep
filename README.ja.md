@@ -75,7 +75,7 @@ Python と Java は一般的なデスクトップ アプリでも使われるた
 古いプロジェクトには、作業をやめたあとも何 GB もの `node_modules`、`.next`、`target`、`bin/obj`、`.venv` が残り続け、パッケージキャッシュは増える一方です。RigSweep はその両方を見つけて、選んだものを削除します。
 
 - 🗂️ **プロジェクト**: Node、Rust、.NET、Java/Gradle/Maven、Python のビルド出力と依存関係のフォルダー。隣にプロジェクトファイル (`package.json`、`Cargo.toml`、`*.csproj`、`pyvenv.cfg` など) があるフォルダーだけが対象なので、無関係な `build` フォルダーに触れることはありません。あらかじめ選択されるのは 30 日間 (変更可) 誰も編集していないプロジェクトだけで、実行中のプロセスが使っているプロジェクトはロックされます 🔒。
-- 📦 **パッケージキャッシュ**: npm、npx、pnpm、Yarn、Bun、pip、uv、Cargo、Go、NuGet、Gradle、Maven、Playwright、Puppeteer、Hugging Face。pnpm、uv、Go はそれぞれのコマンド (`pnpm store prune` など) でクリーンアップし、Playwright と Puppeteer は古いブラウザーのバージョンだけを削除して最新版を残します。
+- 📦 **パッケージキャッシュ**: npm、npx、pnpm、Yarn、Bun、pip、uv、Cargo、Go、NuGet、Gradle、Maven、Playwright、Puppeteer、Hugging Face。uv と Go はそれぞれのコマンド (`uv cache prune`、`go clean`) でクリーンアップし、Playwright と Puppeteer は古いブラウザーのバージョンだけを削除して最新版を残します。
 - 🎯 **自動選択**: 開発ディスク タブ上で、プロジェクトが何日更新されていなければ対象にするか (3～365 日)、どのフォルダーにチェックを入れるか (ビルド出力、依存関係、パッケージ キャッシュ)、最小サイズを選べます。
 - 🚫 **クリーンアップしない**: どのキャッシュもオフにできます。再ダウンロードが大きいもの (Playwright、Puppeteer、Hugging Face、Gradle、Maven、NuGet パッケージ、Go モジュール) は最初からオフです。
 - 🙈 **除外**: AppData、プロファイル内のツール用フォルダー (`.cargo`、`.nvm`、`.vscode` など)、`.git`、Windows は常にスキップします。独自のパスやフォルダー名 (`vendor`、`old-*`) は設定で追加するか、プロジェクトの **除外** をクリックします。

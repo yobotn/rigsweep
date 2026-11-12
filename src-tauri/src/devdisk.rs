@@ -5,9 +5,14 @@
 //!   next to it (package.json, Cargo.toml, *.csproj, pyvenv.cfg…), so a random `build` or `target`
 //!   folder is never touched. Only projects nobody has edited for a while are suggested.
 //! - Package caches: npm, pnpm, Yarn, Bun, pip, uv, Cargo, Go, NuGet, Gradle, Maven, Playwright,
-//!   Puppeteer, Hugging Face. When a tool has its own cleanup command (pnpm store prune, uv cache
-//!   prune, go clean) that is used instead of deleting files. Each cache can be switched off
-//!   ("never clean"); the expensive-to-download ones start switched off.
+//!   Puppeteer, Hugging Face. uv and Go are cleaned with their own commands (uv cache prune,
+//!   go clean), which are stopped after a time limit. The pnpm store is emptied directly:
+//!   `pnpm store prune` can hang for a long time without saying why, and projects keep working
+//!   without the store because their node_modules files are hard links to the same data. Each
+//!   cache can be switched off ("never clean"); the expensive-to-download ones start switched off.
+//!
+//! Hard links: a file that has other links (pnpm's node_modules and store) frees no space when
+//! one name is deleted, so it is left out of "can free" (for the pnpm store) and of "freed".
 //!
 //! Exclusions: a built-in list (AppData, tool homes such as .cargo/.nvm/.vscode, .git, Windows)
 //! is always skipped, because global installs and editor extensions keep their own node_modules
@@ -285,6 +290,50 @@ fn local_size(p: &Path) -> u64 {
             Ok(m) if is_reparse(&m) => 0,
             Ok(m) if m.is_dir() => local_size(&e.path()),
             Ok(m) if attrs(&m) & (ATTR_OFFLINE | ATTR_RECALL_ON_OPEN | ATTR_RECALL_ON_DATA_ACCESS) != 0 => 0,
+            Ok(m) => m.len(),
+            Err(_) => 0,
+        })
+        .sum()
+}
+
+/// Number of hard links (names) the file has; 1 when it can't be read.
+fn link_count(p: &Path) -> u32 {
+    use std::os::windows::ffi::OsStrExt;
+    use windows::core::PCWSTR;
+    use windows::Win32::Foundation::CloseHandle;
+    use windows::Win32::Storage::FileSystem::{
+        CreateFileW, GetFileInformationByHandle, BY_HANDLE_FILE_INFORMATION, FILE_FLAG_OPEN_REPARSE_POINT,
+        FILE_READ_ATTRIBUTES, FILE_SHARE_DELETE, FILE_SHARE_READ, FILE_SHARE_WRITE, OPEN_EXISTING,
+    };
+    let w: Vec<u16> = p.as_os_str().encode_wide().chain(Some(0)).collect();
+    unsafe {
+        let Ok(h) = CreateFileW(
+            PCWSTR(w.as_ptr()),
+            FILE_READ_ATTRIBUTES.0,
+            FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+            None,
+            OPEN_EXISTING,
+            FILE_FLAG_OPEN_REPARSE_POINT,
+            None,
+        ) else {
+            return 1;
+        };
+        let mut info = BY_HANDLE_FILE_INFORMATION::default();
+        let n = if GetFileInformationByHandle(h, &mut info).is_ok() { info.nNumberOfLinks.max(1) } else { 1 };
+        let _ = CloseHandle(h);
+        n
+    }
+}
+
+/// Like `local_size`, but only files with no other hard link: what deleting `p` really frees.
+fn unshared_size(p: &Path) -> u64 {
+    let Ok(rd) = fs::read_dir(p) else { return 0 };
+    rd.flatten()
+        .map(|e| match e.metadata() {
+            Ok(m) if is_reparse(&m) => 0,
+            Ok(m) if m.is_dir() => unshared_size(&e.path()),
+            Ok(m) if attrs(&m) & (ATTR_OFFLINE | ATTR_RECALL_ON_OPEN | ATTR_RECALL_ON_DATA_ACCESS) != 0 => 0,
+            Ok(_) if link_count(&e.path()) > 1 => 0,
             Ok(m) => m.len(),
             Err(_) => 0,
         })
@@ -578,7 +627,7 @@ struct CacheDef {
 const CACHES: &[CacheDef] = &[
     CacheDef { id: "npm", eco: "node", tier: "safe", how: How::Empty, busy: &[] },
     CacheDef { id: "npx", eco: "node", tier: "redownload", how: How::Empty, busy: &["\\_npx\\"] },
-    CacheDef { id: "pnpm", eco: "node", tier: "safe", how: How::Tool("cmd.exe", &["/d", "/c", "pnpm", "store", "prune"]), busy: &[] },
+    CacheDef { id: "pnpm", eco: "node", tier: "redownload", how: How::Empty, busy: &[] },
     CacheDef { id: "yarn", eco: "node", tier: "safe", how: How::Empty, busy: &[] },
     CacheDef { id: "bun", eco: "node", tier: "safe", how: How::Empty, busy: &["\\bun.exe"] },
     CacheDef { id: "nodegyp", eco: "node", tier: "safe", how: How::Empty, busy: &[] },
@@ -735,7 +784,14 @@ fn scan_caches(cfg: &Config, hay: &[String]) -> Vec<CacheView> {
             return None;
         }
         let total: u64 = paths.iter().map(|p| local_size(p)).sum();
-        let bytes = if def.how == How::KeepNewest { targets_of(def).iter().map(|p| local_size(p)).sum() } else { total };
+        let bytes = if def.how == How::KeepNewest {
+            targets_of(def).iter().map(|p| local_size(p)).sum()
+        } else if def.id == "pnpm" {
+            // packages still linked into a node_modules stay on disk after the store goes
+            paths.iter().map(|p| unshared_size(p)).sum()
+        } else {
+            total
+        };
         Some(CacheView {
             id: def.id,
             eco: def.eco,
@@ -903,10 +959,14 @@ fn wipe_entry(path: &Path, left: &AtomicU64) -> bool {
         perm.set_readonly(false);
         let _ = fs::set_permissions(path, perm);
     }
+    // another hard link keeps the data on disk (pnpm store <-> node_modules)
+    let shared = link_count(path) > 1;
     match fs::remove_file(path) {
         Ok(()) => {
             FILES.fetch_add(1, Ordering::Relaxed);
-            FREED.fetch_add(m.len(), Ordering::Relaxed);
+            if !shared {
+                FREED.fetch_add(m.len(), Ordering::Relaxed);
+            }
         }
         Err(_) => {
             left.fetch_add(1, Ordering::Relaxed);
@@ -948,12 +1008,58 @@ fn rename_artifact(p: &Path) -> Result<PathBuf, String> {
     Ok(tmp)
 }
 
+/// A tool's own cleanup gets this long before it is killed.
+const TOOL_LIMIT: Duration = Duration::from_secs(15 * 60);
+
+/// Run a cleanup tool without a console window. It is killed when Stop is pressed or after
+/// TOOL_LIMIT, so a tool that hangs can't hold up the whole cleanup.
 fn run_tool(exe: &str, args: &[&str]) -> Result<(), String> {
-    match util::run(exe, args) {
-        Ok(o) if o.ok => Ok(()),
-        Ok(o) => Err(if o.stderr.trim().is_empty() { o.stdout } else { o.stderr }.trim().chars().take(200).collect()),
-        Err(e) => Err(e.to_string()),
+    use std::io::Read;
+    use std::os::windows::process::CommandExt;
+    use std::process::{Command, Stdio};
+    let mut child = Command::new(exe)
+        .args(args)
+        .creation_flags(0x0800_0000) // CREATE_NO_WINDOW
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .map_err(|e| format!("failed to run {exe}: {e}"))?;
+    // drain both pipes on threads so a chatty tool can't block on a full pipe
+    let drain = |r: Option<Box<dyn Read + Send>>| {
+        std::thread::spawn(move || {
+            let mut s = Vec::new();
+            if let Some(mut r) = r {
+                let _ = r.read_to_end(&mut s);
+            }
+            String::from_utf8_lossy(&s).into_owned()
+        })
+    };
+    let out = drain(child.stdout.take().map(|r| Box::new(r) as Box<dyn Read + Send>));
+    let err = drain(child.stderr.take().map(|r| Box::new(r) as Box<dyn Read + Send>));
+    let start = Instant::now();
+    let status = loop {
+        match child.try_wait() {
+            Ok(Some(s)) => break s,
+            Ok(None) if CTL.load(Ordering::SeqCst) == STOP => {
+                let _ = child.kill();
+                let _ = child.wait();
+                return Err("stopped".into());
+            }
+            Ok(None) if start.elapsed() > TOOL_LIMIT => {
+                let _ = child.kill();
+                let _ = child.wait();
+                return Err(format!("no result after {} minutes, stopped", TOOL_LIMIT.as_secs() / 60));
+            }
+            Ok(None) => std::thread::sleep(Duration::from_millis(200)),
+            Err(e) => return Err(e.to_string()),
+        }
+    };
+    if status.success() {
+        return Ok(());
     }
+    let (o, e) = (out.join().unwrap_or_default(), err.join().unwrap_or_default());
+    Err(if e.trim().is_empty() { o } else { e }.trim().chars().take(200).collect())
 }
 
 /// Returns (files left, stopped). Bytes are counted in FREED as files go; a tool's own cleanup

@@ -75,7 +75,7 @@ Python 和 Java 也会运行普通的桌面应用，因此对于这两者，只�
 旧项目在你不再碰它们之后，仍然留着好几 GB 的 `node_modules`、`.next`、`target`、`bin/obj` 和 `.venv`，而包缓存只会越来越大。RigSweep 会把这两类都找出来，删除你选中的内容。
 
 - 🗂️ **项目**：Node、Rust、.NET、Java/Gradle/Maven 和 Python 的构建产物与依赖文件夹。只有旁边有项目文件（`package.json`、`Cargo.toml`、`*.csproj`、`pyvenv.cfg` 等）的文件夹才算数，所以随便一个 `build` 文件夹绝不会被动到。只会预先勾选 30 天（可调整）没人编辑过的项目，正被运行中的进程使用的项目会被锁定 🔒。
-- 📦 **包缓存**：npm、npx、pnpm、Yarn、Bun、pip、uv、Cargo、Go、NuGet、Gradle、Maven、Playwright、Puppeteer、Hugging Face。pnpm、uv 和 Go 用它们自己的命令清理（`pnpm store prune` 等）；Playwright 和 Puppeteer 只删除旧版浏览器，保留最新版本。
+- 📦 **包缓存**：npm、npx、pnpm、Yarn、Bun、pip、uv、Cargo、Go、NuGet、Gradle、Maven、Playwright、Puppeteer、Hugging Face。uv 和 Go 用它们自己的命令清理（`uv cache prune`、`go clean`）；Playwright 和 Puppeteer 只删除旧版浏览器，保留最新版本。
 - 🎯 **自动选择**：直接在开发磁盘页设置项目闲置多久才算过期（3 到 365 天）、勾选哪些文件夹（构建产物、依赖、包缓存）以及最小体积。
 - 🚫 **从不清理**：任何缓存都可以关掉。需要大量重新下载的那些（Playwright、Puppeteer、Hugging Face、Gradle、Maven、NuGet 包、Go 模块）默认就是关闭的。
 - 🙈 **排除**：AppData、用户目录中的工具文件夹（`.cargo`、`.nvm`、`.vscode` 等）、`.git` 和 Windows 始终跳过。你可以在设置中添加自己的路径或文件夹名（`vendor`、`old-*`），也可以在项目上点击 **排除**。

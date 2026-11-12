@@ -555,6 +555,7 @@ function renderDisk() {
       if (c.disabled) info.push(`<span class="badge">${esc(t("disk.disabled"))}</span>`);
       if (c.busy) info.push(`<span class="badge idle">${esc(t("disk.cacheBusy"))}</span>`);
       if (c.keep_newest) info.push(esc(t("disk.keepNewest", { total: fmtBytes(c.total) })));
+      else if (c.total > c.bytes) info.push(esc(t("disk.pnpmShared", { total: fmtBytes(c.total) })));
       if (c.tool) info.push(esc(t("disk.tool", { c: c.tool })));
       return `<tr class="${c.disabled || c.busy ? "locked" : ""}" title="${esc(c.paths.join("\n"))}">
         <td>${c.disabled ? "🚫" : chk(cKey(c), c.busy || c.bytes === 0)}</td>

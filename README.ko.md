@@ -75,7 +75,7 @@ Python과 Java로는 일반 데스크톱 앱도 실행되므로, 이 두 언어�
 오래된 프로젝트는 작업을 그만둔 뒤에도 수 GB의 `node_modules`, `.next`, `target`, `bin/obj`, `.venv`를 그대로 갖고 있고, 패키지 캐시는 계속 늘어나기만 합니다. RigSweep이 둘 다 찾아서 선택한 것을 삭제합니다.
 
 - 🗂️ **프로젝트**: Node, Rust, .NET, Java/Gradle/Maven, Python의 빌드 출력과 의존성 폴더. 옆에 프로젝트 파일(`package.json`, `Cargo.toml`, `*.csproj`, `pyvenv.cfg` 등)이 있는 폴더만 대상이라, 아무 `build` 폴더나 건드리는 일은 없습니다. 30일(변경 가능) 동안 아무도 수정하지 않은 프로젝트만 미리 선택되며, 실행 중인 프로세스가 사용하는 프로젝트는 잠깁니다 🔒.
-- 📦 **패키지 캐시**: npm, npx, pnpm, Yarn, Bun, pip, uv, Cargo, Go, NuGet, Gradle, Maven, Playwright, Puppeteer, Hugging Face. pnpm, uv, Go는 각자의 명령(`pnpm store prune` 등)으로 정리하고, Playwright와 Puppeteer는 이전 브라우저 버전만 지우고 최신 버전은 남깁니다.
+- 📦 **패키지 캐시**: npm, npx, pnpm, Yarn, Bun, pip, uv, Cargo, Go, NuGet, Gradle, Maven, Playwright, Puppeteer, Hugging Face. uv와 Go는 각자의 명령(`uv cache prune`, `go clean`)으로 정리하고, Playwright와 Puppeteer는 이전 브라우저 버전만 지우고 최신 버전은 남깁니다.
 - 🎯 **자동 선택**: 개발 디스크 탭에서 바로, 프로젝트가 얼마나 수정되지 않아야 하는지(3~365일), 어떤 폴더를 체크할지(빌드 결과물, 의존성, 패키지 캐시), 최소 크기를 고를 수 있습니다.
 - 🚫 **정리 안 함**: 어떤 캐시든 끌 수 있습니다. 다시 받으려면 다운로드가 큰 것(Playwright, Puppeteer, Hugging Face, Gradle, Maven, NuGet 패키지, Go 모듈)은 처음부터 꺼져 있습니다.
 - 🙈 **제외**: AppData, 프로필 안의 도구 폴더(`.cargo`, `.nvm`, `.vscode` 등), `.git`, Windows는 항상 건너뜁니다. 직접 경로나 폴더 이름(`vendor`, `old-*`)을 설정에서 추가하거나, 프로젝트에서 **제외**를 클릭하세요.

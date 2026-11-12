@@ -77,7 +77,7 @@
 פרויקטים ישנים מחזיקים ג׳יגה-בייטים של `node_modules`, `.next`, `target`, `bin/obj` ו-`.venv` הרבה אחרי שהפסקת לעבוד עליהם, ומטמוני חבילות רק גדלים. RigSweep מוצא את שניהם ומוחק את מה שבוחרים.
 
 - 🗂️ **פרויקטים**: תיקיות פלט בנייה ותלויות של Node, Rust, .NET, Java/Gradle/Maven ו-Python. תיקייה נספרת רק אם קובץ הפרויקט שלה נמצא לידה (`package.json`, `Cargo.toml`, `*.csproj`, `pyvenv.cfg`…), כך שתיקיית `build` אקראית לעולם לא נפגעת. רק פרויקטים שאיש לא ערך במשך 30 יום (ניתן לשינוי) נבחרים מראש, ופרויקטים שתהליך פועל משתמש בהם נעולים 🔒.
-- 📦 **מטמוני חבילות**: npm, npx, pnpm, Yarn, Bun, pip, uv, Cargo, Go, NuGet, Gradle, Maven, Playwright, Puppeteer, Hugging Face. pnpm, uv ו-Go מנוקים בפקודות שלהם (`pnpm store prune`…); ב-Playwright וב-Puppeteer נמחקות רק גרסאות דפדפן ישנות, והחדשה ביותר נשארת.
+- 📦 **מטמוני חבילות**: npm, npx, pnpm, Yarn, Bun, pip, uv, Cargo, Go, NuGet, Gradle, Maven, Playwright, Puppeteer, Hugging Face. uv ו-Go מנוקים בפקודות שלהם (`uv cache prune`, `go clean`); ב-Playwright וב-Puppeteer נמחקות רק גרסאות דפדפן ישנות, והחדשה ביותר נשארת.
 - 🎯 **בחירה אוטומטית**: ישירות בכרטיסייה "דיסק פיתוח" בוחרים כמה זמן פרויקט צריך להישאר ללא שינוי (3 עד 365 ימים), אילו תיקיות יסומנו (פלט בנייה, תלויות, מטמוני חבילות) וגודל מינימלי.
 - 🚫 **אל תנקה אף פעם**: אפשר לכבות כל מטמון. אלה שמשמעותם הורדה מחדש גדולה (Playwright, Puppeteer, Hugging Face, Gradle, Maven, חבילות NuGet, מודולי Go) כבויים מלכתחילה.
 - 🙈 **החרגות**: AppData, תיקיות כלים בפרופיל שלך (`.cargo`, `.nvm`, `.vscode`…), `.git` ו-Windows תמיד מדולגים. אפשר להוסיף נתיבים או שמות תיקיות משלך (`vendor`, `old-*`) בהגדרות, או ללחוץ על **החרג** ליד פרויקט.
