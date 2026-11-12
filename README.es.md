@@ -79,6 +79,7 @@ Los proyectos antiguos conservan gigas de `node_modules`, `.next`, `target`, `bi
 - 🎯 **Selección automática**: en la propia pestaña Disco dev eliges cuánto tiempo debe pasar un proyecto sin tocarse (de 3 a 365 días), qué carpetas se marcan (resultados de compilación, dependencias, cachés de paquetes) y un tamaño mínimo.
 - 🚫 **No limpiar nunca**: puedes desactivar cualquier caché. Las que implican una descarga grande (Playwright, Puppeteer, Hugging Face, Gradle, Maven, paquetes de NuGet, módulos de Go) vienen desactivadas.
 - 🙈 **Exclusiones**: AppData, las carpetas de herramientas de tu perfil (`.cargo`, `.nvm`, `.vscode`…), `.git` y Windows se omiten siempre. Añade tus propias rutas o nombres de carpeta (`vendor`, `old-*`) en Ajustes, o pulsa **Excluir** en un proyecto.
+- ⏸️ **Pausa, reanuda o detén** una limpieza larga y síguela con una barra de progreso. Si un reinicio la interrumpe, puede continuar donde se quedó.
 - ✅ Por defecto analiza tu perfil de usuario (Escritorio, Documentos, Descargas, OneDrive…). No se borra nada sin tu confirmación, y cada carpeta se vuelve a comprobar justo antes de borrarla.
 
 ### 🖥️ Hardware: una pestaña en lugar de cuatro herramientas
@@ -117,10 +118,19 @@ Un catálogo seleccionado ([`catalog/tweaks.json`](src-tauri/catalog/tweaks.json
 - 💾 **Cada valor original se guarda** en SQLite antes del primer cambio. Puedes restaurar un ajuste, una categoría o todo.
 - 🛟 Se crea un **punto de restauración del sistema** antes de la primera aplicación.
 - 🔁 Un **vigilante** vuelve a aplicar los ajustes que una actualización de Windows revirtió sin avisar, y cuenta cuántas veces ocurre.
+- 🧭 **Edge no vuelve**: desinstala Edge desde Configuración y un ajuste impide que Edge Update o Windows Update lo reinstalen. No se toca el runtime de WebView2 que necesitan otras aplicaciones.
 - 🚫 Nunca se tocan: Windows Update, el motor de Defender, RPC/DCOM/LSA ni otros ~60 servicios esenciales ([`PROTECTED_SERVICES`](src-tauri/src/catalog.rs)).
 
 ### 🔍 Analizador de procesos
-CPU / RAM / disco por proceso, y **qué servicios se ejecutan dentro de cada `svchost.exe`**. Deshabilita un servicio o finaliza un proceso directamente desde la lista (los elementos esenciales están bloqueados 🔒).
+CPU / RAM / disco por proceso, y **qué servicios se ejecutan dentro de cada `svchost.exe`**. Deshabilita un servicio o finaliza un proceso directamente desde la lista (los elementos esenciales están bloqueados 🔒). Cada aplicación se muestra con su propio icono.
+
+### 🚀 Inicio: lo que el Administrador de tareas no muestra
+La lista de aplicaciones de arranque del Administrador de tareas omite casi todo lo que se inicia con Windows. RigSweep lo muestra todo, salvo los componentes del propio Windows:
+
+- 🧩 **Servicios de inicio automático** de aplicaciones y controladores (clientes VPN, utilidades del fabricante, actualizadores). Pasan a Manual: ya no se inician al arrancar, pero la aplicación puede iniciarlos cuando la abres.
+- ⏰ **Tareas programadas** que se ejecutan al iniciar sesión, al arrancar o según una programación.
+- 🚀 **Aplicaciones de arranque** del registro y de la carpeta Inicio, desactivadas con el mismo interruptor que usa el Administrador de tareas.
+- 💾 Cada cambio se respalda y puede restaurarse, y si una actualización vuelve a activar una aplicación, la supervisión la desactiva de nuevo.
 
 ### 🔄 Actualizaciones, tú decides
 **🛠️ Configuración → 🔄 Actualizaciones** tiene un botón **Buscar ahora** y la opción *Buscar actualizaciones automáticamente* (al iniciar y después una vez al día), que está **desactivada de forma predeterminada**. Cuando sale una versión nueva, aparece un botón en la barra lateral con las novedades. No se instala nada hasta que haces clic en **Instalar y reiniciar**, y solo si la descarga está firmada con la clave de RigSweep. Tus ajustes, copias de seguridad y configuración se conservan. Consulta la [política de privacidad](#-pol%C3%ADtica-de-privacidad) para saber exactamente qué hace una búsqueda.

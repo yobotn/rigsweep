@@ -79,6 +79,7 @@ Alte Projekte behalten gigabyteweise `node_modules`, `.next`, `target`, `bin/obj
 - 🎯 **Automatische Auswahl**: Direkt im Tab Dev-Speicher legen Sie fest, wie lange ein Projekt unberührt sein muss (3 bis 365 Tage), welche Ordner angehakt werden (Build-Ausgaben, Abhängigkeiten, Paket-Caches) und ab welcher Größe.
 - 🚫 **Nie bereinigen**: Jeder Cache lässt sich ausschalten. Die mit großem erneutem Download (Playwright, Puppeteer, Hugging Face, Gradle, Maven, NuGet-Pakete, Go-Module) sind anfangs ausgeschaltet.
 - 🙈 **Ausnahmen**: AppData, Tool-Ordner in Ihrem Profil (`.cargo`, `.nvm`, `.vscode`…), `.git` und Windows werden immer übersprungen. Eigene Pfade oder Ordnernamen (`vendor`, `old-*`) fügen Sie in den Einstellungen hinzu, oder Sie klicken bei einem Projekt auf **Ausschließen**.
+- ⏸️ **Pausieren, fortsetzen oder anhalten**: lange Bereinigungen mit Fortschrittsbalken. Wird eine Bereinigung durch einen Neustart unterbrochen, geht es dort weiter, wo sie aufgehört hat.
 - ✅ Durchsucht standardmäßig Ihr Benutzerprofil (Desktop, Dokumente, Downloads, OneDrive…). Ohne Ihre Bestätigung wird nichts gelöscht, und jeder Ordner wird direkt vor dem Löschen noch einmal geprüft.
 
 ### 🖥️ Hardware: ein Tab statt vier Tools
@@ -117,10 +118,19 @@ Ein kuratierter Katalog ([`catalog/tweaks.json`](src-tauri/catalog/tweaks.json))
 - 💾 **Jeder Originalwert wird** vor der ersten Änderung in SQLite **gesichert**. Stellen Sie eine einzelne Optimierung, eine Kategorie oder alles wieder her.
 - 🛟 Vor dem ersten Anwenden wird ein **Wiederherstellungspunkt** erstellt.
 - 🔁 Ein **Watchdog** wendet Optimierungen erneut an, die ein Windows Update unbemerkt zurückgesetzt hat, und zählt, wie oft das passiert.
+- 🧭 **Edge bleibt weg**: Deinstallieren Sie Edge in den Einstellungen, dann verhindert eine Optimierung, dass Edge Update oder Windows Update es neu installiert. Die WebView2-Runtime, die andere Apps brauchen, bleibt unberührt.
 - 🚫 Bleibt immer unberührt: Windows Update, das Defender-Modul, RPC/DCOM/LSA und ~60 weitere wichtige Dienste ([`PROTECTED_SERVICES`](src-tauri/src/catalog.rs)).
 
 ### 🔍 Prozessanalyse
-CPU / RAM / Datenträger pro Prozess und **welche Dienste in jeder `svchost.exe` laufen**. Deaktivieren Sie einen Dienst oder beenden Sie einen Prozess direkt aus der Liste (wichtige Elemente sind gesperrt 🔒).
+CPU / RAM / Datenträger pro Prozess und **welche Dienste in jeder `svchost.exe` laufen**. Deaktivieren Sie einen Dienst oder beenden Sie einen Prozess direkt aus der Liste (wichtige Elemente sind gesperrt 🔒). Jede App wird mit ihrem eigenen Symbol angezeigt.
+
+### 🚀 Autostart: was der Task-Manager nicht zeigt
+Die Liste „Autostart-Apps“ im Task-Manager lässt das meiste aus, was mit Windows startet. RigSweep zeigt alles, ohne die Bestandteile von Windows selbst:
+
+- 🧩 **Automatisch startende Dienste** von Apps und Treibern (VPN-Clients, Hersteller-Tools, Updater). Sie werden auf „Manuell“ gestellt: Beim Hochfahren starten sie nicht mehr, die App kann sie aber weiterhin starten, wenn Sie sie öffnen.
+- ⏰ **Geplante Aufgaben**, die bei der Anmeldung, beim Hochfahren oder nach Zeitplan laufen.
+- 🚀 **Autostart-Apps** aus der Registrierung und dem Autostart-Ordner, deaktiviert mit demselben Schalter wie im Task-Manager.
+- 💾 Jede Änderung wird gesichert und lässt sich wiederherstellen. Schaltet sich eine App nach einem Update wieder ein, deaktiviert der Watchdog sie erneut.
 
 ### 🔄 Updates nach Ihrer Wahl
 Unter **🛠️ Einstellungen → 🔄 Updates** gibt es die Schaltfläche **Jetzt suchen** und die optionale Einstellung *Automatisch nach Updates suchen* (beim Start, danach einmal täglich), die **standardmäßig deaktiviert** ist. Sobald eine neue Version erscheint, wird in der Seitenleiste eine Schaltfläche mit den Neuerungen angezeigt. Nichts wird installiert, bevor Sie auf **Installieren und neu starten** klicken, und nur, wenn der Download mit dem Schlüssel von RigSweep signiert ist. Ihre Optimierungen, Sicherungen und Einstellungen bleiben erhalten. Was genau bei einer Suche geschieht, steht in der [Datenschutzerklärung](#-datenschutzerkl%C3%A4rung).

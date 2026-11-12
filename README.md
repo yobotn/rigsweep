@@ -79,6 +79,7 @@ Old projects keep gigabytes of `node_modules`, `.next`, `target`, `bin/obj` and 
 - 🎯 **Auto-select**: right on the Dev Disk tab, choose how long a project must sit untouched (3 to 365 days), which folders get ticked (build output, dependencies, package caches) and a minimum size.
 - 🚫 **Never clean**: switch off any cache. The ones that mean a big re-download (Playwright, Puppeteer, Hugging Face, Gradle, Maven, NuGet packages, Go modules) start switched off.
 - 🙈 **Exclusions**: AppData, tool folders in your profile (`.cargo`, `.nvm`, `.vscode`…), `.git` and Windows are always skipped. Add your own paths or folder names (`vendor`, `old-*`) in Settings, or click **Exclude** on a project.
+- ⏸️ **Pause, resume or stop** a long cleanup and follow it on a progress bar. A cleanup cut short by a restart can pick up where it left off.
 - ✅ Scans your user profile (Desktop, Documents, Downloads, OneDrive…) by default. Nothing is deleted without your confirmation, and every folder is checked again right before deletion.
 
 ### 🖥️ Hardware: one tab instead of four tools
@@ -117,10 +118,19 @@ A curated catalog ([`catalog/tweaks.json`](src-tauri/catalog/tweaks.json)) of te
 - 💾 **Every original value is backed up** in SQLite before the first change. Restore one tweak, a category, or everything.
 - 🛟 A **System Restore point** is created before the first apply.
 - 🔁 A **watchdog** re-applies tweaks that a Windows Update silently reverted, and counts how often it happens.
+- 🧭 **Edge stays gone**: uninstall Edge from Settings, then one tweak stops Edge Update and Windows Update from installing it again. The WebView2 runtime other apps need isn't touched.
 - 🚫 Never touched: Windows Update, the Defender engine, RPC/DCOM/LSA and ~60 other core services ([`PROTECTED_SERVICES`](src-tauri/src/catalog.rs)).
 
 ### 🔍 Process analyzer
-CPU / RAM / disk per process, and **which services live inside each `svchost.exe`**. Disable a service or end a process right from the list (core items are locked 🔒).
+CPU / RAM / disk per process, and **which services live inside each `svchost.exe`**. Disable a service or end a process right from the list (core items are locked 🔒). Every app is shown with its own icon.
+
+### 🚀 Startup: what Task Manager doesn't show
+Task Manager's Startup apps list skips most of what starts with Windows. RigSweep lists all of it, minus the parts of Windows itself:
+
+- 🧩 **Auto-start services** from apps and drivers (VPN clients, OEM utilities, updaters). They're switched to Manual, so they no longer start at boot but the app can still start them when you open it.
+- ⏰ **Scheduled tasks** that run at sign-in, at boot or on a schedule.
+- 🚀 **Startup apps** from the registry and the Startup folder, turned off with the same switch Task Manager uses.
+- 💾 Every change is backed up and can be restored, and the watchdog turns an item off again if an app update switches it back on.
 
 ### 🔄 Updates, your choice
 **🛠️ Settings → 🔄 Updates** has a **Check now** button and an optional *Check for updates automatically* (at startup, then once a day), which is **off by default**. When a new version is out, a button appears in the sidebar with the release notes. Nothing is installed until you click **Install and restart**, and only if the download is signed with RigSweep's key. Your tweaks, backups and settings are kept. See the [privacy policy](#-privacy-policy) for exactly what a check does.

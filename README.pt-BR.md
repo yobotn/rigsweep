@@ -79,6 +79,7 @@ Projetos antigos guardam gigas de `node_modules`, `.next`, `target`, `bin/obj` e
 - 🎯 **Seleção automática**: na própria aba Disco dev, escolha há quanto tempo um projeto precisa estar parado (de 3 a 365 dias), quais pastas são marcadas (saídas de build, dependências, caches de pacotes) e um tamanho mínimo.
 - 🚫 **Nunca limpar**: dá para desligar qualquer cache. Os que significam um download grande (Playwright, Puppeteer, Hugging Face, Gradle, Maven, pacotes do NuGet, módulos do Go) já vêm desligados.
 - 🙈 **Exclusões**: AppData, as pastas de ferramentas do seu perfil (`.cargo`, `.nvm`, `.vscode`…), `.git` e o Windows são sempre ignorados. Adicione seus próprios caminhos ou nomes de pasta (`vendor`, `old-*`) nas Configurações, ou clique em **Excluir** em um projeto.
+- ⏸️ **Pause, retome ou pare** uma limpeza longa e acompanhe numa barra de progresso. Uma limpeza interrompida por uma reinicialização continua de onde parou.
 - ✅ Por padrão analisa o seu perfil de usuário (Área de Trabalho, Documentos, Downloads, OneDrive…). Nada é apagado sem a sua confirmação, e cada pasta é verificada de novo logo antes de ser apagada.
 
 ### 🖥️ Hardware: uma aba no lugar de quatro ferramentas
@@ -117,10 +118,19 @@ Um catálogo selecionado ([`catalog/tweaks.json`](src-tauri/catalog/tweaks.json)
 - 💾 **Todo valor original tem backup** em SQLite antes da primeira alteração. Restaure um ajuste, uma categoria ou tudo.
 - 🛟 Um **ponto de restauração do sistema** é criado antes da primeira aplicação.
 - 🔁 Um **watchdog** reaplica os ajustes que uma atualização do Windows Update reverteu sem avisar e conta quantas vezes isso acontece.
+- 🧭 **O Edge não volta**: desinstale o Edge em Configurações e um ajuste impede que o Edge Update e o Windows Update o reinstalem. O runtime do WebView2, que outros aplicativos usam, não é alterado.
 - 🚫 Nunca são tocados: o Windows Update, o mecanismo do Defender, RPC/DCOM/LSA e ~60 outros serviços essenciais ([`PROTECTED_SERVICES`](src-tauri/src/catalog.rs)).
 
 ### 🔍 Analisador de processos
-CPU / RAM / disco por processo, e **quais serviços rodam dentro de cada `svchost.exe`**. Desative um serviço ou finalize um processo direto da lista (os itens essenciais ficam bloqueados 🔒).
+CPU / RAM / disco por processo, e **quais serviços rodam dentro de cada `svchost.exe`**. Desative um serviço ou finalize um processo direto da lista (os itens essenciais ficam bloqueados 🔒). Cada aplicativo aparece com o próprio ícone.
+
+### 🚀 Inicialização: o que o Gerenciador de Tarefas não mostra
+A lista de Aplicativos de inicialização do Gerenciador de Tarefas deixa de fora quase tudo o que inicia com o Windows. O RigSweep mostra tudo, menos os componentes do próprio Windows:
+
+- 🧩 **Serviços de inicialização automática** de aplicativos e drivers (clientes VPN, utilitários do fabricante, atualizadores). Eles passam para Manual: não iniciam mais com o Windows, mas o aplicativo ainda pode iniciá-los quando você o abrir.
+- ⏰ **Tarefas agendadas** que rodam ao entrar, ao ligar ou em um agendamento.
+- 🚀 **Aplicativos de inicialização** do Registro e da pasta Inicializar, desativados com a mesma chave que o Gerenciador de Tarefas usa.
+- 💾 Cada alteração tem backup e pode ser restaurada, e se uma atualização reativar um aplicativo, o watchdog o desativa de novo.
 
 ### 🔄 Atualizações, quando você quiser
 Em **🛠️ Configurações → 🔄 Atualizações** há um botão **Verificar agora** e uma opção *Verificar atualizações automaticamente* (ao iniciar e depois uma vez por dia), que vem **desativada por padrão**. Quando sai uma nova versão, aparece um botão na barra lateral com as novidades. Nada é instalado até você clicar em **Instalar e reiniciar**, e só se o download estiver assinado com a chave do RigSweep. Seus ajustes, backups e configurações são mantidos. Veja na [política de privacidade](#-pol%C3%ADtica-de-privacidade) exatamente o que uma verificação faz.

@@ -79,6 +79,7 @@ I vecchi progetti si tengono gigabyte di `node_modules`, `.next`, `target`, `bin
 - 🎯 **Selezione automatica**: direttamente nella scheda Disco dev scegli da quanto tempo un progetto deve essere fermo (da 3 a 365 giorni), quali cartelle selezionare (output di build, dipendenze, cache dei pacchetti) e una dimensione minima.
 - 🚫 **Non pulire mai**: puoi disattivare qualsiasi cache. Quelle che comportano un download pesante (Playwright, Puppeteer, Hugging Face, Gradle, Maven, pacchetti NuGet, moduli Go) partono disattivate.
 - 🙈 **Esclusioni**: AppData, le cartelle degli strumenti nel tuo profilo (`.cargo`, `.nvm`, `.vscode`…), `.git` e Windows vengono sempre ignorati. Aggiungi percorsi o nomi di cartella tuoi (`vendor`, `old-*`) nelle Impostazioni, oppure fai clic su **Escludi** su un progetto.
+- ⏸️ **Metti in pausa, riprendi o interrompi** una pulizia lunga e seguila con una barra di avanzamento. Se un riavvio la interrompe, può riprendere da dove si era fermata.
 - ✅ Di default analizza il tuo profilo utente (Desktop, Documenti, Download, OneDrive…). Niente viene eliminato senza la tua conferma, e ogni cartella viene ricontrollata subito prima dell'eliminazione.
 
 ### 🖥️ Hardware: una scheda al posto di quattro strumenti
@@ -117,10 +118,19 @@ Un catalogo curato ([`catalog/tweaks.json`](src-tauri/catalog/tweaks.json)) con 
 - 💾 **Ogni valore originale viene salvato in un backup** in SQLite prima della prima modifica. Ripristina una singola ottimizzazione, una categoria o tutto.
 - 🛟 Prima della prima applicazione viene creato un **punto di ripristino del sistema**.
 - 🔁 Un **watchdog** riapplica le ottimizzazioni che un aggiornamento di Windows Update ha annullato senza dirtelo, e conta quante volte succede.
+- 🧭 **Edge non torna**: disinstalla Edge da Impostazioni e un'ottimizzazione impedisce a Edge Update e Windows Update di reinstallarlo. Il runtime WebView2 che serve ad altre app non viene toccato.
 - 🚫 Mai toccati: Windows Update, il motore di Defender, RPC/DCOM/LSA e altri ~60 servizi di sistema essenziali ([`PROTECTED_SERVICES`](src-tauri/src/catalog.rs)).
 
 ### 🔍 Analisi dei processi
-CPU / RAM / disco per processo, e **quali servizi vivono dentro ogni `svchost.exe`**. Disattiva un servizio o termina un processo direttamente dall'elenco (gli elementi di sistema sono bloccati 🔒).
+CPU / RAM / disco per processo, e **quali servizi vivono dentro ogni `svchost.exe`**. Disattiva un servizio o termina un processo direttamente dall'elenco (gli elementi di sistema sono bloccati 🔒). Ogni app è mostrata con la sua icona.
+
+### 🚀 Avvio: ciò che Gestione attività non mostra
+L'elenco App di avvio di Gestione attività tralascia quasi tutto ciò che parte con Windows. RigSweep mostra tutto, esclusi i componenti di Windows stesso:
+
+- 🧩 **Servizi ad avvio automatico** di app e driver (client VPN, utility del produttore, programmi di aggiornamento). Passano a Manuale: non partono più all'avvio, ma l'app può ancora avviarli quando la apri.
+- ⏰ **Attività pianificate** eseguite all'accesso, all'avvio o secondo una pianificazione.
+- 🚀 **App di avvio** dal Registro di sistema e dalla cartella Esecuzione automatica, disattivate con lo stesso interruttore di Gestione attività.
+- 💾 Ogni modifica viene salvata e si può ripristinare, e se un aggiornamento riattiva un'app, il watchdog la disattiva di nuovo.
 
 ### 🔄 Aggiornamenti, decidi tu
 **🛠️ Impostazioni → 🔄 Aggiornamenti** ha un pulsante **Cerca ora** e un'opzione facoltativa *Cerca aggiornamenti automaticamente* (all'avvio, poi una volta al giorno), **disattivata per impostazione predefinita**. Quando esce una nuova versione, nella barra laterale compare un pulsante con le note sulla versione. Nulla viene installato finché non fai clic su **Installa e riavvia**, e solo se il download è firmato con la chiave di RigSweep. Ottimizzazioni, backup e impostazioni vengono mantenuti. Vedi l'[informativa sulla privacy](#-informativa-sulla-privacy) per sapere esattamente cosa fa un controllo.

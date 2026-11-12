@@ -79,6 +79,7 @@ Les vieux projets gardent des gigaoctets de `node_modules`, `.next`, `target`, `
 - 🎯 **Sélection auto** : directement dans l'onglet Disque dev, choisissez depuis combien de temps un projet doit être inactif (3 à 365 jours), quels dossiers sont cochés (fichiers de build, dépendances, caches de paquets) et une taille minimale.
 - 🚫 **Ne jamais nettoyer** : chaque cache peut être désactivé. Ceux qui impliquent un gros retéléchargement (Playwright, Puppeteer, Hugging Face, Gradle, Maven, paquets NuGet, modules Go) sont désactivés au départ.
 - 🙈 **Exclusions** : AppData, les dossiers d'outils de votre profil (`.cargo`, `.nvm`, `.vscode`…), `.git` et Windows sont toujours ignorés. Ajoutez vos propres chemins ou noms de dossier (`vendor`, `old-*`) dans les Paramètres, ou cliquez sur **Exclure** sur un projet.
+- ⏸️ **Pause, reprise ou arrêt** d'un long nettoyage, avec une barre de progression. Un nettoyage interrompu par un redémarrage peut reprendre là où il s'était arrêté.
 - ✅ Analyse par défaut votre profil utilisateur (Bureau, Documents, Téléchargements, OneDrive…). Rien n'est supprimé sans votre confirmation, et chaque dossier est revérifié juste avant la suppression.
 
 ### 🖥️ Matériel : un onglet au lieu de quatre outils
@@ -117,10 +118,19 @@ Un catalogue soigné ([`catalog/tweaks.json`](src-tauri/catalog/tweaks.json)) :
 - 💾 **Chaque valeur d'origine est sauvegardée** dans SQLite avant le premier changement. Vous pouvez restaurer un réglage, une catégorie ou tout.
 - 🛟 Un **point de restauration système** est créé avant la première application.
 - 🔁 Une **surveillance** réapplique les réglages qu'une mise à jour Windows a annulés en silence, et compte combien de fois cela arrive.
+- 🧭 **Edge ne revient pas** : désinstallez Edge depuis les Paramètres, puis un réglage empêche Edge Update et Windows Update de le réinstaller. Le runtime WebView2 dont d'autres applications ont besoin n'est pas touché.
 - 🚫 Jamais touchés : Windows Update, le moteur Defender, RPC/DCOM/LSA et ~60 autres services essentiels ([`PROTECTED_SERVICES`](src-tauri/src/catalog.rs)).
 
 ### 🔍 Analyseur de processus
-CPU / RAM / disque par processus, et **quels services tournent dans chaque `svchost.exe`**. Désactivez un service ou terminez un processus directement depuis la liste (les éléments essentiels sont verrouillés 🔒).
+CPU / RAM / disque par processus, et **quels services tournent dans chaque `svchost.exe`**. Désactivez un service ou terminez un processus directement depuis la liste (les éléments essentiels sont verrouillés 🔒). Chaque application s'affiche avec sa propre icône.
+
+### 🚀 Démarrage : ce que le Gestionnaire des tâches ne montre pas
+La liste « Applications de démarrage » du Gestionnaire des tâches omet presque tout ce qui démarre avec Windows. RigSweep affiche tout, hors composants de Windows lui-même :
+
+- 🧩 **Services à démarrage automatique** des applications et pilotes (clients VPN, utilitaires constructeur, programmes de mise à jour). Ils passent en Manuel : ils ne démarrent plus avec Windows, mais l'application peut toujours les lancer quand vous l'ouvrez.
+- ⏰ **Tâches planifiées** exécutées à l'ouverture de session, au démarrage ou selon une planification.
+- 🚀 **Applications de démarrage** du registre et du dossier Démarrage, désactivées avec le même interrupteur que le Gestionnaire des tâches.
+- 💾 Chaque modification est sauvegardée et restaurable, et si une mise à jour réactive une application, la surveillance la désactive à nouveau.
 
 ### 🔄 Mises à jour, à vous de choisir
 **🛠️ Paramètres → 🔄 Mises à jour** propose un bouton **Rechercher maintenant** et l'option *Rechercher automatiquement les mises à jour* (au démarrage, puis une fois par jour), **désactivée par défaut**. Quand une nouvelle version sort, un bouton apparaît dans la barre latérale avec les nouveautés. Rien n'est installé tant que vous n'avez pas cliqué sur **Installer et redémarrer**, et seulement si le téléchargement est signé avec la clé de RigSweep. Vos réglages, sauvegardes et paramètres sont conservés. Consultez la [politique de confidentialité](#-politique-de-confidentialit%C3%A9) pour savoir exactement ce que fait une recherche.

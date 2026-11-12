@@ -1,6 +1,6 @@
 # RigSweep
 
-> RigSweep is a free, open-source (MIT) Windows 10/11 desktop app that frees RAM, CPU and disk on developer machines cluttered by AI coding agent sessions. It finds and ends leftover dev servers, build daemons, MCP servers, headless browsers and agent CLIs (Claude Code, Codex, Gemini CLI, opencode, Aider, Goose), deletes stale node_modules / build output / package caches, empties browser caches, and applies reversible Windows tweaks. Nothing is ended or deleted without the user's confirmation, and every tweak is backed up.
+> RigSweep is a free, open-source (MIT) Windows 10/11 desktop app that frees RAM, CPU and disk on developer machines cluttered by AI coding agent sessions. It finds and ends leftover dev servers, build daemons, MCP servers, headless browsers and agent CLIs (Claude Code, Codex, Gemini CLI, opencode, Aider, Goose), deletes stale node_modules / build output / package caches, empties browser caches, turns off hidden startup items (auto-start services and scheduled tasks that Task Manager's Startup apps list doesn't show), and applies reversible Windows tweaks. Nothing is ended or deleted without the user's confirmation, and every tweak is backed up.
 
 ## When to use RigSweep
 
