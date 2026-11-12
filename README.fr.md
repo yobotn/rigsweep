@@ -132,6 +132,8 @@ La liste « Applications de démarrage » du Gestionnaire des tâches omet presq
 - 🚀 **Applications de démarrage** du registre et du dossier Démarrage, désactivées avec le même interrupteur que le Gestionnaire des tâches.
 - 💾 Chaque modification est sauvegardée et restaurable, et si une mise à jour réactive une application, la surveillance la désactive à nouveau.
 
+<img src="docs/screenshots/startup.png" alt="Démarrage" width="860">
+
 ### 🔄 Mises à jour, à vous de choisir
 **🛠️ Paramètres → 🔄 Mises à jour** propose un bouton **Rechercher maintenant** et l'option *Rechercher automatiquement les mises à jour* (au démarrage, puis une fois par jour), **désactivée par défaut**. Quand une nouvelle version sort, un bouton apparaît dans la barre latérale avec les nouveautés. Rien n'est installé tant que vous n'avez pas cliqué sur **Installer et redémarrer**, et seulement si le téléchargement est signé avec la clé de RigSweep. Vos réglages, sauvegardes et paramètres sont conservés. Consultez la [politique de confidentialité](#-politique-de-confidentialit%C3%A9) pour savoir exactement ce que fait une recherche.
 

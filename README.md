@@ -132,6 +132,8 @@ Task Manager's Startup apps list skips most of what starts with Windows. RigSwee
 - 🚀 **Startup apps** from the registry and the Startup folder, turned off with the same switch Task Manager uses.
 - 💾 Every change is backed up and can be restored, and the watchdog turns an item off again if an app update switches it back on.
 
+<img src="docs/screenshots/startup.png" alt="Startup" width="860">
+
 ### 🔄 Updates, your choice
 **🛠️ Settings → 🔄 Updates** has a **Check now** button and an optional *Check for updates automatically* (at startup, then once a day), which is **off by default**. When a new version is out, a button appears in the sidebar with the release notes. Nothing is installed until you click **Install and restart**, and only if the download is signed with RigSweep's key. Your tweaks, backups and settings are kept. See the [privacy policy](#-privacy-policy) for exactly what a check does.
 

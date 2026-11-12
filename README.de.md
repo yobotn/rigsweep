@@ -132,6 +132,8 @@ Die Liste „Autostart-Apps“ im Task-Manager lässt das meiste aus, was mit Wi
 - 🚀 **Autostart-Apps** aus der Registrierung und dem Autostart-Ordner, deaktiviert mit demselben Schalter wie im Task-Manager.
 - 💾 Jede Änderung wird gesichert und lässt sich wiederherstellen. Schaltet sich eine App nach einem Update wieder ein, deaktiviert der Watchdog sie erneut.
 
+<img src="docs/screenshots/startup.png" alt="Autostart" width="860">
+
 ### 🔄 Updates nach Ihrer Wahl
 Unter **🛠️ Einstellungen → 🔄 Updates** gibt es die Schaltfläche **Jetzt suchen** und die optionale Einstellung *Automatisch nach Updates suchen* (beim Start, danach einmal täglich), die **standardmäßig deaktiviert** ist. Sobald eine neue Version erscheint, wird in der Seitenleiste eine Schaltfläche mit den Neuerungen angezeigt. Nichts wird installiert, bevor Sie auf **Installieren und neu starten** klicken, und nur, wenn der Download mit dem Schlüssel von RigSweep signiert ist. Ihre Optimierungen, Sicherungen und Einstellungen bleiben erhalten. Was genau bei einer Suche geschieht, steht in der [Datenschutzerklärung](#-datenschutzerkl%C3%A4rung).
 

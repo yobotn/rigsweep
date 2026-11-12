@@ -132,6 +132,8 @@ L'elenco App di avvio di Gestione attività tralascia quasi tutto ciò che parte
 - 🚀 **App di avvio** dal Registro di sistema e dalla cartella Esecuzione automatica, disattivate con lo stesso interruttore di Gestione attività.
 - 💾 Ogni modifica viene salvata e si può ripristinare, e se un aggiornamento riattiva un'app, il watchdog la disattiva di nuovo.
 
+<img src="docs/screenshots/startup.png" alt="Avvio" width="860">
+
 ### 🔄 Aggiornamenti, decidi tu
 **🛠️ Impostazioni → 🔄 Aggiornamenti** ha un pulsante **Cerca ora** e un'opzione facoltativa *Cerca aggiornamenti automaticamente* (all'avvio, poi una volta al giorno), **disattivata per impostazione predefinita**. Quando esce una nuova versione, nella barra laterale compare un pulsante con le note sulla versione. Nulla viene installato finché non fai clic su **Installa e riavvia**, e solo se il download è firmato con la chiave di RigSweep. Ottimizzazioni, backup e impostazioni vengono mantenuti. Vedi l'[informativa sulla privacy](#-informativa-sulla-privacy) per sapere esattamente cosa fa un controllo.
 

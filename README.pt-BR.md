@@ -132,6 +132,8 @@ A lista de Aplicativos de inicialização do Gerenciador de Tarefas deixa de for
 - 🚀 **Aplicativos de inicialização** do Registro e da pasta Inicializar, desativados com a mesma chave que o Gerenciador de Tarefas usa.
 - 💾 Cada alteração tem backup e pode ser restaurada, e se uma atualização reativar um aplicativo, o watchdog o desativa de novo.
 
+<img src="docs/screenshots/startup.png" alt="Inicialização" width="860">
+
 ### 🔄 Atualizações, quando você quiser
 Em **🛠️ Configurações → 🔄 Atualizações** há um botão **Verificar agora** e uma opção *Verificar atualizações automaticamente* (ao iniciar e depois uma vez por dia), que vem **desativada por padrão**. Quando sai uma nova versão, aparece um botão na barra lateral com as novidades. Nada é instalado até você clicar em **Instalar e reiniciar**, e só se o download estiver assinado com a chave do RigSweep. Seus ajustes, backups e configurações são mantidos. Veja na [política de privacidade](#-pol%C3%ADtica-de-privacidade) exatamente o que uma verificação faz.
 

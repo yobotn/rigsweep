@@ -132,6 +132,8 @@ La lista de aplicaciones de arranque del Administrador de tareas omite casi todo
 - 🚀 **Aplicaciones de arranque** del registro y de la carpeta Inicio, desactivadas con el mismo interruptor que usa el Administrador de tareas.
 - 💾 Cada cambio se respalda y puede restaurarse, y si una actualización vuelve a activar una aplicación, la supervisión la desactiva de nuevo.
 
+<img src="docs/screenshots/startup.png" alt="Inicio" width="860">
+
 ### 🔄 Actualizaciones, tú decides
 **🛠️ Configuración → 🔄 Actualizaciones** tiene un botón **Buscar ahora** y la opción *Buscar actualizaciones automáticamente* (al iniciar y después una vez al día), que está **desactivada de forma predeterminada**. Cuando sale una versión nueva, aparece un botón en la barra lateral con las novedades. No se instala nada hasta que haces clic en **Instalar y reiniciar**, y solo si la descarga está firmada con la clave de RigSweep. Tus ajustes, copias de seguridad y configuración se conservan. Consulta la [política de privacidad](#-pol%C3%ADtica-de-privacidad) para saber exactamente qué hace una búsqueda.
 
