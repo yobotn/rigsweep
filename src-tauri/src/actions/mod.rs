@@ -2,6 +2,7 @@ pub mod defender;
 pub mod power;
 pub mod registry;
 pub mod service;
+pub mod startup_approved;
 pub mod task;
 
 use anyhow::Result;
@@ -57,6 +58,7 @@ pub fn status(a: &Action, ctx: &Ctx) -> Status {
             defender::status(ctx, processes, *use_dev_folders)
         }
         Action::PowerPlan { scheme } => power::status(scheme, ctx),
+        Action::StartupApproved { hive, list, name } => startup_approved::status(*hive, list, name),
     };
     r.unwrap_or_else(|e| Status::Error(e.to_string()))
 }
@@ -71,6 +73,7 @@ pub fn read_current(a: &Action, ctx: &Ctx) -> Result<Value> {
             defender::read_current(ctx, processes, *use_dev_folders)
         }
         Action::PowerPlan { .. } => power::read_current(),
+        Action::StartupApproved { hive, list, name } => startup_approved::read_current(*hive, list, name),
     }
 }
 
@@ -86,6 +89,7 @@ pub fn apply(a: &Action, ctx: &mut Ctx) -> Result<Option<String>> {
             defender::apply(ctx, processes, *use_dev_folders).map(|_| None)
         }
         Action::PowerPlan { scheme } => power::apply(scheme, ctx),
+        Action::StartupApproved { hive, list, name } => startup_approved::apply(*hive, list, name).map(|_| None),
     };
     ctx.invalidate();
     r
@@ -100,6 +104,7 @@ pub fn revert(a: &Action, original: &Value, ctx: &Ctx) -> Result<()> {
             defender::revert(ctx, processes, *use_dev_folders, original)
         }
         Action::PowerPlan { .. } => power::revert(original),
+        Action::StartupApproved { hive, list, name } => startup_approved::revert(*hive, list, name, original),
     };
     ctx.invalidate();
     r

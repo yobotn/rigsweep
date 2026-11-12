@@ -27,8 +27,12 @@ pub const PROTECTED_PROCESSES: &[&str] = &[
 
 pub fn is_protected_service(name: &str) -> bool {
     let n = name.to_ascii_lowercase();
-    // per-user service instances look like "CDPUserSvc_1a2b3"; never touch those
-    n.contains('_') || PROTECTED_SERVICES.contains(&n.as_str())
+    // per-user service instances look like "CDPUserSvc_1a2b3" (hex LUID suffix); never touch those.
+    // Third-party names like "FA_Scheduler" are fine.
+    let per_user = n
+        .rsplit_once('_')
+        .is_some_and(|(base, suf)| !base.is_empty() && (4..=8).contains(&suf.len()) && suf.chars().all(|c| c.is_ascii_hexdigit()));
+    per_user || PROTECTED_SERVICES.contains(&n.as_str())
 }
 
 pub fn is_protected_process(name: &str) -> bool {
@@ -91,6 +95,13 @@ pub enum Action {
     PowerPlan {
         scheme: String,
     },
+    /// Turn a Run-key / Startup-folder entry off via Explorer's StartupApproved list (like Task Manager).
+    StartupApproved {
+        hive: Hive,
+        /// Run | Run32 | StartupFolder
+        list: String,
+        name: String,
+    },
 }
 
 impl Action {
@@ -110,6 +121,7 @@ impl Action {
                 }
             }
             Action::PowerPlan { scheme } => format!("power plan -> {scheme}"),
+            Action::StartupApproved { hive, list, name } => format!("startup {hive:?}\\{list}\\{name} -> off"),
         }
     }
 }
@@ -194,6 +206,14 @@ pub fn validate_action(a: &Action) -> Result<(), String> {
         Action::Registry { kind: RegKind::String, data, .. } if !data.is_string() => {
             Err("string data must be a string".into())
         }
+        Action::StartupApproved { list, .. } if !crate::actions::startup_approved::LISTS.contains(&list.as_str()) => {
+            Err(format!("unknown startup list {list}"))
+        }
+        Action::StartupApproved { list, name, .. }
+            if name.is_empty() || (list == "StartupFolder" && (name.contains(['\\', '/']) || name.contains(".."))) =>
+        {
+            Err("invalid startup entry name".into())
+        }
         _ => Ok(()),
     }
 }
@@ -231,6 +251,8 @@ mod tests {
         assert!(custom_service_tweak("RpcSs", "RPC").is_err());
         assert!(custom_service_tweak("CDPUserSvc_abc12", "x").is_err());
         assert!(custom_service_tweak("Fax", "Fax").is_ok());
+        assert!(custom_service_tweak("FA_Scheduler", "FortiClient").is_ok());
+        assert!(is_protected_service("OneSyncSvc_5f2a1c"));
     }
 
     #[test]

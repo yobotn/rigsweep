@@ -6,7 +6,7 @@
     { "id": "search", "name": "Search & Indexing", "description": "Background indexing and prefetch services that hammer the disk during big builds." },
     { "id": "features", "name": "Rarely Used Features", "description": "Services for hardware or features most dev machines never use." },
     { "id": "updates", "name": "Updates & Delivery", "description": "Control how Windows Update behaves. Windows Update itself is never disabled." },
-    { "id": "custom", "name": "Custom (from Process Analyzer)", "description": "Services you chose to disable from the Processes tab." }
+    { "id": "custom", "name": "Custom (Processes & Startup)", "description": "Services and startup items you turned off from the Processes or Startup tabs." }
   ],
   "tweaks": [
     {
@@ -386,6 +386,21 @@
       "warning": "You become responsible for driver updates, including security fixes.",
       "actions": [
         { "type": "registry", "hive": "HKLM", "path": "SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate", "value": "ExcludeWUDriversInQualityUpdate", "kind": "dword", "data": 1 }
+      ]
+    },
+    {
+      "id": "updates.no_edge",
+      "category": "updates",
+      "name": "Keep Microsoft Edge from coming back",
+      "description": "For PCs that don't use Edge. Blocks Edge from being installed again by Edge Update or Windows Update, and stops it starting in the background or at sign-in. Uninstall Edge first from Settings > Apps if your Windows offers it. The WebView2 runtime that other apps (RigSweep included) need is not touched.",
+      "risk": "moderate",
+      "warning": "If Edge stays installed it stops updating, so uninstall it from Settings > Apps. Links that Windows always opens in Edge (some Search and Widgets results) won't open until you restore this.",
+      "actions": [
+        { "type": "registry", "hive": "HKLM", "path": "SOFTWARE\\Microsoft\\EdgeUpdate", "value": "DoNotUpdateToEdgeWithChromium", "kind": "dword", "data": 1 },
+        { "type": "registry", "hive": "HKLM", "path": "SOFTWARE\\Policies\\Microsoft\\EdgeUpdate", "value": "Install{56EB18F8-B008-4CBD-B6D2-8C97FE7E9062}", "kind": "dword", "data": 0 },
+        { "type": "registry", "hive": "HKLM", "path": "SOFTWARE\\Policies\\Microsoft\\EdgeUpdate", "value": "Update{56EB18F8-B008-4CBD-B6D2-8C97FE7E9062}", "kind": "dword", "data": 0 },
+        { "type": "registry", "hive": "HKLM", "path": "SOFTWARE\\Policies\\Microsoft\\Edge", "value": "StartupBoostEnabled", "kind": "dword", "data": 0 },
+        { "type": "registry", "hive": "HKLM", "path": "SOFTWARE\\Policies\\Microsoft\\Edge", "value": "BackgroundModeEnabled", "kind": "dword", "data": 0 }
       ]
     }
   ]

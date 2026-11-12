@@ -22,12 +22,11 @@ use serde::{Deserialize, Serialize};
 use std::fs;
 use std::os::windows::fs::MetadataExt;
 use std::path::{Component, Path, PathBuf};
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicU64, AtomicU8, AtomicUsize, Ordering};
 use std::sync::Mutex;
-use std::time::{Instant, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 use sysinfo::{ProcessRefreshKind, ProcessesToUpdate, System, UpdateKind};
 
-use crate::browserclean::empty_dir;
 use crate::util;
 
 const ATTR_REPARSE: u32 = 0x400;
@@ -793,7 +792,7 @@ pub fn report(cfg: &Config) -> DiskReport {
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct DiskTarget {
     /// "cache" | "project"
     pub kind: String,
@@ -802,9 +801,12 @@ pub struct DiskTarget {
     /// project only: the artifact folder name inside it
     #[serde(default)]
     pub name: String,
+    /// size from the last scan, only used to show progress
+    #[serde(default)]
+    pub bytes: u64,
 }
 
-#[derive(Serialize, Debug, Default)]
+#[derive(Serialize, Clone, Debug, Default)]
 pub struct DiskCleanResult {
     pub freed: u64,
     pub cleaned: Vec<String>,
@@ -854,22 +856,96 @@ fn verify_project(cfg: &Config, ex: &Excludes, hay: &[String], t: &DiskTarget) -
     Ok(dir.join(&t.name))
 }
 
-/// Rename first (instant, and the project never sees a half-deleted folder), then delete.
-/// If files are locked, the renamed folder stays and shows up as a leftover in the next scan.
-fn delete_artifact(p: &Path) -> Result<(u64, u64), String> {
-    let name = p.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
-    let target = if name.contains(LEFTOVER) {
-        p.to_path_buf()
-    } else {
-        let tmp = p.with_file_name(format!("{name}{LEFTOVER}{}", now()));
-        fs::rename(p, &tmp).map_err(|e| format!("a file in it is open ({e})"))?;
-        tmp
-    };
-    let (freed, left) = empty_dir(&target);
-    if left == 0 {
-        let _ = fs::remove_dir(&target);
+// ---------- deleting, with progress, pause and stop ----------
+
+const RUN: u8 = 0;
+const PAUSE: u8 = 1;
+const STOP: u8 = 2;
+/// What the user asked the running cleanup to do.
+static CTL: AtomicU8 = AtomicU8::new(RUN);
+static FILES: AtomicU64 = AtomicU64::new(0);
+static FREED: AtomicU64 = AtomicU64::new(0);
+/// The file being deleted right now.
+static CURRENT: Mutex<String> = Mutex::new(String::new());
+
+/// Called between files: waits while paused; true means stop now.
+fn hold() -> bool {
+    loop {
+        match CTL.load(Ordering::SeqCst) {
+            RUN => return false,
+            STOP => return true,
+            _ => std::thread::sleep(Duration::from_millis(120)),
+        }
     }
-    Ok((freed, left))
+}
+
+/// Delete `path` (a file, or a folder with everything in it). Links and junctions are left
+/// alone, never followed. Returns true if a stop was requested.
+fn wipe_entry(path: &Path, left: &AtomicU64) -> bool {
+    let Ok(m) = fs::symlink_metadata(path) else { return false };
+    if is_reparse(&m) {
+        return false;
+    }
+    if m.is_dir() {
+        if wipe(path, left) {
+            return true;
+        }
+        let _ = fs::remove_dir(path); // fails harmlessly if something stayed
+        return false;
+    }
+    if let Ok(mut c) = CURRENT.lock() {
+        c.clear();
+        c.push_str(&path.to_string_lossy());
+    }
+    if m.permissions().readonly() {
+        let mut perm = m.permissions();
+        #[allow(clippy::permissions_set_readonly_false)]
+        perm.set_readonly(false);
+        let _ = fs::set_permissions(path, perm);
+    }
+    match fs::remove_file(path) {
+        Ok(()) => {
+            FILES.fetch_add(1, Ordering::Relaxed);
+            FREED.fetch_add(m.len(), Ordering::Relaxed);
+        }
+        Err(_) => {
+            left.fetch_add(1, Ordering::Relaxed);
+        }
+    }
+    false
+}
+
+fn wipe(dir: &Path, left: &AtomicU64) -> bool {
+    let Ok(rd) = fs::read_dir(dir) else { return false };
+    for e in rd.flatten() {
+        if hold() || wipe_entry(&e.path(), left) {
+            return true;
+        }
+    }
+    false
+}
+
+/// Empty `dir` (keeping `dir` itself), its top-level entries spread over a few threads:
+/// node_modules holds thousands of small packages. Returns (files left in place, stopped).
+fn wipe_par(dir: &Path) -> (u64, bool) {
+    let left = AtomicU64::new(0);
+    let Ok(rd) = fs::read_dir(dir) else { return (0, false) };
+    let entries: Vec<PathBuf> = rd.flatten().map(|e| e.path()).collect();
+    let stopped = par_map(&entries, |p| hold() || wipe_entry(p, &left)).into_iter().any(|s| s);
+    (left.into_inner(), stopped)
+}
+
+/// Rename first (instant, and the project never sees a half-deleted folder); the caller then
+/// empties the renamed folder. If files are locked or the cleanup is stopped, the renamed folder
+/// stays and shows up as a leftover in the next scan.
+fn rename_artifact(p: &Path) -> Result<PathBuf, String> {
+    let name = p.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
+    if name.contains(LEFTOVER) {
+        return Ok(p.to_path_buf());
+    }
+    let tmp = p.with_file_name(format!("{name}{LEFTOVER}{}", now()));
+    fs::rename(p, &tmp).map_err(|e| format!("a file in it is open ({e})"))?;
+    Ok(tmp)
 }
 
 fn run_tool(exe: &str, args: &[&str]) -> Result<(), String> {
@@ -880,78 +956,272 @@ fn run_tool(exe: &str, args: &[&str]) -> Result<(), String> {
     }
 }
 
-fn clean_cache(def: &CacheDef) -> Result<(u64, u64), String> {
+/// Returns (files left, stopped). Bytes are counted in FREED as files go; a tool's own cleanup
+/// is measured before and after (and can't be paused or stopped half-way).
+fn clean_cache(def: &CacheDef) -> Result<(u64, bool), String> {
     let paths = cache_paths(def.id);
-    let before: u64 = paths.iter().map(|p| local_size(p)).sum();
-    let measured = |left| Ok((before.saturating_sub(paths.iter().map(|p| local_size(p)).sum()), left));
+    let empty = |dirs: &[PathBuf], remove: bool| {
+        let mut left = 0;
+        for p in dirs {
+            let (l, stopped) = wipe_par(p);
+            left += l;
+            if stopped {
+                return (left, true);
+            }
+            if remove && l == 0 {
+                let _ = fs::remove_dir(p);
+            }
+        }
+        (left, false)
+    };
+    let by_tool = |exe: &str, args: &[&str]| -> Result<(), String> {
+        let before: u64 = paths.iter().map(|p| local_size(p)).sum();
+        if let Ok(mut c) = CURRENT.lock() {
+            *c = tool_label(def.how);
+        }
+        run_tool(exe, args)?;
+        let after: u64 = paths.iter().map(|p| local_size(p)).sum();
+        FREED.fetch_add(before.saturating_sub(after), Ordering::Relaxed);
+        Ok(())
+    };
     match def.how {
-        How::Empty => {
-            let left = paths.iter().map(|p| empty_dir(p).1).sum();
-            measured(left)
-        }
-        How::KeepNewest => {
-            let mut left = 0;
-            for p in targets_of(def) {
-                let (_, l) = empty_dir(&p);
-                left += l;
-                if l == 0 {
-                    let _ = fs::remove_dir(&p);
-                }
-            }
-            measured(left)
-        }
+        How::Empty => Ok(empty(&paths, false)),
+        How::KeepNewest => Ok(empty(&targets_of(def), true)),
         How::Tool(exe, args) => {
-            run_tool(exe, args).map_err(|e| format!("{} failed: {e}", tool_label(def.how)))?;
-            measured(0)
+            by_tool(exe, args).map_err(|e| format!("{} failed: {e}", tool_label(def.how)))?;
+            Ok((0, false))
         }
-        How::ToolOrEmpty(exe, args) => {
-            if run_tool(exe, args).is_err() {
-                let left = paths.iter().map(|p| empty_dir(p).1).sum();
-                return measured(left);
-            }
-            measured(0)
-        }
+        How::ToolOrEmpty(exe, args) => match by_tool(exe, args) {
+            Ok(()) => Ok((0, false)),
+            Err(_) => Ok(empty(&paths, false)),
+        },
     }
 }
 
-pub fn clean(cfg: &Config, targets: &[DiskTarget]) -> DiskCleanResult {
+/// Clean `targets` in order. `pending` holds what is still to do (the current target first) and
+/// is handed to `save` whenever it changes, so a stopped or crashed cleanup can be continued.
+/// Returns the result and what is left (empty unless stopped).
+fn run(cfg: &Config, targets: Vec<DiskTarget>, save: &dyn Fn(&[DiskTarget])) -> (DiskCleanResult, Vec<DiskTarget>) {
     let hay = process_hay();
     let ex = Excludes::new(&cfg.excludes);
     let mut r = DiskCleanResult::default();
-    for t in targets {
+    let mut pending = targets.clone();
+    for (i, t) in targets.into_iter().enumerate() {
+        if hold() {
+            break;
+        }
+        let label = if t.kind == "cache" { format!("cache {}", t.id) } else { format!("{}\\{}", t.id, t.name) };
+        set_job(|j| {
+            j.index = i;
+            j.target = label.clone();
+        });
+        let before = FREED.load(Ordering::Relaxed);
+        let mut stopped = false;
         if t.kind == "cache" {
-            let Some(def) = CACHES.iter().find(|d| d.id == t.id) else { continue };
-            if cfg.disabled.iter().any(|d| d == def.id) {
-                r.skipped.push(format!("{}: never clean is on", def.id));
-                continue;
-            }
-            if cache_busy(def, &hay) {
-                r.skipped.push(format!("{}: in use by a running process", def.id));
-                continue;
-            }
-            match clean_cache(def) {
-                Ok((freed, left)) => {
-                    r.freed += freed;
-                    r.locked_files += left;
-                    r.cleaned.push(format!("cache {} ({:.1} MB)", def.id, freed as f64 / 1048576.0));
-                    r.done.push(format!("c|{}", def.id));
-                }
-                Err(e) => r.skipped.push(format!("{}: {e}", def.id)),
+            match CACHES.iter().find(|d| d.id == t.id) {
+                None => {}
+                Some(def) if cfg.disabled.iter().any(|d| d == def.id) => r.skipped.push(format!("{}: never clean is on", def.id)),
+                Some(def) if cache_busy(def, &hay) => r.skipped.push(format!("{}: in use by a running process", def.id)),
+                Some(def) => match clean_cache(def) {
+                    Ok((left, st)) => {
+                        r.locked_files += left;
+                        stopped = st;
+                        if !st {
+                            let freed = FREED.load(Ordering::Relaxed) - before;
+                            r.cleaned.push(format!("cache {} ({:.1} MB)", def.id, freed as f64 / 1048576.0));
+                            r.done.push(format!("c|{}", def.id));
+                        }
+                    }
+                    Err(e) => r.skipped.push(format!("{}: {e}", def.id)),
+                },
             }
         } else {
-            let label = format!("{}\\{}", t.id, t.name);
-            match verify_project(cfg, &ex, &hay, t).and_then(|p| delete_artifact(&p)) {
-                Ok((freed, left)) => {
-                    r.freed += freed;
+            match verify_project(cfg, &ex, &hay, &t).and_then(|p| rename_artifact(&p)) {
+                Ok(dir) => {
+                    // from here on the folder has its leftover name: that is what a resume deletes
+                    let name = dir.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
+                    if name != t.name {
+                        pending[0].name = name;
+                        save(&pending);
+                    }
+                    let (left, st) = wipe_par(&dir);
                     r.locked_files += left;
-                    r.cleaned.push(format!("{label} ({:.1} MB)", freed as f64 / 1048576.0));
-                    r.done.push(format!("p|{}|{}", t.id, t.name));
+                    stopped = st;
+                    if !st {
+                        if left == 0 {
+                            let _ = fs::remove_dir(&dir);
+                        }
+                        let freed = FREED.load(Ordering::Relaxed) - before;
+                        r.cleaned.push(format!("{label} ({:.1} MB)", freed as f64 / 1048576.0));
+                        r.done.push(format!("p|{}|{}", t.id, t.name));
+                    }
                 }
                 Err(e) => r.skipped.push(format!("{label}: {e}")),
             }
         }
+        if stopped {
+            pending[0].bytes = pending[0].bytes.saturating_sub(FREED.load(Ordering::Relaxed) - before);
+            break;
+        }
+        pending.remove(0);
+        save(&pending);
     }
-    r
+    r.freed = FREED.load(Ordering::Relaxed);
+    (r, pending)
+}
+
+// ---------- the cleanup job: runs in the background, the UI polls it ----------
+
+struct Job {
+    id: u64,
+    running: bool,
+    stopped: bool,
+    total: u64,
+    index: usize,
+    count: usize,
+    target: String,
+    result: Option<DiskCleanResult>,
+}
+
+static JOB: Mutex<Option<Job>> = Mutex::new(None);
+
+fn set_job(f: impl FnOnce(&mut Job)) {
+    if let Ok(mut g) = JOB.lock() {
+        if let Some(j) = g.as_mut() {
+            f(j);
+        }
+    }
+}
+
+#[derive(Serialize, Debug, Default)]
+pub struct JobView {
+    pub id: u64,
+    /// idle | running | paused | stopping | stopped | done
+    pub state: &'static str,
+    /// bytes the selected items had in the last scan
+    pub total: u64,
+    pub freed: u64,
+    pub files: u64,
+    pub index: usize,
+    pub count: usize,
+    pub target: String,
+    pub current: String,
+    /// once finished
+    pub result: Option<DiskCleanResult>,
+    /// what "Continue" would clean (filled by the caller from the saved list)
+    pub resume: Vec<DiskTarget>,
+}
+
+pub fn job_view() -> JobView {
+    let g = JOB.lock().unwrap_or_else(|e| e.into_inner());
+    let Some(j) = g.as_ref() else { return JobView { state: "idle", ..Default::default() } };
+    let state = if j.running {
+        match CTL.load(Ordering::SeqCst) {
+            STOP => "stopping",
+            PAUSE => "paused",
+            _ => "running",
+        }
+    } else if j.stopped {
+        "stopped"
+    } else {
+        "done"
+    };
+    JobView {
+        id: j.id,
+        state,
+        total: j.total,
+        freed: FREED.load(Ordering::Relaxed),
+        files: FILES.load(Ordering::Relaxed),
+        index: j.index,
+        count: j.count,
+        target: j.target.clone(),
+        current: if j.running { CURRENT.lock().map(|c| c.clone()).unwrap_or_default() } else { String::new() },
+        result: j.result.clone(),
+        resume: vec![],
+    }
+}
+
+pub fn is_running() -> bool {
+    JOB.lock().map(|g| g.as_ref().is_some_and(|j| j.running)).unwrap_or(false)
+}
+
+/// Start cleaning in the background. `save` keeps the to-do list (see `run`); `finish` gets the
+/// result once the job ends, stopped or not.
+pub fn start(
+    cfg: Config,
+    targets: Vec<DiskTarget>,
+    save: impl Fn(&[DiskTarget]) + Send + 'static,
+    finish: impl FnOnce(&DiskCleanResult) + Send + 'static,
+) -> Result<(), String> {
+    let mut g = JOB.lock().map_err(|_| "job lock poisoned".to_string())?;
+    if g.as_ref().is_some_and(|j| j.running) {
+        return Err("a cleanup is already running".into());
+    }
+    CTL.store(RUN, Ordering::SeqCst);
+    FILES.store(0, Ordering::Relaxed);
+    FREED.store(0, Ordering::Relaxed);
+    if let Ok(mut c) = CURRENT.lock() {
+        c.clear();
+    }
+    *g = Some(Job {
+        id: g.as_ref().map_or(1, |j| j.id + 1),
+        running: true,
+        stopped: false,
+        total: targets.iter().map(|t| t.bytes).sum(),
+        index: 0,
+        count: targets.len(),
+        target: String::new(),
+        result: None,
+    });
+    drop(g);
+    save(&targets);
+    std::thread::spawn(move || {
+        let out = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| run(&cfg, targets, &save)));
+        let (r, left) = out.unwrap_or_else(|_| {
+            let r = DiskCleanResult { freed: FREED.load(Ordering::Relaxed), skipped: vec!["the cleanup failed unexpectedly".into()], ..Default::default() };
+            (r, vec![])
+        });
+        finish(&r);
+        set_job(|j| {
+            j.running = false;
+            j.stopped = !left.is_empty();
+            j.result = Some(r);
+        });
+    });
+    Ok(())
+}
+
+/// "pause" | "resume" | "stop"
+pub fn control(action: &str) {
+    if !is_running() {
+        return;
+    }
+    match action {
+        "pause" => {
+            let _ = CTL.compare_exchange(RUN, PAUSE, Ordering::SeqCst, Ordering::SeqCst);
+        }
+        "resume" => {
+            let _ = CTL.compare_exchange(PAUSE, RUN, Ordering::SeqCst, Ordering::SeqCst);
+        }
+        "stop" => CTL.store(STOP, Ordering::SeqCst),
+        _ => {}
+    }
+}
+
+/// Forget a finished job (the panel closes). A running one is kept.
+pub fn dismiss() {
+    if let Ok(mut g) = JOB.lock() {
+        if !g.as_ref().is_some_and(|j| j.running) {
+            *g = None;
+        }
+    }
+}
+
+/// The whole cleanup, in this thread (tests).
+#[cfg(test)]
+pub fn clean(cfg: &Config, targets: &[DiskTarget]) -> DiskCleanResult {
+    CTL.store(RUN, Ordering::SeqCst);
+    run(cfg, targets.to_vec(), &|_| {}).0
 }
 
 #[cfg(test)]
@@ -1016,8 +1286,42 @@ mod tests {
         assert!(!ex.any_on_path(Path::new("C:\\x"), Path::new("C:\\x\\app\\node_modules")));
     }
 
+    /// Tests that run a cleanup share the global pause/stop switch.
+    static SERIAL: Mutex<()> = Mutex::new(());
+
+    #[test]
+    fn stop_then_continue() {
+        let _g = SERIAL.lock().unwrap_or_else(|e| e.into_inner());
+        let root = tmp("stop");
+        let app = root.join("app");
+        fs::create_dir_all(app.join("node_modules").join("a")).unwrap();
+        fs::write(app.join("package.json"), "{}").unwrap();
+        fs::write(app.join("node_modules").join("a").join("i.js"), vec![0u8; 100]).unwrap();
+        let cfg = Config { roots: vec![root.to_string_lossy().into_owned()], excludes: vec![], disabled: vec![], stale_days: 30 };
+        let t = DiskTarget { kind: "project".into(), id: app.to_string_lossy().into_owned(), name: "node_modules".into(), bytes: 100 };
+
+        // stopped before it starts: nothing touched, everything still to do
+        CTL.store(STOP, Ordering::SeqCst);
+        let (r, left) = run(&cfg, vec![t.clone()], &|_| {});
+        assert!(r.cleaned.is_empty());
+        assert_eq!(left.len(), 1);
+        assert!(app.join("node_modules").is_dir());
+
+        // a run cut short after the rename continues on the renamed folder
+        let renamed = rename_artifact(&app.join("node_modules")).unwrap();
+        let resume = DiskTarget { name: renamed.file_name().unwrap().to_string_lossy().into_owned(), ..t };
+        let saved = Mutex::new(vec![]);
+        CTL.store(RUN, Ordering::SeqCst);
+        let (r, left) = run(&cfg, vec![resume], &|p| *saved.lock().unwrap() = p.to_vec());
+        assert_eq!(r.cleaned.len(), 1, "{r:?}");
+        assert!(left.is_empty() && saved.lock().unwrap().is_empty());
+        assert_eq!(fs::read_dir(&app).unwrap().count(), 1); // only package.json
+        fs::remove_dir_all(&root).unwrap();
+    }
+
     #[test]
     fn finds_and_deletes_with_verification() {
+        let _g = SERIAL.lock().unwrap_or_else(|e| e.into_inner());
         let root = tmp("scan");
         let app = root.join("app");
         fs::create_dir_all(app.join("node_modules").join("left-pad")).unwrap();
@@ -1046,14 +1350,14 @@ mod tests {
         assert!(!projects[0].stale); // just written
 
         // a target outside the roots or excluded is refused
-        let bad = DiskTarget { kind: "project".into(), id: skip.to_string_lossy().into_owned(), name: "node_modules".into() };
-        let up = DiskTarget { kind: "project".into(), id: app.to_string_lossy().into_owned(), name: "..".into() };
+        let bad = DiskTarget { kind: "project".into(), id: skip.to_string_lossy().into_owned(), name: "node_modules".into(), bytes: 0 };
+        let up = DiskTarget { kind: "project".into(), id: app.to_string_lossy().into_owned(), name: "..".into(), bytes: 0 };
         let r = clean(&cfg, &[bad, up]);
         assert_eq!(r.cleaned.len(), 0);
         assert_eq!(r.skipped.len(), 2);
         assert!(skip.join("node_modules").is_dir());
 
-        let ok = DiskTarget { kind: "project".into(), id: app.to_string_lossy().into_owned(), name: "node_modules".into() };
+        let ok = DiskTarget { kind: "project".into(), id: app.to_string_lossy().into_owned(), name: "node_modules".into(), bytes: 0 };
         let r = clean(&cfg, &[ok]);
         assert_eq!(r.cleaned.len(), 1, "{r:?}");
         assert_eq!(r.freed, 300);

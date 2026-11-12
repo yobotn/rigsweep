@@ -133,6 +133,7 @@ function showTab(name) {
   document.querySelectorAll(".tab").forEach((s) => s.classList.toggle("active", s.id === `tab-${name}`));
   safeSet("tab", name);
   clearInterval(procTimer);
+  if (name === "startup") { if (!startup) loadStartup(); else renderStartup(); }
   if (name === "processes") { loadProcesses(); procTimer = setInterval(() => $("#proc-auto").checked && loadProcesses(), 3000); }
   if (name === "dashboard") { loadDashboard(); procTimer = setInterval(() => document.visibilityState === "visible" && loadDashboard(), 10000); }
   if (name === "cleanup") loadDev();
@@ -537,6 +538,7 @@ async function scanDisk() {
 
 function renderDisk() {
   renderDiskAuto();
+  renderDiskJob();
   if (!disk) return;
   const picked = diskRows().filter((r) => diskSel.has(r.k)).reduce((a, r) => a + r.bytes, 0);
   $("#disk-summary").textContent = t("disk.summary", {
@@ -628,17 +630,54 @@ $("#btn-disk-clean").onclick = async (e) => {
     ${redl ? `<p class="warn-text">${esc(t("disk.redl.warn"))}</p>` : ""}
     ${od ? `<p class="warn-text">${esc(t("disk.od.warn"))}</p>` : ""}`;
   if (!(await modal(t("disk.confirm.title", { size: fmtBytes(size) }), html, { okText: t("disk.clean"), danger: true }))) return;
-  busy(e.target, true, t("disk.cleaning"));
-  try {
-    const targets = picked.map((r) => r.c ? { kind: "cache", id: r.c.id, name: "" } : { kind: "project", id: r.p.path, name: r.a.name });
-    const r = await call("clean_dev_disk", { targets });
-    let msg = t("disk.done", { mem: fmtBytes(r.freed) });
-    if (r.locked_files) msg += "\n" + t("disk.locked", { n: r.locked_files });
-    if (r.skipped.length) msg += "\n" + t("disk.skipped") + "\n• " + r.skipped.map(shortPath).join("\n• ");
-    toast(msg, r.skipped.length ? "warn" : "ok", 10000);
-    picked.forEach((x) => diskSel.delete(x.k));
+  const targets = picked.map((r) => r.c
+    ? { kind: "cache", id: r.c.id, name: "", bytes: r.bytes }
+    : { kind: "project", id: r.p.path, name: r.a.name, bytes: r.bytes });
+  // the job runs in the backend; a reload or tab switch just picks it up again
+  try { applyDiskJob(await call("start_disk_clean", { targets })); } catch { pollDiskJob(); return; }
+  pollDiskJob();
+};
+
+// ---------- dev disk cleanup job (lives in the backend; this side only polls and draws it) ----------
+let diskJob = null, diskJobTimer = null, diskRate = null;
+const JOB_ACTIVE = ["running", "paused", "stopping"];
+const jobActive = (j) => !!j && JOB_ACTIVE.includes(j.state);
+
+async function pollDiskJob() {
+  clearTimeout(diskJobTimer);
+  let j = null;
+  try { j = await invoke("get_disk_job"); } catch (e) { console.error("get_disk_job", e); }
+  if (j) applyDiskJob(j);
+  // keep polling while it runs; after a failed poll try again a bit later
+  if (!j || jobActive(j)) diskJobTimer = setTimeout(pollDiskJob, !j ? 2000 : j.state === "paused" ? 800 : 300);
+}
+
+function applyDiskJob(j) {
+  const prev = diskJob;
+  diskJob = j;
+  if (jobActive(j)) {
+    const now = performance.now();
+    if (!diskRate || diskRate.id !== j.id) diskRate = { id: j.id, t: now, freed: j.freed, bps: 0 };
+    else if (now - diskRate.t >= 900) {
+      const bps = Math.max(0, (j.freed - diskRate.freed) / ((now - diskRate.t) / 1000));
+      diskRate = { id: j.id, t: now, freed: j.freed, bps: diskRate.bps ? diskRate.bps * 0.6 + bps * 0.4 : bps };
+    }
+  }
+  // it ended while this page watched it: report, drop what's gone, rescan
+  if (prev && prev.id === j.id && jobActive(prev) && !jobActive(j) && j.result) onDiskJobEnd(j);
+  renderDiskJob();
+}
+
+function onDiskJobEnd(j) {
+  const r = j.result;
+  let msg = j.state === "stopped" ? t("disk.job.stoppedToast", { mem: fmtBytes(r.freed) }) : t("disk.done", { mem: fmtBytes(r.freed) });
+  if (r.locked_files) msg += "\n" + t("disk.locked", { n: r.locked_files });
+  if (r.skipped.length) msg += "\n" + t("disk.skipped") + "\n• " + r.skipped.map(shortPath).join("\n• ");
+  toast(msg, r.skipped.length ? "warn" : "ok", 10000);
+  if (disk) {
     // drop what's gone at once; the rescan below (slow on big trees) only refreshes the sizes
     const gone = new Set(r.done);
+    gone.forEach((k) => diskSel.delete(k));
     disk.caches.forEach((c) => { if (gone.has(cKey(c))) { c.bytes = 0; c.total = 0; } });
     disk.caches = disk.caches.filter((c) => c.total > 0);
     disk.projects.forEach((p) => { p.items = p.items.filter((a) => !gone.has(aKey(p, a))); });
@@ -648,9 +687,65 @@ $("#btn-disk-clean").onclick = async (e) => {
     disk.project_total = disk.projects.reduce((a, p) => a + sum(p), 0);
     disk.stale_total = disk.projects.filter((p) => p.stale).reduce((a, p) => a + sum(p), 0);
     renderDisk();
-  } finally { busy(e.target, false); }
-  loadDisk();
-};
+  }
+  if (currentTab === "disk" || disk) loadDisk();
+}
+
+// a long path is cut at the start: the file name is the part worth seeing
+const tailPath = (p, n = 110) => !p ? "" : p.length > n ? "…" + p.slice(-n) : p;
+
+function renderDiskJob() {
+  const box = $("#disk-job"), j = diskJob, active = jobActive(j);
+  const cleanBtn = $("#btn-disk-clean");
+  cleanBtn.disabled = active;
+  cleanBtn.title = active ? t("disk.job.busy") : "";
+  const resumeN = j?.resume?.length || 0;
+  const show = !!j && (j.state !== "idle" || resumeN > 0);
+  box.classList.toggle("hidden", !show);
+  if (!show) return;
+  const st = j.state === "idle" ? "stopped" : j.state;
+  box.className = `jobbar ${st}`;
+  const pct = j.total ? Math.min(100, (j.freed / j.total) * 100) : 0;
+  const leftBytes = (j.resume || []).reduce((a, x) => a + (x.bytes || 0), 0);
+  const title = {
+    running: () => t("disk.job.running", { i: j.index + 1, n: j.count }),
+    paused: () => t("disk.job.paused", { i: j.index + 1, n: j.count }),
+    stopping: () => t("disk.job.stopping"),
+    stopped: () => t(j.state === "idle" ? "disk.job.unfinished" : "disk.job.stopped", { n: resumeN, size: fmtBytes(leftBytes) }),
+    done: () => t("disk.job.done", { mem: fmtBytes(j.freed), files: j.files.toLocaleString() }),
+  }[st]();
+  $("#dj-title").textContent = title;
+  const bar = $("#dj-bar"), prog = box.querySelector(".progress");
+  // running with no size hint (a tool's own cleanup): an indeterminate bar
+  box.classList.toggle("indeterminate", j.state === "running" && !j.total);
+  bar.style.width = (st === "done" ? 100 : pct) + "%";
+  prog.setAttribute("aria-valuenow", String(Math.round(st === "done" ? 100 : pct)));
+  prog.classList.toggle("hidden", j.state === "idle");
+  const rate = active && j.state === "running" && diskRate?.id === j.id && diskRate.bps > 0 ? diskRate.bps : 0;
+  $("#dj-stats").textContent = j.state === "idle" ? "" : t("disk.job.stats", {
+    freed: fmtBytes(j.freed), total: fmtBytes(j.total), pct: Math.round(pct), files: j.files.toLocaleString(),
+  }) + (rate ? ` · ${fmtBytes(rate)}/s` : "");
+  const file = $("#dj-file");
+  file.textContent = active ? tailPath(j.current) || shortPath(j.target) : "";
+  file.title = active ? j.current : "";
+  file.classList.toggle("hidden", !active);
+  const pause = $("#dj-pause");
+  pause.textContent = t(j.state === "paused" ? "disk.job.resume" : "disk.job.pause");
+  pause.classList.toggle("hidden", !(j.state === "running" || j.state === "paused"));
+  $("#dj-stop").classList.toggle("hidden", !(j.state === "running" || j.state === "paused"));
+  $("#dj-continue").classList.toggle("hidden", active || !resumeN);
+  $("#dj-dismiss").classList.toggle("hidden", active);
+}
+
+async function diskJobCall(btn, cmd, args) {
+  btn.disabled = true;
+  try { applyDiskJob(await call(cmd, args)); } catch {} finally { btn.disabled = false; }
+  pollDiskJob();
+}
+$("#dj-pause").onclick = (e) => diskJobCall(e.currentTarget, "disk_job_control", { action: diskJob?.state === "paused" ? "resume" : "pause" });
+$("#dj-stop").onclick = (e) => diskJobCall(e.currentTarget, "disk_job_control", { action: "stop" });
+$("#dj-continue").onclick = (e) => diskJobCall(e.currentTarget, "resume_disk_clean");
+$("#dj-dismiss").onclick = (e) => diskJobCall(e.currentTarget, "dismiss_disk_job");
 
 // ---------- boost report ----------
 let reportPick = null; // {before, after} snapshot ids
@@ -783,7 +878,7 @@ function renderProcesses() {
       return `<span class="svc ${s.tweak_id ? "known" : ""}" title="${esc(s.display)}">${esc(s.name)} ${btn}</span>`;
     }).join("");
     return `<tr>
-      <td><b>${esc(p.name)}</b><div class="sub" title="${esc(p.exe)}"><bdi dir="ltr">${esc(p.exe.length > 60 ? "…" + p.exe.slice(-58) : p.exe)}</bdi></div></td>
+      <td><div class="named">${ico(p.exe)}<div><b>${esc(p.name)}</b><div class="sub" title="${esc(p.exe)}"><bdi dir="ltr">${esc(p.exe.length > 60 ? "…" + p.exe.slice(-58) : p.exe)}</bdi></div></div></div></td>
       <td class="num">${p.pid}</td>
       <td class="num ${cpuCls}">${p.cpu.toFixed(1)}%</td>
       <td class="num">${fmtBytes(p.mem)}</td>
@@ -827,6 +922,146 @@ $("#proc-body").addEventListener("click", async (e) => {
   }
 });
 
+// ---------- app icons ----------
+// ico(path) returns an <img> when the icon is known, otherwise a placeholder that is filled in once
+// the backend has extracted it. Requests from one render are batched into a single call.
+const icoCache = new Map();   // lower-cased path -> data URL, or "" when the file has no icon
+const icoWanted = new Map();  // lower-cased path -> path, waiting for the next batch
+let icoTimer = null;
+function ico(path) {
+  if (!path) return `<span class="ico"></span>`;
+  const k = path.toLowerCase(), v = icoCache.get(k);
+  if (v) return `<img class="ico" src="${v}" alt="" />`;
+  if (v === undefined && !icoWanted.has(k)) {
+    icoWanted.set(k, path);
+    clearTimeout(icoTimer);
+    icoTimer = setTimeout(fetchIcons, 20);
+  }
+  return `<span class="ico" data-ico="${esc(k)}"></span>`;
+}
+async function fetchIcons() {
+  const batch = [...icoWanted.entries()];
+  if (!batch.length) return;
+  let res = {};
+  try { res = await invoke("get_icons", { paths: batch.map(([, p]) => p) }); } catch {}
+  batch.forEach(([k, p]) => { icoCache.set(k, res[p] || ""); icoWanted.delete(k); });
+  document.querySelectorAll("span.ico[data-ico]").forEach((el) => {
+    const url = icoCache.get(el.dataset.ico);
+    if (url === undefined) return;
+    if (url) el.outerHTML = `<img class="ico" src="${url}" alt="" />`;
+    else el.removeAttribute("data-ico");
+  });
+}
+
+// ---------- startup ----------
+// Everything that starts on its own, including services and scheduled tasks Task Manager never lists.
+// Turning one off creates a custom tweak (backup, Restore, watchdog re-apply all come for free).
+let startup = null;
+const ST_KINDS = ["service", "task", "run", "folder"];
+// VPN clients and security agents: often managed by an employer, worth a second look
+const ST_SECURITY = /vpn|forti|security|antivirus|anti-virus|endpoint|defend|crowdstrike|sentinelone|sophos|eset|kaspersky|norton|mcafee|bitdefender|zscaler|globalprotect|cisco/i;
+
+async function loadStartup(btn) {
+  busy(btn, true);
+  if (!startup) $("#st-body").innerHTML = `<tr><td colspan="3" class="loading"><span class="spinner"></span> ${esc(t("st.scanning"))}</td></tr>`;
+  try { startup = await call("get_startup"); } catch { startup = startup || []; } finally { busy(btn, false); }
+  renderStartup();
+}
+
+function stWhen(it) {
+  if (it.kind === "service") return t("st.trig.boot");
+  if (it.kind === "task") return it.triggers.length ? it.triggers.map((x) => tOr("st.trig." + x, x)).join(", ") : t("st.trig.other");
+  return t("st.trig.logon") + " · " + t("st.scope." + it.scope);
+}
+
+function renderStartup() {
+  if (!startup) return;
+  const q = $("#st-filter").value.trim().toLowerCase();
+  const rows = startup.filter((it) => !q || it.name.toLowerCase().includes(q) || it.command.toLowerCase().includes(q) || it.key.toLowerCase().includes(q));
+  const hidden = startup.filter((it) => it.kind === "service" || it.kind === "task").length;
+  $("#st-summary").textContent = startup.length ? t("st.summary", { n: startup.length, h: hidden }) : "";
+  if (!rows.length) {
+    $("#st-body").innerHTML = `<tr><td colspan="3" class="loading">${esc(t(startup.length ? "st.noMatch" : "st.none"))}</td></tr>`;
+  } else {
+    $("#st-body").innerHTML = ST_KINDS.map((k) => {
+      const list = rows.filter((it) => it.kind === k);
+      if (!list.length) return "";
+      return `<tr class="group"><td colspan="3"><b>${esc(t("st.g." + k))}</b> <span class="sub">${list.length}</span></td></tr>` + list.map((it) => {
+        const tw = it.tweak_id && state?.tweaks.find((x) => x.id === it.tweak_id);
+        const btn = tw && !tw.custom
+          ? `<button class="small ghost" data-goto="${esc(tw.id)}">${esc(t("proc.tweak"))}</button>`
+          : `<button class="small ghost" data-st-kind="${esc(it.kind)}" data-st-key="${esc(it.key)}">${esc(t("st.off"))}</button>`;
+        const cmd = it.command.length > 90 ? it.command.slice(0, 88) + "…" : it.command;
+        return `<tr>
+          <td><div class="named">${ico(it.exe)}<div><b>${esc(it.name)}</b>
+            ${it.running ? `<span class="badge active">${esc(t("st.running"))}</span>` : ""}
+            ${it.hardware ? `<span class="badge idle" title="${esc(t("st.driverWarn"))}">${esc(t("st.driver"))}</span>` : ""}
+            <div class="sub" title="${esc(it.command + "\n" + it.location)}"><bdi dir="ltr">${esc(cmd)}</bdi></div></div></div></td>
+          <td>${esc(stWhen(it))}</td>
+          <td>${btn}</td>
+        </tr>`;
+      }).join("");
+    }).join("");
+  }
+  renderStartupOff();
+}
+
+function renderStartupOff() {
+  const off = (state?.tweaks || []).filter((x) => x.custom && x.in_profile);
+  $("#st-off").innerHTML = off.length ? off.map((x) =>
+    `<li><div class="what"><b>${esc(x.name)}</b></div><button class="small ghost" data-st-restore="${esc(x.id)}" data-name="${esc(x.name)}">${esc(t("st.restore"))}</button></li>`).join("")
+    : `<li class="empty-state">${esc(t("st.offNone"))}</li>`;
+}
+
+$("#st-filter").addEventListener("input", renderStartup);
+$("#btn-st-scan").onclick = (e) => loadStartup(e.target);
+
+$("#st-body").addEventListener("click", async (e) => {
+  const el = e.target.closest("button");
+  if (!el) return;
+  if (el.dataset.goto) {
+    showTab("tweaks");
+    const node = document.querySelector(`.tw[data-id="${CSS.escape(el.dataset.goto)}"]`);
+    if (node) { node.closest(".cat").classList.remove("collapsed"); node.scrollIntoView({ block: "center" }); node.style.outline = "2px solid var(--accent)"; setTimeout(() => (node.style.outline = ""), 2500); }
+    return;
+  }
+  // two attributes: a separator character inside one attribute can be rewritten by the HTML parser
+  const kind = el.dataset.stKind, key = el.dataset.stKey;
+  if (!kind || key == null) return;
+  const it = startup.find((x) => x.kind === kind && x.key === key);
+  if (!it) return;
+  const body = kind === "service" ? "st.offBody.service" : kind === "task" ? "st.offBody.task" : "st.offBody.run";
+  const html = `<p>${esc(t(body))}</p>
+    ${it.hardware ? `<p class="warn-text">${esc(t("st.driverWarn"))}</p>` : ""}
+    ${ST_SECURITY.test(it.name + " " + it.command) ? `<p class="warn-text">${esc(t("st.secWarn"))}</p>` : ""}
+    <p class="sub">${esc(t("st.backup"))}</p>`;
+  if (!(await modal(t("st.offTitle", { name: it.name }), html, { okText: t("st.off").replace("…", ""), danger: it.hardware }))) return;
+  busy(el, true);
+  try {
+    const id = await call("add_startup_tweak", { kind, key, display: it.name });
+    const r = await call("apply_tweaks", { ids: [id] });
+    const res = r.results[0];
+    toast(res?.ok ? t("st.done", { name: it.name }) : t("proc.problem", { m: res?.messages.join("; ") }), res?.ok ? "ok" : "err", 8000);
+    if (r.restore_point) toast(r.restore_point, "info", 8000);
+    selected.add(id);
+  } catch { busy(el, false); return; }
+  await loadState();
+  loadStartup();
+});
+
+$("#st-off").addEventListener("click", async (e) => {
+  const el = e.target.closest("button[data-st-restore]");
+  if (!el) return;
+  busy(el, true);
+  try {
+    await call("remove_custom", { id: el.dataset.stRestore });
+    selected.delete(el.dataset.stRestore);
+    toast(t("st.restored", { name: el.dataset.name }), "ok");
+  } catch { busy(el, false); return; }
+  await loadState();
+  loadStartup();
+});
+
 // ---------- dashboard ----------
 let dashLoading = false;
 async function loadDashboard() {
@@ -856,7 +1091,7 @@ async function renderDashboard() {
     snapshot = snap;
     $("#t-procs").textContent = ltr(`${snap.process_count} / ${snap.service_running}`);
     const top = [...snap.processes].sort((a, b) => (b.cpu + diskOf(b) / 5e6) - (a.cpu + diskOf(a) / 5e6)).slice(0, 8);
-    $("#dash-top").innerHTML = top.map((p) => `<tr><td><b>${esc(p.name)}</b>${p.services.length ? `<div class="sub">${esc(p.services.map((s) => s.name).join(", "))}</div>` : ""}</td>
+    $("#dash-top").innerHTML = top.map((p) => `<tr><td><div class="named">${ico(p.exe)}<div><b>${esc(p.name)}</b>${p.services.length ? `<div class="sub">${esc(p.services.map((s) => s.name).join(", "))}</div>` : ""}</div></div></td>
       <td class="num ${p.cpu > 25 ? "vhot" : p.cpu > 5 ? "hot" : ""}">${p.cpu.toFixed(1)}%</td><td class="num">${fmtBytes(p.mem)}</td><td class="num">${diskOf(p) ? fmtBytes(diskOf(p)) : "–"}</td></tr>`).join("");
     const chrome = snap.processes.filter((p) => p.name.toLowerCase() === "chrome.exe");
     const cmem = chrome.reduce((n, p) => n + p.mem, 0);
@@ -1417,6 +1652,7 @@ async function ensureDisclaimer() {
 (async () => {
   applyI18n();
   await loadState().catch(() => {});
+  pollDiskJob(); // a cleanup may still be running from before a reload
   currentTab = safeGet("tab") || "dashboard";
   rerender();
   ensureDisclaimer();

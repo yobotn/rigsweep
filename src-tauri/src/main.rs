@@ -12,11 +12,13 @@ mod devdisk;
 mod elevation;
 mod engine;
 mod hardware;
+mod icons;
 mod heat;
 mod kill;
 mod live;
 mod update;
 mod persistence;
+mod startup;
 mod util;
 
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -65,7 +67,12 @@ fn main() {
 }
 
 fn show_main(app: &AppHandle) {
+    // open maximized the first time; after that, keep whatever size the user chose
+    static FIRST: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(true);
     if let Some(w) = app.get_webview_window("main") {
+        if FIRST.swap(false, std::sync::atomic::Ordering::Relaxed) {
+            let _ = w.maximize();
+        }
         let _ = w.show();
         badge::invalidate();
         let _ = w.unminimize();
@@ -108,6 +115,9 @@ fn run_app(start_hidden: bool) {
             commands::kill_process,
             commands::add_custom_service,
             commands::remove_custom,
+            commands::get_startup,
+            commands::get_icons,
+            commands::add_startup_tweak,
             commands::get_history,
             commands::save_settings,
             commands::set_paused,
@@ -118,7 +128,11 @@ fn run_app(start_hidden: bool) {
             commands::get_browser_caches,
             commands::clean_browser_caches,
             commands::get_dev_disk,
-            commands::clean_dev_disk,
+            commands::start_disk_clean,
+            commands::resume_disk_clean,
+            commands::get_disk_job,
+            commands::disk_job_control,
+            commands::dismiss_disk_job,
             commands::set_disk_cache_enabled,
             commands::add_disk_exclude,
             commands::set_disk_auto,

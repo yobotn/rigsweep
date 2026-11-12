@@ -2961,10 +2961,11 @@ dependencies = [
 
 [[package]]
 name = "rigsweep"
-version = "0.7.3"
+version = "0.7.4"
 dependencies = [
  "anyhow",
  "chrono",
+ "png",
  "rusqlite",
  "serde",
  "serde_json",

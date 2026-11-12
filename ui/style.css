@@ -365,3 +365,27 @@ button:focus-visible, .tile.link:focus-visible, .tile.heat:focus-visible { outli
 }
 .callouts:empty { display: none; }
 .tbl td.ts { white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--muted); }
+
+/* Dev Disk cleanup progress */
+.jobbar { background: var(--panel); border: 1px solid var(--border); border-inline-start: 3px solid var(--accent); border-radius: var(--radius); padding: 10px 14px; margin-bottom: 12px; font-size: 13px; display: grid; gap: 6px; }
+.jobbar.paused { border-inline-start-color: var(--moderate); }
+.jobbar.stopped { border-inline-start-color: var(--caution); }
+.jobbar.done { border-inline-start-color: var(--safe); }
+.job-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.job-actions { display: inline-flex; gap: 6px; }
+.jobbar .progress { height: 8px; border-radius: 4px; background: var(--panel2); overflow: hidden; }
+.jobbar .progress > div { height: 100%; width: 0; background: var(--accent); border-radius: 4px; transition: width .3s ease; }
+.jobbar.paused .progress > div { background: var(--moderate); }
+.jobbar.done .progress > div { background: var(--safe); }
+.jobbar.indeterminate .progress > div { width: 30% !important; animation: job-slide 1.2s ease-in-out infinite; }
+@keyframes job-slide { from { margin-inline-start: -30%; } to { margin-inline-start: 100%; } }
+.jobbar #dj-stats { font-variant-numeric: tabular-nums; }
+.job-file { font-family: ui-monospace, Consolas, monospace; font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: start; min-height: 1.3em; }
+@media (prefers-reduced-motion: reduce) { .jobbar .progress > div { transition: none; } .jobbar.indeterminate .progress > div { animation: none; width: 100% !important; opacity: .5; } }
+
+/* app icons next to processes and startup items */
+.named { display: flex; align-items: flex-start; gap: 8px; min-width: 0; }
+.named > div { min-width: 0; }
+.ico { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; display: inline-block; border-radius: 3px; }
+span.ico { background: var(--panel2); }
+span.ico:not([data-ico]) { background: transparent; }

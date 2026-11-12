@@ -8,7 +8,7 @@ use crate::actions::defender;
 use crate::analyzer::{Analyzer, Metrics, Snapshot};
 use crate::browserclean::{self, BrowserReport, CleanResult, CleanTarget};
 use crate::devclean::{self, DevReport, KillResult, KillTarget};
-use crate::devdisk::{self, DiskCleanResult, DiskReport, DiskTarget};
+use crate::devdisk::{self, DiskCleanResult, DiskReport, DiskTarget, JobView};
 use crate::catalog::{custom_service_tweak, Category, Tweak};
 use crate::db::{Db, HistoryRow, SnapshotRow};
 use crate::engine::{self, OpResult, ReapplySummary, Settings, TweakStatus};
@@ -162,6 +162,37 @@ pub async fn add_custom_service(state: State<'_, AppState>, name: String, displa
         return Ok(t.id.clone());
     }
     let t = custom_service_tweak(&name, &display)?;
+    db.add_custom(&t).map_err(err)?;
+    db.log("gui", Some(&t.id), "add_custom", true, &t.name);
+    Ok(t.id)
+}
+
+/// Everything that starts with Windows, including services and scheduled tasks Task Manager hides.
+#[tauri::command]
+pub async fn get_startup(state: State<'_, AppState>) -> R<Vec<crate::startup::StartupItem>> {
+    let catalog = {
+        let db = lock(&state)?;
+        engine::load_catalog(&db)
+    };
+    // the scan runs PowerShell for scheduled tasks; keep the database unlocked meanwhile
+    tauri::async_runtime::spawn_blocking(move || crate::startup::scan(&catalog)).await.map_err(err)
+}
+
+/// App icons (PNG data URLs) for executables and shortcuts, keyed by the path asked for.
+#[tauri::command]
+pub async fn get_icons(paths: Vec<String>) -> R<std::collections::HashMap<String, Option<String>>> {
+    tauri::async_runtime::spawn_blocking(move || crate::icons::icons(&paths)).await.map_err(err)
+}
+
+/// Create (or reuse) the custom tweak that turns one startup item off. Returns its id.
+#[tauri::command]
+pub async fn add_startup_tweak(state: State<'_, AppState>, kind: String, key: String, display: String) -> R<String> {
+    let db = lock(&state)?;
+    let catalog = engine::load_catalog(&db);
+    if let Some(id) = crate::startup::existing_tweak(&catalog, &kind, &key) {
+        return Ok(id);
+    }
+    let t = crate::startup::build_tweak(&catalog, &kind, &key, &display)?;
     db.add_custom(&t).map_err(err)?;
     db.log("gui", Some(&t.id), "add_custom", true, &t.name);
     Ok(t.id)
@@ -401,13 +432,25 @@ pub async fn get_dev_disk(state: State<'_, AppState>) -> R<DiskReport> {
     tauri::async_runtime::spawn_blocking(move || devdisk::report(&cfg)).await.map_err(err)
 }
 
-/// Delete the selected folders / empty the selected caches. Every target is verified again on
-/// this side (scan roots, exclusions, links, manifest, in use) before anything is removed.
-#[tauri::command]
-pub async fn clean_dev_disk(state: State<'_, AppState>, targets: Vec<DiskTarget>) -> R<DiskCleanResult> {
-    let cfg = disk_config(&Settings::load(&*lock(&state)?));
-    let r = tauri::async_runtime::spawn_blocking(move || devdisk::clean(&cfg, &targets)).await.map_err(err)?;
-    let db = lock(&state)?;
+/// What a stopped or interrupted cleanup still has to do; survives a reload or restart.
+const DISK_RESUME: &str = "disk_resume";
+
+fn load_resume(db: &Db) -> Vec<DiskTarget> {
+    db.get_setting(DISK_RESUME).and_then(|s| serde_json::from_str(&s).ok()).unwrap_or_default()
+}
+
+fn save_resume(app: &AppHandle, pending: &[DiskTarget]) {
+    use tauri::Manager;
+    let st = app.state::<AppState>();
+    if let Ok(db) = st.db.lock() {
+        let _ = db.set_setting(DISK_RESUME, &serde_json::to_string(pending).unwrap_or_else(|_| "[]".into()));
+    };
+}
+
+fn log_disk_clean(app: &AppHandle, r: &DiskCleanResult) {
+    use tauri::Manager;
+    let st = app.state::<AppState>();
+    let Ok(db) = st.db.lock() else { return };
     for c in &r.cleaned {
         db.log("gui", None, "disk_clean", true, c);
     }
@@ -417,7 +460,65 @@ pub async fn clean_dev_disk(state: State<'_, AppState>, targets: Vec<DiskTarget>
     if r.freed > 0 {
         db.log("gui", None, "disk_clean", true, &format!("freed {:.1} MB, {} locked file(s) left", r.freed as f64 / 1048576.0, r.locked_files));
     }
-    Ok(r)
+}
+
+fn disk_job(state: &State<'_, AppState>) -> R<JobView> {
+    let mut v = devdisk::job_view();
+    if !devdisk::is_running() {
+        v.resume = load_resume(&*lock(state)?);
+    }
+    Ok(v)
+}
+
+fn start_disk_job(app: &AppHandle, cfg: devdisk::Config, targets: Vec<DiskTarget>) -> R<()> {
+    let (a1, a2) = (app.clone(), app.clone());
+    devdisk::start(cfg, targets, move |p| save_resume(&a1, p), move |r| log_disk_clean(&a2, r))
+}
+
+/// Start deleting the selected folders / emptying the selected caches in the background; the UI
+/// polls `get_disk_job`. Every target is verified again on this side (scan roots, exclusions,
+/// links, manifest, in use) before anything is removed.
+#[tauri::command]
+pub async fn start_disk_clean(app: AppHandle, state: State<'_, AppState>, targets: Vec<DiskTarget>) -> R<JobView> {
+    let cfg = disk_config(&Settings::load(&*lock(&state)?));
+    start_disk_job(&app, cfg, targets)?;
+    disk_job(&state)
+}
+
+/// Continue the cleanup that was stopped (or cut short by closing the app).
+#[tauri::command]
+pub async fn resume_disk_clean(app: AppHandle, state: State<'_, AppState>) -> R<JobView> {
+    let (cfg, targets) = {
+        let db = lock(&state)?;
+        (disk_config(&Settings::load(&db)), load_resume(&db))
+    };
+    if targets.is_empty() {
+        return Err("nothing left to continue".into());
+    }
+    start_disk_job(&app, cfg, targets)?;
+    disk_job(&state)
+}
+
+#[tauri::command]
+pub async fn get_disk_job(state: State<'_, AppState>) -> R<JobView> {
+    disk_job(&state)
+}
+
+/// "pause" | "resume" | "stop"
+#[tauri::command]
+pub async fn disk_job_control(state: State<'_, AppState>, action: String) -> R<JobView> {
+    devdisk::control(&action);
+    disk_job(&state)
+}
+
+/// Close the finished-job panel and forget what a stopped cleanup had left.
+#[tauri::command]
+pub async fn dismiss_disk_job(state: State<'_, AppState>) -> R<JobView> {
+    if !devdisk::is_running() {
+        devdisk::dismiss();
+        lock(&state)?.set_setting(DISK_RESUME, "[]").map_err(err)?;
+    }
+    disk_job(&state)
 }
 
 /// "Never clean" switch for one package cache.

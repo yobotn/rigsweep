@@ -18,6 +18,7 @@
       <div class="nav-group" data-i18n="nav.g.tune"></div>
       <button data-tab="tweaks" data-i18n="nav.tweaks"></button>
       <button data-tab="processes" data-i18n="nav.processes"></button>
+      <button data-tab="startup" data-i18n="nav.startup"></button>
       <div class="nav-group" data-i18n="nav.g.pc"></div>
       <button data-tab="hardware" data-i18n="nav.hardware"></button>
       <button data-tab="report" data-i18n="nav.report"></button>
@@ -144,6 +145,20 @@
         <label><span data-i18n="disk.auto.min"></span> <select id="da-min"></select></label>
       </div>
       <div id="disk-summary" class="summary"></div>
+      <div id="disk-job" class="jobbar hidden">
+        <div class="job-head">
+          <b id="dj-title" role="status" aria-live="polite"></b>
+          <span class="job-actions">
+            <button id="dj-pause" class="small ghost"></button>
+            <button id="dj-stop" class="small danger" data-i18n="disk.job.stop"></button>
+            <button id="dj-continue" class="small primary" data-i18n="disk.job.continue"></button>
+            <button id="dj-dismiss" class="small ghost" data-i18n="disk.job.dismiss"></button>
+          </span>
+        </div>
+        <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100"><div id="dj-bar"></div></div>
+        <div id="dj-stats" class="sub"></div>
+        <div id="dj-file" class="sub job-file" dir="ltr"></div>
+      </div>
       <div class="card flush"><table class="tbl">
         <thead><tr>
           <th></th><th data-i18n="disk.col.what"></th><th data-i18n="disk.col.type"></th>
@@ -215,6 +230,27 @@
       </header>
       <p class="hint" id="tw-hint"></p>
       <div id="tweak-list"><div class="loading"><span class="spinner"></span> <span data-i18n="tw.loading"></span></div></div>
+    </section>
+
+    <!-- STARTUP -->
+    <section id="tab-startup" class="tab">
+      <header>
+        <h1 data-i18n="st.title"></h1>
+        <div class="actions">
+          <input id="st-filter" type="search" data-i18n-ph="st.filter" />
+          <button id="btn-st-scan" class="ghost" data-i18n="common.refresh"></button>
+        </div>
+      </header>
+      <p class="hint" data-i18n="st.hint"></p>
+      <div id="st-summary" class="summary"></div>
+      <div class="card flush"><table class="tbl">
+        <thead><tr><th data-i18n="st.col.what"></th><th data-i18n="st.col.when"></th><th></th></tr></thead>
+        <tbody id="st-body"><tr><td colspan="3" class="loading"><span class="spinner"></span></td></tr></tbody>
+      </table></div>
+      <div class="card">
+        <h2 data-i18n="st.offList"></h2>
+        <ul id="st-off" class="feed"></ul>
+      </div>
     </section>
 
     <!-- PROCESSES -->
