@@ -161,7 +161,9 @@ impl Analyzer {
             .iter()
             .filter(|(_, p)| {
                 let n = p.name().to_string_lossy().to_ascii_lowercase();
-                devclean::SCAN_NAMES.contains(&n.as_str()) || devclean::WRAPPER_NAMES.contains(&n.as_str())
+                devclean::SCAN_NAMES.contains(&n.as_str())
+                    || devclean::WRAPPER_NAMES.contains(&n.as_str())
+                    || p.exe().is_some_and(|e| devclean::posix_flavor(&e.to_string_lossy()).is_some())
             })
             .map(|(pid, _)| *pid)
             .collect();

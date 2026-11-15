@@ -20,6 +20,39 @@ impl Drop for Owned {
     }
 }
 
+/// Working set of a process that can't be opened at all (vmmemWSL is a protected minimal process,
+/// so sysinfo reads 0 for it). Read from the kernel's process list, like Task Manager does.
+pub fn working_set(pid: u32) -> Option<u64> {
+    use windows::Wdk::System::SystemInformation::{NtQuerySystemInformation, SystemProcessInformation};
+    use windows::Win32::System::WindowsProgramming::SYSTEM_PROCESS_INFORMATION;
+    let mut buf: Vec<u64> = vec![0; 1 << 17]; // 1 MiB, 8-byte aligned; grown if too small
+    for _ in 0..4 {
+        let mut need = 0u32;
+        let bytes = (buf.len() * 8) as u32;
+        let st = unsafe { NtQuerySystemInformation(SystemProcessInformation, buf.as_mut_ptr() as *mut _, bytes, &mut need) };
+        if st.is_ok() {
+            let base = buf.as_ptr() as *const u8;
+            let mut off = 0usize;
+            loop {
+                if off + std::mem::size_of::<SYSTEM_PROCESS_INFORMATION>() > bytes as usize {
+                    return None;
+                }
+                let e = unsafe { &*(base.add(off) as *const SYSTEM_PROCESS_INFORMATION) };
+                if e.UniqueProcessId.0 as usize == pid as usize {
+                    return Some(e.WorkingSetSize as u64);
+                }
+                if e.NextEntryOffset == 0 {
+                    return None;
+                }
+                off += e.NextEntryOffset as usize;
+            }
+        }
+        // STATUS_INFO_LENGTH_MISMATCH: the list grew; retry with what it asked for plus slack
+        buf = vec![0; (need as usize + 65536) / 8 + 1];
+    }
+    None
+}
+
 /// FILETIME (100 ns ticks since 1601) -> unix seconds, the same rounding sysinfo uses for start_time.
 pub fn filetime_to_unix(ft: FILETIME) -> u64 {
     let ticks = ((ft.dwHighDateTime as u64) << 32) | ft.dwLowDateTime as u64;
@@ -80,6 +113,13 @@ pub fn terminate_tree(members: &[(u32, u64)]) -> Result<usize, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn reads_working_set_from_the_process_list() {
+        let ws = working_set(std::process::id()).expect("own process is in the list");
+        assert!(ws > 1_000_000, "{ws}");
+        assert_eq!(working_set(u32::MAX - 3), None);
+    }
 
     #[test]
     fn converts_filetime_like_sysinfo() {

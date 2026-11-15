@@ -36,7 +36,7 @@ function safeSet(k, v) { try { localStorage.setItem(k, v); } catch {} }
 const TOAST_ICON = { ok: "✓", info: "i", warn: "!", err: "!" };
 function toast(msg, kind = "info", ms) {
   kind = kind === true ? "err" : kind || "info";
-  ms ??= kind === "err" ? 10000 : kind === "warn" ? 8000 : 4500;
+  ms ??= kind === "warn" ? 8000 : 4500;
   const box = $("#toasts");
   // the same message again (a refresh that keeps failing) replaces the old toast instead of piling up
   [...box.children].forEach((x) => { if (x._msg === msg) x.remove(); });
@@ -49,7 +49,9 @@ function toast(msg, kind = "info", ms) {
   el.innerHTML = `<span class="t-icon" aria-hidden="true">${TOAST_ICON[kind]}</span><div class="t-msg"></div><button class="t-close" aria-label="${esc(t("common.close"))}">×</button><i class="t-bar"></i>`;
   el.querySelector(".t-msg").textContent = msg;
   const bar = el.querySelector(".t-bar");
-  bar.style.animationDuration = `${ms}ms`;
+  // an error stays until it is dismissed: the reader may need longer than any timer to act on it
+  if (kind === "err") bar.remove();
+  else bar.style.animationDuration = `${ms}ms`;
   const close = () => {
     if (el._closing) return;
     el._closing = true;
@@ -129,7 +131,11 @@ document.querySelectorAll("nav button").forEach((b) =>
 function showTab(name) {
   if (!document.getElementById(`tab-${name}`)) name = "dashboard";
   currentTab = name;
-  document.querySelectorAll("nav button").forEach((b) => b.classList.toggle("active", b.dataset.tab === name));
+  document.querySelectorAll("nav button").forEach((b) => {
+    const on = b.dataset.tab === name;
+    b.classList.toggle("active", on);
+    if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+  });
   document.querySelectorAll(".tab").forEach((s) => s.classList.toggle("active", s.id === `tab-${name}`));
   safeSet("tab", name);
   clearInterval(procTimer);
@@ -313,11 +319,19 @@ const devKey = (p) => `${p.pid}:${p.start_time}`;
 const ECO = { node: "⬢ Node", python: "🐍 Python", java: "☕ Java", dotnet: "🟣 .NET", ruby: "💎 Ruby",
   php: "🐘 PHP", rust: "🦀 Rust", go: "🐹 Go" };
 const ecoLabel = (p) => p.kind === "agent" ? t("kind.agent") : p.kind === "vm" ? t("kind.vm")
-  : p.eco === "browser" ? t("kind.browser") : (ECO[p.eco] || p.eco);
+  : p.eco === "browser" ? t("kind.browser") : p.eco === "wsl" ? t("kind.wsl") : p.eco === "shell" ? t("kind.shell")
+  : (ECO[p.eco] || p.eco);
+// a shell-leftovers row has no folder: show which commands are stuck instead
+const devWhere = (p) => p.eco === "shell" ? p.cmd : p.project;
 
 async function loadDev(btn) {
   busy(btn, true);
-  try { dev = await call("get_dev_processes"); } finally { busy(btn, false); }
+  try { dev = await call("get_dev_processes"); }
+  catch (e) {
+    // keep the last good list if there is one; otherwise say what failed in place of the spinner
+    if (!dev) $("#clean-body").innerHTML = `<tr><td colspan="7" class="loading"><p>${esc(t("err.failed"))}: ${esc(e)}</p><button class="ghost" data-retry>${esc(t("clean.scan"))}</button></td></tr>`;
+    return;
+  } finally { busy(btn, false); }
   // keep the user's ticks across rescans, and tick every stale row, including ones that only
   // became stale after a later scan (idle is measured over time), unless the user un-ticked it
   const keys = new Set(dev.items.map(devKey));
@@ -340,10 +354,10 @@ function renderDev() {
     const reasons = p.reasons.length ? p.reasons : ["active"];
     const badges = reasons.map((r) => `<span class="badge ${r}">${esc(t("reason." + r, { o: p.owner, p: p.dup_of }))}</span>`).join(" ");
     return `<tr class="${p.stale ? "stale" : ""} ${p.protected ? "locked" : ""}">
-      <td>${p.protected ? "🔒" : `<input type="checkbox" data-dev="${esc(k)}" ${devSel.has(k) ? "checked" : ""} />`}</td>
+      <td>${p.protected ? "🔒" : `<input type="checkbox" data-dev="${esc(k)}" aria-label="${esc(`${p.label} · ${devWhere(p) || p.pid}`)}" ${devSel.has(k) ? "checked" : ""} />`}</td>
       <td><b>${esc(p.label)}</b> <span class="eco ${esc(p.eco)}">${esc(ecoLabel(p))}</span>
         <div class="sub" title="${esc(p.cmd)}">PID ${p.pid} · ${esc(p.parent_name || "—")} · ${esc(t("clean.procs", { n: p.tree_count }))}</div></td>
-      <td title="${esc(p.project_path)}">${esc(p.project || "—")}</td>
+      <td title="${esc(p.eco === "shell" ? p.cmd : p.project_path)}" class="${p.eco === "shell" || p.eco === "wsl" ? "mono-cut" : ""}">${esc(devWhere(p) || "—")}</td>
       <td class="num">${p.age_secs ? fmtAge(p.age_secs) : "—"}</td>
       <td class="num">${p.tree_mem ? fmtBytes(p.tree_mem) : "—"}</td>
       <td>${p.ports.length ? p.ports.slice(0, 4).map((x) => `<code>${x}</code>`).join(" ") + (p.ports.length > 4 ? " …" : "") : "–"}</td>
@@ -358,6 +372,7 @@ $("#clean-body").addEventListener("change", (e) => {
   if (e.target.checked) { devSel.add(k); devUnticked.delete(k); } else { devSel.delete(k); devUnticked.add(k); }
 });
 $("#btn-clean-scan").onclick = (e) => loadDev(e.target);
+$("#clean-body").addEventListener("click", (e) => { if (e.target.closest("[data-retry]")) loadDev(e.target.closest("button")); });
 $("#btn-clean-stale").onclick = async (e) => {
   await loadDev(e.target); // fresh scan, so rows that just went stale are included
   const stale = dev.items.filter((p) => p.stale && !p.protected);
@@ -367,13 +382,14 @@ $("#btn-clean-stale").onclick = async (e) => {
 };
 $("#btn-clean-end").onclick = async (e) => {
   const picked = (dev?.items || []).filter((p) => devSel.has(devKey(p)) && !p.protected);
-  if (!picked.length) return toast(t("clean.none"));
+  if (!picked.length) return toast(t("bc.nothing"));
   const serving = picked.filter((p) => p.ports.length).length;
   const agents = picked.filter((p) => p.kind === "agent").length;
   const html = `<p>${esc(t("clean.confirm.body"))}</p><ul>${picked.map((p) =>
-    `<li><b>${esc(p.label)}</b> <span class="sub"><bdi dir="ltr">${esc(p.project_path || p.project || "—")}</bdi>${p.ports.length ? " · :" + p.ports.slice(0, 3).join(", :") : ""} · ${fmtBytes(p.tree_mem)} · PID ${p.pid} (+${p.tree_count - 1})</span></li>`).join("")}</ul>
+    `<li><b>${esc(p.label)}</b> <span class="sub"><bdi dir="ltr">${esc(p.project_path || devWhere(p) || "—")}</bdi>${p.ports.length ? " · :" + p.ports.slice(0, 3).join(", :") : ""} · ${fmtBytes(p.tree_mem)} · PID ${p.pid} (+${p.tree_count - 1})</span></li>`).join("")}</ul>
     ${serving ? `<p class="warn-text">${esc(t("clean.serving.warn", { n: serving }))}</p>` : ""}
     ${picked.some((p) => p.kind === "vm") ? `<p class="warn-text">${esc(t("clean.vm.warn"))}</p>` : ""}
+    ${picked.some((p) => p.eco === "wsl" && p.kind !== "vm") ? `<p class="warn-text">${esc(t("clean.wsl.warn"))}</p>` : ""}
     ${agents ? `<p class="sub">💡 <code>claude --resume</code> / <code>codex resume</code></p>` : ""}`;
   if (!(await modal(t("clean.confirm.title", { n: picked.length }), html, { okText: t("clean.end"), danger: true }))) return;
   busy(e.target, true);

@@ -31,8 +31,8 @@ pub const SCAN_NAMES: &[&str] = &[
     "dotnet.exe", "vbcscompiler.exe", "msbuild.exe",
     // others
     "ruby.exe", "rubyw.exe", "php.exe", "php-cgi.exe", "cargo.exe", "go.exe",
-    // WSL 2 / Docker Desktop VM
-    "vmmemwsl",
+    // WSL 2 / Docker Desktop VM, and wsl.exe sessions (only listed once orphaned)
+    "vmmemwsl", "wsl.exe",
     // agents
     "claude.exe", "codex.exe", "opencode.exe", "gemini.exe", "aider.exe", "goose.exe",
     // browsers: only automation instances (Playwright / Puppeteer / --headless) are kept
@@ -42,7 +42,15 @@ pub const SCAN_NAMES: &[&str] = &[
 /// Non-interactive shells that only exist to launch something (`cmd /c npx ...`). A process whose
 /// only living ancestors are such wrappers is orphaned once the wrapper's own parent is gone:
 /// that is how MCP servers started by an agent CLI on Windows outlive the agent.
-pub const WRAPPER_NAMES: &[&str] = &["cmd.exe", "powershell.exe", "pwsh.exe"];
+/// Git Bash's `bash -c ...` / `bash /c/.../npx vite` count too: agent CLIs run every command that way.
+pub const WRAPPER_NAMES: &[&str] = &["cmd.exe", "powershell.exe", "pwsh.exe", "bash.exe", "sh.exe", "dash.exe", "zsh.exe"];
+
+/// Git Bash / MSYS2 / Cygwin tools that are meant to run in the background on their own
+/// (agents, servers) or are the user's terminal window: never collected as leftovers.
+const POSIX_KEEP: &[&str] = &[
+    "mintty.exe", "ssh-agent.exe", "gpg-agent.exe", "dirmngr.exe", "keyboxd.exe", "scdaemon.exe", "tmux.exe",
+    "screen.exe", "sshd.exe", "cygserver.exe", "pageant.exe", "winpty-agent.exe", "conhost.exe",
+];
 
 /// Command-line hints that a browser was started by an automation tool, with its own throwaway
 /// profile, not by the user.
@@ -78,6 +86,9 @@ const OWNER_APPS: &[&str] = &[
 /// Before RigSweep has watched a tree long enough, "old and quiet right now" also counts as idle,
 /// but never sooner than this (a single quiet CPU sample means little).
 const IDLE_AGE_FLOOR_SECS: u64 = 2 * 3600;
+
+/// An orphaned Git Bash / MSYS tool younger than this may be a command still finishing.
+const POSIX_LEFTOVER_MIN_SECS: u64 = 10 * 60;
 
 #[derive(Serialize, Clone, Debug)]
 pub struct DevProc {
@@ -258,7 +269,69 @@ pub fn is_wrapper_cmd(name: &str, args: &[String]) -> bool {
         "powershell.exe" | "pwsh.exe" => {
             has(&["-c", "-command", "-file", "-encodedcommand", "-ec"]) && !has(&["-noexit"])
         }
+        // `bash -c "..."` or `bash script args`; a bare / `-i` / `--login` bash is someone's terminal
+        "bash.exe" | "sh.exe" | "dash.exe" | "zsh.exe" => {
+            let runs_something = has(&["-c"]) || args.iter().skip(1).any(|a| !a.starts_with('-') && !a.is_empty());
+            runs_something && !has(&["-i", "-s"])
+        }
         _ => false,
+    }
+}
+
+/// Which POSIX userland on Windows an exe belongs to (Git for Windows, MSYS2, Cygwin), if any.
+/// `git*.exe` itself is left out: a git command may be in the middle of writing a repository.
+pub fn posix_flavor(exe: &str) -> Option<&'static str> {
+    let e = exe.to_ascii_lowercase().replace('\\', "/");
+    let name = e.rsplit('/').next().unwrap_or("");
+    if name.is_empty() || name.starts_with("git") || POSIX_KEEP.contains(&name) {
+        return None;
+    }
+    // usr/bin, mingw64/bin, bin
+    if !e.contains("/bin/") {
+        None
+    } else if e.contains("/msys64/") || e.contains("/msys2/") {
+        Some("MSYS2")
+    } else if e.contains("/cygwin64/") || e.contains("/cygwin/") {
+        Some("Cygwin")
+    } else if e.contains("/git/") || e.contains("/portablegit/") || e.contains("/git-sdk") {
+        Some("Git Bash")
+    } else {
+        None
+    }
+}
+
+/// `wsl.exe [-d distro] [-u user] [--cd dir] [-e|--exec|--] command...` -> (distro, command).
+/// The command is empty for an interactive shell. None for management calls (`--shutdown`,
+/// `-l`, `--install`, `--update`...): those are not sessions.
+pub fn wsl_session(cmd: &str) -> Option<(String, String)> {
+    let args: Vec<&str> = cmd.split_whitespace().map(|s| s.trim_matches('"')).collect();
+    let mut distro = String::new();
+    let mut i = 1;
+    while i < args.len() {
+        match args[i].to_ascii_lowercase().as_str() {
+            "-d" | "--distribution" | "--distribution-id" => {
+                distro = args.get(i + 1).unwrap_or(&"").to_string();
+                i += 2;
+            }
+            "-u" | "--user" | "--cd" | "--shell-type" => i += 2,
+            "--system" | "~" => i += 1,
+            "-e" | "--exec" | "--" => {
+                i += 1;
+                break;
+            }
+            s if s.starts_with('-') => return None,
+            _ => break,
+        }
+    }
+    let command = args.get(i..).unwrap_or(&[]).join(" ");
+    Some((if distro.is_empty() { "default".into() } else { distro }, command))
+}
+
+/// Distros running in the WSL 2 VM right now (`wsl --list --running --quiet`). Doesn't start WSL.
+fn wsl_running() -> Vec<String> {
+    match util::run("wsl.exe", &["--list", "--running", "--quiet"]) {
+        Ok(o) if o.ok => o.stdout.lines().map(|l| l.trim().trim_matches('\0').to_string()).filter(|l| !l.is_empty()).collect(),
+        _ => vec![],
     }
 }
 
@@ -275,6 +348,9 @@ pub fn classify_parts(name: &str, exe: &str, cmd: &str) -> Option<Class> {
     }
     match n.as_str() {
         "vmmemwsl" => mk("vm", "wsl"),
+        "wsl.exe" => {
+            if wsl_session(cmd).is_some() { mk("runtime", "wsl") } else { None }
+        }
         "node.exe" | "bun.exe" | "deno.exe" | "esbuild.exe" => {
             if has_any(&c, AGENT_MARKERS) { mk("agent", "node") } else { mk("runtime", "node") }
         }
@@ -346,6 +422,12 @@ pub fn describe_ex(name: &str, cmd: &str, cwd: &str) -> (String, String) {
     };
 
     let is_browser = matches!(n.as_str(), "chrome.exe" | "msedge.exe" | "chrome-headless-shell.exe" | "headless_shell.exe");
+    if n == "wsl.exe" {
+        // "WSL · Ubuntu", project column = what it runs inside Linux (its Windows cwd means nothing)
+        let (distro, command) = wsl_session(cmd).unwrap_or_default();
+        let command = if command.is_empty() { "bash (interactive)".to_string() } else { command.chars().take(120).collect() };
+        return (format!("WSL · {distro}"), command);
+    }
     if n == "vmmemwsl" {
         label = "WSL 2 / Docker".into();
     } else if is_browser {
@@ -588,16 +670,40 @@ pub fn scan(sys: &System, tracker: &mut IdleTracker, idle_minutes: u32) -> DevRe
         let name = p.name().to_string_lossy().into_owned();
         let cmd = cmdline(p);
         let cwd = p.cwd().map(|c| c.display().to_string()).unwrap_or_default();
-        let (label, project_path) = describe_ex(&name, &cmd, &cwd);
-        let project = folder_name(&project_path);
+        let (label, mut project_path) = describe_ex(&name, &cmd, &cwd);
+        let mut project = folder_name(&project_path);
+        let wsl = class.eco == "wsl" && kind == "runtime";
+        if wsl {
+            // the Linux command line, not a folder
+            project = std::mem::take(&mut project_path);
+        } else if kind == "vm" {
+            // which distros keep the VM (and its memory) alive
+            project = wsl_running().join(", ");
+            if mem == 0 {
+                mem = crate::kill::working_set(pid).unwrap_or(0);
+            }
+        }
         // protected system processes (e.g. vmmemWSL) may not expose a start time: age unknown = 0
         let age = if p.start_time() == 0 { 0 } else { p.run_time() };
         let quiet = tracker.idle_secs(pid, p.start_time(), cpu_ms).unwrap_or(0);
         // the WSL VM is started by the system, so "no parent" / "idle" mean nothing for it
         let orphan = kind != "vm" && real_parent(p).is_none();
+        // A wsl.exe whose launcher is gone (a killed agent command, a closed tool) keeps its
+        // distro, and so the whole WSL VM and its memory, from ever idling out. Live sessions
+        // (terminals, Docker, VS Code) are just WSL working, so only orphans are listed.
+        if wsl && !orphan {
+            continue;
+        }
+        // Docker Desktop runs its engine through wsl.exe -d docker-desktop: quit Docker instead
+        if wsl && owner.is_empty() && label.to_ascii_lowercase().contains("docker-desktop") {
+            owner = "Docker Desktop".into();
+        }
+        let wsl_shell = wsl && project == "bash (interactive)";
         let mcp = kind == "runtime" && is_mcp(&cmd);
         let dup_of = if mcp { newer_copy(&label, p.start_time(), &seen, &mcp_copies).unwrap_or(0) } else { 0 };
+        // wsl.exe only relays: the Linux side may be busy while it shows no CPU, so idle means nothing
         let idle = kind != "vm"
+            && !wsl
             && (quiet >= idle_after || (age >= idle_after.max(IDLE_AGE_FLOOR_SECS) && cpu < 0.2));
         let protected = !owner.is_empty() || pid == me;
 
@@ -626,7 +732,8 @@ pub fn scan(sys: &System, tracker: &mut IdleTracker, idle_minutes: u32) -> DevRe
         // An orphan is stale even while holding a port: that's the classic zombie dev server.
         // An idle agent CLI in an open terminal is just waiting for you, so it's never pre-selected.
         // The WSL / Docker VM is never pre-selected: shutting it down stops every distro and container.
-        let stale = !protected && kind != "vm" && (orphan || (kind == "runtime" && idle && tree_ports.is_empty()));
+        // An orphaned interactive WSL shell may still have its own console window open: listed, not pre-selected.
+        let stale = !protected && kind != "vm" && !wsl_shell && (orphan || (kind == "runtime" && idle && tree_ports.is_empty()));
 
         items.push(DevProc {
             pid,
@@ -654,6 +761,7 @@ pub fn scan(sys: &System, tracker: &mut IdleTracker, idle_minutes: u32) -> DevRe
             members,
         });
     }
+    items.extend(posix_leftovers(sys, &dev, tracker, &mut alive));
     tracker.retain(&alive);
     items.sort_by(|a, b| b.stale.cmp(&a.stale).then(b.tree_mem.cmp(&a.tree_mem)));
     DevReport {
@@ -664,6 +772,157 @@ pub fn scan(sys: &System, tracker: &mut IdleTracker, idle_minutes: u32) -> DevRe
     }
 }
 
+/// Git Bash / MSYS2 / Cygwin tools (`sleep`, `find`, `grep`, `head`, `tail`, `bash -c`...) whose
+/// shell was killed under them: an agent's timed-out command, a closed terminal. With their
+/// parent gone they sit blocked on a dead pipe forever. Each is tiny, so every userland is
+/// shown as one row holding all of its orphaned chains. Interactive shells are never included
+/// (that may be a terminal window), nor chains with a dev process inside (it has its own row).
+fn posix_leftovers(sys: &System, dev: &HashMap<u32, Class>, tracker: &mut IdleTracker, alive: &mut HashSet<u32>) -> Vec<DevProc> {
+    let procs = sys.processes();
+    let ncpu = sys.cpus().len().max(1) as f32;
+    let get = |pid: u32| procs.get(&Pid::from_u32(pid));
+    let live_parent = |p: &Process| -> Option<u32> {
+        let pp = p.parent()?.as_u32();
+        let parent = get(pp)?;
+        (parent.start_time() <= p.start_time()).then_some(pp)
+    };
+    let args_of = |p: &Process| -> Vec<String> { p.cmd().iter().map(|s| s.to_string_lossy().into_owned()).collect() };
+    let flavor_of = |p: &Process| p.exe().and_then(|e| posix_flavor(&e.to_string_lossy()));
+    // orphaned = nothing but launch-only shells above it, and the top of those is gone
+    let orphaned = |p: &Process| -> bool {
+        let mut cur = p;
+        for _ in 0..8 {
+            let Some(pp) = live_parent(cur).and_then(get) else { return true };
+            if !is_wrapper_cmd(&pp.name().to_string_lossy(), &args_of(pp)) {
+                return false;
+            }
+            cur = pp;
+        }
+        false
+    };
+    let mut children: HashMap<u32, Vec<u32>> = HashMap::new();
+    for (pid, p) in procs {
+        if let Some(pp) = p.parent() {
+            children.entry(pp.as_u32()).or_default().push(pid.as_u32());
+        }
+    }
+
+    // flavour -> chain roots (plus the dead parent they share: one pipeline, e.g. `node x | grep | tail`)
+    let mut roots: Vec<(&'static str, Vec<(u32, u32)>)> = vec![];
+    for (pid, p) in procs {
+        let Some(flavor) = flavor_of(p) else { continue };
+        // only the top of a chain: a POSIX parent that is still alive is part of the same chain
+        if live_parent(p).and_then(get).and_then(flavor_of).is_some() || !orphaned(p) {
+            continue;
+        }
+        let n = lower_name(p);
+        let shell = matches!(n.as_str(), "bash.exe" | "sh.exe" | "dash.exe" | "zsh.exe" | "fish.exe");
+        if shell && !is_wrapper_cmd(&n, &args_of(p)) {
+            continue; // interactive, or an unreadable command line: could be someone's terminal
+        }
+        let key = (pid.as_u32(), p.parent().map(|x| x.as_u32()).unwrap_or(0));
+        match roots.iter_mut().find(|r| r.0 == flavor) {
+            Some(r) => r.1.push(key),
+            None => roots.push((flavor, vec![key])),
+        }
+    }
+
+    // walk a chain; None if a dev process is inside it (that one has its own row)
+    let chain_of = |r: u32| -> Option<Vec<u32>> {
+        let rp = get(r)?;
+        let (mut chain, mut stack, mut seen) = (vec![], vec![r], HashSet::new());
+        while let Some(x) = stack.pop() {
+            if !seen.insert(x) {
+                continue;
+            }
+            let Some(q) = get(x) else { continue };
+            if x != r && q.start_time() < rp.start_time() {
+                continue; // reused PID
+            }
+            if dev.contains_key(&x) {
+                return None;
+            }
+            chain.push(x);
+            if let Some(c) = children.get(&x) {
+                stack.extend(c.iter().copied());
+            }
+        }
+        Some(chain)
+    };
+    // Pipelines that still feed a dev process: `timeout 300 node t.mjs | grep -v x | tail` has
+    // three orphaned roots under one dead bash; ending grep / tail would break the node job.
+    let mut busy_parents = HashSet::new();
+    for (_, rs) in &roots {
+        for &(r, dead_parent) in rs {
+            if chain_of(r).is_none() {
+                busy_parents.insert(dead_parent);
+            }
+        }
+    }
+
+    let mut out = vec![];
+    for (flavor, mut rs) in roots {
+        rs.retain(|&(r, dead_parent)| {
+            // a command still in flight (`sleep 5`, a pipeline a few seconds old) is not a leftover yet
+            let settled = get(r).is_some_and(|p| p.start_time() != 0 && p.run_time() >= POSIX_LEFTOVER_MIN_SECS);
+            settled && (dead_parent == 0 || !busy_parents.contains(&dead_parent))
+        });
+        // oldest chain first: it identifies the row (PID + start time) across rescans
+        rs.sort_by_key(|&(r, _)| get(r).map(|p| p.start_time()).unwrap_or(u64::MAX));
+        let (mut members, mut mem, mut cpu, mut cpu_ms, mut age) = (vec![], 0u64, 0f32, 0u64, 0u64);
+        let mut cmds: Vec<String> = vec![];
+        for (r, _) in rs {
+            let Some(rp) = get(r) else { continue };
+            let Some(chain) = chain_of(r) else { continue };
+            for x in chain {
+                let Some(q) = get(x) else { continue };
+                members.push((x, q.start_time()));
+                mem += q.memory();
+                cpu += q.cpu_usage() / ncpu;
+                cpu_ms += q.accumulated_cpu_time();
+            }
+            age = age.max(if rp.start_time() == 0 { 0 } else { rp.run_time() });
+            // "sleep 5", "find /c/Users/me -name x": exe name + the start of its arguments
+            let a = args_of(rp);
+            let tool = rp.name().to_string_lossy().trim_end_matches(".exe").to_string();
+            let line: String = std::iter::once(tool).chain(a.into_iter().skip(1)).collect::<Vec<_>>().join(" ").chars().take(60).collect();
+            if !cmds.contains(&line) {
+                cmds.push(line);
+            }
+        }
+        let Some(&(pid, start)) = members.first() else { continue };
+        let Some(p) = get(pid) else { continue };
+        alive.insert(pid);
+        let quiet = tracker.idle_secs(pid, start, cpu_ms).unwrap_or(0);
+        out.push(DevProc {
+            pid,
+            start_time: start,
+            name: p.name().to_string_lossy().into_owned(),
+            kind: "runtime",
+            eco: "shell",
+            label: flavor.to_string(),
+            project: String::new(),
+            project_path: String::new(),
+            cmd: cmds.join(" · ").chars().take(400).collect(),
+            parent_pid: 0,
+            parent_name: String::new(),
+            age_secs: age,
+            quiet_secs: quiet,
+            cpu,
+            tree_mem: mem,
+            tree_count: members.len(),
+            ports: vec![],
+            reasons: vec!["orphan"],
+            stale: true,
+            protected: false,
+            owner: String::new(),
+            dup_of: 0,
+            members,
+        });
+    }
+    out
+}
+
 /// What the background auto-cleanup may end on its own: stale trees RigSweep has itself watched
 /// sit with no CPU for the whole idle period. Stricter than the UI's pre-selection, which also
 /// trusts the "old and quiet right now" guess and active orphans; those still need a click.
@@ -671,7 +930,9 @@ pub fn auto_targets(r: &DevReport, idle_minutes: u32) -> Vec<KillTarget> {
     let idle_after = idle_minutes.max(1) as u64 * 60;
     r.items
         .iter()
-        .filter(|i| i.stale && !i.protected && i.kind == "runtime" && i.quiet_secs >= idle_after)
+        // an orphaned wsl.exe may front a Linux job that is still working, and a quiet orphaned
+        // shell tool may be someone's `nohup` job: both stay a manual choice
+        .filter(|i| i.stale && !i.protected && i.kind == "runtime" && i.eco != "wsl" && i.eco != "shell" && i.quiet_secs >= idle_after)
         .map(|i| KillTarget { pid: i.pid, start_time: i.start_time, label: i.label.clone(), project: i.project.clone(), project_path: i.project_path.clone(), ports: i.ports.clone() })
         .collect()
 }
@@ -873,6 +1134,48 @@ mod tests {
         assert!(!w("pwsh.exe", &a(&["pwsh.exe", "-NoExit", "-Command", "cd C:\\w"])));
         assert!(!w("cmd.exe", &[])); // unreadable command line: not a wrapper (fail safe)
         assert!(!w("node.exe", &a(&["node.exe", "/c"])));
+        // Git Bash: agent commands and npm shims are wrappers, a terminal's bash is not
+        assert!(w("bash.exe", &a(&["bash.exe", "-c", "source snap.sh && eval 'npm test'"])));
+        assert!(w("bash.exe", &a(&["bash.exe", "/c/Program Files/nodejs/npx", "vite", "--port", "1430"])));
+        assert!(w("sh.exe", &a(&["sh.exe", "/c/Program Files/nodejs/pnpm", "worker"])));
+        assert!(!w("bash.exe", &a(&["bash.exe"])));
+        assert!(!w("bash.exe", &a(&["bash.exe", "--login", "-i"])));
+        assert!(!w("bash.exe", &[]));
+    }
+
+    #[test]
+    fn spots_git_bash_msys_and_cygwin_tools() {
+        use super::posix_flavor as f;
+        assert_eq!(f(r"C:\Program Files\Git\usr\bin\sleep.exe"), Some("Git Bash"));
+        assert_eq!(f(r"C:\Program Files\Git\bin\bash.exe"), Some("Git Bash"));
+        assert_eq!(f(r"C:\Users\me\scoop\apps\git\current\usr\bin\find.exe"), Some("Git Bash"));
+        assert_eq!(f(r"C:\msys64\usr\bin\grep.exe"), Some("MSYS2"));
+        assert_eq!(f(r"C:\cygwin64\bin\tail.exe"), Some("Cygwin"));
+        // git itself, the terminal window and background agents are never leftovers
+        assert_eq!(f(r"C:\Program Files\Git\mingw64\bin\git.exe"), None);
+        assert_eq!(f(r"C:\Program Files\Git\mingw64\libexec\git-core\git-remote-https.exe"), None);
+        assert_eq!(f(r"C:\Program Files\Git\usr\bin\mintty.exe"), None);
+        assert_eq!(f(r"C:\Program Files\Git\usr\bin\ssh-agent.exe"), None);
+        // Windows' own find.exe and unrelated folders
+        assert_eq!(f(r"C:\Windows\System32\find.exe"), None);
+        assert_eq!(f(r"C:\tools\digital\bin\sleep.exe"), None);
+    }
+
+    #[test]
+    fn reads_wsl_sessions_and_skips_management_calls() {
+        use super::{classify_parts, describe, wsl_session as s};
+        let ss = |a: &str, b: &str| Some((a.to_string(), b.to_string()));
+        assert_eq!(s(r"C:\Windows\System32\wsl.exe  -d Ubuntu-24.04 -e sleep 900"), ss("Ubuntu-24.04", "sleep 900"));
+        assert_eq!(s("wsl.exe -d docker-desktop -u root -e wsl-bootstrap run"), ss("docker-desktop", "wsl-bootstrap run"));
+        assert_eq!(s("wsl.exe --cd ~ -- ls -la"), ss("default", "ls -la"));
+        assert_eq!(s("wsl.exe ~"), ss("default", ""));
+        assert_eq!(s("wsl.exe bash -c \"find / -name x\""), ss("default", "bash -c find / -name x"));
+        assert_eq!(s("wsl.exe --shutdown"), None);
+        assert_eq!(s("wsl.exe -l --running -q"), None);
+        assert_eq!(s("wsl.exe --install -d Ubuntu"), None);
+        assert!(classify_parts("wsl.exe", "", "wsl.exe -e sleep 9").is_some_and(|c| c.eco == "wsl" && c.kind == "runtime"));
+        assert!(classify_parts("wsl.exe", "", "wsl.exe --update").is_none());
+        assert_eq!(describe("wsl.exe", "wsl.exe -d Ubuntu -e sleep 900", r"C:\w").0, "WSL · Ubuntu");
     }
 
     #[test]

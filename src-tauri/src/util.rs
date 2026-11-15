@@ -48,13 +48,30 @@ pub fn ps_quote(s: &str) -> String {
     format!("'{}'", s.replace('\'', "''"))
 }
 
-/// Console tools may emit UTF-16 (schtasks /XML) or OEM/UTF-8 text.
+/// Console tools may emit UTF-16 (schtasks /XML with a BOM; wsl.exe without one) or OEM/UTF-8 text.
 fn decode(b: &[u8]) -> String {
+    let utf16 = |s: &[u8]| {
+        let u: Vec<u16> = s.chunks_exact(2).map(|c| u16::from_le_bytes([c[0], c[1]])).collect();
+        String::from_utf16_lossy(&u)
+    };
     if b.len() >= 2 && b[0] == 0xFF && b[1] == 0xFE {
-        let u: Vec<u16> = b[2..].chunks_exact(2).map(|c| u16::from_le_bytes([c[0], c[1]])).collect();
-        return String::from_utf16_lossy(&u);
+        return utf16(&b[2..]);
+    }
+    if looks_utf16le(b) {
+        return utf16(b);
     }
     String::from_utf8_lossy(b).into_owned()
+}
+
+/// BOM-less UTF-16LE: mostly-ASCII text where nearly every odd byte is 0. UTF-8 text never has
+/// NUL bytes, so this can't misfire on it.
+fn looks_utf16le(b: &[u8]) -> bool {
+    if b.len() < 4 || b.len() % 2 != 0 {
+        return false;
+    }
+    let pairs = b.len() / 2;
+    let zero_odd = b.iter().skip(1).step_by(2).filter(|&&x| x == 0).count();
+    zero_odd * 10 >= pairs * 9
 }
 
 pub fn expand_env(s: &str) -> String {
@@ -118,6 +135,13 @@ mod tests {
             Some("381b4222-f694-41f0-9685-ff5bb260df2e")
         );
         assert_eq!(find_guid("nothing here"), None);
+    }
+    #[test]
+    fn decodes_bomless_utf16_from_wsl() {
+        let raw: Vec<u8> = "docker-desktop\r\nUbuntu\r\n".encode_utf16().flat_map(|u| u.to_le_bytes()).collect();
+        assert_eq!(decode(&raw), "docker-desktop\r\nUbuntu\r\n");
+        assert_eq!(decode("plain ascii\n".as_bytes()), "plain ascii\n");
+        assert_eq!(decode("héllo wörld".as_bytes()), "héllo wörld");
     }
     #[test]
     fn env() {

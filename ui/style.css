@@ -12,6 +12,8 @@
   --text: #e6e9ef;
   --muted: #8b93a7;
   --accent: #4f8cff;
+  /* filled buttons: white text needs 4.5:1, which --accent (3.2:1) misses */
+  --accent-solid: #2f6ee0;
   --safe: #34c38f;
   --moderate: #f1b44c;
   --caution: #f46a6a;
@@ -61,7 +63,7 @@ button, .btn {
 }
 button:hover, .btn:hover { border-color: #3b4560; }
 button:disabled { opacity: .5; cursor: default; }
-button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button.primary { background: var(--accent-solid); border-color: var(--accent-solid); color: #fff; }
 button.danger { background: transparent; border-color: var(--caution); color: var(--caution); }
 button.ghost, .btn.ghost { background: transparent; }
 button.small { padding: 3px 9px; font-size: 12px; }
@@ -88,6 +90,8 @@ textarea { width: 100%; font-family: Consolas, monospace; font-size: 13px; margi
 .tbl.sticky thead th { position: sticky; top: -22px; background: var(--panel); z-index: 1; box-shadow: inset 0 -1px 0 var(--border); }
 .tbl tbody tr:hover td { background: var(--row-hover); }
 .sub { color: var(--muted); font-size: 12px; }
+/* a Linux command line / stuck shell tools: keep the row one line, full text on hover */
+.mono-cut { font-family: ui-monospace, Consolas, monospace; font-size: 12px; max-width: 320px; overflow-wrap: anywhere; direction: ltr; unicode-bidi: isolate; }
 .svc { display: inline-flex; gap: 4px; align-items: center; background: var(--panel2); border-radius: 6px; padding: 1px 6px; margin: 1px 3px 1px 0; font-size: 12px; }
 .svc.known { outline: 1px solid #2f4a7a; }
 .svc button { padding: 0 6px; font-size: 11px; border-radius: 5px; }
@@ -156,7 +160,7 @@ textarea { width: 100%; font-family: Consolas, monospace; font-size: 13px; margi
 .badge.serving { color: var(--accent); background: #4f8cff1f; }
 .badge.active { color: var(--safe); background: #34c38f1f; }
 tr.stale td:first-child { box-shadow: inset 3px 0 0 var(--moderate); }
-tr.locked td { opacity: .65; }
+[dir=rtl] tr.stale td:first-child { box-shadow: inset -3px 0 0 var(--moderate); }
 code { font-family: Consolas, monospace; font-size: 12px; background: var(--panel2); border-radius: 4px; padding: 0 4px; }
 
 .pickers { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
@@ -274,7 +278,7 @@ code, .cmd, input[type=text], input[type=number], textarea { unicode-bidi: isola
 
 /* ---------- consistency pass: cards, charts, toasts, loading ---------- */
 .card, .tile, .callout, .cat, .live, .autobar { box-shadow: 0 1px 2px #0003; }
-.card.flush { padding: 0; overflow: clip; }
+.card.flush { padding: 0; overflow-x: auto; }
 .card.flush .tbl th:first-child, .card.flush .tbl td:first-child { padding-inline-start: 14px; }
 .card.flush .tbl th:last-child, .card.flush .tbl td:last-child { padding-inline-end: 14px; }
 .card.flush .tbl thead th { padding-top: 10px; }
@@ -285,8 +289,12 @@ code, .cmd, input[type=text], input[type=number], textarea { unicode-bidi: isola
 td.loading { display: table-cell; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
+@keyframes busy-fade { 50% { opacity: .35; } }
 .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; vertical-align: -3px; }
 button.is-busy::before { content: ""; width: 11px; height: 11px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; flex-shrink: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .spinner, button.is-busy::before { animation: busy-fade 1.6s ease-in-out infinite; }
+}
 button { transition: border-color .12s, background-color .12s; }
 button.primary:hover:not(:disabled) { filter: brightness(1.08); }
 button.danger:hover:not(:disabled) { background: #f46a6a14; }
