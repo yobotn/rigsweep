@@ -33,6 +33,8 @@ So I measured my own machine (32 GB RAM) in the middle of a working day:
 | ⬢ Node + Claude processes (agent CLIs, dev servers, the desktop app) | 14 | **2.5 GB** |
 | 🧩 Windows services running (telemetry, Xbox, search indexer…) | ~150 | — |
 
+Then I looked at my disk. I was building three Rust apps side by side: RigSweep itself, [KeepRun](https://github.com/yobotn/keeprun) (keeps Node, .NET and Python apps running as Windows services) and [Focuside](https://github.com/yobotn/focuside) (a focused IDE for AI coding agents). Each project's `target` folder had grown to about **40 GB**, so **~120 GB** in total, all of it build output that Cargo never cleans up on its own. The **Dev Disk** tab found all three in a single scan.
+
 None of it was "a virus" or "junk". It was the **normal leftovers of working with AI agents**, plus Windows background stuff a dev box doesn't need. Existing "PC booster" apps either do scary irreversible things or know nothing about dev workflows. So I built the tool I wanted:
 
 > **See what's actually using your machine, sweep what's stale, and keep every change reversible.**

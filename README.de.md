@@ -33,6 +33,8 @@ Also habe ich meinen eigenen Rechner (32 GB RAM) mitten an einem Arbeitstag geme
 | ⬢ Node- + Claude-Prozesse (Agent-CLIs, Dev-Server, die Desktop-App) | 14 | **2,5 GB** |
 | 🧩 Laufende Windows-Dienste (Telemetrie, Xbox, Suchindizierung…) | ~150 | — |
 
+Dann habe ich auf die Festplatte geschaut. Ich habe parallel an drei Rust-Apps gebaut: RigSweep selbst, [KeepRun](https://github.com/yobotn/keeprun) (betreibt Node-, .NET- und Python-Apps als Windows-Dienste) und [Focuside](https://github.com/yobotn/focuside) (eine fokussierte IDE für KI-Coding-Agents). Der `target`-Ordner jedes Projekts war auf rund **40 GB** angewachsen, zusammen also **~120 GB**, alles Build-Ausgabe, die Cargo nie von selbst aufräumt. Der Tab **Dev-Speicher** hat alle drei in einem einzigen Scan gefunden.
+
 Nichts davon war „ein Virus“ oder „Datenmüll“. Es waren die **normalen Überbleibsel der Arbeit mit KI-Agents**, dazu Windows-Hintergrundkram, den ein Entwicklerrechner nicht braucht. Bestehende „PC-Booster“-Apps machen entweder beängstigende, nicht umkehrbare Dinge oder wissen nichts über Entwicklungsabläufe. Also habe ich das Tool gebaut, das ich mir gewünscht habe:
 
 > **Sehen, was den Rechner wirklich belastet, Liegengebliebenes aufräumen und jede Änderung umkehrbar halten.**

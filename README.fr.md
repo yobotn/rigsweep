@@ -33,6 +33,8 @@ Alors j'ai mesuré ma propre machine (32 Go de RAM) en pleine journée de travai
 | ⬢ Processus Node + Claude (CLI d'agents, serveurs de dev, l'app de bureau) | 14 | **2,5 Go** |
 | 🧩 Services Windows en cours d'exécution (télémétrie, Xbox, indexeur de recherche…) | ~150 | — |
 
+Ensuite, j'ai regardé le disque. Je développais trois applis Rust en parallèle : RigSweep lui-même, [KeepRun](https://github.com/yobotn/keeprun) (fait tourner des applis Node, .NET et Python comme services Windows) et [Focuside](https://github.com/yobotn/focuside) (un IDE épuré pour les agents de code IA). Le dossier `target` de chaque projet avait grossi jusqu'à environ **40 Go**, soit **~120 Go** au total, uniquement des sorties de build que Cargo ne nettoie jamais de lui-même. L'onglet **Disque dev** les a trouvés tous les trois en une seule analyse.
+
 Rien de tout cela n'était « un virus » ni des « fichiers inutiles ». C'étaient les **restes normaux du travail avec des agents IA**, plus des tâches de fond Windows dont une machine de dev n'a pas besoin. Les « boosters de PC » existants font soit des choses irréversibles et inquiétantes, soit ne connaissent rien aux workflows de dev. Alors j'ai construit l'outil que je voulais :
 
 > **Voir ce qui utilise vraiment votre machine, balayer ce qui traîne, et garder chaque changement réversible.**

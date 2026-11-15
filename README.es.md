@@ -33,6 +33,8 @@ Así que medí mi propio equipo (32 GB de RAM) en plena jornada de trabajo:
 | ⬢ Procesos de Node + Claude (CLI de agentes, servidores dev, la app de escritorio) | 14 | **2,5 GB** |
 | 🧩 Servicios de Windows en ejecución (telemetría, Xbox, indexador de búsqueda…) | ~150 | — |
 
+Luego miré el disco. Estaba desarrollando tres apps en Rust a la vez: el propio RigSweep, [KeepRun](https://github.com/yobotn/keeprun) (mantiene apps de Node, .NET y Python funcionando como servicios de Windows) y [Focuside](https://github.com/yobotn/focuside) (un IDE enfocado para agentes de programación con IA). La carpeta `target` de cada proyecto había llegado a unos **40 GB**, es decir, **~120 GB** en total, todo salida de compilación que Cargo nunca limpia por sí solo. La pestaña **Disco dev** encontró las tres en un solo análisis.
+
 Nada de eso era "un virus" ni "basura". Eran los **restos normales de trabajar con agentes de IA**, más procesos de fondo de Windows que un equipo de desarrollo no necesita. Las apps "aceleradoras de PC" existentes o hacen cosas irreversibles que dan miedo o no saben nada de flujos de desarrollo. Así que hice la herramienta que yo quería:
 
 > **Ver qué está usando realmente tu equipo, barrer lo que sobra y que cada cambio sea reversible.**
