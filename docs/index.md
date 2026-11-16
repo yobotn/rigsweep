@@ -4,7 +4,7 @@
 
 - Download: https://github.com/yobotn/rigsweep/releases/latest (Windows 10 / 11, free, MIT)
 - Source: https://github.com/yobotn/rigsweep
-- Current version: 0.7.5
+- Current version: 0.7.6
 - For AI agents: https://rigsweep.com/llms.txt
 
 ## Why it exists
@@ -26,7 +26,7 @@ Every session spawns more processes, and many keep running after you close the t
 - **Temperatures**: CPU and GPU temperatures with a 5-minute trend and a warning when your PC stays hot. No driver, no admin rights.
 - **Updates, your choice**: Off by default. Check when you want, or turn on a daily check. Updates install only when you click, and only if they're signed.
 - **Browser Cleanup**: Empties caches for Chrome, Edge, Brave, Vivaldi, Opera and Firefox. Sign-ins, cookies, passwords and history are never touched.
-- **Dev Disk**: Deletes node_modules, .next, target and .venv in projects you stopped touching, and cleans package caches (npm, pnpm, pip, Cargo, Go…). Exclude anything, switch off any cache.
+- **Dev Disk**: Deletes node_modules, .next, target and .venv in projects you stopped touching, cleans package, GPU shader and AI tool caches (npm, pip, Cargo, CUDA, Cursor, VS Code…) and removes git worktrees agents left behind.
 - **Hardware**: Disk health, a disk speed test and your CPU, GPU, RAM and battery details in one tab, instead of four separate tools. No driver installed.
 
 ## Sweep stale sessions, safely
@@ -50,7 +50,7 @@ Dev Cleanup finds leftover dev servers, build daemons and agent sessions across 
 
 ### What does RigSweep do?
 
-RigSweep is a free, open-source Windows app for developers who work with AI coding agents. It finds dev servers, build daemons, MCP servers and agent CLIs that keep running after you close a terminal, shows each one with its project, RAM and ports, and ends the ones you pick. It also deletes old node_modules and package caches, empties browser caches and applies reversible Windows tweaks.
+RigSweep is a free, open-source Windows app for developers who work with AI coding agents. It finds dev servers, build daemons, MCP servers and agent CLIs that keep running after you close a terminal, shows each one with its project, RAM and ports, and ends the ones you pick. It also deletes old node_modules, package and AI tool caches and leftover git worktrees, empties browser caches and applies reversible Windows tweaks.
 
 ### How do I stop node.exe processes that keep running after I close the terminal?
 

@@ -401,6 +401,31 @@ fn folder_name(path: &str) -> String {
     path.rsplit('\\').next().unwrap_or("").to_string()
 }
 
+/// The project as people know it: a monorepo package shows from the repo root
+/// (`shop/apps/web`, not just `web`, which every monorepo has). The root is the nearest
+/// folder holding `.git` (a dir, or a file for worktrees and submodules); without one,
+/// just the folder name.
+fn project_label(path: &str, is_root: &mut impl FnMut(&std::path::Path) -> bool) -> String {
+    let leaf = folder_name(path);
+    if path.is_empty() {
+        return leaf;
+    }
+    let p = std::path::Path::new(path);
+    // a dozen levels is deeper than any real package layout; never treat a drive root as a repo
+    for dir in p.ancestors().take(12) {
+        if dir.parent().is_none() {
+            break;
+        }
+        if is_root(dir) {
+            let Ok(rel) = p.strip_prefix(dir) else { break };
+            let mut parts = vec![dir.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default()];
+            parts.extend(rel.components().map(|c| c.as_os_str().to_string_lossy().into_owned()));
+            return parts.join("/");
+        }
+    }
+    leaf
+}
+
 /// Like `describe`, but the project is the full folder path (Windows separators).
 pub fn describe_ex(name: &str, cmd: &str, cwd: &str) -> (String, String) {
     let c = cmd.replace('\\', "/");
@@ -558,6 +583,9 @@ pub fn scan(sys: &System, tracker: &mut IdleTracker, idle_minutes: u32) -> DevRe
     let ncpu = sys.cpus().len().max(1) as f32;
     let ports = listening_ports();
     let me = std::process::id();
+    // many processes share a folder: look each repo root up once per scan
+    let mut roots: HashMap<std::path::PathBuf, bool> = HashMap::new();
+    let mut is_root = |d: &std::path::Path| *roots.entry(d.to_path_buf()).or_insert_with(|| d.join(".git").exists());
 
     let mut children: HashMap<u32, Vec<u32>> = HashMap::new();
     for (pid, p) in procs {
@@ -671,7 +699,7 @@ pub fn scan(sys: &System, tracker: &mut IdleTracker, idle_minutes: u32) -> DevRe
         let cmd = cmdline(p);
         let cwd = p.cwd().map(|c| c.display().to_string()).unwrap_or_default();
         let (label, mut project_path) = describe_ex(&name, &cmd, &cwd);
-        let mut project = folder_name(&project_path);
+        let mut project = project_label(&project_path, &mut is_root);
         let wsl = class.eco == "wsl" && kind == "runtime";
         if wsl {
             // the Linux command line, not a folder
@@ -981,6 +1009,16 @@ pub fn kill(fresh: &DevReport, targets: &[KillTarget]) -> KillResult {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn project_label_from_repo_root() {
+        use super::project_label;
+        let mut root_at = |d: &std::path::Path| d == std::path::Path::new(r"C:\dev\shop");
+        assert_eq!(project_label(r"C:\dev\shop\apps\web", &mut root_at), "shop/apps/web");
+        assert_eq!(project_label(r"C:\dev\shop", &mut root_at), "shop");
+        assert_eq!(project_label(r"C:\dev\blog\web", &mut root_at), "web"); // no repo: folder name
+        assert_eq!(project_label("", &mut root_at), "");
+    }
+
     use super::{auto_targets, describe, verify_target, DevProc, DevReport, KillTarget};
 
     #[test]

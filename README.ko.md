@@ -73,11 +73,14 @@ Python과 Java로는 일반 데스크톱 앱도 실행되므로, 이 두 언어�
 - 🔒 **잠김**: **VS Code, Cursor, JetBrains, Visual Studio…**(언어 서버)나 데스크톱 앱이 소유한 프로세스는 여기서 종료할 수 없습니다.
 - ✅ 사용자가 확인하기 전에는 아무것도 종료되지 않으며, 종료할 때마다 PID 재사용 여부를 확인합니다.
 
-### 💾 개발 디스크: node_modules와 패키지 캐시
-오래된 프로젝트는 작업을 그만둔 뒤에도 수 GB의 `node_modules`, `.next`, `target`, `bin/obj`, `.venv`를 그대로 갖고 있고, 패키지 캐시는 계속 늘어나기만 합니다. RigSweep이 둘 다 찾아서 선택한 것을 삭제합니다.
+### 💾 개발 디스크: node_modules, 캐시, 워크트리
+오래된 프로젝트는 작업을 그만둔 뒤에도 수 GB의 `node_modules`, `.next`, `target`, `bin/obj`, `.venv`를 그대로 갖고 있고, 패키지 캐시는 계속 늘어나기만 하며, AI 도구와 에이전트는 캐시와 워크트리를 남겨 둡니다. RigSweep이 이 모두를 찾아서 선택한 것을 삭제합니다.
 
 - 🗂️ **프로젝트**: Node, Rust, .NET, Java/Gradle/Maven, Python의 빌드 출력과 의존성 폴더. 옆에 프로젝트 파일(`package.json`, `Cargo.toml`, `*.csproj`, `pyvenv.cfg` 등)이 있는 폴더만 대상이라, 아무 `build` 폴더나 건드리는 일은 없습니다. 30일(변경 가능) 동안 아무도 수정하지 않은 프로젝트만 미리 선택되며, 실행 중인 프로세스가 사용하는 프로젝트는 잠깁니다 🔒.
 - 📦 **패키지 캐시**: npm, npx, pnpm, Yarn, Bun, pip, uv, Cargo, Go, NuGet, Gradle, Maven, Playwright, Puppeteer, Hugging Face. uv와 Go는 각자의 명령(`uv cache prune`, `go clean`)으로 정리하고, Playwright와 Puppeteer는 이전 브라우저 버전만 지우고 최신 버전은 남깁니다.
+- 🎮 **GPU 및 머신러닝**: NVIDIA, AMD, Intel, DirectX 셰이더 캐시, CUDA 컴퓨트 캐시, PyTorch 허브 모델과 컴파일된 확장, Triton 커널 캐시, 쓰지 않는 conda 패키지(`conda clean --all`로 정리). Ollama와 LM Studio 모델은 크기만 보여 주고 절대 삭제하지 않습니다.
+- 🤖 **AI 도구 및 편집기**: Cursor, VS Code, Windsurf, Claude 데스크톱 앱, Codex, ChatGPT의 앱 캐시. 앱이 열려 있는 동안에는 건너뜁니다. Cursor의 상태 백업과 오래된 체크포인트도 지울 수 있습니다(미리 선택되지 않음). 채팅 기록(Cursor 채팅 데이터베이스, Claude Code 채팅, Codex 세션)은 크기만 보여 주므로 공간이 어디에 쓰였는지 알 수 있습니다.
+- 🌿 **Git 워크트리**: Claude Code, Cursor, Codex 또는 직접 만든 워크트리를 브랜치, 저장소, 방치된 기간과 함께 보여 줍니다. `git worktree remove`로 제거하므로 커밋하지 않은 작업이나 추적되지 않는 파일이 있는 워크트리는 제거되지 않으며, 브랜치와 커밋은 남습니다. 함께 사라질 git 무시 파일(`.env` 등)은 먼저 목록으로 보여 주고, 워크트리는 절대 미리 선택되지 않습니다.
 - 🎯 **자동 선택**: 개발 디스크 탭에서 바로, 프로젝트가 얼마나 수정되지 않아야 하는지(3~365일), 어떤 폴더를 체크할지(빌드 결과물, 의존성, 패키지 캐시), 최소 크기를 고를 수 있습니다.
 - 🚫 **정리 안 함**: 어떤 캐시든 끌 수 있습니다. 다시 받으려면 다운로드가 큰 것(Playwright, Puppeteer, Hugging Face, Gradle, Maven, NuGet 패키지, Go 모듈)은 처음부터 꺼져 있습니다.
 - 🙈 **제외**: AppData, 프로필 안의 도구 폴더(`.cargo`, `.nvm`, `.vscode` 등), `.git`, Windows는 항상 건너뜁니다. 직접 경로나 폴더 이름(`vendor`, `old-*`)을 설정에서 추가하거나, 프로젝트에서 **제외**를 클릭하세요.

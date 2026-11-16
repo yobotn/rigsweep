@@ -463,14 +463,22 @@ pub struct Project {
 struct Found {
     dir: PathBuf,
     arts: Vec<(String, &'static str, &'static str)>,
+    /// the folder has a `.git` file: a linked worktree (or a submodule, sorted out later)
+    wt: bool,
 }
 
-/// List one folder: artifacts in it, and the subfolders to walk further.
-fn list_dir(dir: &Path, ex: &Excludes) -> (Vec<(String, &'static str, &'static str)>, Vec<PathBuf>) {
-    let (mut arts, mut subs) = (vec![], vec![]);
-    let Ok(rd) = fs::read_dir(dir) else { return (arts, subs) };
+type Listing = (Vec<(String, &'static str, &'static str)>, Vec<PathBuf>, bool);
+
+/// List one folder: artifacts in it, the subfolders to walk further, and whether it has a
+/// `.git` file (worktrees and submodules have a file where a repo has a folder).
+fn list_dir(dir: &Path, ex: &Excludes) -> Listing {
+    let (mut arts, mut subs, mut wt) = (vec![], vec![], false);
+    let Ok(rd) = fs::read_dir(dir) else { return (arts, subs, wt) };
     for e in rd.flatten() {
         let Ok(m) = e.metadata() else { continue };
+        if m.is_file() && e.file_name().eq_ignore_ascii_case(".git") {
+            wt = true;
+        }
         if !m.is_dir() || is_reparse(&m) {
             continue;
         }
@@ -488,13 +496,13 @@ fn list_dir(dir: &Path, ex: &Excludes) -> (Vec<(String, &'static str, &'static s
         }
         subs.push(path);
     }
-    (arts, subs)
+    (arts, subs, wt)
 }
 
 fn walk(dir: &Path, depth: usize, ex: &Excludes, out: &mut Vec<Found>) {
-    let (arts, subs) = list_dir(dir, ex);
-    if !arts.is_empty() {
-        out.push(Found { dir: dir.to_path_buf(), arts });
+    let (arts, subs, wt) = list_dir(dir, ex);
+    if !arts.is_empty() || wt {
+        out.push(Found { dir: dir.to_path_buf(), arts, wt });
     }
     if depth < MAX_DEPTH {
         for s in subs {
@@ -530,7 +538,7 @@ fn onedrive_roots() -> Vec<String> {
         .collect()
 }
 
-fn scan_projects(cfg: &Config, hay: &[String]) -> Vec<Project> {
+fn scan_projects(cfg: &Config, hay: &[String]) -> (Vec<Project>, Vec<PathBuf>) {
     let ex = Excludes::new(&cfg.excludes);
     let mut found: Vec<Found> = vec![];
     // the first two levels are listed here, the rest is walked in parallel
@@ -539,14 +547,14 @@ fn scan_projects(cfg: &Config, hay: &[String]) -> Vec<Project> {
         if ex.dir(&root) {
             continue;
         }
-        let (arts, subs) = list_dir(&root, &ex);
-        if !arts.is_empty() {
-            found.push(Found { dir: root.clone(), arts });
+        let (arts, subs, wt) = list_dir(&root, &ex);
+        if !arts.is_empty() || wt {
+            found.push(Found { dir: root.clone(), arts, wt });
         }
         for s in subs {
-            let (arts, subs2) = list_dir(&s, &ex);
-            if !arts.is_empty() {
-                found.push(Found { dir: s.clone(), arts });
+            let (arts, subs2, wt) = list_dir(&s, &ex);
+            if !arts.is_empty() || wt {
+                found.push(Found { dir: s.clone(), arts, wt });
             }
             tasks.extend(subs2);
         }
@@ -558,6 +566,8 @@ fn scan_projects(cfg: &Config, hay: &[String]) -> Vec<Project> {
     }) {
         found.append(&mut v);
     }
+    let wts: Vec<PathBuf> = found.iter().filter(|f| f.wt).map(|f| f.dir.clone()).collect();
+    found.retain(|f| !f.arts.is_empty());
 
     let od = onedrive_roots();
     let stale_secs = cfg.stale_days.max(1) as u64 * 86400;
@@ -597,7 +607,213 @@ fn scan_projects(cfg: &Config, hay: &[String]) -> Vec<Project> {
     projects.retain(|p| !p.items.is_empty());
     let total = |p: &Project| p.items.iter().map(|i| i.bytes).sum::<u64>();
     projects.sort_by(|a, b| b.stale.cmp(&a.stale).then(total(b).cmp(&total(a))));
-    projects
+    (projects, wts)
+}
+
+// ---------- git worktrees ----------
+//
+// AI agents (Claude Code, Cursor, Codex) and people make linked worktrees: a second checkout of a
+// repo, often with its own node_modules or target. They pile up once the task is done. A worktree
+// is removed with `git worktree remove` (never by hand), which refuses one with uncommitted or
+// untracked files. The branch and its commits stay in the repo.
+
+#[derive(Serialize, Clone, Debug)]
+pub struct Worktree {
+    pub path: String,
+    /// the main checkout of the repo
+    pub repo: String,
+    pub branch: String,
+    /// claude | cursor | codex | windsurf | git
+    pub tool: &'static str,
+    pub bytes: u64,
+    pub last_active: u64,
+    pub idle_days: u32,
+    pub busy: bool,
+    /// uncommitted or untracked files: git won't remove it
+    pub dirty: bool,
+    /// its repo is gone or moved: git can't remove it
+    pub orphan: bool,
+    pub stale: bool,
+    /// top-level files and folders git ignores that aren't build output (`.env`…): deleted with it
+    pub ignored: Vec<String>,
+}
+
+/// Where AI tools keep the worktrees they create outside the project (under the profile's
+/// tool folders, which the project scan skips).
+fn tool_worktree_roots() -> Vec<PathBuf> {
+    let Some(home) = env_dir("USERPROFILE") else { return vec![] };
+    let mut v: Vec<PathBuf> = [".cursor\\worktrees", ".codex\\worktrees", ".claude\\worktrees", ".windsurf\\worktrees"].iter().map(|r| home.join(r)).collect();
+    if let Some(c) = env_dir("CODEX_HOME") {
+        v.push(c.join("worktrees"));
+    }
+    v.into_iter().filter(|p| p.is_dir()).collect()
+}
+
+/// Folders with a `.git` file a few levels below `dir`.
+fn find_git_files(dir: &Path, depth: usize, out: &mut Vec<PathBuf>) {
+    let Ok(rd) = fs::read_dir(dir) else { return };
+    for e in rd.flatten() {
+        let Ok(m) = e.metadata() else { continue };
+        if !m.is_dir() || is_reparse(&m) {
+            continue;
+        }
+        let p = e.path();
+        if fs::symlink_metadata(p.join(".git")).is_ok_and(|m| m.is_file()) {
+            out.push(p);
+        } else if depth > 0 && !is_artifact_name(&e.file_name().to_string_lossy()) {
+            find_git_files(&p, depth - 1, out);
+        }
+    }
+}
+
+/// The worktree's own git folder (`<repo>\.git\worktrees\<name>`) from its `.git` file, or None
+/// if the file doesn't point into a `worktrees` folder (a submodule does that).
+fn worktree_gitdir(wt: &Path) -> Option<PathBuf> {
+    let s = fs::read_to_string(wt.join(".git")).ok()?;
+    let g = s.lines().find_map(|l| l.trim().strip_prefix("gitdir:"))?.trim().replace('/', "\\");
+    let mut p = PathBuf::from(&g);
+    if p.is_relative() {
+        p = wt.join(p);
+    }
+    let parent = p.parent()?;
+    parent.file_name().is_some_and(|n| n.eq_ignore_ascii_case("worktrees")).then_some(p)
+}
+
+/// The main checkout for a worktree git folder: `<repo>\.git\worktrees\x` -> `<repo>`
+/// (for a bare repo, the repo folder itself).
+fn main_repo(gitdir: &Path) -> Option<PathBuf> {
+    let common = gitdir.parent()?.parent()?;
+    if common.file_name().is_some_and(|n| n.eq_ignore_ascii_case(".git")) {
+        common.parent().map(Path::to_path_buf)
+    } else {
+        Some(common.to_path_buf())
+    }
+}
+
+fn git_out(dir: &Path, args: &[&str]) -> Option<String> {
+    use std::os::windows::process::CommandExt;
+    let o = std::process::Command::new("git")
+        .arg("-C")
+        .arg(dir)
+        .args(args)
+        .creation_flags(0x0800_0000) // CREATE_NO_WINDOW
+        .stdin(std::process::Stdio::null())
+        .output()
+        .ok()?;
+    o.status.success().then(|| String::from_utf8_lossy(&o.stdout).into_owned())
+}
+
+/// (dirty, ignored non-build entries) from `git status`; None if git can't read it.
+fn worktree_status(wt: &Path) -> Option<(bool, Vec<String>)> {
+    let s = git_out(wt, &["status", "--porcelain=v1", "--ignored=matching", "--untracked-files=normal"])?;
+    let mut dirty = false;
+    let mut ignored: Vec<String> = vec![];
+    for l in s.lines() {
+        if let Some(p) = l.strip_prefix("!! ") {
+            let top = p.trim_matches('"').split('/').next().unwrap_or("").to_string();
+            if !top.is_empty() && !is_artifact_name(&top) && !matches!(top.as_str(), "dist" | "out" | ".cache" | "coverage" | "next-env.d.ts") && !top.ends_with(".tsbuildinfo") && !ignored.contains(&top) {
+                ignored.push(top);
+            }
+        } else if !l.trim().is_empty() {
+            dirty = true;
+        }
+    }
+    ignored.truncate(8);
+    Some((dirty, ignored))
+}
+
+fn worktree_tool(p: &Path) -> &'static str {
+    let l = lower(p);
+    for (m, t) in [("\\.claude\\worktrees\\", "claude"), ("\\.cursor\\worktrees\\", "cursor"), ("\\.codex\\worktrees\\", "codex"), ("\\.windsurf\\worktrees\\", "windsurf")] {
+        if l.contains(m) {
+            return t;
+        }
+    }
+    "git"
+}
+
+fn scan_worktrees(cfg: &Config, hay: &[String], mut dirs: Vec<PathBuf>) -> Vec<Worktree> {
+    for r in tool_worktree_roots() {
+        find_git_files(&r, 3, &mut dirs);
+    }
+    let mut seen: Vec<String> = vec![];
+    dirs.retain(|d| {
+        let l = lower(d);
+        let new = !seen.contains(&l);
+        seen.push(l);
+        new
+    });
+    let stale_secs = cfg.stale_days.max(1) as u64 * 86400;
+    let t = now();
+    let mut v: Vec<Worktree> = par_map(&dirs, |d| {
+        let gitdir = worktree_gitdir(d)?;
+        let orphan = !gitdir.is_dir();
+        let repo = main_repo(&gitdir).unwrap_or_default();
+        let branch = fs::read_to_string(gitdir.join("HEAD"))
+            .map(|h| {
+                let h = h.trim();
+                h.strip_prefix("ref: refs/heads/").map(str::to_string).unwrap_or_else(|| h.chars().take(8).collect())
+            })
+            .unwrap_or_default();
+        let git_time = ["index", "HEAD", "logs\\HEAD"]
+            .iter()
+            .filter_map(|f| fs::metadata(gitdir.join(f)).and_then(|m| m.modified()).ok().map(secs))
+            .max()
+            .unwrap_or(0);
+        let last = last_active(d).max(git_time);
+        let idle = t.saturating_sub(last);
+        let (dirty, ignored) = if orphan { (false, vec![]) } else { worktree_status(d).unwrap_or((true, vec![])) };
+        let busy = path_in_use(hay, d);
+        Some(Worktree {
+            path: d.to_string_lossy().into_owned(),
+            repo: repo.to_string_lossy().into_owned(),
+            branch,
+            tool: worktree_tool(d),
+            bytes: local_size(d),
+            last_active: last,
+            idle_days: (idle / 86400) as u32,
+            busy,
+            dirty,
+            orphan,
+            stale: idle >= stale_secs && !busy,
+            ignored,
+        })
+    })
+    .into_iter()
+    .flatten()
+    .collect();
+    v.sort_by(|a, b| b.stale.cmp(&a.stale).then(b.bytes.cmp(&a.bytes)));
+    v
+}
+
+/// Re-check a worktree target from scratch; returns (main repo, worktree folder).
+fn verify_worktree(cfg: &Config, hay: &[String], t: &DiskTarget) -> Result<(PathBuf, PathBuf), String> {
+    let dir = PathBuf::from(&t.id);
+    if !dir.is_absolute() || dir.components().any(|c| matches!(c, Component::ParentDir | Component::CurDir)) {
+        return Err("not a plain absolute path".into());
+    }
+    let l = lower(&dir);
+    let allowed = expanded_roots(cfg).iter().chain(tool_worktree_roots().iter()).any(|r| within(&l, &lower(r)) && l != lower(r));
+    if !allowed {
+        return Err("not inside a scan folder".into());
+    }
+    let m = fs::symlink_metadata(&dir).map_err(|_| "no longer exists")?;
+    if is_reparse(&m) || !m.is_dir() {
+        return Err("is a link or not a folder".into());
+    }
+    let gitdir = worktree_gitdir(&dir).ok_or("no longer a git worktree")?;
+    if !gitdir.is_dir() {
+        return Err("its repository is gone".into());
+    }
+    let repo = main_repo(&gitdir).filter(|r| r.is_dir()).ok_or("its repository is gone")?;
+    if path_in_use(hay, &dir) {
+        return Err("in use by a running process".into());
+    }
+    match worktree_status(&dir) {
+        Some((false, _)) => Ok((repo, dir)),
+        Some((true, _)) => Err("has uncommitted or untracked files".into()),
+        None => Err("git could not read it".into()),
+    }
 }
 
 // ---------- package caches ----------
@@ -612,6 +828,10 @@ enum How {
     Tool(&'static str, &'static [&'static str]),
     /// run the tool's own cleanup if installed, otherwise empty the folders
     ToolOrEmpty(&'static str, &'static [&'static str]),
+    /// `conda clean --all`, with the conda.exe that owns the package folder
+    Conda,
+    /// only shown with its size (models, chat history): removed in the app that owns it, never here
+    Show,
 }
 
 struct CacheDef {
@@ -646,7 +866,48 @@ const CACHES: &[CacheDef] = &[
     CacheDef { id: "nugetpkgs", eco: "dotnet", tier: "redownload", how: How::Empty, busy: &["\\msbuild.exe", "\\devenv.exe"] },
     CacheDef { id: "gradle", eco: "java", tier: "redownload", how: How::Empty, busy: &["gradle"] },
     CacheDef { id: "maven", eco: "java", tier: "redownload", how: How::Empty, busy: &["plexus-classworlds", "\\maven"] },
+    // GPU: shader caches the driver rebuilds (games stutter for a few minutes while it does)
+    CacheDef { id: "nvshader", eco: "gpu", tier: "safe", how: How::Empty, busy: &[] },
+    CacheDef { id: "amdshader", eco: "gpu", tier: "safe", how: How::Empty, busy: &[] },
+    CacheDef { id: "intelshader", eco: "gpu", tier: "safe", how: How::Empty, busy: &[] },
+    CacheDef { id: "d3dshader", eco: "gpu", tier: "safe", how: How::Empty, busy: &[] },
+    CacheDef { id: "cudajit", eco: "gpu", tier: "safe", how: How::Empty, busy: &[] },
+    // machine learning
+    CacheDef { id: "torch", eco: "ml", tier: "redownload", how: How::Empty, busy: &["python"] },
+    CacheDef { id: "torchext", eco: "ml", tier: "safe", how: How::Empty, busy: &["python"] },
+    CacheDef { id: "triton", eco: "ml", tier: "safe", how: How::Empty, busy: &["python"] },
+    CacheDef { id: "conda", eco: "ml", tier: "safe", how: How::Conda, busy: &["\\conda.exe", "\\mamba.exe", "\\micromamba.exe"] },
+    CacheDef { id: "ollama", eco: "ml", tier: "shown", how: How::Show, busy: &[] },
+    CacheDef { id: "lmstudio", eco: "ml", tier: "shown", how: How::Show, busy: &[] },
+    // AI tools and editors: app caches (Electron), plus what they keep that only they should delete
+    CacheDef { id: "cursor", eco: "ai", tier: "safe", how: How::Empty, busy: &["\\cursor.exe"] },
+    CacheDef { id: "cursorbak", eco: "ai", tier: "backup", how: How::Empty, busy: &["\\cursor.exe"] },
+    CacheDef { id: "cursorsnap", eco: "ai", tier: "history", how: How::Empty, busy: &["\\cursor.exe"] },
+    CacheDef { id: "cursordb", eco: "ai", tier: "history", how: How::Show, busy: &[] },
+    CacheDef { id: "vscode", eco: "ai", tier: "safe", how: How::Empty, busy: &["\\code.exe", "\\code - insiders.exe"] },
+    CacheDef { id: "windsurf", eco: "ai", tier: "safe", how: How::Empty, busy: &["\\windsurf.exe"] },
+    CacheDef { id: "claude", eco: "ai", tier: "safe", how: How::Empty, busy: &["\\anthropicclaude\\", "\\windowsapps\\claude_"] },
+    CacheDef { id: "claudehist", eco: "ai", tier: "history", how: How::Show, busy: &[] },
+    CacheDef { id: "codex", eco: "ai", tier: "safe", how: How::Empty, busy: &["\\codex.exe"] },
+    CacheDef { id: "codexhist", eco: "ai", tier: "history", how: How::Show, busy: &[] },
+    CacheDef { id: "chatgpt", eco: "ai", tier: "safe", how: How::Empty, busy: &["\\chatgpt.exe"] },
 ];
+
+/// The cache folders of an Electron app (and VS Code-style editors) inside its data folder.
+/// Settings, sign-ins, extensions and chat history stay.
+const ELECTRON_CACHES: &[&str] = &[
+    "Cache", "Code Cache", "GPUCache", "DawnGraphiteCache", "DawnWebGPUCache", "CachedData", "CachedExtensionVSIXs",
+    "CachedProfilesData", "logs", "Crashpad\\reports",
+];
+
+/// Store (MSIX) apps keep their data in %LOCALAPPDATA%\Packages\<name>_<publisher id>.
+fn store_packages(prefix: &str) -> Vec<PathBuf> {
+    let Some(base) = env_dir("LOCALAPPDATA").map(|l| l.join("Packages")) else { return vec![] };
+    let pre = prefix.to_lowercase();
+    fs::read_dir(&base)
+        .map(|rd| rd.flatten().filter(|e| e.file_name().to_string_lossy().to_lowercase().starts_with(&pre)).map(|e| e.path()).collect())
+        .unwrap_or_default()
+}
 
 fn env_dir(var: &str) -> Option<PathBuf> {
     std::env::var_os(var).filter(|v| !v.is_empty()).map(PathBuf::from)
@@ -659,6 +920,15 @@ fn cache_paths(id: &str) -> Vec<PathBuf> {
     let h = |rel: &str| home.as_ref().map(|b| b.join(rel));
     let npm = env_dir("npm_config_cache").or_else(|| l("npm-cache"));
     let cargo = env_dir("CARGO_HOME").or_else(|| h(".cargo"));
+    let roaming = env_dir("APPDATA");
+    let r = |rel: &str| roaming.as_ref().map(|b| b.join(rel));
+    let low = |rel: &str| h(&format!("AppData\\LocalLow\\{rel}"));
+    let electron = |dirs: Vec<Option<PathBuf>>| -> Vec<Option<PathBuf>> {
+        dirs.into_iter().flatten().flat_map(|d| ELECTRON_CACHES.iter().map(move |c| Some(d.join(c)))).collect()
+    };
+    let in_pkg = |prefix: &str, app: &str| -> Vec<Option<PathBuf>> {
+        store_packages(prefix).into_iter().map(|p| Some(p.join("LocalCache\\Roaming").join(app))).collect()
+    };
     let v: Vec<Option<PathBuf>> = match id {
         "npm" => vec![npm.map(|p| p.join("_cacache"))],
         "npx" => vec![npm.map(|p| p.join("_npx"))],
@@ -681,10 +951,67 @@ fn cache_paths(id: &str) -> Vec<PathBuf> {
         "nugetpkgs" => vec![env_dir("NUGET_PACKAGES").or_else(|| h(".nuget\\packages"))],
         "gradle" => vec![env_dir("GRADLE_USER_HOME").or_else(|| h(".gradle")).map(|p| p.join("caches"))],
         "maven" => vec![h(".m2\\repository")],
+        // NVIDIA moved DXCache under LocalLow\PerDriverVersion in recent drivers
+        "nvshader" => vec![l("NVIDIA\\DXCache"), l("NVIDIA\\GLCache"), low("NVIDIA\\PerDriverVersion\\DXCache"), low("NVIDIA\\PerDriverVersion\\GLCache")],
+        "amdshader" => vec![l("AMD\\DxCache"), l("AMD\\DxcCache"), l("AMD\\VkCache"), l("AMD\\GLCache"), low("AMD\\DxCache"), low("AMD\\DxcCache"), low("AMD\\VkCache")],
+        "intelshader" => vec![l("Intel\\ShaderCache"), low("Intel\\ShaderCache")],
+        "d3dshader" => vec![l("D3DSCache")],
+        "cudajit" => vec![env_dir("CUDA_CACHE_PATH").or_else(|| r("NVIDIA\\ComputeCache"))],
+        "torch" => vec![env_dir("TORCH_HOME").or_else(|| env_dir("XDG_CACHE_HOME").map(|p| p.join("torch"))).or_else(|| h(".cache\\torch"))],
+        "torchext" => vec![env_dir("TORCH_EXTENSIONS_DIR").or_else(|| l("torch_extensions"))],
+        "triton" => vec![env_dir("TRITON_CACHE_DIR").or_else(|| h(".triton\\cache"))],
+        "conda" => {
+            let mut v: Vec<Option<PathBuf>> = std::env::var("CONDA_PKGS_DIRS")
+                .map(|s| s.split(';').filter(|x| !x.trim().is_empty()).map(|x| Some(PathBuf::from(x.trim()))).collect())
+                .unwrap_or_default();
+            v.extend(["miniconda3", "anaconda3", "miniforge3", "mambaforge", ".conda"].iter().map(|b| h(&format!("{b}\\pkgs"))));
+            v.extend(["miniconda3", "anaconda3", "miniforge3"].iter().map(|b| l(&format!("{b}\\pkgs"))));
+            v
+        }
+        "ollama" => vec![env_dir("OLLAMA_MODELS").or_else(|| h(".ollama\\models"))],
+        "lmstudio" => vec![h(".lmstudio\\models"), h(".cache\\lm-studio\\models")],
+        "cursor" => electron(vec![r("Cursor")]),
+        "cursorbak" => vec![r("Cursor\\User\\globalStorage\\state.vscdb.backup")],
+        "cursorsnap" => vec![r("Cursor\\snapshots")],
+        "cursordb" => vec![r("Cursor\\User\\globalStorage\\state.vscdb")],
+        "vscode" => electron(vec![r("Code"), r("Code - Insiders")]),
+        "windsurf" => electron(vec![r("Windsurf")]),
+        "claude" => electron([vec![r("Claude")], in_pkg("Claude_", "Claude")].concat()),
+        "claudehist" => vec![h(".claude\\projects"), h(".claude\\file-history")],
+        "codex" => {
+            let home = env_dir("CODEX_HOME").or_else(|| h(".codex"));
+            let mut v: Vec<Option<PathBuf>> = ["cache", ".tmp", "tmp", "log"].iter().map(|d| home.as_ref().map(|c| c.join(d))).collect();
+            v.extend(electron(in_pkg("OpenAI.Codex_", "Codex")));
+            v.extend(store_packages("OpenAI.Codex_").into_iter().map(|p| Some(p.join("LocalCache\\Local\\Codex\\Logs"))));
+            v
+        }
+        "codexhist" => {
+            let home = env_dir("CODEX_HOME").or_else(|| h(".codex"));
+            vec![home.as_ref().map(|c| c.join("sessions")), home.map(|c| c.join("archived_sessions"))]
+        }
+        "chatgpt" => electron(in_pkg("OpenAI.ChatGPT", "ChatGPT")),
         _ => vec![],
     };
-    // a cache path must never be a drive root or the profile itself
-    v.into_iter().flatten().filter(|p| p.is_absolute() && p.components().count() > 3 && p.is_dir()).collect()
+    // a cache path must never be a drive root or the profile itself; a few caches are single files
+    v.into_iter()
+        .flatten()
+        .filter(|p| p.is_absolute() && p.components().count() > 3)
+        .filter(|p| p.is_dir() || fs::symlink_metadata(p).is_ok_and(|m| m.is_file()))
+        .fold(vec![], |mut v: Vec<PathBuf>, p| {
+            if !v.iter().any(|x| lower(x) == lower(&p)) {
+                v.push(p);
+            }
+            v
+        })
+}
+
+/// Size of a cache path: a folder's local size, or a single file's length.
+fn path_size(p: &Path) -> u64 {
+    match fs::symlink_metadata(p) {
+        Ok(m) if m.is_file() => m.len(),
+        Ok(_) => local_size(p),
+        Err(_) => 0,
+    }
 }
 
 /// "1.2.3" / "1148" -> comparable numbers
@@ -759,6 +1086,8 @@ pub struct CacheView {
     /// the tool command used instead of deleting, e.g. "pnpm store prune"
     pub tool: String,
     pub keep_newest: bool,
+    /// shown with its size only; never cleaned here (models, chat history)
+    pub show_only: bool,
     pub paths: Vec<String>,
 }
 
@@ -768,8 +1097,21 @@ fn tool_label(how: How) -> String {
             let args: Vec<&str> = args.iter().copied().filter(|a| !a.starts_with('/')).collect();
             if exe == "cmd.exe" { args.join(" ") } else { format!("{} {}", exe.trim_end_matches(".exe"), args.join(" ")) }
         }
+        How::Conda => "conda clean --all".into(),
         _ => String::new(),
     }
+}
+
+/// The conda.exe that owns a package folder (`<install>\pkgs` -> `<install>\Scripts\conda.exe`),
+/// else one from a usual install place, else whatever is on PATH.
+fn conda_exe(pkgs: &[PathBuf]) -> String {
+    let home = env_dir("USERPROFILE");
+    let local = env_dir("LOCALAPPDATA");
+    let mut c: Vec<PathBuf> = pkgs.iter().filter_map(|p| p.parent().map(|i| i.join("Scripts\\conda.exe"))).collect();
+    for b in ["miniconda3", "anaconda3", "miniforge3", "mambaforge"] {
+        c.extend(home.iter().chain(local.iter()).map(|h| h.join(b).join("Scripts\\conda.exe")));
+    }
+    c.into_iter().find(|p| p.is_file()).map(|p| p.to_string_lossy().into_owned()).unwrap_or_else(|| "conda.exe".into())
 }
 
 fn cache_busy(def: &CacheDef, hay: &[String]) -> bool {
@@ -783,11 +1125,11 @@ fn scan_caches(cfg: &Config, hay: &[String]) -> Vec<CacheView> {
         if paths.is_empty() {
             return None;
         }
-        let total: u64 = paths.iter().map(|p| local_size(p)).sum();
+        let total: u64 = paths.iter().map(|p| path_size(p)).sum();
         let bytes = if def.how == How::KeepNewest {
             targets_of(def).iter().map(|p| local_size(p)).sum()
-        } else if def.id == "pnpm" {
-            // packages still linked into a node_modules stay on disk after the store goes
+        } else if def.id == "pnpm" || def.how == How::Conda {
+            // packages still linked into a node_modules (or a conda env) stay on disk after the store goes
             paths.iter().map(|p| unshared_size(p)).sum()
         } else {
             total
@@ -802,6 +1144,7 @@ fn scan_caches(cfg: &Config, hay: &[String]) -> Vec<CacheView> {
             busy: cache_busy(def, hay),
             tool: tool_label(def.how),
             keep_newest: def.how == How::KeepNewest,
+            show_only: def.how == How::Show,
             paths: paths.iter().map(|p| p.to_string_lossy().into_owned()).collect(),
         })
     })
@@ -819,40 +1162,45 @@ fn scan_caches(cfg: &Config, hay: &[String]) -> Vec<CacheView> {
 pub struct DiskReport {
     pub caches: Vec<CacheView>,
     pub projects: Vec<Project>,
+    pub worktrees: Vec<Worktree>,
     pub roots: Vec<String>,
     pub home: String,
     pub cache_total: u64,
     pub project_total: u64,
     pub stale_total: u64,
+    pub worktree_total: u64,
     pub scan_ms: u64,
 }
 
 pub fn report(cfg: &Config) -> DiskReport {
     let t0 = Instant::now();
     let hay = process_hay();
-    let (caches, projects) = std::thread::scope(|s| {
+    let (caches, (projects, wt_dirs)) = std::thread::scope(|s| {
         let c = s.spawn(|| scan_caches(cfg, &hay));
         let p = scan_projects(cfg, &hay);
         (c.join().unwrap_or_default(), p)
     });
+    let worktrees = scan_worktrees(cfg, &hay, wt_dirs);
     let sum = |p: &Project| p.items.iter().map(|i| i.bytes).sum::<u64>();
     DiskReport {
-        cache_total: caches.iter().filter(|c| !c.disabled).map(|c| c.bytes).sum(),
+        cache_total: caches.iter().filter(|c| !c.disabled && !c.show_only).map(|c| c.bytes).sum(),
         project_total: projects.iter().map(sum).sum(),
         stale_total: projects.iter().filter(|p| p.stale).map(sum).sum(),
+        worktree_total: worktrees.iter().map(|w| w.bytes).sum(),
         roots: expanded_roots(cfg).iter().map(|p| p.to_string_lossy().into_owned()).collect(),
         home: std::env::var("USERPROFILE").unwrap_or_default(),
         caches,
         projects,
+        worktrees,
         scan_ms: t0.elapsed().as_millis() as u64,
     }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct DiskTarget {
-    /// "cache" | "project"
+    /// "cache" | "project" | "worktree"
     pub kind: String,
-    /// cache id, or the project folder
+    /// cache id, the project folder, or the worktree folder
     pub id: String,
     /// project only: the artifact folder name inside it
     #[serde(default)]
@@ -1069,6 +1417,16 @@ fn clean_cache(def: &CacheDef) -> Result<(u64, bool), String> {
     let empty = |dirs: &[PathBuf], remove: bool| {
         let mut left = 0;
         for p in dirs {
+            if fs::symlink_metadata(p).is_ok_and(|m| m.is_file()) {
+                // a single-file cache (Cursor's state backup)
+                let l = AtomicU64::new(0);
+                wipe_entry(p, &l);
+                left += l.into_inner();
+                if hold() {
+                    return (left, true);
+                }
+                continue;
+            }
             let (l, stopped) = wipe_par(p);
             left += l;
             if stopped {
@@ -1081,12 +1439,12 @@ fn clean_cache(def: &CacheDef) -> Result<(u64, bool), String> {
         (left, false)
     };
     let by_tool = |exe: &str, args: &[&str]| -> Result<(), String> {
-        let before: u64 = paths.iter().map(|p| local_size(p)).sum();
+        let before: u64 = paths.iter().map(|p| path_size(p)).sum();
         if let Ok(mut c) = CURRENT.lock() {
             *c = tool_label(def.how);
         }
         run_tool(exe, args)?;
-        let after: u64 = paths.iter().map(|p| local_size(p)).sum();
+        let after: u64 = paths.iter().map(|p| path_size(p)).sum();
         FREED.fetch_add(before.saturating_sub(after), Ordering::Relaxed);
         Ok(())
     };
@@ -1101,6 +1459,13 @@ fn clean_cache(def: &CacheDef) -> Result<(u64, bool), String> {
             Ok(()) => Ok((0, false)),
             Err(_) => Ok(empty(&paths, false)),
         },
+        // conda's own cleanup knows which packages an environment still uses; never by hand
+        How::Conda => {
+            let exe = conda_exe(&paths);
+            by_tool(&exe, &["clean", "--all", "--yes"]).map_err(|e| format!("conda clean failed: {e}"))?;
+            Ok((0, false))
+        }
+        How::Show => Err("only shown here; remove it in the app that owns it".into()),
     }
 }
 
@@ -1116,7 +1481,11 @@ fn run(cfg: &Config, targets: Vec<DiskTarget>, save: &dyn Fn(&[DiskTarget])) -> 
         if hold() {
             break;
         }
-        let label = if t.kind == "cache" { format!("cache {}", t.id) } else { format!("{}\\{}", t.id, t.name) };
+        let label = match t.kind.as_str() {
+            "cache" => format!("cache {}", t.id),
+            "worktree" => format!("worktree {}", t.id),
+            _ => format!("{}\\{}", t.id, t.name),
+        };
         set_job(|j| {
             j.index = i;
             j.target = label.clone();
@@ -1140,6 +1509,29 @@ fn run(cfg: &Config, targets: Vec<DiskTarget>, save: &dyn Fn(&[DiskTarget])) -> 
                     }
                     Err(e) => r.skipped.push(format!("{}: {e}", def.id)),
                 },
+            }
+        } else if t.kind == "worktree" {
+            match verify_worktree(cfg, &hay, &t) {
+                Ok((repo, dir)) => {
+                    if let Ok(mut c) = CURRENT.lock() {
+                        *c = format!("git worktree remove {}", dir.display());
+                    }
+                    let size = local_size(&dir);
+                    let (repo_s, dir_s) = (repo.to_string_lossy().into_owned(), dir.to_string_lossy().into_owned());
+                    // no --force: git refuses a worktree with changes, which is what we want
+                    let res = run_tool("git", &["-C", &repo_s, "worktree", "remove", &dir_s]);
+                    let left = if dir.exists() { local_size(&dir) } else { 0 };
+                    FREED.fetch_add(size.saturating_sub(left), Ordering::Relaxed);
+                    match res {
+                        Ok(()) => {
+                            let freed = FREED.load(Ordering::Relaxed) - before;
+                            r.cleaned.push(format!("worktree {} ({:.1} MB)", t.id, freed as f64 / 1048576.0));
+                            r.done.push(format!("w|{}", t.id));
+                        }
+                        Err(e) => r.skipped.push(format!("worktree {}: {e}", t.id)),
+                    }
+                }
+                Err(e) => r.skipped.push(format!("worktree {}: {e}", t.id)),
             }
         } else {
             match verify_project(cfg, &ex, &hay, &t).and_then(|p| rename_artifact(&p)) {
@@ -1326,7 +1718,12 @@ pub fn dismiss() {
 /// The whole cleanup, in this thread (tests).
 #[cfg(test)]
 pub fn clean(cfg: &Config, targets: &[DiskTarget]) -> DiskCleanResult {
+    // the counters are global: tests that clean take turns
+    static ONE: Mutex<()> = Mutex::new(());
+    let _g = ONE.lock().unwrap_or_else(|e| e.into_inner());
     CTL.store(RUN, Ordering::SeqCst);
+    FILES.store(0, Ordering::Relaxed);
+    FREED.store(0, Ordering::Relaxed);
     run(cfg, targets.to_vec(), &|_| {}).0
 }
 
@@ -1340,6 +1737,76 @@ mod tests {
         let _ = fs::remove_dir_all(&p);
         fs::create_dir_all(&p).unwrap();
         p
+    }
+
+    #[test]
+    fn worktree_gitdir_and_repo() {
+        let root = tmp("wtparse");
+        let wt = root.join("wt");
+        fs::create_dir_all(root.join("repo\\.git\\worktrees\\wt")).unwrap();
+        fs::create_dir_all(&wt).unwrap();
+        fs::write(wt.join(".git"), format!("gitdir: {}/repo/.git/worktrees/wt\n", root.to_string_lossy().replace('\\', "/"))).unwrap();
+        let g = worktree_gitdir(&wt).unwrap();
+        assert_eq!(lower(&main_repo(&g).unwrap()), lower(&root.join("repo")));
+        // a submodule's .git file points into .git\modules: not a worktree
+        fs::write(wt.join(".git"), "gitdir: ../repo/.git/modules/lib\n").unwrap();
+        assert!(worktree_gitdir(&wt).is_none());
+        let _ = fs::remove_dir_all(&root);
+    }
+
+    fn git(dir: &Path, args: &[&str]) -> bool {
+        std::process::Command::new("git").arg("-C").arg(dir).args(args).output().is_ok_and(|o| o.status.success())
+    }
+
+    #[test]
+    fn worktree_found_checked_and_removed() {
+        let root = tmp("wtlive");
+        let repo = root.join("repo");
+        fs::create_dir_all(&repo).unwrap();
+        if !git(&repo, &["init", "-q"]) {
+            return; // no git on this machine
+        }
+        fs::write(repo.join("a.txt"), "a").unwrap();
+        fs::write(repo.join(".gitignore"), ".env\nnode_modules/\n").unwrap();
+        assert!(git(&repo, &["add", "."]));
+        assert!(git(&repo, &["-c", "user.name=t", "-c", "user.email=t@t", "commit", "-qm", "init"]));
+        let wt = root.join("wt-feature");
+        assert!(git(&repo, &["worktree", "add", "-q", "-b", "feature", &wt.to_string_lossy()]));
+        fs::write(wt.join(".env"), "SECRET=1").unwrap();
+        fs::create_dir_all(wt.join("node_modules\\x")).unwrap();
+
+        let cfg = Config { roots: vec![root.to_string_lossy().into_owned()], excludes: vec![], disabled: vec![], stale_days: 30 };
+        let (_, dirs) = scan_projects(&cfg, &[]);
+        let wts = scan_worktrees(&cfg, &[], dirs);
+        assert_eq!(wts.len(), 1, "{wts:?}");
+        let w = &wts[0];
+        assert_eq!(w.branch, "feature");
+        assert_eq!(lower(Path::new(&w.repo)), lower(&repo));
+        assert!(!w.dirty && !w.orphan);
+        assert_eq!(w.ignored, vec![".env".to_string()]); // node_modules is build output, not listed
+
+        // untracked work: git refuses, so do we
+        fs::write(wt.join("new.txt"), "work").unwrap();
+        let t = DiskTarget { kind: "worktree".into(), id: wt.to_string_lossy().into_owned(), name: String::new(), bytes: 0 };
+        let r = clean(&cfg, std::slice::from_ref(&t));
+        assert!(r.done.is_empty() && wt.exists(), "{r:?}");
+
+        fs::remove_file(wt.join("new.txt")).unwrap();
+        let r = clean(&cfg, &[t]);
+        assert_eq!(r.done, vec![format!("w|{}", wt.to_string_lossy())], "{r:?}");
+        assert!(!wt.exists());
+        assert!(git(&repo, &["rev-parse", "--verify", "-q", "feature"])); // the branch stays
+        let _ = fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn single_file_cache_path_size() {
+        let root = tmp("filecache");
+        let f = root.join("state.vscdb.backup");
+        fs::write(&f, vec![0u8; 1234]).unwrap();
+        assert_eq!(path_size(&f), 1234);
+        assert_eq!(path_size(&root), 1234);
+        let _ = fs::remove_dir_all(&root);
     }
 
     #[test]
@@ -1449,7 +1916,7 @@ mod tests {
             disabled: vec![],
             stale_days: 30,
         };
-        let projects = scan_projects(&cfg, &[]);
+        let (projects, _) = scan_projects(&cfg, &[]);
         assert_eq!(projects.len(), 1, "{projects:?}");
         assert_eq!(projects[0].items.len(), 1);
         assert_eq!(projects[0].items[0].bytes, 300);
@@ -1507,6 +1974,9 @@ mod live {
             let items: Vec<String> = p.items.iter().map(|i| format!("{}={}MB{}", i.name, i.bytes / 1048576, if i.suggest { "*" } else { "" })).collect();
             println!("{:>4}d busy={} od={} {} {}", p.idle_days, p.busy, p.onedrive, p.path, items.join(" "));
         }
-        println!("caches {} MB, projects {} MB, stale {} MB", r.cache_total / 1048576, r.project_total / 1048576, r.stale_total / 1048576);
+        for w in &r.worktrees {
+            println!("worktree {:>6} MB {:>4}d {} dirty={} orphan={} busy={} [{}] {} ignored={:?}", w.bytes / 1048576, w.idle_days, w.tool, w.dirty, w.orphan, w.busy, w.branch, w.path, w.ignored);
+        }
+        println!("caches {} MB, projects {} MB, stale {} MB, worktrees {} MB", r.cache_total / 1048576, r.project_total / 1048576, r.stale_total / 1048576, r.worktree_total / 1048576);
     }
 }

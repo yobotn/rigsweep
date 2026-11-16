@@ -18,7 +18,6 @@ let state = null;          // StateView from backend
 let selected = new Set();  // tweak ids checked in the UI
 let collapsed = new Set(JSON.parse(safeGet("collapsed") || "[]"));
 let snapshot = null;
-let procSort = { key: "cpu", dir: -1 };
 let procTimer = null;
 let currentTab = "dashboard";
 let dev = null;            // DevReport
@@ -29,6 +28,46 @@ let avState = null;
 
 function safeGet(k) { try { return localStorage.getItem(k); } catch { return null; } }
 function safeSet(k, v) { try { localStorage.setItem(k, v); } catch {} }
+
+// ---------- sortable tables ----------
+// Every table with th[data-sort] gets one-click sorting: click a header to sort by it, click again
+// to flip. Numbers start biggest first, text A→Z (data-sort-first="-1" flips that). The last choice
+// per table is remembered, so each tab opens already sorted the way you left it.
+const SORT_DEFAULTS = { proc: { key: "cpu", dir: -1 }, dev: { key: "mem", dir: -1 }, disk: { key: "size", dir: -1 }, bc: { key: "size", dir: -1 }, st: { key: "what", dir: 1 } };
+const sorts = (() => { try { return { ...SORT_DEFAULTS, ...JSON.parse(safeGet("sort") || "{}") }; } catch { return { ...SORT_DEFAULTS }; } })();
+const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
+// Comparator for the table's current sort; get(row, key) returns a number or a string.
+function sorter(id, get) {
+  const { key, dir } = sorts[id];
+  return (a, b) => {
+    const va = get(a, key), vb = get(b, key);
+    return (typeof va === "string" || typeof vb === "string" ? collator.compare(String(va ?? ""), String(vb ?? "")) : (va ?? -Infinity) - (vb ?? -Infinity)) * dir;
+  };
+}
+function wireSort(tableSel, id, render) {
+  const ths = [...document.querySelectorAll(`${tableSel} th[data-sort]`)];
+  const paint = () => ths.forEach((th) => {
+    const on = th.dataset.sort === sorts[id].key;
+    if (on) th.setAttribute("aria-sort", sorts[id].dir > 0 ? "ascending" : "descending"); else th.removeAttribute("aria-sort");
+  });
+  ths.forEach((th) => {
+    // a real button inside the header: reachable by Tab, Enter/Space sorts; the label keeps its i18n key
+    const btn = document.createElement("button");
+    btn.type = "button"; btn.className = "th-sort";
+    const label = document.createElement("span");
+    label.dataset.i18n = th.dataset.i18n; label.textContent = t(th.dataset.i18n);
+    th.removeAttribute("data-i18n");
+    th.textContent = ""; btn.append(label); th.append(btn);
+    btn.addEventListener("click", () => {
+      const k = th.dataset.sort, first = Number(th.dataset.sortFirst) || (th.classList.contains("num") ? -1 : 1);
+      sorts[id] = { key: k, dir: sorts[id].key === k ? -sorts[id].dir : first };
+      const mine = Object.fromEntries(Object.entries(sorts).filter(([n, v]) => v.key !== SORT_DEFAULTS[n].key || v.dir !== SORT_DEFAULTS[n].dir));
+      safeSet("sort", JSON.stringify(mine));
+      paint(); render();
+    });
+  });
+  paint();
+}
 
 // ---------- UI helpers ----------
 // toast(msg, kind): kind is "ok" | "info" | "warn" | "err" (true = "err", for older call sites).
@@ -349,7 +388,10 @@ function renderDev() {
     $("#clean-body").innerHTML = `<tr><td colspan="7" class="loading">${esc(t("clean.none"))}</td></tr>`;
     return;
   }
-  $("#clean-body").innerHTML = dev.items.map((p) => {
+  const devRank = (p) => p.protected ? 0 : p.stale ? 2 + p.reasons.length : 1; // stale with most reasons first
+  const devVal = (p, k) => k === "what" ? p.label : k === "project" ? devWhere(p) || "" : k === "age" ? p.age_secs
+    : k === "ports" ? p.ports.length : k === "status" ? devRank(p) * 1e15 + p.tree_mem : p.tree_mem;
+  $("#clean-body").innerHTML = [...dev.items].sort(sorter("dev", devVal)).map((p) => {
     const k = devKey(p);
     const reasons = p.reasons.length ? p.reasons : ["active"];
     const badges = reasons.map((r) => `<span class="badge ${r}">${esc(t("reason." + r, { o: p.owner, p: p.dup_of }))}</span>`).join(" ");
@@ -357,7 +399,7 @@ function renderDev() {
       <td>${p.protected ? "🔒" : `<input type="checkbox" data-dev="${esc(k)}" aria-label="${esc(`${p.label} · ${devWhere(p) || p.pid}`)}" ${devSel.has(k) ? "checked" : ""} />`}</td>
       <td><b>${esc(p.label)}</b> <span class="eco ${esc(p.eco)}">${esc(ecoLabel(p))}</span>
         <div class="sub" title="${esc(p.cmd)}">PID ${p.pid} · ${esc(p.parent_name || "—")} · ${esc(t("clean.procs", { n: p.tree_count }))}</div></td>
-      <td title="${esc(p.eco === "shell" ? p.cmd : p.project_path)}" class="${p.eco === "shell" || p.eco === "wsl" ? "mono-cut" : ""}">${esc(devWhere(p) || "—")}</td>
+      <td title="${esc(p.eco === "shell" ? p.cmd : p.project_path)}" class="${p.eco === "shell" || p.eco === "wsl" ? "mono-cut" : ""}"><bdi dir="ltr">${esc(devWhere(p) || "—")}</bdi></td>
       <td class="num">${p.age_secs ? fmtAge(p.age_secs) : "—"}</td>
       <td class="num">${p.tree_mem ? fmtBytes(p.tree_mem) : "—"}</td>
       <td>${p.ports.length ? p.ports.slice(0, 4).map((x) => `<code>${x}</code>`).join(" ") + (p.ports.length > 4 ? " …" : "") : "–"}</td>
@@ -366,6 +408,7 @@ function renderDev() {
   }).join("");
 }
 
+wireSort("#tab-cleanup", "dev", renderDev);
 $("#clean-body").addEventListener("change", (e) => {
   const k = e.target.dataset.dev;
   if (!k) return;
@@ -439,11 +482,16 @@ function renderBrowsers() {
   const picked = bcRows().filter((r) => bcSel.has(r.k)).reduce((a, r) => a + r.i.bytes, 0);
   $("#bc-summary").textContent = t("bc.summary", { safe: fmtBytes(bc.safe_total), site: fmtBytes(bc.site_total), sel: fmtBytes(picked) });
   const total = (p) => p.items.reduce((a, i) => a + i.bytes, 0);
-  $("#bc-body").innerHTML = bc.browsers.map((b) => {
-    const head = `<tr class="group"><td colspan="5"><b>${esc(b.name)}</b> <span class="sub">${fmtBytes(b.profiles.reduce((a, p) => a + total(p), 0))}</span>
+  const bTotal = (b) => b.profiles.reduce((a, p) => a + total(p), 0);
+  const sk = sorts.bc.key;
+  // browsers stay grouped (biggest first); profiles follow the Profile/Size column, items follow the clicked column
+  const profOrder = sorter("bc", (p) => sk === "profile" ? (p.dir === "" ? t("bc.shared") : p.name) : total(p));
+  const itemOrder = sorter("bc", (i) => sk === "what" ? t("bc.item." + i.key) : sk === "type" ? i.tier : i.bytes);
+  $("#bc-body").innerHTML = [...bc.browsers].sort((x, y) => bTotal(y) - bTotal(x)).map((b) => {
+    const head = `<tr class="group"><td colspan="5"><b>${esc(b.name)}</b> <span class="sub">${fmtBytes(bTotal(b))}</span>
       ${b.running ? ` <span class="badge idle">${esc(t("bc.running"))}</span>${b.id === "edge" ? `<div class="sub">${esc(t("bc.edgeHint"))}</div>` : ""}` : ""}</td></tr>`;
-    const profs = [...b.profiles].sort((x, y) => (x.dir === "") - (y.dir === "") || total(y) - total(x));
-    return head + profs.map((p) => p.items.map((i, n) => {
+    const profs = [...b.profiles].sort((x, y) => (x.dir === "") - (y.dir === "") || profOrder(x, y));
+    return head + profs.map((p) => [...p.items].sort(sk === "profile" ? (x, y) => y.bytes - x.bytes : itemOrder).map((i, n) => {
       const k = bcKey(b, p, i);
       const pname = p.dir === "" ? t("bc.shared") : p.name;
       const showDir = p.dir && p.dir !== "." && p.dir !== p.name;
@@ -458,6 +506,7 @@ function renderBrowsers() {
   }).join("");
 }
 
+wireSort("#tab-browser", "bc", renderBrowsers);
 $("#bc-body").addEventListener("change", (e) => {
   const k = e.target.dataset.bc;
   if (k) { e.target.checked ? bcSel.add(k) : bcSel.delete(k); renderBrowsers(); }
@@ -492,9 +541,13 @@ let diskSel = new Set();    // "c|id" or "p|path|name"
 const diskSeen = new Set();
 const cKey = (c) => `c|${c.id}`;
 const aKey = (p, a) => `p|${p.path}|${a.name}`;
+const wKey = (w) => `w|${w.path}`;
+// git won't remove a worktree with changes or without its repo, so neither can be picked
+const wLocked = (w) => w.busy || w.dirty || w.orphan;
 const diskRows = () => [
-  ...(disk?.caches || []).filter((c) => !c.disabled && !c.busy && c.bytes > 0).map((c) => ({ k: cKey(c), bytes: c.bytes, c })),
+  ...(disk?.caches || []).filter((c) => !c.disabled && !c.busy && !c.show_only && c.bytes > 0).map((c) => ({ k: cKey(c), bytes: c.bytes, c })),
   ...(disk?.projects || []).filter((p) => !p.busy).flatMap((p) => p.items.map((a) => ({ k: aKey(p, a), bytes: a.bytes, p, a }))),
+  ...(disk?.worktrees || []).filter((w) => !wLocked(w)).map((w) => ({ k: wKey(w), bytes: w.bytes, w })),
 ];
 const shortPath = (p) => disk?.home && p.toLowerCase().startsWith(disk.home.toLowerCase() + "\\") ? "~" + p.slice(disk.home.length) : p;
 // auto-select rules (Dev Disk bar): stale = untouched for N days; caches only the "rebuilds itself" ones
@@ -506,6 +559,7 @@ const diskAuto = () => {
 const isStale = (p) => !p.busy && p.idle_days >= diskAuto().days;
 const diskSuggested = (r) => {
   const a = diskAuto();
+  if (r.w) return false; // a worktree is someone's checkout: always picked by hand
   if (r.bytes < a.min && r.a?.eco !== "leftover") return false;
   if (r.c) return a.caches && r.c.tier === "safe";
   if (r.a.eco === "leftover") return true;
@@ -562,29 +616,64 @@ function renderDisk() {
     stale: fmtBytes(disk.projects.filter(isStale).reduce((a, p) => a + p.items.reduce((b, i) => b + i.bytes, 0), 0)), sel: fmtBytes(picked),
   });
   const chk = (k, locked) => locked ? "🔒" : `<input type="checkbox" data-disk="${esc(k)}" ${diskSel.has(k) ? "checked" : ""} />`;
-  const tier = (x) => `<span class="risk ${x === "safe" || x === "build" ? "safe" : "moderate"}">${esc(t("disk.tier." + x))}</span>`;
+  const tier = (x) => `<span class="risk ${x === "safe" || x === "build" ? "safe" : x === "history" ? "caution" : x === "shown" ? "" : "moderate"}">${esc(t("disk.tier." + x))}</span>`;
   let html = "";
-  if (disk.caches.length) {
-    html += `<tr class="group"><td colspan="6"><b>${esc(t("disk.caches"))}</b> <span class="sub">${fmtBytes(disk.cache_total)}</span></td></tr>`;
-    html += disk.caches.map((c) => {
+  // package caches, then GPU & machine learning, then AI tools & editors; each its own group
+  const cacheGroup = (c) => c.eco === "gpu" || c.eco === "ml" ? "gpu" : c.eco === "ai" ? "ai" : "pkg";
+  const cacheOrder = sorter("disk", (c, k) => k === "what" ? t("disk.cache." + c.id) : k === "type" ? c.tier : k === "idle" ? (c.disabled ? -1 : c.busy ? 1 : 0) : c.bytes);
+  for (const [g, title] of [["pkg", "disk.caches"], ["gpu", "disk.caches.gpu"], ["ai", "disk.caches.ai"]]) {
+    const list = disk.caches.filter((c) => cacheGroup(c) === g);
+    if (!list.length) continue;
+    const freeable = list.filter((c) => !c.disabled && !c.show_only).reduce((a, c) => a + c.bytes, 0);
+    html += `<tr class="group"><td colspan="6"><b>${esc(t(title))}</b> <span class="sub">${fmtBytes(freeable)}</span></td></tr>`;
+    html += [...list].sort(cacheOrder).map((c) => {
       const info = [];
+      if (c.show_only) info.push(esc(t("disk.showOnly")));
       if (c.disabled) info.push(`<span class="badge">${esc(t("disk.disabled"))}</span>`);
-      if (c.busy) info.push(`<span class="badge idle">${esc(t("disk.cacheBusy"))}</span>`);
+      if (c.busy && !c.show_only) info.push(`<span class="badge idle">${esc(t("disk.cacheBusy"))}</span>`);
       if (c.keep_newest) info.push(esc(t("disk.keepNewest", { total: fmtBytes(c.total) })));
-      else if (c.total > c.bytes) info.push(esc(t("disk.pnpmShared", { total: fmtBytes(c.total) })));
+      else if (c.total > c.bytes && !c.show_only) info.push(esc(t(c.id === "conda" ? "disk.condaShared" : "disk.pnpmShared", { total: fmtBytes(c.total) })));
       if (c.tool) info.push(esc(t("disk.tool", { c: c.tool })));
-      return `<tr class="${c.disabled || c.busy ? "locked" : ""}" title="${esc(c.paths.join("\n"))}">
-        <td>${c.disabled ? "🚫" : chk(cKey(c), c.busy || c.bytes === 0)}</td>
-        <td>${esc(t("disk.cache." + c.id))}</td><td>${tier(c.tier)}</td>
-        <td class="num">${fmtBytes(c.bytes)}</td><td class="sub">${info.join(" · ")}</td>
-        <td><button class="small ghost" data-disk-toggle="${esc(c.id)}" data-on="${c.disabled ? 1 : 0}">${esc(t(c.disabled ? "disk.enable" : "disk.disable"))}</button></td>
+      const size = c.show_only ? c.total : c.bytes;
+      return `<tr class="${c.disabled || (c.busy && !c.show_only) ? "locked" : ""}" title="${esc(c.paths.join("\n"))}">
+        <td>${c.show_only ? `<span aria-label="${esc(t("disk.showOnly"))}">👁</span>` : c.disabled ? "🚫" : chk(cKey(c), c.busy || c.bytes === 0)}</td>
+        <td>${esc(t("disk.cache." + c.id))}</td><td>${tier(c.show_only ? "shown" : c.tier)}</td>
+        <td class="num">${fmtBytes(size)}</td><td class="sub">${info.join(" · ")}</td>
+        <td>${c.show_only ? "" : `<button class="small ghost" data-disk-toggle="${esc(c.id)}" data-on="${c.disabled ? 1 : 0}">${esc(t(c.disabled ? "disk.enable" : "disk.disable"))}</button>`}</td>
+      </tr>`;
+    }).join("");
+  }
+  if (disk.worktrees?.length) {
+    html += `<tr class="group"><td colspan="6"><b>${esc(t("disk.worktrees"))}</b> <span class="sub">${fmtBytes(disk.worktree_total)}</span></td></tr>`;
+    const wtOrder = sorter("disk", (w, k) => k === "what" ? shortPath(w.path) : k === "idle" ? w.idle_days : k === "type" ? w.tool : w.bytes);
+    const TOOL = { claude: "Claude Code", cursor: "Cursor", codex: "Codex", windsurf: "Windsurf", git: "Git" };
+    html += [...disk.worktrees].sort(wtOrder).map((w) => {
+      const badges = [
+        w.busy ? `<span class="badge serving">${esc(t("disk.inUse"))}</span>` : "",
+        w.orphan ? `<span class="badge orphan">${esc(t("disk.wt.orphan"))}</span>` : "",
+        w.dirty && !w.orphan ? `<span class="badge orphan">${esc(t("disk.wt.dirty"))}</span>` : "",
+        w.idle_days >= diskAuto().days ? `<span class="badge idle">${esc(t("disk.untouched", { d: w.idle_days }))}</span>`
+          : `<span class="badge active">${esc(w.idle_days === 0 ? t("disk.today") : t("disk.recent", { d: w.idle_days }))}</span>`,
+      ].join("");
+      const notes = [t("disk.wt.branch", { b: w.branch || "?" }), w.repo ? t("disk.wt.repo", { p: shortPath(w.repo) }) : ""];
+      if (w.ignored.length) notes.push(t("disk.wt.ignored", { list: w.ignored.join(", ") }));
+      return `<tr class="${wLocked(w) ? "locked" : ""}" title="${esc(w.path)}">
+        <td>${chk(wKey(w), wLocked(w))}</td>
+        <td><b><bdi dir="ltr">${esc(shortPath(w.path))}</bdi></b> <span class="sub">${esc(TOOL[w.tool] || w.tool)}</span></td>
+        <td>${tier("worktree")}</td><td class="num">${fmtBytes(w.bytes)}</td>
+        <td>${badges} <span class="sub">${esc(notes.filter(Boolean).join(" · "))}</span></td><td></td>
       </tr>`;
     }).join("");
   }
   html += `<tr class="group"><td colspan="6"><b>${esc(t("disk.projects"))}</b> <span class="sub">${fmtBytes(disk.project_total)}</span></td></tr>`;
   if (!disk.projects.length) html += `<tr><td colspan="6" class="loading">${esc(t("disk.none", { roots: disk.roots.map(shortPath).join(", ") }))}</td></tr>`;
-  html += disk.projects.map((p) => {
-    const total = p.items.reduce((a, i) => a + i.bytes, 0);
+  const pTotal = (p) => p.items.reduce((a, i) => a + i.bytes, 0);
+  const dk = sorts.disk.key;
+  // projects follow the clicked column; the folders inside a project follow it too when it is Name/Type, else biggest first
+  const projOrder = sorter("disk", (p, k) => k === "what" ? shortPath(p.path) : k === "idle" ? p.idle_days : k === "type" ? p.items.map((i) => i.tier).sort().join() : pTotal(p));
+  const itemOrder = dk === "what" || dk === "type" ? sorter("disk", (a, k) => k === "what" ? a.name : a.tier) : (x, y) => y.bytes - x.bytes;
+  html += [...disk.projects].sort(projOrder).map((p) => {
+    const total = pTotal(p);
     const badges = [
       p.busy ? `<span class="badge serving">${esc(t("disk.inUse"))}</span>` : "",
       isStale(p) ? `<span class="badge idle">${esc(t("disk.untouched", { d: p.idle_days }))}</span>`
@@ -594,7 +683,7 @@ function renderDisk() {
     const head = `<tr class="group"><td></td><td colspan="2"><b title="${esc(p.path)}"><bdi dir="ltr">${esc(shortPath(p.path))}</bdi></b></td>
       <td class="num sub">${fmtBytes(total)}</td><td>${badges}</td>
       <td><button class="small ghost" data-disk-exclude="${esc(p.path)}">${esc(t("disk.exclude"))}</button></td></tr>`;
-    return head + p.items.map((a) => {
+    return head + [...p.items].sort(itemOrder).map((a) => {
       const note = a.eco === "leftover" ? t("disk.leftover") : a.pnpm ? t("disk.pnpm") : a.eco === "python" && a.tier === "deps" ? t("disk.venv") : "";
       return `<tr class="${p.busy ? "locked" : ""}">
         <td>${chk(aKey(p, a), p.busy)}</td><td><code>${esc(a.name)}</code> <span class="sub">${esc(DISK_ECO[a.eco] ?? a.eco)}</span></td>
@@ -605,6 +694,7 @@ function renderDisk() {
   $("#disk-body").innerHTML = html;
 }
 
+wireSort("#tab-disk", "disk", renderDisk);
 $("#disk-body").addEventListener("change", (e) => {
   const k = e.target.dataset.disk;
   if (k) { e.target.checked ? diskSel.add(k) : diskSel.delete(k); renderDisk(); }
@@ -617,7 +707,7 @@ $("#disk-body").addEventListener("click", async (e) => {
     const c = disk.caches.find((x) => x.id === id);
     if (c) c.disabled = !enabled;
     if (!enabled) diskSel.delete(`c|${id}`);
-    disk.cache_total = disk.caches.filter((x) => !x.disabled).reduce((a, x) => a + x.bytes, 0);
+    disk.cache_total = disk.caches.filter((x) => !x.disabled && !x.show_only).reduce((a, x) => a + x.bytes, 0);
     renderDisk();
   } else if (ex) {
     const path = ex.dataset.diskExclude;
@@ -638,17 +728,25 @@ $("#btn-disk-clean").onclick = async (e) => {
   const size = picked.reduce((a, r) => a + r.bytes, 0);
   const deps = picked.some((r) => r.a?.tier === "deps");
   const redl = picked.some((r) => r.c?.tier === "redownload");
+  const hist = picked.some((r) => r.c?.tier === "history" || r.c?.tier === "backup");
+  const wts = picked.filter((r) => r.w);
   const od = picked.some((r) => r.p?.onedrive);
   const li = picked.map((r) => r.c
     ? `<li>${esc(t("disk.cache." + r.c.id))} <span class="sub">${fmtBytes(r.bytes)}</span></li>`
+    : r.w ? `<li><bdi dir="ltr">${esc(shortPath(r.w.path))}</bdi> <span class="sub">${fmtBytes(r.bytes)}</span></li>`
     : `<li>${esc(shortPath(r.p.path))}\\<b>${esc(r.a.name)}</b> <span class="sub">${fmtBytes(r.bytes)}</span></li>`).join("");
+  const ign = [...new Set(wts.flatMap((r) => r.w.ignored))];
   const html = `<p>${esc(t("disk.confirm.body"))}</p><ul class="scroll-list">${li}</ul>
     ${deps ? `<p class="warn-text">${esc(t("disk.deps.warn"))}</p>` : ""}
     ${redl ? `<p class="warn-text">${esc(t("disk.redl.warn"))}</p>` : ""}
+    ${hist ? `<p class="warn-text">${esc(t("disk.hist.warn"))}</p>` : ""}
+    ${wts.length ? `<p class="warn-text">${esc(t("disk.wt.warn"))}</p>` : ""}
+    ${ign.length ? `<p class="warn-text">${esc(t("disk.wt.ignored", { list: ign.join(", ") }))}</p>` : ""}
     ${od ? `<p class="warn-text">${esc(t("disk.od.warn"))}</p>` : ""}`;
   if (!(await modal(t("disk.confirm.title", { size: fmtBytes(size) }), html, { okText: t("disk.clean"), danger: true }))) return;
   const targets = picked.map((r) => r.c
     ? { kind: "cache", id: r.c.id, name: "", bytes: r.bytes }
+    : r.w ? { kind: "worktree", id: r.w.path, name: "", bytes: r.bytes }
     : { kind: "project", id: r.p.path, name: r.a.name, bytes: r.bytes });
   // the job runs in the backend; a reload or tab switch just picks it up again
   try { applyDiskJob(await call("start_disk_clean", { targets })); } catch { pollDiskJob(); return; }
@@ -699,8 +797,10 @@ function onDiskJobEnd(j) {
     disk.caches = disk.caches.filter((c) => c.total > 0);
     disk.projects.forEach((p) => { p.items = p.items.filter((a) => !gone.has(aKey(p, a))); });
     disk.projects = disk.projects.filter((p) => p.items.length);
+    disk.worktrees = (disk.worktrees || []).filter((w) => !gone.has(wKey(w)));
+    disk.worktree_total = disk.worktrees.reduce((a, w) => a + w.bytes, 0);
     const sum = (p) => p.items.reduce((a, i) => a + i.bytes, 0);
-    disk.cache_total = disk.caches.filter((c) => !c.disabled).reduce((a, c) => a + c.bytes, 0);
+    disk.cache_total = disk.caches.filter((c) => !c.disabled && !c.show_only).reduce((a, c) => a + c.bytes, 0);
     disk.project_total = disk.projects.reduce((a, p) => a + sum(p), 0);
     disk.stale_total = disk.projects.filter((p) => p.stale).reduce((a, p) => a + sum(p), 0);
     renderDisk();
@@ -880,11 +980,7 @@ function renderProcesses() {
   const q = $("#proc-filter").value.trim().toLowerCase();
   let rows = snapshot.processes.filter((p) => !q || p.name.toLowerCase().includes(q) || String(p.pid) === q ||
     p.services.some((s) => s.name.toLowerCase().includes(q) || s.display.toLowerCase().includes(q)));
-  const k = procSort.key;
-  rows.sort((a, b) => {
-    const va = k === "disk" ? diskOf(a) : a[k], vb = k === "disk" ? diskOf(b) : b[k];
-    return (typeof va === "string" ? va.localeCompare(vb) : va - vb) * procSort.dir;
-  });
+  rows.sort(sorter("proc", (p, k) => k === "disk" ? diskOf(p) : p[k]));
   rows = rows.slice(0, 300);
   $("#proc-body").innerHTML = rows.map((p) => {
     const cpuCls = p.cpu > 25 ? "vhot" : p.cpu > 5 ? "hot" : "";
@@ -908,11 +1004,7 @@ function renderProcesses() {
 
 $("#proc-filter").addEventListener("input", renderProcesses);
 $("#btn-refresh-proc").onclick = loadProcesses;
-document.querySelectorAll("#tab-processes th[data-sort]").forEach((th) => th.addEventListener("click", () => {
-  const k = th.dataset.sort;
-  procSort = { key: k, dir: procSort.key === k ? -procSort.dir : (k === "name" ? 1 : -1) };
-  renderProcesses();
-}));
+wireSort("#tab-processes", "proc", renderProcesses);
 
 $("#proc-body").addEventListener("click", async (e) => {
   const el = e.target;
@@ -1001,7 +1093,7 @@ function renderStartup() {
     $("#st-body").innerHTML = `<tr><td colspan="3" class="loading">${esc(t(startup.length ? "st.noMatch" : "st.none"))}</td></tr>`;
   } else {
     $("#st-body").innerHTML = ST_KINDS.map((k) => {
-      const list = rows.filter((it) => it.kind === k);
+      const list = rows.filter((it) => it.kind === k).sort(sorter("st", (it, c) => c === "when" ? stWhen(it) : it.name));
       if (!list.length) return "";
       return `<tr class="group"><td colspan="3"><b>${esc(t("st.g." + k))}</b> <span class="sub">${list.length}</span></td></tr>` + list.map((it) => {
         const tw = it.tweak_id && state?.tweaks.find((x) => x.id === it.tweak_id);
@@ -1030,6 +1122,7 @@ function renderStartupOff() {
     : `<li class="empty-state">${esc(t("st.offNone"))}</li>`;
 }
 
+wireSort("#tab-startup", "st", renderStartup);
 $("#st-filter").addEventListener("input", renderStartup);
 $("#btn-st-scan").onclick = (e) => loadStartup(e.target);
 

@@ -73,11 +73,14 @@ Python と Java は一般的なデスクトップ アプリでも使われるた
 - 🔒 **ロック**: **VS Code、Cursor、JetBrains、Visual Studio など** (言語サーバー) やデスクトップ アプリが所有するプロセスは、ここから終了することはできません。
 - ✅ 確認なしに終了されることはなく、終了の前には毎回 PID の再利用をチェックします。
 
-### 💾 開発ディスク: node_modules とパッケージキャッシュ
-古いプロジェクトには、作業をやめたあとも何 GB もの `node_modules`、`.next`、`target`、`bin/obj`、`.venv` が残り続け、パッケージキャッシュは増える一方です。RigSweep はその両方を見つけて、選んだものを削除します。
+### 💾 開発ディスク: node_modules、キャッシュ、worktree
+古いプロジェクトには、作業をやめたあとも何 GB もの `node_modules`、`.next`、`target`、`bin/obj`、`.venv` が残り続け、パッケージキャッシュは増える一方です。さらに AI ツールやエージェントはキャッシュや worktree を置きっぱなしにします。RigSweep はそのすべてを見つけて、選んだものを削除します。
 
 - 🗂️ **プロジェクト**: Node、Rust、.NET、Java/Gradle/Maven、Python のビルド出力と依存関係のフォルダー。隣にプロジェクトファイル (`package.json`、`Cargo.toml`、`*.csproj`、`pyvenv.cfg` など) があるフォルダーだけが対象なので、無関係な `build` フォルダーに触れることはありません。あらかじめ選択されるのは 30 日間 (変更可) 誰も編集していないプロジェクトだけで、実行中のプロセスが使っているプロジェクトはロックされます 🔒。
 - 📦 **パッケージキャッシュ**: npm、npx、pnpm、Yarn、Bun、pip、uv、Cargo、Go、NuGet、Gradle、Maven、Playwright、Puppeteer、Hugging Face。uv と Go はそれぞれのコマンド (`uv cache prune`、`go clean`) でクリーンアップし、Playwright と Puppeteer は古いブラウザーのバージョンだけを削除して最新版を残します。
+- 🎮 **GPU と機械学習**: NVIDIA、AMD、Intel、DirectX のシェーダーキャッシュ、CUDA の計算キャッシュ、PyTorch Hub のモデルとコンパイル済み拡張、Triton のカーネルキャッシュ、使われていない conda パッケージ (`conda clean --all` で削除)。Ollama と LM Studio のモデルはサイズを表示するだけで、削除はしません。
+- 🤖 **AI ツールとエディター**: Cursor、VS Code、Windsurf、Claude デスクトップアプリ、Codex、ChatGPT のアプリキャッシュ。アプリが開いている間はスキップします。Cursor の状態バックアップと古いチェックポイントも削除できます (あらかじめ選択されることはありません)。チャット履歴 (Cursor のチャットデータベース、Claude Code のチャット、Codex のセッション) はサイズを表示するだけなので、どこに容量が使われているかがわかります。
+- 🌿 **Git worktree**: Claude Code、Cursor、Codex、またはあなた自身が作った worktree を、ブランチ、リポジトリ、使われていない期間とともに表示します。削除には `git worktree remove` を使うため、未コミットの変更や追跡されていないファイルがある worktree は削除されません。ブランチとそのコミットは残ります。一緒に消える git の無視対象ファイル (`.env` など) は事前に一覧表示され、worktree があらかじめ選択されることはありません。
 - 🎯 **自動選択**: 開発ディスク タブ上で、プロジェクトが何日更新されていなければ対象にするか (3～365 日)、どのフォルダーにチェックを入れるか (ビルド出力、依存関係、パッケージ キャッシュ)、最小サイズを選べます。
 - 🚫 **クリーンアップしない**: どのキャッシュもオフにできます。再ダウンロードが大きいもの (Playwright、Puppeteer、Hugging Face、Gradle、Maven、NuGet パッケージ、Go モジュール) は最初からオフです。
 - 🙈 **除外**: AppData、プロファイル内のツール用フォルダー (`.cargo`、`.nvm`、`.vscode` など)、`.git`、Windows は常にスキップします。独自のパスやフォルダー名 (`vendor`、`old-*`) は設定で追加するか、プロジェクトの **除外** をクリックします。

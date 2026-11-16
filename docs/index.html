@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>RigSweep: free Windows cleaner for AI agent sessions and dev processes</title>
-  <meta name="description" content="Free, open-source Windows app that frees RAM, CPU and disk on dev machines cluttered by AI-agent sessions: ends leftover dev servers, MCP servers and agent CLIs, deletes old node_modules and package caches, reversible Windows tweaks, real before/after reports." />
+  <meta name="description" content="Free, open-source Windows app that frees RAM, CPU and disk on dev machines cluttered by AI-agent sessions: ends leftover dev servers, MCP servers and agent CLIs, deletes old node_modules, package and AI tool caches and leftover git worktrees, reversible Windows tweaks, real before/after reports." />
   <meta name="keywords" content="RigSweep, Windows dev cleanup, kill leftover node processes, free port 3000, node_modules cleaner, AI agent sessions, Claude Code, MCP servers, free RAM Windows, developer tools" />
   <meta name="author" content="yobotn" />
   <meta name="robots" content="index, follow, max-image-preview:large" />
@@ -55,21 +55,21 @@
         "@type": "SoftwareApplication",
         "@id": "https://rigsweep.com/#app",
         "name": "RigSweep",
-        "description": "Free, open-source Windows app that frees RAM, CPU and disk on dev machines cluttered by AI-agent sessions: ends leftover dev servers, MCP servers and agent CLIs, deletes old node_modules and package caches, and applies reversible Windows tweaks.",
+        "description": "Free, open-source Windows app that frees RAM, CPU and disk on dev machines cluttered by AI-agent sessions: ends leftover dev servers, MCP servers and agent CLIs, deletes old node_modules, package and AI tool caches and leftover git worktrees, and applies reversible Windows tweaks.",
         "url": "https://rigsweep.com/",
         "downloadUrl": "https://github.com/yobotn/rigsweep/releases/latest",
         "installUrl": "https://github.com/yobotn/rigsweep/releases/latest",
         "applicationCategory": "DeveloperApplication",
         "applicationSubCategory": "System utility",
         "operatingSystem": "Windows 10, Windows 11",
-        "softwareVersion": "0.7.5",
+        "softwareVersion": "0.7.6",
         "license": "https://opensource.org/licenses/MIT",
         "isAccessibleForFree": true,
         "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
         "screenshot": ["https://rigsweep.com/screenshots/cleanup.png", "https://rigsweep.com/screenshots/dashboard.png", "https://rigsweep.com/screenshots/tweaks.png"],
         "image": "https://rigsweep.com/icon.png",
         "keywords": "Windows dev cleanup, leftover node processes, free port 3000, node_modules cleaner, package cache cleaner, AI agent sessions, Claude Code, MCP servers, free RAM",
-        "featureList": ["Dev Cleanup: end orphaned and idle dev servers, build daemons, MCP servers and agent CLIs by process tree", "Dev Disk: delete old node_modules, build output and package caches", "Boost Report: measured before/after RAM and CPU", "Reversible Windows tweaks with backups and a System Restore point", "Browser cache cleanup", "Chrome tab helper extension", "CPU and GPU temperature tracking", "12 languages"],
+        "featureList": ["Dev Cleanup: end orphaned and idle dev servers, build daemons, MCP servers and agent CLIs by process tree", "Dev Disk: delete old node_modules, build output, package, GPU and AI tool caches, and leftover git worktrees", "Boost Report: measured before/after RAM and CPU", "Reversible Windows tweaks with backups and a System Restore point", "Browser cache cleanup", "Chrome tab helper extension", "CPU and GPU temperature tracking", "12 languages"],
         "inLanguage": ["en", "de", "es", "fr", "it", "pt-BR", "ru", "ja", "ko", "zh-CN"],
         "codeRepository": "https://github.com/yobotn/rigsweep",
         "softwareHelp": { "@type": "CreativeWork", "name": "RigSweep CLI reference", "url": "https://rigsweep.com/cli/" },
@@ -80,7 +80,7 @@
         "@type": "FAQPage",
         "@id": "https://rigsweep.com/#faq",
         "mainEntity": [
-          {"@type":"Question","name":"What does RigSweep do?","acceptedAnswer":{"@type":"Answer","text":"RigSweep is a free, open-source Windows app for developers who work with AI coding agents. It finds dev servers, build daemons, MCP servers and agent CLIs that keep running after you close a terminal, shows each one with its project, RAM and ports, and ends the ones you pick. It also deletes old node_modules and package caches, empties browser caches and applies reversible Windows tweaks."}},
+          {"@type":"Question","name":"What does RigSweep do?","acceptedAnswer":{"@type":"Answer","text":"RigSweep is a free, open-source Windows app for developers who work with AI coding agents. It finds dev servers, build daemons, MCP servers and agent CLIs that keep running after you close a terminal, shows each one with its project, RAM and ports, and ends the ones you pick. It also deletes old node_modules, package and AI tool caches and leftover git worktrees, empties browser caches and applies reversible Windows tweaks."}},
           {"@type":"Question","name":"How do I stop node.exe processes that keep running after I close the terminal?","acceptedAnswer":{"@type":"Answer","text":"Open Dev Cleanup. Processes whose terminal is gone are marked as orphans and pre-selected, with their whole process tree, project folder and listening ports (like a stuck localhost:3000). Click End selected, and RigSweep ends each tree after checking that the process ID still belongs to the same program."}},
           {"@type":"Question","name":"Which AI agents and dev stacks does it support?","acceptedAnswer":{"@type":"Answer","text":"Claude Code, Codex, Gemini CLI, opencode, Aider and Goose, plus the MCP servers and headless browsers they start. Dev stacks: Node, Bun, Deno, Python, Java, Gradle, Maven, .NET, Ruby, PHP, Rust and Go, and the WSL 2 / Docker VM."}},
           {"@type":"Question","name":"Is it safe? Can I undo changes?","acceptedAnswer":{"@type":"Answer","text":"Nothing is ended or deleted without your confirmation. Every Windows tweak backs up the original value first and can be restored one by one or all at once, and a System Restore point is created before the first change. Editor language servers and core Windows services are locked."}},
@@ -300,7 +300,7 @@
         <div class="card"><div class="ic">🌡️</div><h3 data-t="f7.h">Temperatures</h3><p data-t="f7.p">CPU and GPU temperatures with a 5-minute trend and a warning when your PC stays hot. No driver, no admin rights.</p></div>
         <div class="card"><div class="ic">🔄</div><h3 data-t="f8.h">Updates, your choice</h3><p data-t="f8.p">Off by default. Check when you want, or turn on a daily check. Updates install only when you click, and only if they're signed.</p></div>
         <div class="card"><div class="ic">🧽</div><h3 data-t="f9.h">Browser Cleanup</h3><p data-t="f9.p">Empties caches for Chrome, Edge, Brave, Vivaldi, Opera and Firefox. Sign-ins, cookies, passwords and history are never touched.</p></div>
-        <div class="card"><div class="ic">💾</div><h3 data-t="f10.h">Dev Disk</h3><p data-t="f10.p">Deletes node_modules, .next, target and .venv in projects you stopped touching, and cleans package caches (npm, pnpm, pip, Cargo, Go…). Exclude anything, switch off any cache.</p></div>
+        <div class="card"><div class="ic">💾</div><h3 data-t="f10.h">Dev Disk</h3><p data-t="f10.p">Deletes node_modules, .next, target and .venv in projects you stopped touching, cleans package, GPU shader and AI tool caches (npm, pip, Cargo, CUDA, Cursor, VS Code…) and removes git worktrees agents left behind.</p></div>
         <div class="card"><div class="ic">🖥️</div><h3 data-t="f11.h">Hardware</h3><p data-t="f11.p">Disk health, a disk speed test and your CPU, GPU, RAM and battery details in one tab, instead of four separate tools. No driver installed.</p></div>
       </div>
     </section>
@@ -357,7 +357,7 @@
       <span class="eyebrow" data-t="faq.eyebrow">FAQ</span>
       <h2 data-t="faq.h">❓ Questions developers ask</h2>
       <div class="faq">
-        <div class="card"><h3 data-t="faq.q1">What does RigSweep do?</h3><p data-t="faq.a1">RigSweep is a free, open-source Windows app for developers who work with AI coding agents. It finds dev servers, build daemons, MCP servers and agent CLIs that keep running after you close a terminal, shows each one with its project, RAM and ports, and ends the ones you pick. It also deletes old node_modules and package caches, empties browser caches and applies reversible Windows tweaks.</p></div>
+        <div class="card"><h3 data-t="faq.q1">What does RigSweep do?</h3><p data-t="faq.a1">RigSweep is a free, open-source Windows app for developers who work with AI coding agents. It finds dev servers, build daemons, MCP servers and agent CLIs that keep running after you close a terminal, shows each one with its project, RAM and ports, and ends the ones you pick. It also deletes old node_modules, package and AI tool caches and leftover git worktrees, empties browser caches and applies reversible Windows tweaks.</p></div>
         <div class="card"><h3 data-t="faq.q2">How do I stop node.exe processes that keep running after I close the terminal?</h3><p data-t="faq.a2">Open Dev Cleanup. Processes whose terminal is gone are marked as orphans and pre-selected, with their whole process tree, project folder and listening ports (like a stuck localhost:3000). Click End selected, and RigSweep ends each tree after checking that the process ID still belongs to the same program.</p></div>
         <div class="card"><h3 data-t="faq.q3">Which AI agents and dev stacks does it support?</h3><p data-t="faq.a3">Claude Code, Codex, Gemini CLI, opencode, Aider and Goose, plus the MCP servers and headless browsers they start. Dev stacks: Node, Bun, Deno, Python, Java, Gradle, Maven, .NET, Ruby, PHP, Rust and Go, and the WSL 2 / Docker VM.</p></div>
         <div class="card"><h3 data-t="faq.q4">Is it safe? Can I undo changes?</h3><p data-t="faq.a4">Nothing is ended or deleted without your confirmation. Every Windows tweak backs up the original value first and can be restored one by one or all at once, and a System Restore point is created before the first change. Editor language servers and core Windows services are locked.</p></div>

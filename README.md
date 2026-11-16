@@ -73,11 +73,14 @@ Python and Java also run ordinary desktop apps, so for those only processes with
 - 🔒 **Locked**: processes owned by **VS Code, Cursor, JetBrains, Visual Studio…** (your language servers) or by a desktop app are never killable from here.
 - ✅ Nothing is ended without your confirmation, and PID reuse is checked before every kill.
 
-### 💾 Dev Disk: node_modules and package caches
-Old projects keep gigabytes of `node_modules`, `.next`, `target`, `bin/obj` and `.venv` long after you stop working on them, and package caches only ever grow. RigSweep finds both and deletes what you pick.
+### 💾 Dev Disk: node_modules, caches and worktrees
+Old projects keep gigabytes of `node_modules`, `.next`, `target`, `bin/obj` and `.venv` long after you stop working on them, package caches only ever grow, and AI tools and agents leave caches and worktrees behind. RigSweep finds all of it and deletes what you pick.
 
 - 🗂️ **Projects**: build output and dependency folders from Node, Rust, .NET, Java/Gradle/Maven and Python. A folder only counts if its project file sits next to it (`package.json`, `Cargo.toml`, `*.csproj`, `pyvenv.cfg`…), so a random `build` folder is never touched. Only projects nobody has edited for 30 days (adjustable) are pre-selected, and projects a running process is using are locked 🔒.
 - 📦 **Package caches**: npm, npx, pnpm, Yarn, Bun, pip, uv, Cargo, Go, NuGet, Gradle, Maven, Playwright, Puppeteer, Hugging Face. uv and Go are cleaned with their own commands (`uv cache prune`, `go clean`); for Playwright and Puppeteer only older browser versions go, the newest stays.
+- 🎮 **GPU & machine learning**: NVIDIA, AMD, Intel and DirectX shader caches, the CUDA compute cache, PyTorch hub models and compiled extensions, the Triton kernel cache, and unused conda packages (through `conda clean --all`). Ollama and LM Studio models are shown with their size, never deleted.
+- 🤖 **AI tools & editors**: the app caches of Cursor, VS Code, Windsurf, the Claude desktop app, Codex and ChatGPT, skipped while the app is open. Cursor’s state backup and old checkpoints can go too (never pre-selected). Chat history (Cursor’s chat database, Claude Code chats, Codex sessions) is only shown with its size, so you can see where the space went.
+- 🌿 **Git worktrees**: worktrees that Claude Code, Cursor, Codex or you created, with their branch, repo and how long they’ve been idle. Removed with `git worktree remove`, which refuses one with uncommitted or untracked work; the branch and its commits stay. Files git ignores that would go too (like `.env`) are listed first, and worktrees are never pre-selected.
 - 🎯 **Auto-select**: right on the Dev Disk tab, choose how long a project must sit untouched (3 to 365 days), which folders get ticked (build output, dependencies, package caches) and a minimum size.
 - 🚫 **Never clean**: switch off any cache. The ones that mean a big re-download (Playwright, Puppeteer, Hugging Face, Gradle, Maven, NuGet packages, Go modules) start switched off.
 - 🙈 **Exclusions**: AppData, tool folders in your profile (`.cargo`, `.nvm`, `.vscode`…), `.git` and Windows are always skipped. Add your own paths or folder names (`vendor`, `old-*`) in Settings, or click **Exclude** on a project.

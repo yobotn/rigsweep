@@ -73,11 +73,14 @@ Python 和 Java 也会运行普通的桌面应用，因此对于这两者，只�
 - 🔒 **锁定**：属于 **VS Code、Cursor、JetBrains、Visual Studio…**（你的语言服务器）或桌面应用的进程，绝不能在这里结束。
 - ✅ 未经你确认，不会结束任何进程；每次结束进程前都会检查 PID 是否已被重用。
 
-### 💾 开发磁盘：node_modules 和包缓存
-旧项目在你不再碰它们之后，仍然留着好几 GB 的 `node_modules`、`.next`、`target`、`bin/obj` 和 `.venv`，而包缓存只会越来越大。RigSweep 会把这两类都找出来，删除你选中的内容。
+### 💾 开发磁盘：node_modules、缓存和工作树
+旧项目在你不再碰它们之后，仍然留着好几 GB 的 `node_modules`、`.next`、`target`、`bin/obj` 和 `.venv`，包缓存只会越来越大，AI 工具和智能体还会留下缓存和工作树。RigSweep 会把这些都找出来，删除你选中的内容。
 
 - 🗂️ **项目**：Node、Rust、.NET、Java/Gradle/Maven 和 Python 的构建产物与依赖文件夹。只有旁边有项目文件（`package.json`、`Cargo.toml`、`*.csproj`、`pyvenv.cfg` 等）的文件夹才算数，所以随便一个 `build` 文件夹绝不会被动到。只会预先勾选 30 天（可调整）没人编辑过的项目，正被运行中的进程使用的项目会被锁定 🔒。
 - 📦 **包缓存**：npm、npx、pnpm、Yarn、Bun、pip、uv、Cargo、Go、NuGet、Gradle、Maven、Playwright、Puppeteer、Hugging Face。uv 和 Go 用它们自己的命令清理（`uv cache prune`、`go clean`）；Playwright 和 Puppeteer 只删除旧版浏览器，保留最新版本。
+- 🎮 **GPU 与机器学习**：NVIDIA、AMD、Intel 和 DirectX 着色器缓存、CUDA 计算缓存、PyTorch Hub 模型和编译好的扩展、Triton 内核缓存，以及没用到的 conda 包（通过 `conda clean --all` 清理）。Ollama 和 LM Studio 的模型只显示大小，绝不删除。
+- 🤖 **AI 工具与编辑器**：Cursor、VS Code、Windsurf、Claude 桌面应用、Codex 和 ChatGPT 的应用缓存，应用开着时会跳过。Cursor 的状态备份和旧检查点也可以删除（绝不预先勾选）。聊天记录（Cursor 的聊天数据库、Claude Code 对话、Codex 会话）只显示大小，让你看清空间都去哪了。
+- 🌿 **Git 工作树**：Claude Code、Cursor、Codex 或你自己创建的工作树，附带分支、仓库和闲置时长。通过 `git worktree remove` 移除，有未提交或未跟踪内容的工作树会被它拒绝；分支和提交都会保留。会被一起删掉的 git 忽略文件（如 `.env`）会先列出来，工作树也绝不预先勾选。
 - 🎯 **自动选择**：直接在开发磁盘页设置项目闲置多久才算过期（3 到 365 天）、勾选哪些文件夹（构建产物、依赖、包缓存）以及最小体积。
 - 🚫 **从不清理**：任何缓存都可以关掉。需要大量重新下载的那些（Playwright、Puppeteer、Hugging Face、Gradle、Maven、NuGet 包、Go 模块）默认就是关闭的。
 - 🙈 **排除**：AppData、用户目录中的工具文件夹（`.cargo`、`.nvm`、`.vscode` 等）、`.git` 和 Windows 始终跳过。你可以在设置中添加自己的路径或文件夹名（`vendor`、`old-*`），也可以在项目上点击 **排除**。

@@ -85,7 +85,16 @@ textarea { width: 100%; font-family: Consolas, monospace; font-size: 13px; margi
 .tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
 .tbl th, .tbl td { padding: 7px 8px; border-bottom: 1px solid var(--border); text-align: start; vertical-align: top; }
 .tbl th { color: var(--muted); font-weight: 500; user-select: none; }
-.tbl th[data-sort] { cursor: pointer; }
+.tbl th[data-sort] { padding-block: 4px; }
+/* sortable header: a full-size button so a click anywhere on the header sorts */
+.th-sort { all: unset; box-sizing: border-box; display: inline-flex; align-items: center; gap: 4px; padding: 3px 0; cursor: pointer; color: inherit; font: inherit; border-radius: 4px; }
+.th-sort:hover, th[aria-sort] .th-sort { color: var(--text); }
+.th-sort:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.th-sort::after { content: "↕"; font-size: 11px; opacity: 0; transition: opacity .12s; }
+.th-sort:hover::after, .th-sort:focus-visible::after { opacity: .5; }
+th[aria-sort="descending"] .th-sort::after { content: "↓"; opacity: 1; color: var(--accent); }
+th[aria-sort="ascending"] .th-sort::after { content: "↑"; opacity: 1; color: var(--accent); }
+.num .th-sort { flex-direction: row-reverse; }
 .tbl .num { text-align: end; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .tbl.sticky thead th { position: sticky; top: -22px; background: var(--panel); z-index: 1; box-shadow: inset 0 -1px 0 var(--border); }
 .tbl tbody tr:hover td { background: var(--row-hover); }
