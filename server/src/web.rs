@@ -126,6 +126,7 @@ pub fn router(pool: PgPool, cfg: Config) -> Router {
         .route("/v1/totals", get(totals))
         .route("/admin", get(admin_page))
         .route("/admin/api/summary", get(admin_summary))
+        .route("/admin/api/export/{table}", get(admin_export))
         .route("/healthz", get(|| async { "ok" }))
         .layer(DefaultBodyLimit::max(32 * 1024))
         .with_state(st);
@@ -287,12 +288,42 @@ async fn admin_page(State(st): State<AppState>, headers: HeaderMap) -> Response 
     private(Html(include_str!("admin.html")))
 }
 
-async fn admin_summary(State(st): State<AppState>, headers: HeaderMap) -> Response {
+#[derive(serde::Deserialize)]
+struct Range {
+    /// 1, 7, 30, 90 or 365; anything else ("all", nothing) = all time
+    days: Option<String>,
+}
+
+async fn admin_summary(State(st): State<AppState>, headers: HeaderMap, axum::extract::Query(q): axum::extract::Query<Range>) -> Response {
     if let Err(r) = admin_ok(&st, &headers) {
         return r;
     }
-    match store::admin_summary(&st.0.pool).await {
+    let days = q.days.and_then(|d| d.parse::<u32>().ok()).filter(|d| [1, 7, 30, 90, 365].contains(d));
+    match store::admin_summary(&st.0.pool, days).await {
         Ok(v) => private(Json(v)),
+        Err(e) => fail(e),
+    }
+}
+
+/// A raw table as CSV, e.g. /admin/api/export/events.csv
+async fn admin_export(State(st): State<AppState>, headers: HeaderMap, Path(table): Path<String>) -> Response {
+    if let Err(r) = admin_ok(&st, &headers) {
+        return r;
+    }
+    let table = table.strip_suffix(".csv").unwrap_or(&table);
+    if !store::EXPORTS.contains(&table) {
+        return StatusCode::NOT_FOUND.into_response();
+    }
+    match store::export_csv(&st.0.pool, table).await {
+        Ok(csv) => {
+            let mut res = private(csv);
+            let h = res.headers_mut();
+            h.insert(header::CONTENT_TYPE, HeaderValue::from_static("text/csv; charset=utf-8"));
+            if let Ok(v) = HeaderValue::from_str(&format!("attachment; filename=\"rigsweep-{table}.csv\"")) {
+                h.insert(header::CONTENT_DISPOSITION, v);
+            }
+            res
+        }
         Err(e) => fail(e),
     }
 }

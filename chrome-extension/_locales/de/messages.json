@@ -158,10 +158,10 @@
     "message": "📊 Anonyme Statistik"
   },
   "shareHint": {
-    "message": "Einmal pro Woche sendet RigSweep Tabs anonyme Zahlen: wie viele Tabs schlafen gelegt und geschlossen wurden, wie viele Tabs und Fenster offen sind, ob Auto-Schlaf an ist, sowie Browser- und Erweiterungsversion. Daraus entstehen die öffentlichen Zähler auf rigsweep.com. Nie gesendet: URLs, Seitentitel, Websites, deine Muster oder irgendetwas, das du aufrufst. Deine IP-Adresse wird nur zur Bestimmung des Landes genutzt und nie gespeichert."
+    "message": "Etwa einmal pro Stunde, solange der Browser offen ist, sendet RigSweep Tabs anonyme Zahlen: wie viele Tabs seit der letzten Meldung schlafen gelegt und geschlossen wurden, wie viele Tabs und Fenster offen sind, ob Auto-Schlaf an ist, sowie Browser- und Erweiterungsversion. Daraus entstehen die öffentlichen Zähler auf rigsweep.com. Nie gesendet: URLs, Seitentitel, Websites, deine Muster oder irgendetwas, das du aufrufst. Deine IP-Adresse wird nur zur Bestimmung des Landes genutzt und nie gespeichert."
   },
   "shareToggle": {
-    "message": "Anonyme Wochenstatistik teilen"
+    "message": "Anonyme Nutzungsstatistik teilen"
   },
   "shareLast": {
     "message": "Zuletzt gesendet: $DATE$.",
@@ -206,10 +206,10 @@
     "message": "📊 Hilf mitzuzählen, was RigSweep freigibt"
   },
   "noticeOptOut": {
-    "message": "RigSweep Tabs teilt anonyme Wochenzahlen, damit wir zeigen können, wie viele Tabs es bei allen freigibt, und wissen, was wir als Nächstes bauen. Du kannst das jetzt oder jederzeit unten in diesem Fenster ausschalten."
+    "message": "RigSweep Tabs teilt anonyme Nutzungszahlen, damit wir zeigen können, wie viele Tabs es bei allen freigibt, und wissen, was wir als Nächstes bauen. Du kannst das jetzt oder jederzeit unten in diesem Fenster ausschalten."
   },
   "noticeOptIn": {
-    "message": "Möchtest du anonyme Wochenzahlen teilen? Sie zeigen, wie viele Tabs RigSweep bei allen freigibt, und helfen zu entscheiden, was als Nächstes kommt. Du kannst das jederzeit unten in diesem Fenster ändern."
+    "message": "Möchtest du anonyme Nutzungszahlen teilen? Sie zeigen, wie viele Tabs RigSweep bei allen freigibt, und helfen zu entscheiden, was als Nächstes kommt. Du kannst das jederzeit unten in diesem Fenster ändern."
   },
   "shareKeep": {
     "message": "Weiter teilen"

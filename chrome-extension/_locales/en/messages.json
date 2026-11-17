@@ -158,10 +158,10 @@
     "message": "📊 Anonymous stats"
   },
   "shareHint": {
-    "message": "Once a week RigSweep Tabs sends anonymous counts: how many tabs it slept and closed, how many tabs and windows are open, whether auto-sleep is on, and the browser and extension version. They feed the public counters on rigsweep.com. Never sent: URLs, page titles, sites, your patterns or anything you browse. Your IP address is used only to look up the country and is never stored."
+    "message": "About once an hour while the browser is open, RigSweep Tabs sends anonymous counts: how many tabs it slept and closed since the last report, how many tabs and windows are open, whether auto-sleep is on, and the browser and extension version. They feed the public counters on rigsweep.com. Never sent: URLs, page titles, sites, your patterns or anything you browse. Your IP address is used only to look up the country and is never stored."
   },
   "shareToggle": {
-    "message": "Share anonymous weekly stats"
+    "message": "Share anonymous usage stats"
   },
   "shareLast": {
     "message": "Last sent: $DATE$.",
@@ -206,10 +206,10 @@
     "message": "📊 Help count what RigSweep frees"
   },
   "noticeOptOut": {
-    "message": "RigSweep Tabs shares anonymous weekly counts, so we can show how many tabs it frees for everyone and know what to build next. You can turn this off now, or any time at the bottom of this popup."
+    "message": "RigSweep Tabs shares anonymous usage counts, so we can show how many tabs it frees for everyone and know what to build next. You can turn this off now, or any time at the bottom of this popup."
   },
   "noticeOptIn": {
-    "message": "Would you like to share anonymous weekly counts? They show how many tabs RigSweep frees for everyone and help decide what to build next. You can change this any time at the bottom of this popup."
+    "message": "Would you like to share anonymous usage counts? They show how many tabs RigSweep frees for everyone and help decide what to build next. You can change this any time at the bottom of this popup."
   },
   "shareKeep": {
     "message": "Keep sharing"

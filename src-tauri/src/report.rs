@@ -1,4 +1,4 @@
-//! The anonymous weekly report and the sharing default. This builds the exact payload (also shown
+//! The anonymous hourly report and the sharing default. This builds the exact payload (also shown
 //! in the Preview) and decides, on this PC, whether sharing starts on (opt-out) or waits for a yes
 //! (opt-in: EU/EEA, UK, Switzerland, unknown). Sending is in `share.rs`.
 //!
@@ -8,9 +8,24 @@
 use serde::Serialize;
 use std::collections::HashMap;
 
-use crate::impact::{Freed, Totals};
+pub const REPORT_VERSION: u32 = 2;
 
-pub const REPORT_VERSION: u32 = 1;
+/// One thing cleaned, exactly as recorded in the local `impact` table (nothing summed).
+#[derive(Serialize, Clone, Debug, PartialEq)]
+pub struct Event {
+    /// the local row number; the server stores each one once even if a report is resent
+    pub seq: u64,
+    /// UTC, to the minute: "2026-11-17T14:05Z"
+    pub at: String,
+    /// rows of one cleanup share a run
+    pub run: i64,
+    /// "gui" | "auto" | "watchdog" | "cli" | "import"
+    pub source: String,
+    pub area: String,
+    pub kind: String,
+    pub bytes: u64,
+    pub count: u64,
+}
 
 #[derive(Serialize, Clone, Debug, PartialEq)]
 pub struct AppUse {
@@ -35,10 +50,11 @@ pub struct Report {
     pub install_id: String,
     pub app_version: String,
     pub windows_build: String,
-    /// last 7 days
-    pub processes: u64,
-    pub cleanups: u64,
-    pub freed: Vec<Freed>,
+    /// when the previous report was accepted (UTC, to the minute); absent on the first one
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub since: Option<String>,
+    /// every cleanup recorded since the previous report (all of them on the first report)
+    pub events: Vec<Event>,
     pub machine: Machine,
     pub top_cpu: Vec<AppUse>,
     pub top_mem: Vec<AppUse>,
@@ -102,7 +118,8 @@ pub struct Inputs<'a> {
     pub install_id: &'a str,
     pub app_version: &'a str,
     pub windows_build: &'a str,
-    pub week: Totals,
+    pub since: Option<String>,
+    pub events: Vec<Event>,
     pub machine: Machine,
     pub procs: Vec<(String, f32, u64)>,
     pub tweaks: Vec<String>,
@@ -117,9 +134,8 @@ pub fn build(i: Inputs) -> Report {
         install_id: i.install_id.into(),
         app_version: i.app_version.into(),
         windows_build: i.windows_build.into(),
-        processes: i.week.processes,
-        cleanups: i.week.cleanups,
-        freed: i.week.kinds,
+        since: i.since,
+        events: i.events,
         machine: i.machine,
         top_cpu,
         top_mem,
@@ -234,7 +250,8 @@ mod tests {
             install_id: "x",
             app_version: "0.8.0",
             windows_build: "26300",
-            week: Totals::default(),
+            since: None,
+            events: vec![],
             machine: Machine { ram_total: 1, ram_used_avg: 1, cores: 8 },
             procs: vec![],
             tweaks: vec!["telemetry.diagtrack".into(), "custom.svc.adobearmservice".into()],
@@ -254,20 +271,15 @@ mod wire {
     #[ignore]
     fn dump_report() {
         use super::*;
-        use crate::impact::Freed;
-        let mut week = Totals::default();
-        week.processes = 3;
-        week.cleanups = 2;
-        week.kinds = vec![
-            Freed { area: "disk".into(), kind: "dir:node_modules".into(), bytes: 5_000_000, count: 2 },
-            Freed { area: "memory".into(), kind: "mcp".into(), bytes: 900_000, count: 3 },
-            Freed { area: "browser".into(), kind: "browser:cache".into(), bytes: 70_000, count: 1 },
-        ];
+        let db = crate::db::Db::open_in_memory().unwrap();
+        db.add_impact("gui", &[crate::impact::Freed::new("disk", "dir:node_modules", 5_000_000, 2), crate::impact::Freed::new("memory", "mcp", 900_000, 3)]);
+        db.add_impact("auto", &[crate::impact::Freed::new("browser", "browser:cache", 70_000, 1)]);
         let r = build(Inputs {
             install_id: &new_install_id(),
             app_version: env!("CARGO_PKG_VERSION"),
             windows_build: &windows_build(),
-            week,
+            since: Some("2026-11-17T13:00Z".into()),
+            events: db.impact_events_after(0, 5000).unwrap(),
             machine: Machine { ram_total: 34_000_000_000, ram_used_avg: 20_000_000_000, cores: 16 },
             procs: vec![("chrome.exe".into(), 12.5, 4_000_000_000), ("Code.exe".into(), 3.0, 2_000_000_000), ("secret.exe".into(), 50.0, 1)],
             tweaks: vec!["telemetry.diagtrack".into()],

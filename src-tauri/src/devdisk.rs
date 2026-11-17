@@ -382,24 +382,38 @@ fn last_active(dir: &Path) -> u64 {
     newest
 }
 
-/// Run `f` over `items` on a few threads (disk-bound work; order is kept).
+/// Lowers the calling thread's CPU and disk priority (Windows background mode), so a scan yields
+/// to whatever the user is doing. Undone automatically when the thread ends.
+fn background_thread() {
+    #[cfg(windows)]
+    unsafe {
+        use windows::Win32::System::Threading::{GetCurrentThread, SetThreadPriority, THREAD_MODE_BACKGROUND_BEGIN};
+        let _ = SetThreadPriority(GetCurrentThread(), THREAD_MODE_BACKGROUND_BEGIN);
+    }
+}
+
+/// Run `f` over `items` on a few background-priority threads (disk-bound work; order is kept).
+/// Half the cores at most, so a scan never takes over the machine.
 fn par_map<T: Sync, R: Send>(items: &[T], f: impl Fn(&T) -> R + Sync) -> Vec<R> {
-    let n = std::thread::available_parallelism().map(|n| n.get()).unwrap_or(4).clamp(2, 8);
+    let n = (std::thread::available_parallelism().map(|n| n.get()).unwrap_or(4) / 2).clamp(2, 4);
     let next = AtomicUsize::new(0);
     let out: Mutex<Vec<(usize, R)>> = Mutex::new(Vec::with_capacity(items.len()));
     std::thread::scope(|s| {
         for _ in 0..n.min(items.len().max(1)) {
-            s.spawn(|| loop {
-                let i = next.fetch_add(1, Ordering::Relaxed);
-                if i >= items.len() {
-                    break;
+            s.spawn(|| {
+                background_thread();
+                loop {
+                    let i = next.fetch_add(1, Ordering::Relaxed);
+                    if i >= items.len() {
+                        break;
+                    }
+                    let r = f(&items[i]);
+                    out.lock().unwrap_or_else(|e| e.into_inner()).push((i, r));
                 }
-                let r = f(&items[i]);
-                out.lock().unwrap().push((i, r));
             });
         }
     });
-    let mut v = out.into_inner().unwrap();
+    let mut v = out.into_inner().unwrap_or_else(|e| e.into_inner());
     v.sort_by_key(|x| x.0);
     v.into_iter().map(|x| x.1).collect()
 }

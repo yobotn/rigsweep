@@ -22,6 +22,7 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 anyhow = "1"
 tower = "0.5"
+futures-util = "0.3"
 
 [dev-dependencies]
 postgresql_embedded = "0.22"

@@ -158,10 +158,10 @@
     "message": "📊 Estatísticas anônimas"
   },
   "shareHint": {
-    "message": "Uma vez por semana, o RigSweep Tabs envia contagens anônimas: quantas abas ele suspendeu e fechou, quantas abas e janelas estão abertas, se a suspensão automática está ligada e as versões do navegador e da extensão. Elas alimentam os contadores públicos em rigsweep.com. Nunca são enviados: URLs, títulos de páginas, sites, seus padrões ou qualquer coisa que você navegue. Seu endereço IP é usado só para identificar o país e nunca é guardado."
+    "message": "Mais ou menos uma vez por hora, enquanto o navegador está aberto, o RigSweep Tabs envia contagens anônimas: quantas abas ele suspendeu e fechou desde o último envio, quantas abas e janelas estão abertas, se a suspensão automática está ligada e as versões do navegador e da extensão. Elas alimentam os contadores públicos em rigsweep.com. Nunca são enviados: URLs, títulos de páginas, sites, seus padrões ou qualquer coisa que você navegue. Seu endereço IP é usado só para identificar o país e nunca é guardado."
   },
   "shareToggle": {
-    "message": "Compartilhar estatísticas semanais anônimas"
+    "message": "Compartilhar estatísticas de uso anônimas"
   },
   "shareLast": {
     "message": "Último envio: $DATE$.",
@@ -206,10 +206,10 @@
     "message": "📊 Ajude a contar o que o RigSweep libera"
   },
   "noticeOptOut": {
-    "message": "O RigSweep Tabs compartilha contagens semanais anônimas para mostrar quantas abas ele libera para todo mundo e saber o que construir depois. Você pode desativar agora ou quando quiser no fim desta janela."
+    "message": "O RigSweep Tabs compartilha contagens de uso anônimas para mostrar quantas abas ele libera para todo mundo e saber o que construir depois. Você pode desativar agora ou quando quiser no fim desta janela."
   },
   "noticeOptIn": {
-    "message": "Quer compartilhar contagens semanais anônimas? Elas mostram quantas abas o RigSweep libera para todo mundo e ajudam a decidir o que construir depois. Você pode mudar isso quando quiser no fim desta janela."
+    "message": "Quer compartilhar contagens de uso anônimas? Elas mostram quantas abas o RigSweep libera para todo mundo e ajudam a decidir o que construir depois. Você pode mudar isso quando quiser no fim desta janela."
   },
   "shareKeep": {
     "message": "Continuar compartilhando"

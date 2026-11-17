@@ -58,9 +58,29 @@ async fn reports_totals_admin_and_optout() {
     let a = "0123456789abcdef0123456789abcdef";
     let b = "fedcba9876543210fedcba9876543210";
     assert_eq!(call(&app, post(&report(a, 1000), "203.0.113.1")).await.0, StatusCode::NO_CONTENT);
-    // a second report in the same week replaces the first, it doesn't add to it
+    // every report is kept as its own row; nothing is merged or replaced
     assert_eq!(call(&app, post(&report(a, 3000), "203.0.113.1")).await.0, StatusCode::NO_CONTENT);
     assert_eq!(call(&app, post(&report(b, 7000), "203.0.113.2")).await.0, StatusCode::NO_CONTENT);
+    let n: i64 = sqlx::query_scalar("SELECT count(*) FROM reports").fetch_one(&pool).await.unwrap();
+    assert_eq!(n, 3);
+
+    // v2: one event per thing cleaned; sending the same events again stores them once
+    let v2 = json!({
+        "v": 2, "install_id": b, "app_version": "0.8.0", "windows_build": "26300", "since": "2026-11-17T13:00Z",
+        "events": [{"seq": 1, "at": "2026-11-17T13:42Z", "run": 1, "source": "gui", "area": "disk", "kind": "dir:node_modules", "bytes": 500, "count": 1},
+                   {"seq": 2, "at": "2026-11-17T13:42Z", "run": 1, "source": "gui", "area": "memory", "kind": "mcp", "bytes": 100, "count": 4}],
+        "machine": {"ram_total": 34359738368u64, "ram_used_avg": 17179869184u64, "cores": 16},
+        "top_cpu": [], "top_mem": [], "tweaks": ["telemetry.diagtrack"]
+    });
+    assert_eq!(call(&app, post(&v2, "203.0.113.2")).await.0, StatusCode::NO_CONTENT);
+    assert_eq!(call(&app, post(&v2, "203.0.113.2")).await.0, StatusCode::NO_CONTENT);
+    let ev: i64 = sqlx::query_scalar("SELECT count(*) FROM events WHERE seq IS NOT NULL").fetch_one(&pool).await.unwrap();
+    assert_eq!(ev, 2);
+    let at: String = sqlx::query_scalar("SELECT to_char(at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI') FROM events WHERE seq = 1")
+        .fetch_one(&pool)
+        .await
+        .unwrap();
+    assert_eq!(at, "2026-11-17 13:42");
 
     // free text where a category belongs is refused
     let mut bad = report(a, 1);
@@ -73,30 +93,53 @@ async fn reports_totals_admin_and_optout() {
     let (st, t) = call(&app, get("/v1/totals", None)).await;
     assert_eq!(st, StatusCode::OK);
     assert_eq!(t["installs"], 2);
-    assert_eq!(t["disk_freed"], 10000);
-    assert_eq!(t["ram_recovered"], 1000);
+    assert_eq!(t["disk_freed"], 1000 + 3000 + 7000 + 500);
+    assert_eq!(t["ram_recovered"], 3 * 500 + 100);
+    assert_eq!(t["processes_ended"], 3 * 2 + 4);
+    assert_eq!(t["cleanups"], 3 * 2 + 1); // v1 counts + one v2 run
     assert_eq!(t["top"][0]["kind"], "dir:target");
 
     // the dashboard needs the password
     assert_eq!(call(&app, get("/admin/api/summary", None)).await.0, StatusCode::UNAUTHORIZED);
     assert_eq!(call(&app, get("/admin/api/summary", Some("admin:wrong"))).await.0, StatusCode::UNAUTHORIZED);
-    let (st, s) = call(&app, get("/admin/api/summary", Some("admin:s3cret"))).await;
+    let (st, s) = call(&app, get("/admin/api/summary?days=30", Some("admin:s3cret"))).await;
     assert_eq!(st, StatusCode::OK);
-    assert_eq!(s["totals"]["active_30d"], 2);
+    assert_eq!(s["days"], 30);
+    assert_eq!(s["totals"]["now"]["active"], 2);
+    assert_eq!(s["totals"]["now"]["reports"], 5);
+    assert_eq!(s["totals"]["prev"]["active"], 0);
     assert_eq!(s["countries"][0]["country"], "??");
     assert_eq!(s["apps_cpu"][0]["app"], "VS Code");
     assert_eq!(s["tweaks"][0]["installs"], 2);
     assert_eq!(s["ram"][0]["name"], "32 GB");
+    assert!(s["series"].as_array().unwrap().len() >= 30);
+    for days in ["1", "7", "90", "365", "all"] {
+        let (st, s) = call(&app, get(&format!("/admin/api/summary?days={days}"), Some("admin:s3cret"))).await;
+        assert_eq!(st, StatusCode::OK, "days={days}");
+        assert_eq!(s["totals"]["now"]["active"], 2, "days={days}: {s}");
+    }
     let (st, _) = call(&app, get("/admin", Some("admin:s3cret"))).await;
     assert_eq!(st, StatusCode::OK);
+
+    // raw tables as CSV, owner only
+    assert_eq!(call(&app, get("/admin/api/export/events.csv", None)).await.0, StatusCode::UNAUTHORIZED);
+    assert_eq!(call(&app, get("/admin/api/export/pg_shadow.csv", Some("admin:s3cret"))).await.0, StatusCode::NOT_FOUND);
+    let res = app.clone().oneshot(get("/admin/api/export/events.csv", Some("admin:s3cret"))).await.unwrap();
+    assert_eq!(res.status(), StatusCode::OK);
+    assert_eq!(res.headers()[header::CONTENT_TYPE], "text/csv; charset=utf-8");
+    let csv = String::from_utf8(res.into_body().collect().await.unwrap().to_bytes().to_vec()).unwrap();
+    assert!(csv.starts_with("id,report_id,install_id,seq,at,"));
+    assert!(csv.contains("dir:node_modules"));
 
     // turning sharing off deletes everything that install sent
     let del = Request::delete(format!("/v1/install/{a}")).body(Body::empty()).unwrap();
     assert_eq!(call(&app, del).await.0, StatusCode::NO_CONTENT);
     let left: i64 = sqlx::query_scalar("SELECT count(*) FROM reports WHERE install_id = $1").bind(a).fetch_one(&pool).await.unwrap();
     assert_eq!(left, 0);
-    let (_, s) = call(&app, get("/admin/api/summary", Some("admin:s3cret"))).await;
-    assert_eq!(s["totals"]["optouts_30d"], 1);
+    let left: i64 = sqlx::query_scalar("SELECT count(*) FROM events WHERE install_id = $1").bind(a).fetch_one(&pool).await.unwrap();
+    assert_eq!(left, 0);
+    let (_, s) = call(&app, get("/admin/api/summary?days=30", Some("admin:s3cret"))).await;
+    assert_eq!(s["totals"]["now"]["optouts"], 1);
 
     // rate limit: 5 per IP per 10 minutes here
     for _ in 0..5 {
@@ -104,7 +147,7 @@ async fn reports_totals_admin_and_optout() {
     }
     assert_eq!(call(&app, post(&report(b, 1), "198.51.100.9")).await.0, StatusCode::TOO_MANY_REQUESTS);
 
-    // the browser extension: CORS preflight, a report, counts adding up within a week, and opt-out
+    // the browser extension: CORS preflight, two reports kept as two rows, and opt-out
     let pre = Request::options("/v1/ext/report")
         .header(header::ORIGIN, "chrome-extension://abcdefghijklmnop")
         .header(header::ACCESS_CONTROL_REQUEST_METHOD, "POST")
@@ -126,9 +169,11 @@ async fn reports_totals_admin_and_optout() {
     };
     assert_eq!(call(&app, ext(40)).await.0, StatusCode::NO_CONTENT);
     assert_eq!(call(&app, ext(10)).await.0, StatusCode::NO_CONTENT);
-    let (_, s) = call(&app, get("/admin/api/summary", Some("admin:s3cret"))).await;
-    assert_eq!(s["totals"]["tabs_slept"], 50);
-    assert_eq!(s["totals"]["tabs_closed"], 6);
+    let rows: i64 = sqlx::query_scalar("SELECT count(*) FROM ext_reports").fetch_one(&pool).await.unwrap();
+    assert_eq!(rows, 2);
+    let (_, s) = call(&app, get("/admin/api/summary?days=7", Some("admin:s3cret"))).await;
+    assert_eq!(s["totals"]["now"]["tabs_slept"], 50);
+    assert_eq!(s["totals"]["now"]["tabs_closed"], 6);
     assert_eq!(s["ext_browsers"][0]["name"], "Chrome");
     assert_eq!(s["ext_tabs"][0]["name"], "31–60");
     let del = Request::delete(format!("/v1/install/{e}")).body(Body::empty()).unwrap();

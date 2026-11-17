@@ -333,6 +333,39 @@ impl Db {
         Ok(rows)
     }
 
+    /// The impact records after row `after_id`, oldest first and at most `limit`, as report events:
+    /// the local time becomes UTC to the minute, nothing else changes.
+    pub fn impact_events_after(&self, after_id: i64, limit: usize) -> Result<Vec<crate::report::Event>> {
+        use chrono::TimeZone;
+        let mut st = self.conn.prepare(
+            "SELECT id, ts, run, source, area, kind, bytes, count FROM impact WHERE id > ?1 ORDER BY id LIMIT ?2",
+        )?;
+        let rows = st
+            .query_map(params![after_id, limit as i64], |r| {
+                let (id, ts, run, source): (i64, String, i64, String) = (r.get(0)?, r.get(1)?, r.get(2)?, r.get(3)?);
+                let (b, c): (i64, i64) = (r.get(6)?, r.get(7)?);
+                let at = chrono::NaiveDateTime::parse_from_str(&ts, "%Y-%m-%d %H:%M:%S")
+                    .ok()
+                    .and_then(|t| chrono::Local.from_local_datetime(&t).earliest())
+                    .map(|t| t.with_timezone(&chrono::Utc).format("%Y-%m-%dT%H:%MZ").to_string())
+                    .unwrap_or_else(|| chrono::Utc::now().format("%Y-%m-%dT%H:%MZ").to_string());
+                // the server accepts a fixed set of sources; History rows written before it existed fall back to "gui"
+                let source = if ["gui", "auto", "watchdog", "cli", "import"].contains(&source.as_str()) { source } else { "gui".into() };
+                Ok(crate::report::Event {
+                    seq: id.max(0) as u64,
+                    at,
+                    run,
+                    source,
+                    area: r.get(4)?,
+                    kind: r.get(5)?,
+                    bytes: b.max(0) as u64,
+                    count: c.max(0) as u64,
+                })
+            })?
+            .collect::<std::result::Result<Vec<_>, _>>()?;
+        Ok(rows)
+    }
+
     pub fn impact_since(&self) -> String {
         self.conn.query_row("SELECT COALESCE(MIN(ts), '') FROM impact", [], |r| r.get(0)).unwrap_or_default()
     }

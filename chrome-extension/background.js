@@ -1,4 +1,4 @@
-// RigSweep Tabs - service worker: idle-tab sleeping, auto-sleep alarm, weekly anonymous stats.
+// RigSweep Tabs - service worker: idle-tab sleeping, auto-sleep alarm, hourly anonymous stats.
 importScripts('stats.js');
 const DEFAULTS = { idleMinutes: 30, autoSleep: false, patterns: ['localhost:*', '127.0.0.1:*'] };
 const ALARM = 'rigsweep-autosleep';
@@ -29,11 +29,14 @@ async function syncAlarm() {
   if (!autoSleep && existing) await chrome.alarms.clear(ALARM);
 }
 
-// Stats: checked every 6 hours, sent at most weekly (and never before the popup's notice is answered).
+// Stats: checked every 15 minutes, sent at most hourly (and never before the popup's notice is answered).
 const STATS_ALARM = 'rigsweep-stats';
+const STATS_EVERY = 15;
 async function setup() {
   await syncAlarm();
-  if (!(await chrome.alarms.get(STATS_ALARM))) await chrome.alarms.create(STATS_ALARM, { delayInMinutes: 5, periodInMinutes: 360 });
+  // re-created when the period changed (an update from the 6-hour version keeps its old alarm otherwise)
+  const a = await chrome.alarms.get(STATS_ALARM);
+  if (!a || a.periodInMinutes !== STATS_EVERY) await chrome.alarms.create(STATS_ALARM, { delayInMinutes: 5, periodInMinutes: STATS_EVERY });
 }
 chrome.runtime.onInstalled.addListener(setup);
 chrome.runtime.onStartup.addListener(setup);

@@ -29,6 +29,25 @@ pub struct Machine {
     pub cores: u32,
 }
 
+/// One thing cleaned, as recorded on the PC (report v2).
+#[derive(Deserialize, Debug, Clone)]
+#[serde(deny_unknown_fields)]
+pub struct Event {
+    /// the PC's own row number, increasing; lets a resent report be stored once
+    pub seq: u64,
+    /// UTC, to the minute: "2026-11-17T14:05Z"
+    pub at: String,
+    /// rows of one cleanup share a run (negative for records rebuilt from old History)
+    pub run: i64,
+    pub source: String,
+    pub area: String,
+    pub kind: String,
+    pub bytes: u64,
+    pub count: u64,
+}
+
+/// v1 (0.8.0 test builds): totals for the last 7 days in `processes`, `cleanups`, `freed`.
+/// v2: every new cleanup since the previous report in `events`, nothing summed.
 #[derive(Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct Report {
@@ -36,8 +55,16 @@ pub struct Report {
     pub install_id: String,
     pub app_version: String,
     pub windows_build: String,
-    pub processes: u64,
-    pub cleanups: u64,
+    /// v2: when the previous accepted report was sent (UTC), absent on the first one
+    #[serde(default)]
+    pub since: Option<String>,
+    #[serde(default)]
+    pub events: Vec<Event>,
+    #[serde(default)]
+    pub processes: Option<u64>,
+    #[serde(default)]
+    pub cleanups: Option<u64>,
+    #[serde(default)]
     pub freed: Vec<Freed>,
     pub machine: Machine,
     pub top_cpu: Vec<AppUse>,
@@ -45,13 +72,30 @@ pub struct Report {
     pub tweaks: Vec<String>,
 }
 
-/// The weekly report of the RigSweep Tabs extension (chrome-extension/stats.js).
+pub const SOURCES: &[&str] = &["gui", "auto", "watchdog", "cli", "import"];
+
+/// "2026-11-17T14:05Z" (or with seconds), not in the future by more than a day.
+pub fn minute_ok(s: &str) -> bool {
+    let t = chrono::NaiveDateTime::parse_from_str(s, "%Y-%m-%dT%H:%MZ").or_else(|_| chrono::NaiveDateTime::parse_from_str(s, "%Y-%m-%dT%H:%M:%SZ"));
+    match t {
+        Ok(t) => {
+            let t = t.and_utc();
+            t.timestamp() > 1_577_836_800 && t < chrono::Utc::now() + chrono::Duration::days(1) // after 2020
+        }
+        Err(_) => false,
+    }
+}
+
+/// The report of the RigSweep Tabs extension (chrome-extension/stats.js): counts since its last report.
 #[derive(Deserialize, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct ExtReport {
     pub v: u32,
     pub install_id: String,
     pub ext_version: String,
+    /// when the previous accepted report was sent (UTC), absent on the first one
+    #[serde(default)]
+    pub since: Option<String>,
     pub browser: String,
     pub browser_major: u32,
     /// counts since the last report
@@ -74,6 +118,9 @@ impl ExtReport {
         }
         if !install_id_ok(&self.install_id) {
             return bad("install_id");
+        }
+        if self.since.as_deref().is_some_and(|s| !minute_ok(s)) {
+            return bad("since");
         }
         if !chars_ok(&self.ext_version, 24, |c| c.is_ascii_digit() || c == '.') {
             return bad("ext_version");
@@ -113,8 +160,10 @@ impl Report {
     /// Ok, or what's wrong (sent back as the 400 body).
     pub fn validate(&self) -> Result<(), String> {
         let bad = |what: &str| Err(format!("invalid {what}"));
-        if self.v != 1 {
-            return bad("version");
+        match self.v {
+            1 if self.events.is_empty() && self.since.is_none() && self.processes.is_some() && self.cleanups.is_some() => {}
+            2 if self.freed.is_empty() && self.processes.is_none() && self.cleanups.is_none() => {}
+            _ => return bad("version"),
         }
         if !install_id_ok(&self.install_id) {
             return bad("install_id");
@@ -125,8 +174,24 @@ impl Report {
         if !chars_ok(&self.windows_build, 10, |c| c.is_ascii_digit()) {
             return bad("windows_build");
         }
-        if self.processes > 1_000_000 || self.cleanups > 100_000 {
+        if self.processes.unwrap_or(0) > 1_000_000 || self.cleanups.unwrap_or(0) > 100_000 {
             return bad("counts");
+        }
+        if self.since.as_deref().is_some_and(|s| !minute_ok(s)) {
+            return bad("since");
+        }
+        if self.events.len() > 5000
+            || self.events.iter().any(|e| {
+                e.seq > i64::MAX as u64
+                    || !minute_ok(&e.at)
+                    || !SOURCES.contains(&e.source.as_str())
+                    || !matches!(e.area.as_str(), "memory" | "disk" | "browser")
+                    || !kind_ok(&e.kind)
+                    || e.bytes > 64 * TB
+                    || e.count > 1_000_000
+            })
+        {
+            return bad("events");
         }
         if self.freed.len() > 120
             || self.freed.iter().any(|f| {
@@ -167,9 +232,42 @@ mod tests {
         .unwrap()
     }
 
+    pub fn sample_v2() -> Report {
+        serde_json::from_value(serde_json::json!({
+            "v": 2, "install_id": "0123456789abcdef0123456789abcdef", "app_version": "0.8.0", "windows_build": "26300",
+            "since": "2026-11-17T13:00Z",
+            "events": [{"seq": 7, "at": "2026-11-17T13:42Z", "run": 3, "source": "gui", "area": "disk", "kind": "dir:target", "bytes": 1000, "count": 1},
+                       {"seq": 8, "at": "2026-11-17T13:42Z", "run": 3, "source": "gui", "area": "memory", "kind": "mcp", "bytes": 50, "count": 2}],
+            "machine": {"ram_total": 34359738368u64, "ram_used_avg": 17179869184u64, "cores": 16},
+            "top_cpu": [], "top_mem": [], "tweaks": []
+        }))
+        .unwrap()
+    }
+
     #[test]
     fn accepts_a_real_report() {
         assert_eq!(sample().validate(), Ok(()));
+        assert_eq!(sample_v2().validate(), Ok(()));
+    }
+
+    #[test]
+    fn v2_events_are_checked() {
+        let mut r = sample_v2();
+        r.events[0].at = "yesterday".into();
+        assert!(r.validate().is_err());
+        let mut r = sample_v2();
+        r.events[0].source = "my-script".into();
+        assert!(r.validate().is_err());
+        let mut r = sample_v2();
+        r.events[0].kind = r"C:\work\client-x".into();
+        assert!(r.validate().is_err());
+        // v1 and v2 fields can't be mixed
+        let mut r = sample_v2();
+        r.processes = Some(1);
+        assert!(r.validate().is_err());
+        let mut r = sample();
+        r.events = sample_v2().events;
+        assert!(r.validate().is_err());
     }
 
     #[test]

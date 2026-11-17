@@ -64,7 +64,7 @@ T["es"] = {
     "faq.q4": "¿Es seguro? ¿Puedo deshacer los cambios?",
     "faq.a4": "No se finaliza ni se borra nada sin tu confirmación. Cada ajuste de Windows guarda primero el valor original y se puede restaurar uno a uno o todos a la vez, y antes del primer cambio se crea un punto de restauración del sistema. Los servidores de lenguaje de los editores y los servicios esenciales de Windows están bloqueados.",
     "faq.q5": "¿RigSweep es gratis? ¿Recopila datos?",
-    "faq.a5": "Sí, es gratis para siempre con licencia MIT, sin cuenta y sin anuncios. RigSweep pregunta una vez si quieres compartir totales semanales anónimos (cuánto liberó, por tipo, y qué apps conocidas consumen más). No se envía nada antes de que respondas, el informe exacto se ve en Configuración y, al desactivarlo, se borra lo enviado. Nunca incluye rutas, nombres de proyectos ni datos personales. La búsqueda de actualizaciones está desactivada salvo que la actives o pulses Buscar ahora.",
+    "faq.a5": "Sí, es gratis para siempre con licencia MIT, sin cuenta y sin anuncios. RigSweep pregunta una vez si quieres compartir estadísticas de uso anónimas (qué limpió, por tipo y tamaño, y qué apps conocidas consumen más). No se envía nada antes de que respondas, el informe exacto se ve en Configuración y, al desactivarlo, se borra lo enviado. Nunca incluye rutas, nombres de proyectos ni datos personales. La búsqueda de actualizaciones está desactivada salvo que la actives o pulses Buscar ahora.",
     "faq.q6": "¿Funciona en macOS o Linux?",
     "faq.a6": "No. RigSweep está hecho para Windows 10 y 11, porque trabaja con los servicios de Windows, el Programador de tareas y Defender. Aun así, puede apagar la VM de WSL 2 desde Windows.",
 };

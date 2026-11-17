@@ -158,10 +158,10 @@
     "message": "📊 Statistiche anonime"
   },
   "shareHint": {
-    "message": "Una volta a settimana RigSweep Tabs invia conteggi anonimi: quante schede ha sospeso e chiuso, quante schede e finestre sono aperte, se la sospensione automatica è attiva, e le versioni del browser e dell'estensione. Alimentano i contatori pubblici su rigsweep.com. Mai inviati: URL, titoli delle pagine, siti, i tuoi pattern o qualsiasi cosa navighi. Il tuo indirizzo IP serve solo a ricavare il paese e non viene mai salvato."
+    "message": "Circa una volta all'ora, mentre il browser è aperto, RigSweep Tabs invia conteggi anonimi: quante schede ha sospeso e chiuso dall'ultimo invio, quante schede e finestre sono aperte, se la sospensione automatica è attiva, e le versioni del browser e dell'estensione. Alimentano i contatori pubblici su rigsweep.com. Mai inviati: URL, titoli delle pagine, siti, i tuoi pattern o qualsiasi cosa navighi. Il tuo indirizzo IP serve solo a ricavare il paese e non viene mai salvato."
   },
   "shareToggle": {
-    "message": "Condividi statistiche settimanali anonime"
+    "message": "Condividi statistiche d'uso anonime"
   },
   "shareLast": {
     "message": "Ultimo invio: $DATE$.",
@@ -206,10 +206,10 @@
     "message": "📊 Aiutaci a contare cosa libera RigSweep"
   },
   "noticeOptOut": {
-    "message": "RigSweep Tabs condivide conteggi settimanali anonimi, per mostrare quante schede libera per tutti e capire cosa sviluppare dopo. Puoi disattivarli ora o in qualsiasi momento in fondo a questa finestra."
+    "message": "RigSweep Tabs condivide conteggi d'uso anonimi, per mostrare quante schede libera per tutti e capire cosa sviluppare dopo. Puoi disattivarli ora o in qualsiasi momento in fondo a questa finestra."
   },
   "noticeOptIn": {
-    "message": "Vuoi condividere conteggi settimanali anonimi? Mostrano quante schede RigSweep libera per tutti e aiutano a decidere cosa sviluppare dopo. Puoi cambiare idea in qualsiasi momento in fondo a questa finestra."
+    "message": "Vuoi condividere conteggi d'uso anonimi? Mostrano quante schede RigSweep libera per tutti e aiutano a decidere cosa sviluppare dopo. Puoi cambiare idea in qualsiasi momento in fondo a questa finestra."
   },
   "shareKeep": {
     "message": "Continua a condividere"

@@ -60,7 +60,7 @@ T["en"] = {
     "faq.q4": "Is it safe? Can I undo changes?",
     "faq.a4": "Nothing is ended or deleted without your confirmation. Every Windows tweak backs up the original value first and can be restored one by one or all at once, and a System Restore point is created before the first change. Editor language servers and core Windows services are locked.",
     "faq.q5": "Is RigSweep free? Does it collect data?",
-    "faq.a5": "Yes, it's free forever under the MIT license, with no account and no ads. RigSweep asks once whether to share anonymous weekly totals (how much it freed, by type, and which well-known apps use the most). Nothing is sent before you answer, the exact report is shown in Settings, and turning it off deletes what was sent. No paths, project names or personal data are ever included. The update check stays off unless you turn it on or click Check now.",
+    "faq.a5": "Yes, it's free forever under the MIT license, with no account and no ads. RigSweep asks once whether to share anonymous usage stats (what it cleaned, by type and size, and which well-known apps use the most). Nothing is sent before you answer, the exact report is shown in Settings, and turning it off deletes what was sent. No paths, project names or personal data are ever included. The update check stays off unless you turn it on or click Check now.",
     "faq.q6": "Does it run on macOS or Linux?",
     "faq.a6": "No. RigSweep is built for Windows 10 and 11, because it works with Windows services, Task Scheduler and Defender. It can still shut down the WSL 2 VM from the Windows side.",
 };

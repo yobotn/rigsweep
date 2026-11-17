@@ -158,10 +158,10 @@
     "message": "📊 Estadísticas anónimas"
   },
   "shareHint": {
-    "message": "Una vez por semana, RigSweep Tabs envía recuentos anónimos: cuántas pestañas durmió y cerró, cuántas pestañas y ventanas hay abiertas, si la suspensión automática está activada y la versión del navegador y de la extensión. Alimentan los contadores públicos de rigsweep.com. Nunca se envían: URLs, títulos de páginas, sitios, tus patrones ni nada de lo que navegas. Tu dirección IP solo se usa para saber el país y nunca se guarda."
+    "message": "Más o menos una vez por hora mientras el navegador está abierto, RigSweep Tabs envía recuentos anónimos: cuántas pestañas durmió y cerró desde el último envío, cuántas pestañas y ventanas hay abiertas, si la suspensión automática está activada y la versión del navegador y de la extensión. Alimentan los contadores públicos de rigsweep.com. Nunca se envían: URLs, títulos de páginas, sitios, tus patrones ni nada de lo que navegas. Tu dirección IP solo se usa para saber el país y nunca se guarda."
   },
   "shareToggle": {
-    "message": "Compartir estadísticas semanales anónimas"
+    "message": "Compartir estadísticas de uso anónimas"
   },
   "shareLast": {
     "message": "Último envío: $DATE$.",
@@ -206,10 +206,10 @@
     "message": "📊 Ayúdanos a contar lo que libera RigSweep"
   },
   "noticeOptOut": {
-    "message": "RigSweep Tabs comparte recuentos semanales anónimos para mostrar cuántas pestañas libera entre todos y saber qué construir después. Puedes desactivarlo ahora o cuando quieras al final de esta ventana."
+    "message": "RigSweep Tabs comparte recuentos de uso anónimos para mostrar cuántas pestañas libera entre todos y saber qué construir después. Puedes desactivarlo ahora o cuando quieras al final de esta ventana."
   },
   "noticeOptIn": {
-    "message": "¿Quieres compartir recuentos semanales anónimos? Muestran cuántas pestañas libera RigSweep entre todos y ayudan a decidir qué construir después. Puedes cambiarlo cuando quieras al final de esta ventana."
+    "message": "¿Quieres compartir recuentos de uso anónimos? Muestran cuántas pestañas libera RigSweep entre todos y ayudan a decidir qué construir después. Puedes cambiarlo cuando quieras al final de esta ventana."
   },
   "shareKeep": {
     "message": "Seguir compartiendo"

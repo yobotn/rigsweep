@@ -1,4 +1,4 @@
-// RigSweep Tabs - anonymous weekly stats: counts only, never URLs, titles, sites or patterns.
+// RigSweep Tabs - anonymous hourly stats: counts only, never URLs, titles, sites or patterns.
 // Loaded by the popup and (via importScripts) by the service worker.
 //
 // On by default outside Europe, but nothing is sent before the popup's first-run notice has been
@@ -6,7 +6,7 @@
 /* exported Stats */
 const Stats = (() => {
   const SERVER = 'https://stats.rigsweep.com';
-  const WEEK = 7 * 24 * 3600 * 1000;
+  const HOUR = 3600 * 1000;
   const KEY = 'stats';
 
   // EU/EEA, UK, Switzerland: sharing waits for a yes there (same list as the Windows app).
@@ -77,12 +77,16 @@ const Stats = (() => {
     return { browser: 'Other', browser_major: v ? parseInt(v[1], 10) : 0 };
   }
 
-  // Exactly what the next report holds (also the preview).
+  // UTC to the minute, the format the server stores: "2026-11-17T14:05Z"
+  const minute = t => new Date(t).toISOString().slice(0, 16) + 'Z';
+
+  // Exactly what the next report holds (also the preview): counts since the last accepted report.
   async function build() {
     const s = await load();
     const [tabs, wins, settings] = await Promise.all([chrome.tabs.query({}), chrome.windows.getAll(), chrome.storage.sync.get({ autoSleep: false })]);
     return {
-      v: 1, install_id: s.installId, ext_version: chrome.runtime.getManifest().version, ...browser(),
+      v: 1, install_id: s.installId, ext_version: chrome.runtime.getManifest().version,
+      ...(s.last ? { since: minute(s.last) } : {}), ...browser(),
       tabs_slept: s.pending.slept, dupes_closed: s.pending.dupes, matches_closed: s.pending.matches,
       tabs_open: tabs.length, windows_open: wins.length, auto_sleep: !!settings.autoSleep,
     };
@@ -92,10 +96,10 @@ const Stats = (() => {
     try { await fetch(`${SERVER}/v1/install/${id}`, { method: 'DELETE' }); } catch { /* best effort */ }
   }
 
-  // Send if allowed and a week has passed. Returns true when a report was accepted.
+  // Send if allowed and an hour has passed. Returns true when a report was accepted.
   async function sendIfDue() {
     let s = await load();
-    if (!s.notice || !enabledOf(s) || Date.now() - (s.last || 0) < WEEK) return false;
+    if (!s.notice || !enabledOf(s) || Date.now() - (s.last || 0) < HOUR) return false;
     const r = await build();
     let ok = false;
     try {

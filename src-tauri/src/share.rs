@@ -1,12 +1,15 @@
-//! Anonymous weekly stats: the on/off state, the sender and the "forget me" request.
+//! Anonymous hourly stats: the on/off state, the sender and the "forget me" request.
 //!
 //! On by default outside Europe (see `report::consent_default`), but nothing is sent before the
 //! first-run notice has been shown, so nobody shares without having seen what and why. Turning
 //! sharing off asks the server to delete everything this install sent and starts a new random id.
 //!
 //! Settings keys: `share` ("on" / "off", missing = the regional default), `share_notice` ("1" once
-//! the notice was shown), `share_last` (when the last report was accepted), `share_last_report`
-//! (that report, as sent), `install_id`.
+//! the notice was shown), `share_last` (when the last report was accepted), `share_last_seq` (the
+//! last impact row the server has), `share_last_report` (that report, as sent), `install_id`.
+//!
+//! Each report carries the cleanups recorded since the previous one, row by row, so the server
+//! can store them as they are; nothing is summed on this PC.
 
 use serde::Serialize;
 use std::time::Duration;
@@ -17,7 +20,9 @@ use crate::db::Db;
 use crate::report::{self, Consent, Report};
 
 pub const SERVER: &str = "https://stats.rigsweep.com";
-const EVERY_DAYS: i64 = 7;
+const EVERY_MINUTES: i64 = 60;
+/// at most this many cleanup rows per report (a long backlog goes out over the next hours)
+const MAX_EVENTS: usize = 2000;
 const TS: &str = "%Y-%m-%d %H:%M:%S";
 
 #[derive(Serialize, Clone, Debug)]
@@ -74,19 +79,31 @@ fn may_send(db: &Db) -> bool {
 fn due(db: &Db) -> bool {
     let Some(last) = db.get_setting("share_last") else { return true };
     match chrono::NaiveDateTime::parse_from_str(&last, TS) {
-        Ok(t) => chrono::Local::now().naive_local() - t >= chrono::Duration::days(EVERY_DAYS),
+        Ok(t) => chrono::Local::now().naive_local() - t >= chrono::Duration::minutes(EVERY_MINUTES),
         Err(_) => true,
     }
+}
+
+/// The last impact row the server has (0 = none yet).
+fn last_seq(db: &Db) -> i64 {
+    db.get_setting("share_last_seq").and_then(|s| s.parse().ok()).unwrap_or(0)
+}
+
+/// When the last report was accepted, as UTC to the minute.
+fn since_utc(db: &Db) -> Option<String> {
+    use chrono::TimeZone;
+    let t = chrono::NaiveDateTime::parse_from_str(&db.get_setting("share_last")?, TS).ok()?;
+    let t = chrono::Local.from_local_datetime(&t).earliest()?;
+    Some(t.with_timezone(&chrono::Utc).format("%Y-%m-%dT%H:%MZ").to_string())
 }
 
 /// The report this PC would send now (also the Preview).
 pub fn build_report(app: &AppHandle) -> Result<Report, String> {
     let state = app.state::<AppState>();
-    let (catalog, id, week, tweaks) = {
+    let (catalog, id, since, events, tweaks) = {
         let db = state.db.lock().map_err(|_| "database lock poisoned")?;
-        let since = (chrono::Local::now() - chrono::Duration::days(7)).format(TS).to_string();
-        let week = crate::impact::total(&db.impact_rows(Some(&since)).map_err(|e| e.to_string())?);
-        (crate::engine::load_catalog(&db), install_id(&db), week, db.enabled_ids().map_err(|e| e.to_string())?)
+        let events = db.impact_events_after(last_seq(&db), MAX_EVENTS).map_err(|e| e.to_string())?;
+        (crate::engine::load_catalog(&db), install_id(&db), since_utc(&db), events, db.enabled_ids().map_err(|e| e.to_string())?)
     };
     let snap = state.analyzer.lock().map_err(|_| "analyzer lock poisoned")?.snapshot(&catalog);
     let live = crate::live::history();
@@ -95,7 +112,8 @@ pub fn build_report(app: &AppHandle) -> Result<Report, String> {
         install_id: &id,
         app_version: &app.package_info().version.to_string(),
         windows_build: &report::windows_build(),
-        week,
+        since,
+        events,
         machine: report::Machine {
             ram_total: snap.mem_total,
             ram_used_avg,
@@ -170,6 +188,7 @@ pub fn set(app: &AppHandle, on: bool) -> Result<ShareState, String> {
 fn rotate(db: &Db) -> Result<(), String> {
     db.set_setting("install_id", &report::new_install_id()).map_err(|e| e.to_string())?;
     db.set_setting("share_last", "").map_err(|e| e.to_string())?;
+    db.set_setting("share_last_seq", "").map_err(|e| e.to_string())?;
     db.set_setting("share_last_report", "").map_err(|e| e.to_string())?;
     Ok(())
 }
@@ -222,6 +241,9 @@ pub async fn send_if_due(app: &AppHandle) -> Result<bool, String> {
         let kept = may_send(&db) && install_id(&db) == r.install_id;
         if kept {
             db.set_setting("share_last", &chrono::Local::now().format(TS).to_string()).map_err(|e| e.to_string())?;
+            if let Some(last) = r.events.iter().map(|e| e.seq).max() {
+                db.set_setting("share_last_seq", &last.to_string()).map_err(|e| e.to_string())?;
+            }
             db.set_setting("share_last_report", &serde_json::to_string_pretty(&r).unwrap_or_default()).map_err(|e| e.to_string())?;
         }
         kept
@@ -240,7 +262,7 @@ fn kick(app: AppHandle) {
     });
 }
 
-/// Checks hourly (first after 3 minutes, so the live meter has a RAM average); sends at most weekly.
+/// Checks every 10 minutes (first after 3, so the live meter has a RAM average); sends at most hourly.
 pub fn spawn(app: AppHandle) {
     std::thread::spawn(move || {
         std::thread::sleep(Duration::from_secs(180));
@@ -248,7 +270,7 @@ pub fn spawn(app: AppHandle) {
             if let Err(e) = tauri::async_runtime::block_on(send_if_due(&app)) {
                 eprintln!("stats: {e}");
             }
-            std::thread::sleep(Duration::from_secs(3600));
+            std::thread::sleep(Duration::from_secs(600));
         }
     });
 }
@@ -269,21 +291,42 @@ mod tests {
     }
 
     #[test]
-    fn nothing_sent_before_the_notice_and_weekly_after() {
+    fn nothing_sent_before_the_notice_and_hourly_after() {
         let db = Db::open_in_memory().unwrap();
         db.set_setting("share", "on").unwrap();
         assert!(!may_send(&db));
         db.set_setting("share_notice", "1").unwrap();
         assert!(may_send(&db));
         assert!(due(&db));
-        let two_days = (chrono::Local::now() - chrono::Duration::days(2)).format(TS).to_string();
-        db.set_setting("share_last", &two_days).unwrap();
+        let ten_min = (chrono::Local::now() - chrono::Duration::minutes(10)).format(TS).to_string();
+        db.set_setting("share_last", &ten_min).unwrap();
         assert!(!due(&db));
-        let eight = (chrono::Local::now() - chrono::Duration::days(8)).format(TS).to_string();
-        db.set_setting("share_last", &eight).unwrap();
+        let hour = (chrono::Local::now() - chrono::Duration::minutes(61)).format(TS).to_string();
+        db.set_setting("share_last", &hour).unwrap();
         assert!(due(&db));
         db.set_setting("share", "off").unwrap();
         assert!(!may_send(&db));
+    }
+
+    #[test]
+    fn each_cleanup_row_is_sent_once_as_is() {
+        let db = Db::open_in_memory().unwrap();
+        db.add_impact("gui", &[crate::impact::Freed::new("disk", "dir:target", 1000, 1), crate::impact::Freed::new("memory", "mcp", 50, 2)]);
+        let first = db.impact_events_after(last_seq(&db), MAX_EVENTS).unwrap();
+        assert_eq!(first.len(), 2);
+        assert_eq!((first[0].kind.as_str(), first[0].bytes, first[0].source.as_str()), ("dir:target", 1000, "gui"));
+        assert_eq!(first[0].run, first[1].run);
+        assert!(first[0].at.ends_with('Z') && first[0].at.len() == 17, "{}", first[0].at);
+        // after the server accepted them, only newer rows go out
+        db.set_setting("share_last_seq", &first.iter().map(|e| e.seq).max().unwrap().to_string()).unwrap();
+        assert!(db.impact_events_after(last_seq(&db), MAX_EVENTS).unwrap().is_empty());
+        db.add_impact("auto", &[crate::impact::Freed::new("browser", "browser:cache", 70, 1)]);
+        let next = db.impact_events_after(last_seq(&db), MAX_EVENTS).unwrap();
+        assert_eq!(next.len(), 1);
+        assert_eq!(next[0].source, "auto");
+        // a new install id starts over
+        rotate(&db).unwrap();
+        assert_eq!(db.impact_events_after(last_seq(&db), MAX_EVENTS).unwrap().len(), 3);
     }
 
     #[test]
