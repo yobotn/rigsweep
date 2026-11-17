@@ -229,6 +229,7 @@ function rerender() {
   if (state) { setStatusPills(); renderTweaks(); }
   setupIntros();
   renderPageTabs();
+  queueMicrotask(renderReady); // after the script has loaded (it reads later bindings)
   renderImpact();
   showTab(currentTab);
 }
@@ -388,7 +389,8 @@ function setPaused(p) {
 function renderTweaks() {
   const list = $("#tweak-list");
   const byCat = {};
-  state.tweaks.forEach((x) => (byCat[x.category] ||= []).push(x));
+  // PC maker services are listed only when that maker's software is on this PC
+  state.tweaks.filter((x) => !(x.category === "vendor" && x.status.overall === "not_present")).forEach((x) => (byCat[x.category] ||= []).push(x));
   list.innerHTML = state.categories.filter((c) => byCat[c.id]?.length).map((c) => {
     const items = byCat[c.id];
     const applied = items.filter((x) => x.status.overall === "applied").length;
@@ -1444,24 +1446,27 @@ async function renderDashboard() {
       <td class="num ${p.cpu > 25 ? "vhot" : p.cpu > 5 ? "hot" : ""}">${p.cpu.toFixed(1)}%</td><td class="num">${fmtBytes(p.mem)}</td><td class="num">${diskOf(p) ? fmtBytes(diskOf(p)) : "–"}</td></tr>`).join("");
     const chrome = snap.processes.filter((p) => p.name.toLowerCase() === "chrome.exe");
     const cmem = chrome.reduce((n, p) => n + p.mem, 0);
+    // Defender busy: offer to record what it is scanning
+    const mp = snap.processes.find((p) => p.name.toLowerCase() === "msmpeng.exe");
+    if (mp && mp.cpu > 5) callouts.push(`<div class="callout">${esc(t("mp.callout", { c: mp.cpu.toFixed(0) }))} <button class="small" data-mp-why>${esc(t("mp.why"))}</button></div>`);
     if (cmem > 1.5 * 1024 ** 3) callouts.push(`<div class="callout">${esc(t("dash.chrome", { n: chrome.length, mem: fmtBytes(cmem) }))} <button class="small ghost" data-go="settings">${esc(t("dash.chrome.go"))}</button></div>`);
   } else {
     $("#dash-top").innerHTML = `<tr><td colspan="4" class="loading">${esc(t("err.noData"))}</td></tr>`;
   }
   if (devr) dev = devr;
-  if (devr?.stale_count) {
-    callouts.unshift(`<div class="callout hot">${esc(t("dash.stale", { n: devr.stale_count, mem: fmtBytes(devr.stale_mem) }))} <button class="small" data-go="cleanup">${esc(t("dash.stale.go"))}</button></div>`);
-  }
   $("#dash-callouts").innerHTML = callouts.join("");
+  renderReady(); // stale processes now; disk and browser caches from the background scans
   // drop the loading skeletons even if a call failed; "–" then stands for "no data"
   ["#t-procs", "#t-tweaks", "#t-drift"].forEach((id) => $(id).classList.remove("skel"));
   renderDashCharts();
   renderHeat();
   hardwareCallout();
   if (state) {
-    const applied = state.tweaks.filter((x) => x.status.overall === "applied").length;
-    $("#t-tweaks").textContent = ltr(`${applied} / ${state.tweaks.length}`);
-    $("#t-tweaks-bar").style.width = `${state.tweaks.length ? (applied / state.tweaks.length) * 100 : 0}%`;
+    // tweaks for software that isn't on this PC (PC maker services, for example) don't count
+    const here = state.tweaks.filter((x) => x.status.overall !== "not_present");
+    const applied = here.filter((x) => x.status.overall === "applied").length;
+    $("#t-tweaks").textContent = ltr(`${applied} / ${here.length}`);
+    $("#t-tweaks-bar").style.width = `${here.length ? (applied / here.length) * 100 : 0}%`;
     $("#t-drift").textContent = state.tweaks.reduce((n, x) => n + x.drift_count, 0);
   }
   const rows = hist.filter((h) => !quietRow(h)).slice(0, 8);
@@ -2003,6 +2008,104 @@ const toggleHeatUnit = () => { heatF = !heatF; safeSet("heatUnit", heatF ? "F" :
 $("#t-heat-tile").onclick = toggleHeatUnit;
 $("#t-heat-tile").onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleHeatUnit(); } };
 $("#heat-callout").addEventListener("click", (e) => { if (e.target.dataset.go) showTab(e.target.dataset.go); });
+
+// ---------- "Ready to free": what the scans found, with one-click actions ----------
+// Dev Disk and the browser caches are scanned quietly in the background (low priority, every few
+// hours), so the Dashboard can say what can be freed without the user opening those pages. Every
+// action still goes through the same confirmation dialog as on its own page.
+function readyRows() {
+  const rows = [];
+  const stale = (dev?.items || []).filter((p) => p.stale && !p.protected);
+  if (stale.length) {
+    const mem = stale.reduce((a, p) => a + p.tree_mem, 0), cpu = stale.reduce((a, p) => a + p.cpu, 0);
+    rows.push({ key: "dev", icon: "🧹", go: "cleanup", act: t("ready.dev.act"),
+      text: t("ready.dev", { n: stale.length, mem: fmtBytes(mem) }) + (cpu >= 1 ? " · " + t("ready.cpu", { c: cpu.toFixed(0) }) : "") });
+  }
+  const dsk = disk ? diskRows().filter(diskSuggested) : [];
+  if (dsk.length) rows.push({ key: "disk", icon: "💾", go: "disk", act: t("ready.clean"),
+    text: t("ready.disk", { size: fmtBytes(dsk.reduce((a, r) => a + r.bytes, 0)), n: dsk.length }) });
+  const br = bc ? bcRows().filter(bcPreselect) : [];
+  if (br.length) rows.push({ key: "bc", icon: "🌐", go: "browser", act: t("ready.clean"),
+    text: t("ready.bc", { size: fmtBytes(br.reduce((a, r) => a + r.i.bytes, 0)) }) });
+  return rows;
+}
+function renderReady() {
+  const rows = readyRows(), box = $("#ready");
+  box.hidden = !rows.length;
+  $("#ready-list").innerHTML = rows.map((r) => `<li><span class="ready-ico" aria-hidden="true">${r.icon}</span><span class="ready-text">${esc(r.text)}</span>
+    <span class="ready-acts"><button class="small ghost" data-go="${r.go}">${esc(t("ready.review"))}</button><button class="small primary" data-ready="${r.key}">${esc(r.act)}</button></span></li>`).join("");
+}
+$("#ready-list").addEventListener("click", (e) => {
+  const go = e.target.closest("[data-go]");
+  if (go) return showTab(go.dataset.go);
+  const b = e.target.closest("[data-ready]");
+  if (!b) return;
+  // pick exactly what the row describes, then use the page's own (confirmed) action
+  if (b.dataset.ready === "dev") {
+    (dev?.items || []).filter((p) => p.stale && !p.protected).forEach((p) => { devSel.add(devKey(p)); devUnticked.delete(devKey(p)); });
+    $("#btn-clean-end").click();
+  } else if (b.dataset.ready === "disk") {
+    diskSel = new Set(diskRows().filter(diskSuggested).map((r) => r.k));
+    $("#btn-disk-clean").click();
+  } else if (b.dataset.ready === "bc") {
+    bcSel = new Set(bcRows().filter(bcPreselect).map((r) => r.k));
+    $("#btn-bc-clean").click();
+  }
+});
+const BACKGROUND = {
+  disk: { every: 6 * 3600e3, run: () => scanDisk(), skip: () => jobActive(diskJob) },
+  browser: { every: 2 * 3600e3, run: () => scanBrowsers() },
+};
+function backgroundScans() {
+  for (const [key, b] of Object.entries(BACKGROUND)) {
+    if (scans[key] || b.skip?.() || Date.now() - (scannedAt[key] || 0) < b.every) continue;
+    scanOnce(key, b.run).then(renderReady, () => {});
+  }
+}
+setTimeout(backgroundScans, 90e3);
+setInterval(backgroundScans, 15 * 60e3);
+
+// ---------- why is Microsoft Defender busy? ----------
+// The backend records Defender for 20 s (its own performance recorder) and returns its report. Field
+// names and units vary between Defender versions, so each row is read defensively and shown as a
+// share of the scan time rather than in absolute units.
+const MP_SECONDS = 20;
+function mpRows(list) {
+  const arr = Array.isArray(list) ? list : list ? [list] : [];
+  const dur = (v) => typeof v === "number" ? v : v && typeof v === "object" ? Number(v.TotalMilliseconds ?? (v.Ticks != null ? v.Ticks / 1e4 : 0)) : Number(v) || 0;
+  return arr.map((o) => {
+    const name = ["Process", "ProcessPath", "Path", "Extension", "Name"].map((k) => o?.[k]).find((v) => typeof v === "string" && v)
+      ?? Object.values(o || {}).find((v) => typeof v === "string") ?? "?";
+    const key = Object.keys(o || {}).find((k) => /^totalduration$/i.test(k)) ?? Object.keys(o || {}).find((k) => /duration/i.test(k));
+    return { name, dur: key ? dur(o[key]) : 0, count: Number(o?.Count ?? o?.ScanCount ?? 0) };
+  }).filter((r) => r.name !== "?");
+}
+const DEV_HINT = /node_modules|[\\/](target|dist|build|obj|bin|\.next|\.git|\.venv|\.gradle|\.cargo|\.npm|\.pnpm-store)([\\/]|$)|^(node|cargo|rustc|msbuild|dotnet|java|javac|git|python|go|bun|deno|pnpm|npm)(\.exe)?$/i;
+function mpList(title, rows) {
+  if (!rows.length) return "";
+  const total = rows.reduce((a, r) => a + r.dur, 0) || rows.reduce((a, r) => a + r.count, 0) || 1;
+  return `<h4>${esc(title)}</h4><ul class="mp-list">${rows.map((r) => {
+    const share = ((r.dur || r.count) / total) * 100;
+    return `<li><span class="name"><bdi dir="ltr">${esc(r.name)}</bdi></span><span class="bar" aria-hidden="true"><i style="width:${Math.max(2, share).toFixed(0)}%"></i></span>
+      <span class="num">${share.toFixed(0)}%${r.count ? ` · ${esc(t("mp.scans", { n: r.count }))}` : ""}</span></li>`;
+  }).join("")}</ul>`;
+}
+async function defenderWhy(btn) {
+  busy(btn, true, t("mp.recording", { s: MP_SECONDS }));
+  let r;
+  try { r = await invoke("defender_why", { seconds: MP_SECONDS }); }
+  catch (e) { return toast(t("mp.fail", { e: String(e) }), "err"); }
+  finally { busy(btn, false); }
+  const procs = mpRows(r?.processes), paths = mpRows(r?.paths), exts = mpRows(r?.extensions);
+  const names = [...procs, ...paths].map((x) => x.name.split(/[\\/]/).pop() || x.name).concat(paths.map((x) => x.name));
+  const dev = names.some((n) => DEV_HINT.test(n));
+  const body = !procs.length && !paths.length && !exts.length ? `<p>${esc(t("mp.none"))}</p>`
+    : mpList(t("mp.procs"), procs) + mpList(t("mp.paths"), paths) + mpList(t("mp.exts"), exts)
+      + (dev ? `<p class="callout">${esc(t("mp.devHint"))}</p>` : "");
+  const go = await modal(t("mp.title"), body, dev ? { okText: t("mp.devGo") } : { cancel: false });
+  if (go && dev) showTab("tweaks");
+}
+document.addEventListener("click", (e) => { const b = e.target.closest("[data-mp-why]"); if (b) defenderWhy(b); });
 
 function renderSpark() {
   const svg = $("#live-spark");

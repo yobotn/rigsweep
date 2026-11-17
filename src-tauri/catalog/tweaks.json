@@ -6,6 +6,7 @@
     { "id": "search", "name": "Search & Indexing", "description": "Background indexing and prefetch services that hammer the disk during big builds." },
     { "id": "features", "name": "Rarely Used Features", "description": "Services for hardware or features most dev machines never use." },
     { "id": "updates", "name": "Updates & Delivery", "description": "Control how Windows Update behaves. Windows Update itself is never disabled." },
+    { "id": "vendor", "name": "PC maker apps", "description": "Background services that Dell, ASUS, HP and Lenovo install next to their apps. Only the ones on this PC are listed. Set to Manual, the maker's app can still start them when you open it." },
     { "id": "custom", "name": "Custom (Processes & Startup)", "description": "Services and startup items you turned off from the Processes or Startup tabs." }
   ],
   "tweaks": [
@@ -401,6 +402,112 @@
         { "type": "registry", "hive": "HKLM", "path": "SOFTWARE\\Policies\\Microsoft\\EdgeUpdate", "value": "Update{56EB18F8-B008-4CBD-B6D2-8C97FE7E9062}", "kind": "dword", "data": 0 },
         { "type": "registry", "hive": "HKLM", "path": "SOFTWARE\\Policies\\Microsoft\\Edge", "value": "StartupBoostEnabled", "kind": "dword", "data": 0 },
         { "type": "registry", "hive": "HKLM", "path": "SOFTWARE\\Policies\\Microsoft\\Edge", "value": "BackgroundModeEnabled", "kind": "dword", "data": 0 }
+      ]
+    },
+    {
+      "id": "vendor.dell.datavault",
+      "category": "vendor",
+      "name": "Dell Data Vault",
+      "description": "Collects hardware and usage telemetry for Dell SupportAssist.",
+      "risk": "safe",
+      "actions": [
+        { "type": "service", "name": "DDVDataCollector", "start": "disabled", "stop": true },
+        { "type": "service", "name": "DDVRulesProcessor", "start": "disabled", "stop": true },
+        { "type": "service", "name": "DDVCollectorSvcApi", "start": "disabled", "stop": true }
+      ]
+    },
+    {
+      "id": "vendor.dell.supportassist",
+      "category": "vendor",
+      "name": "Dell SupportAssist agent",
+      "description": "Scans the PC in the background and checks for Dell driver updates.",
+      "risk": "moderate",
+      "warning": "No automatic SupportAssist scans; open SupportAssist or use Windows Update for drivers.",
+      "actions": [
+        { "type": "service", "name": "SupportAssistAgent", "start": "manual", "stop": true }
+      ]
+    },
+    {
+      "id": "vendor.asus.armourycrate",
+      "category": "vendor",
+      "name": "ASUS Armoury Crate service",
+      "description": "Runs in the background for Armoury Crate (RGB lighting, fan and performance profiles).",
+      "risk": "moderate",
+      "warning": "RGB effects and custom fan profiles may stop applying until Armoury Crate is opened.",
+      "actions": [
+        { "type": "service", "name": "ArmouryCrateService", "start": "manual", "stop": true }
+      ]
+    },
+    {
+      "id": "vendor.asus.myasus",
+      "category": "vendor",
+      "name": "MyASUS background services",
+      "description": "ASUS App Service, System Analysis, System Diagnosis, Software Manager and Switch: MyASUS diagnostics, updates and device linking.",
+      "risk": "moderate",
+      "warning": "MyASUS starts them again when you open it; background diagnostics and update checks stop.",
+      "actions": [
+        { "type": "service", "name": "AsusAppService", "start": "manual", "stop": true },
+        { "type": "service", "name": "ASUSSystemAnalysis", "start": "manual", "stop": true },
+        { "type": "service", "name": "ASUSSystemDiagnosis", "start": "manual", "stop": true },
+        { "type": "service", "name": "ASUSSoftwareManager", "start": "manual", "stop": true },
+        { "type": "service", "name": "ASUSSwitch", "start": "manual", "stop": true }
+      ]
+    },
+    {
+      "id": "vendor.asus.optimization",
+      "category": "vendor",
+      "name": "ASUS Optimization",
+      "description": "ASUS system service used by MyASUS for battery, fan and display settings.",
+      "risk": "caution",
+      "warning": "On many ASUS laptops it also handles the Fn hotkeys (brightness, keyboard light). Restore it if a key stops working.",
+      "actions": [
+        { "type": "service", "name": "ASUSOptimization", "start": "manual", "stop": true }
+      ]
+    },
+    {
+      "id": "vendor.hp.analytics",
+      "category": "vendor",
+      "name": "HP Analytics (Touchpoint)",
+      "description": "Collects usage and hardware telemetry for HP.",
+      "risk": "safe",
+      "actions": [
+        { "type": "service", "name": "HpTouchpointAnalyticsService", "start": "disabled", "stop": true }
+      ]
+    },
+    {
+      "id": "vendor.hp.support",
+      "category": "vendor",
+      "name": "HP Support Assistant services",
+      "description": "HP App Helper, Diagnostics, Network and System Info services used by HP Support Assistant.",
+      "risk": "moderate",
+      "warning": "HP Support Assistant starts them when you open it; background checks stop.",
+      "actions": [
+        { "type": "service", "name": "HPAppHelperCap", "start": "manual", "stop": true },
+        { "type": "service", "name": "HPDiagsCap", "start": "manual", "stop": true },
+        { "type": "service", "name": "HPNetworkCap", "start": "manual", "stop": true },
+        { "type": "service", "name": "HPSysInfoCap", "start": "manual", "stop": true }
+      ]
+    },
+    {
+      "id": "vendor.lenovo.vantage",
+      "category": "vendor",
+      "name": "Lenovo Vantage service",
+      "description": "Background service for Lenovo Vantage (updates, warranty, device settings).",
+      "risk": "moderate",
+      "warning": "Vantage starts it again when you open it; background update checks stop.",
+      "actions": [
+        { "type": "service", "name": "LenovoVantageService", "start": "manual", "stop": true }
+      ]
+    },
+    {
+      "id": "vendor.lenovo.imcontroller",
+      "category": "vendor",
+      "name": "Lenovo System Interface Foundation",
+      "description": "ImController: runs Lenovo Vantage plug-ins in the background.",
+      "risk": "caution",
+      "warning": "Some Fn keys, battery conservation mode and camera privacy toggles depend on it. Restore it if one stops working.",
+      "actions": [
+        { "type": "service", "name": "ImControllerService", "start": "manual", "stop": true }
       ]
     }
   ]

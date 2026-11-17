@@ -674,6 +674,31 @@ pub async fn defender_self_status() -> R<DefenderSelf> {
     defender_status_now()
 }
 
+/// Why is Microsoft Defender busy? Records Defender for `seconds` with its own performance recorder
+/// (New-MpPerformanceRecording, Windows 10 21H2+ and 11; needs admin, which RigSweep has), then returns
+/// what it spent that time scanning: top processes, folders and file types, as Get-MpPerformanceReport
+/// gives them. The recording file is deleted afterwards.
+#[tauri::command]
+pub async fn defender_why(seconds: u32) -> R<serde_json::Value> {
+    let secs = seconds.clamp(5, 60);
+    tauri::async_runtime::spawn_blocking(move || {
+        let script = format!(
+            "$ErrorActionPreference = 'Stop'
+             $f = Join-Path $env:TEMP ('rigsweep-defender-' + [guid]::NewGuid() + '.etl')
+             try {{
+               New-MpPerformanceRecording -RecordTo $f -Seconds {secs} | Out-Null
+               $r = Get-MpPerformanceReport -Path $f -TopProcesses 8 -TopPaths 8 -TopPathsDepth 3 -TopExtensions 8 -Raw
+               [pscustomobject]@{{ processes = @($r.TopProcesses); paths = @($r.TopPaths); extensions = @($r.TopExtensions) }} |
+                 ConvertTo-Json -Depth 3 -Compress
+             }} finally {{ Remove-Item $f -ErrorAction SilentlyContinue }}"
+        );
+        let out = util::powershell(&script).map_err(err)?;
+        serde_json::from_str::<serde_json::Value>(out.trim()).map_err(|e| format!("unexpected Defender report: {e}"))
+    })
+    .await
+    .map_err(err)?
+}
+
 /// Opt-in only: add / remove RigSweep's own install folder from Defender exclusions.
 #[tauri::command]
 pub async fn defender_self_allow(state: State<'_, AppState>, allow: bool) -> R<DefenderSelf> {

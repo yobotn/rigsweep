@@ -152,16 +152,23 @@ mod tests {
             .creation_flags(0x0800_0000) // CREATE_NO_WINDOW
             .spawn()
             .unwrap();
-        std::thread::sleep(std::time::Duration::from_millis(700));
-        let sys = snap();
         let root = child.id();
+        // cmd.exe needs a moment to start ping; on a busy machine that can take seconds, so poll
+        let kids_of = |sys: &System| -> Vec<(u32, u64)> {
+            sys.processes()
+                .iter()
+                .filter(|(_, p)| p.parent() == Some(Pid::from_u32(root)))
+                .map(|(pid, p)| (pid.as_u32(), p.start_time()))
+                .collect()
+        };
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(10);
+        let mut sys = snap();
+        while kids_of(&sys).is_empty() && std::time::Instant::now() < deadline {
+            std::thread::sleep(std::time::Duration::from_millis(200));
+            sys = snap();
+        }
         let start = |pid: u32| sys.process(Pid::from_u32(pid)).map(|p| p.start_time()).unwrap();
-        let kids: Vec<(u32, u64)> = sys
-            .processes()
-            .iter()
-            .filter(|(_, p)| p.parent() == Some(Pid::from_u32(root)))
-            .map(|(pid, p)| (pid.as_u32(), p.start_time()))
-            .collect();
+        let kids = kids_of(&sys);
         assert!(!kids.is_empty(), "ping child not found");
 
         // wrong root start time: nothing is touched

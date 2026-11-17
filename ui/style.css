@@ -506,3 +506,21 @@ span.ico:not([data-ico]) { background: transparent; }
 .tab.grouped > header { min-height: 0; }
 .tab.grouped > header:not(:has(.actions, button, .seg, .sub)) { display: none; }
 .tab.grouped > header .actions, .tab.grouped > header > button { margin-inline-start: auto; }
+
+/* Dashboard: "Ready to free" */
+.card.ready { margin-bottom: 14px; }
+.card.ready h2 { margin: 0 0 6px; }
+#ready-list { list-style: none; margin: 0; padding: 0; }
+#ready-list li { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+#ready-list li:last-child { border-bottom: 0; padding-bottom: 0; }
+.ready-ico { font-size: 18px; width: 24px; text-align: center; }
+.ready-text { flex: 1 1 260px; min-width: 0; }
+.ready-acts { display: flex; gap: 8px; margin-inline-start: auto; }
+
+/* Defender report */
+.mp-list { list-style: none; margin: 4px 0 12px; padding: 0; }
+.mp-list li { display: grid; grid-template-columns: minmax(0, 2fr) minmax(60px, 1fr) auto; gap: 10px; align-items: center; padding: 3px 0; font-size: 13px; }
+.mp-list .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mp-list .bar { height: 6px; background: var(--panel2); border-radius: 3px; overflow: hidden; }
+.mp-list .bar i { display: block; height: 100%; background: var(--accent); }
+.mp-list .num { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }

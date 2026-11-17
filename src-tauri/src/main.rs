@@ -153,6 +153,7 @@ fn run_app(start_hidden: bool) {
             commands::clear_snapshots,
             commands::defender_self_status,
             commands::defender_self_allow,
+            commands::defender_why,
             commands::open_chrome_helper,
             commands::get_live,
             commands::check_update,
