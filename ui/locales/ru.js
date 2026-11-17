@@ -1,4 +1,5 @@
 I18N["ru"] = {
+    "common.moreActions": "Другие действия",
     "nav.impact": "📈 Итоги",
     "intro.more": "Как это работает",
     "intro.less": "Свернуть",

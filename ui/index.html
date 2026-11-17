@@ -231,7 +231,12 @@
         <div class="actions">
           <button id="btn-measure" class="primary" data-i18n="report.measure"></button>
           <button id="btn-copy-md" class="ghost" data-i18n="report.copy"></button>
-          <button id="btn-clear-snaps" class="ghost" data-i18n="report.clear"></button>
+          <div class="menu">
+            <button class="ghost menu-btn" type="button" aria-haspopup="menu" aria-expanded="false" data-i18n-aria="common.moreActions">⋯</button>
+            <div class="menu-list" role="menu" hidden>
+              <button id="btn-clear-snaps" role="menuitem" class="danger-text" data-i18n="report.clear"></button>
+            </div>
+          </div>
         </div>
       </header>
       <div class="intro"><p class="hint" data-i18n="report.hint"></p></div>
@@ -305,8 +310,13 @@
         <h1 data-i18n="hist.title"></h1>
         <div class="actions">
           <button id="btn-export" class="ghost" data-i18n="hist.export"></button>
-          <label class="btn ghost"><span data-i18n="hist.import"></span><input id="file-import" type="file" accept=".json" hidden /></label>
-          <button id="btn-restore-all" class="danger" data-i18n="hist.restoreAll"></button>
+          <div class="menu">
+            <button class="ghost menu-btn" type="button" aria-haspopup="menu" aria-expanded="false" data-i18n-aria="common.moreActions">⋯</button>
+            <div class="menu-list" role="menu" hidden>
+              <label role="menuitem" tabindex="-1"><span data-i18n="hist.import"></span><input id="file-import" type="file" accept=".json" hidden /></label>
+              <button id="btn-restore-all" role="menuitem" class="danger-text" data-i18n="hist.restoreAll"></button>
+            </div>
+          </div>
         </div>
       </header>
       <p class="hint" id="backup-info"></p>

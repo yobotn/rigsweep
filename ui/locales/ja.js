@@ -1,4 +1,5 @@
 I18N["ja"] = {
+    "common.moreActions": "その他の操作",
     "nav.impact": "📈 効果",
     "intro.more": "仕組み",
     "intro.less": "閉じる",

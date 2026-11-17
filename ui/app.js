@@ -231,6 +231,38 @@ function rerender() {
   showTab(currentTab);
 }
 
+// ---------- "⋯" menus: secondary and dangerous actions ----------
+function closeMenus(except) {
+  document.querySelectorAll(".menu-list:not([hidden])").forEach((l) => {
+    if (l === except) return;
+    l.hidden = true;
+    l.parentElement.querySelector(".menu-btn").setAttribute("aria-expanded", "false");
+  });
+}
+document.querySelectorAll(".menu").forEach((m) => {
+  const btn = m.querySelector(".menu-btn"), list = m.querySelector(".menu-list");
+  const items = () => [...list.querySelectorAll("[role=menuitem]")];
+  btn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const open = list.hidden;
+    closeMenus(list);
+    list.hidden = !open;
+    btn.setAttribute("aria-expanded", String(open));
+    if (open) items()[0]?.focus();
+  });
+  list.addEventListener("click", (e) => { if (e.target.closest("[role=menuitem]")) closeMenus(); });
+  list.addEventListener("keydown", (e) => {
+    const all = items(), i = all.indexOf(document.activeElement);
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      all[(i + (e.key === "ArrowDown" ? 1 : -1) + all.length) % all.length]?.focus();
+    } else if (e.key === "Escape") { closeMenus(); btn.focus(); }
+    else if ((e.key === "Enter" || e.key === " ") && document.activeElement.tagName === "LABEL") { e.preventDefault(); document.activeElement.click(); }
+  });
+});
+document.addEventListener("click", (e) => { if (!e.target.closest(".menu")) closeMenus(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeMenus(); });
+
 // ---------- page intros ----------
 // Each page's explanation shows one line; "How it works" opens the rest (remembered per page).
 const introsOpen = new Set(JSON.parse(safeGet("introsOpen") || "[]"));
@@ -350,10 +382,9 @@ function renderTweak(x) {
   <div class="tw" data-id="${esc(x.id)}">
     <input type="checkbox" class="sel" ${selected.has(x.id) ? "checked" : ""} ${st === "not_present" ? "disabled" : ""} />
     <div>
-      <div class="name">${esc(x.name)}</div>
+      <div class="name">${esc(x.name)} <details class="chg"><summary>${esc(t("tw.changes", { n: x.status.actions.length }))}</summary><ul>${actions}</ul></details></div>
       <div class="desc">${esc(x.description)}</div>
       ${x.warning ? `<div class="${warnCls}">${x.risk === "caution" ? "⚠ " : ""}${esc(x.warning)}</div>` : ""}
-      <details><summary>${esc(t("tw.changes", { n: x.status.actions.length }))}</summary><ul>${actions}</ul></details>
     </div>
     <div class="right">
       <span class="risk ${x.risk}">${esc(t("risk." + x.risk))}</span>
@@ -990,6 +1021,8 @@ async function loadSnapshots() {
   const opts = snaps.map((s) => `<option value="${s.id}" title="${esc(fullDate(s.ts))}" data-ago="${esc(s.ts)}" data-ago-after="${esc(" · " + snapName(s))}">${esc(timeAgo(s.ts) + " · " + snapName(s))}</option>`).join("");
   $("#snap-before").innerHTML = opts;
   $("#snap-after").innerHTML = opts;
+  // comparing needs two measurements; until then the pickers are only noise
+  $(".pickers").classList.toggle("hidden", snaps.length < 2);
   if (snaps.length) {
     const base = snaps.find((s) => s.label === "baseline") || snaps[0];
     const pick = reportPick || { before: base.id, after: snaps[snaps.length - 1].id };

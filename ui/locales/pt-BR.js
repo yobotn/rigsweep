@@ -1,4 +1,5 @@
 I18N["pt-BR"] = {
+    "common.moreActions": "Mais ações",
     "nav.impact": "📈 Impacto",
     "intro.more": "Como funciona",
     "intro.less": "Mostrar menos",

@@ -20,7 +20,7 @@ const I18N = {
     "watchdog.every": "Watchdog: every {n} min", "watchdog.paused": "Watchdog: paused",
     "admin.ok": "Administrator", "admin.bad": "Not elevated!",
     "common.refresh": "Refresh", "common.cancel": "Cancel", "common.ok": "OK", "common.save": "Save", "common.working": "Working…",
-    "common.close": "Close", "err.failed": "Something went wrong", "err.noData": "Couldn't read this right now. Retrying in a few seconds.", "dash.cpuSub": "avg {a}% · peak {p}%", "dash.memSub": "{u} of {t}", "dash.waiting": "Collecting samples…", "act.apply": "Tweak applied", "act.restore": "Tweak restored", "act.drift": "Reverted by Windows, fixed", "act.reapply": "Profile checked", "act.kill": "Process ended", "act.dev_cleanup": "Dev Cleanup", "act.browser_clean": "Browser cleanup", "act.disk_clean": "Dev Disk cleanup", "act.disk_exclude": "Folder excluded", "act.settings": "Settings saved", "act.export": "Profile exported", "act.import": "Profile imported", "act.add_custom": "Service added", "act.av_allow": "Defender exclusion added", "act.av_disallow": "Defender exclusion removed", "src.gui": "you", "src.watchdog": "watchdog", "src.auto": "auto-cleanup", "src.cli": "command line", "src.import": "import",
+    "common.close": "Close", "common.moreActions": "More actions", "err.failed": "Something went wrong", "err.noData": "Couldn't read this right now. Retrying in a few seconds.", "dash.cpuSub": "avg {a}% · peak {p}%", "dash.memSub": "{u} of {t}", "dash.waiting": "Collecting samples…", "act.apply": "Tweak applied", "act.restore": "Tweak restored", "act.drift": "Reverted by Windows, fixed", "act.reapply": "Profile checked", "act.kill": "Process ended", "act.dev_cleanup": "Dev Cleanup", "act.browser_clean": "Browser cleanup", "act.disk_clean": "Dev Disk cleanup", "act.disk_exclude": "Folder excluded", "act.settings": "Settings saved", "act.export": "Profile exported", "act.import": "Profile imported", "act.add_custom": "Service added", "act.av_allow": "Defender exclusion added", "act.av_disallow": "Defender exclusion removed", "src.gui": "you", "src.watchdog": "watchdog", "src.auto": "auto-cleanup", "src.cli": "command line", "src.import": "import",
 
     "dash.title": "Dashboard", "dash.cpu": "CPU", "dash.mem": "Memory", "dash.procs": "Processes / running services",
     "dash.tweaks": "Tweaks active", "dash.drift": "Reverted by Windows (fixed)", "dash.top": "Top resource consumers",
@@ -391,6 +391,7 @@ function applyI18n(root = document) {
   root.querySelectorAll("[data-i18n]").forEach((el) => (el.textContent = t(el.dataset.i18n)));
   root.querySelectorAll("[data-i18n-ph]").forEach((el) => (el.placeholder = t(el.dataset.i18nPh)));
   root.querySelectorAll("[data-i18n-title]").forEach((el) => (el.title = t(el.dataset.i18nTitle)));
+  root.querySelectorAll("[data-i18n-aria]").forEach((el) => { el.setAttribute("aria-label", t(el.dataset.i18nAria)); el.title = t(el.dataset.i18nAria); });
 }
 
 function setLang(l) {

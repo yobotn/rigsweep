@@ -1,4 +1,5 @@
 I18N["ar"] = {
+    "common.moreActions": "إجراءات أخرى",
     "nav.impact": "📈 الأثر",
     "intro.more": "كيف يعمل",
     "intro.less": "عرض أقل",

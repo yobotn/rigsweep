@@ -1,4 +1,5 @@
 I18N["ko"] = {
+    "common.moreActions": "추가 작업",
     "nav.impact": "📈 성과",
     "intro.more": "작동 방식",
     "intro.less": "접기",

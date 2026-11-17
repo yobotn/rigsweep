@@ -1,4 +1,5 @@
 I18N["zh-CN"] = {
+    "common.moreActions": "更多操作",
     "nav.impact": "📈 清理成果",
     "intro.more": "工作原理",
     "intro.less": "收起",
