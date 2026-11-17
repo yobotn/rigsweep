@@ -237,7 +237,7 @@ pub async fn admin_summary(pool: &PgPool, days: Option<u32>) -> sqlx::Result<Val
     let fleet = latest(&cur);
     let sections: Vec<(&str, String)> = vec![
         ("series", format!(
-            "SELECT b.t, COALESCE(r.active, 0) AS active, COALESCE(r.reports, 0) AS reports,
+            "SELECT b.t AS day, COALESCE(r.active, 0) AS active, COALESCE(r.reports, 0) AS reports,
                     COALESCE(e.disk, 0) AS disk, COALESCE(e.ram, 0) AS ram, COALESCE(x.active, 0) AS ext_active
              FROM generate_series({first}, date_trunc('{step}', now()), interval '1 {step}') AS b(t)
              LEFT JOIN (SELECT date_trunc('{step}', received_at) t, count(DISTINCT install_id) active, count(*) reports FROM reports GROUP BY 1) r ON r.t = b.t

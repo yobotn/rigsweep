@@ -112,7 +112,9 @@ async fn reports_totals_admin_and_optout() {
     assert_eq!(s["apps_cpu"][0]["app"], "VS Code");
     assert_eq!(s["tweaks"][0]["installs"], 2);
     assert_eq!(s["ram"][0]["name"], "32 GB");
-    assert!(s["series"].as_array().unwrap().len() >= 30);
+    let series = s["series"].as_array().unwrap();
+    assert!(series.len() >= 30);
+    assert_eq!(series.last().unwrap()["active"], 2, "rows, not just dates: {}", series.last().unwrap());
     for days in ["1", "7", "90", "365", "all"] {
         let (st, s) = call(&app, get(&format!("/admin/api/summary?days={days}"), Some("admin:s3cret"))).await;
         assert_eq!(st, StatusCode::OK, "days={days}");

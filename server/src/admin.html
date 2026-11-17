@@ -7,64 +7,138 @@
 <title>RigSweep Admin</title>
 <style>
 :root { --bg: #0f1218; --panel: #171b24; --panel2: #1e2330; --border: #2a3142; --text: #e6e9ef; --muted: #8b93a7;
-  --disk: #34c38f; --ram: #b392f0; --accent: #4f8cff; color-scheme: dark; }
+  --disk: #34c38f; --ram: #b392f0; --accent: #4f8cff; --up: #34c38f; --down: #f46a6a; color-scheme: dark; }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 "Segoe UI", system-ui, sans-serif; }
-main { max-width: 1280px; margin: 0 auto; padding: 24px 16px 48px; }
-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
-h1 { font-size: 22px; margin: 0; } h2 { font-size: 15px; margin: 0 0 10px; }
+main { max-width: 1200px; margin: 0 auto; padding: 24px 16px 48px; }
+header { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+h1 { font-size: 22px; margin: 0; } h2 { font-size: 13px; margin: 0 0 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
 .sub { color: var(--muted); font-size: 12px; }
-.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px; }
-.tile, .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; min-width: 0; }
-.tile .v { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.tile .v.disk { color: var(--disk); } .tile .v.ram { color: var(--ram); }
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 14px; }
-@media (max-width: 480px) { .grid { grid-template-columns: 1fr; } }
+.seg { display: inline-flex; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 2px; gap: 2px; }
+.seg button { background: none; border: 0; color: var(--muted); padding: 5px 10px; border-radius: 6px; font: inherit; font-size: 13px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--panel2); color: var(--text); }
+.seg button:focus-visible, .tabs button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 18px; flex-wrap: wrap; }
+.tabs button { background: none; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; color: var(--muted); padding: 8px 14px; font: inherit; cursor: pointer; }
+.tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 14px; }
+.kpi, .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; min-width: 0; }
+.kpi .v { font-size: 30px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; margin-top: 2px; }
+.kpi .v.disk { color: var(--disk); } .kpi .v.ram { color: var(--ram); }
+.delta { font-size: 12px; font-variant-numeric: tabular-nums; } .delta.up { color: var(--up); } .delta.down { color: var(--down); } .delta.flat { color: var(--muted); }
+.minis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 14px; }
+.mini { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; }
+.mini .v { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.cols2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 14px; }
+@media (max-width: 520px) { .cols2 { grid-template-columns: 1fr; } }
+.card + .card, .cols2 + .card, .card + .cols2 { margin-top: 14px; }
+.cols2 > .card { margin-top: 0; }
+.chart-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.plot { position: relative; height: 220px; }
+.plot svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.plot .grid line { stroke: var(--panel2); stroke-width: 1; }
+.plot .axis text { fill: var(--muted); font-size: 11px; }
+.plot .area { fill: var(--accent); opacity: .14; } .plot .line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; }
+.plot.disk .area { fill: var(--disk); } .plot.disk .line { stroke: var(--disk); }
+.plot.ram .area { fill: var(--ram); } .plot.ram .line { stroke: var(--ram); }
+.cursor { position: absolute; top: 0; bottom: 22px; width: 1px; background: var(--muted); opacity: .5; pointer-events: none; }
+.dot { position: absolute; width: 10px; height: 10px; border-radius: 50%; background: var(--text); border: 2px solid var(--panel); transform: translate(-50%, -50%); pointer-events: none; }
+.tip { position: absolute; top: 0; background: var(--panel2); border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px; font-size: 12px; white-space: nowrap; pointer-events: none; }
+.hidden { display: none !important; }
 table { width: 100%; border-collapse: collapse; }
-td, th { padding: 5px 6px; text-align: start; border-bottom: 1px solid var(--panel2); white-space: nowrap; }
+td, th { padding: 6px; text-align: start; border-bottom: 1px solid var(--panel2); white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
 th { color: var(--muted); font-weight: 500; font-size: 12px; }
 td.n, th.n { text-align: end; font-variant-numeric: tabular-nums; }
-td.bar { width: 45%; } .bar i { display: block; height: 8px; border-radius: 4px; background: var(--accent); min-width: 2px; }
+td.bar { width: 40%; } .bar i { display: block; height: 8px; border-radius: 0 4px 4px 0; background: var(--accent); min-width: 2px; }
 .bar.disk i { background: var(--disk); } .bar.ram i { background: var(--ram); }
-.cols { display: flex; align-items: flex-end; gap: 6px; height: 140px; padding-top: 8px; }
-.cols div { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px; min-width: 0; height: 100%; }
-.cols i { display: block; width: 100%; background: var(--accent); border-radius: 4px 4px 0 0; min-height: 2px; }
-.cols span { font-size: 11px; color: var(--muted); white-space: nowrap; }
 .empty { color: var(--muted); padding: 10px 0; }
-button { background: var(--panel2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; font: inherit; cursor: pointer; }
-.err { color: #f46a6a; }
+.more { margin-top: 8px; }
+button.link { background: none; border: 0; color: var(--accent); cursor: pointer; font: inherit; font-size: 12px; padding: 0; }
+.exports { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.exports a { display: block; background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; color: var(--text); text-decoration: none; }
+.exports a:hover { border-color: var(--accent); }
+.err { color: var(--down); }
 </style>
 </head>
 <body>
 <main>
   <header>
     <div><h1>RigSweep usage</h1><div class="sub" id="updated">Loading…</div></div>
-    <button id="reload">Refresh</button>
+    <div class="seg" id="range" role="group" aria-label="Time range">
+      <button data-days="1">24h</button><button data-days="7">7d</button><button data-days="30">30d</button>
+      <button data-days="90">90d</button><button data-days="365">1y</button><button data-days="all">All</button>
+    </div>
   </header>
-  <div class="tiles" id="tiles"></div>
-  <div class="card" style="margin-bottom:14px"><h2>Active installs per week</h2><div class="cols" id="weekly"></div></div>
-  <div class="grid">
-    <div class="card"><h2>Countries <span class="sub">active in 30 days</span></h2><table id="countries"></table></div>
-    <div class="card"><h2>Freed most <span class="sub">30 days</span></h2><table id="freed"></table></div>
-    <div class="card"><h2>Apps by CPU <span class="sub">average %, installs where it's in the top 5</span></h2><table id="apps_cpu"></table></div>
-    <div class="card"><h2>Apps by memory <span class="sub">average, installs where it's in the top 5</span></h2><table id="apps_mem"></table></div>
-    <div class="card"><h2>RAM installed</h2><table id="ram"></table></div>
-    <div class="card"><h2>CPU cores</h2><table id="cores"></table></div>
-    <div class="card"><h2>App versions</h2><table id="versions"></table></div>
-    <div class="card"><h2>Windows builds</h2><table id="builds"></table></div>
-    <div class="card"><h2>Tweaks applied <span class="sub">installs, 30 days</span></h2><table id="tweaks"></table></div>
-    <div class="card"><h2>New installs per week</h2><div class="cols" id="new_installs"></div></div>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" data-tab="overview">Overview</button>
+    <button role="tab" data-tab="cleanups">Cleanups</button>
+    <button role="tab" data-tab="apps">Apps</button>
+    <button role="tab" data-tab="fleet">Fleet</button>
+    <button role="tab" data-tab="ext">Extension</button>
+    <button role="tab" data-tab="export">Export</button>
   </div>
-  <h2 style="margin:26px 0 12px;font-size:17px">RigSweep Tabs extension</h2>
-  <div class="tiles" id="ext_tiles"></div>
-  <div class="grid">
-    <div class="card"><h2>Tabs slept per week</h2><div class="cols" id="ext_weekly"></div></div>
-    <div class="card"><h2>Browsers <span class="sub">active in 30 days</span></h2><table id="ext_browsers"></table></div>
-    <div class="card"><h2>Tabs open <span class="sub">latest report per install</span></h2><table id="ext_tabs"></table></div>
-  </div>
+
+  <section data-panel="overview">
+    <div class="kpis" id="kpis"></div>
+    <div class="minis" id="minis"></div>
+    <div class="card">
+      <div class="chart-head">
+        <h2 id="chart-title" style="margin:0">Active installs</h2>
+        <div class="seg" id="metric" role="group" aria-label="Chart measure">
+          <button data-m="active">Active installs</button><button data-m="reports">Reports</button>
+          <button data-m="disk">Disk freed</button><button data-m="ram">RAM recovered</button>
+        </div>
+      </div>
+      <div class="plot" id="plot"><svg id="svg" aria-hidden="true"></svg><div class="cursor hidden"></div><div class="dot hidden"></div><div class="tip hidden"></div></div>
+    </div>
+  </section>
+
+  <section data-panel="cleanups" hidden>
+    <div class="cols2">
+      <div class="card"><h2>Freed by type</h2><table id="freed"></table></div>
+      <div class="card"><h2>Who started it</h2><table id="sources"></table></div>
+    </div>
+  </section>
+
+  <section data-panel="apps" hidden>
+    <div class="cols2">
+      <div class="card"><h2>Apps by CPU <span class="sub">avg %, installs with it in their top 5</span></h2><table id="apps_cpu"></table></div>
+      <div class="card"><h2>Apps by memory <span class="sub">avg, installs with it in their top 5</span></h2><table id="apps_mem"></table></div>
+    </div>
+  </section>
+
+  <section data-panel="fleet" hidden>
+    <div class="cols2">
+      <div class="card"><h2>Countries</h2><table id="countries"></table></div>
+      <div class="card"><h2>App versions</h2><table id="versions"></table></div>
+      <div class="card"><h2>RAM installed</h2><table id="ram"></table></div>
+      <div class="card"><h2>CPU cores</h2><table id="cores"></table></div>
+      <div class="card"><h2>Windows builds</h2><table id="builds"></table></div>
+      <div class="card"><h2>Tweaks on <span class="sub">installs</span></h2><table id="tweaks"></table></div>
+    </div>
+  </section>
+
+  <section data-panel="ext" hidden>
+    <div class="minis" id="ext_minis"></div>
+    <div class="cols2">
+      <div class="card"><h2>Browsers</h2><table id="ext_browsers"></table></div>
+      <div class="card"><h2>Tabs open <span class="sub">latest report per install</span></h2><table id="ext_tabs"></table></div>
+    </div>
+  </section>
+
+  <section data-panel="export" hidden>
+    <div class="card">
+      <h2>Raw data</h2>
+      <p class="sub" style="margin-top:0">Every table exactly as stored, one row per report or event, for a spreadsheet or a BI tool.</p>
+      <div class="exports" id="exports"></div>
+    </div>
+  </section>
 </main>
 <script>
 const $ = (s) => document.querySelector(s);
+const $$ = (s) => [...document.querySelectorAll(s)];
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const num = (n) => Number(n || 0).toLocaleString("en");
 const bytes = (b) => { b = Number(b || 0); const u = ["B", "KB", "MB", "GB", "TB", "PB"]; let i = 0;
@@ -72,64 +146,160 @@ const bytes = (b) => { b = Number(b || 0); const u = ["B", "KB", "MB", "GB", "TB
 const flag = (c) => /^[A-Z]{2}$/.test(c) ? String.fromCodePoint(...[...c].map((x) => 0x1f1a5 + x.charCodeAt(0))) + " " : "";
 const KIND = { agent: "Agent CLIs", mcp: "MCP servers", server: "Dev servers", browser: "Automation browsers", daemon: "Build daemons",
   vm: "WSL / Docker VM", wsl: "WSL sessions", shell: "Stuck shell tools", earlier: "Earlier cleanups", worktree: "Git worktrees", "dir:other": "Other build folders" };
+const SOURCE = { gui: "User", auto: "Auto-cleanup", watchdog: "Watchdog", cli: "Command line", import: "Import", earlier: "Before stats existed" };
 const kindName = (k) => KIND[k] || k.replace(/^(dir|cache|browser):/, "");
+const store = { get: (k) => { try { return localStorage.getItem(k); } catch { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch {} } };
 
-function table(id, rows, cols, barKey, barClass = "") {
+let days = store.get("days") || "30", tab = store.get("tab") || "overview", metric = store.get("metric") || "active", data = null;
+
+// ---------- tables ----------
+function table(id, rows, cols, barKey, barClass = "", limit = 10) {
   const el = $("#" + id);
-  if (!rows.length) { el.innerHTML = `<tr><td class="empty">No data yet</td></tr>`; return; }
+  if (!rows.length) { el.innerHTML = `<tr><td class="empty">Nothing in this period</td></tr>`; return; }
   const max = Math.max(...rows.map((r) => Number(r[barKey]) || 0), 1);
+  const open = el.dataset.open === "1";
+  const shown = open ? rows : rows.slice(0, limit);
   el.innerHTML = `<tr>${cols.map((c) => `<th class="${c.n ? "n" : ""}">${esc(c.h)}</th>`).join("")}<th></th></tr>` +
-    rows.map((r) => `<tr>${cols.map((c) => `<td class="${c.n ? "n" : ""}">${c.f ? c.f(r) : esc(r[c.k])}</td>`).join("")}
+    shown.map((r) => `<tr>${cols.map((c) => `<td class="${c.n ? "n" : ""}">${c.f ? c.f(r) : esc(r[c.k])}</td>`).join("")}
       <td class="bar ${typeof barClass === "function" ? barClass(r) : barClass}"><i style="width:${(Number(r[barKey]) / max) * 100}%"></i></td></tr>`).join("");
+  if (el.nextElementSibling?.classList.contains("more")) el.nextElementSibling.remove();
+  if (rows.length > limit) {
+    const b = document.createElement("button");
+    b.className = "link more";
+    b.textContent = open ? "Show less" : `Show all ${rows.length}`;
+    b.onclick = () => { el.dataset.open = open ? "0" : "1"; table(id, rows, cols, barKey, barClass, limit); };
+    el.after(b);
+  }
 }
+const clearMore = () => {};
 
-function columns(id, rows, key, label) {
-  const el = $("#" + id);
-  if (!rows.length) { el.innerHTML = `<div class="empty">No data yet</div>`; return; }
-  const max = Math.max(...rows.map((r) => Number(r[key]) || 0), 1);
-  el.innerHTML = rows.map((r) => `<div title="${esc(label(r))}"><span>${num(r[key])}</span><i style="height:${(Number(r[key]) / max) * 100}%"></i><span>${esc(String(r.week).slice(5))}</span></div>`).join("");
+// ---------- KPIs ----------
+function delta(now, prev) {
+  if (days === "all" || prev == null) return "";
+  now = Number(now || 0); prev = Number(prev || 0);
+  if (!prev && !now) return `<span class="delta flat">no change</span>`;
+  if (!prev) return `<span class="delta up">new</span>`;
+  const p = Math.round(((now - prev) / prev) * 100);
+  const cls = p > 0 ? "up" : p < 0 ? "down" : "flat";
+  return `<span class="delta ${cls}">${p > 0 ? "▲" : p < 0 ? "▼" : "•"} ${Math.abs(p)}% vs previous ${esc(rangeLabel())}</span>`;
 }
+const rangeLabel = () => ({ 1: "24h", 7: "7 days", 30: "30 days", 90: "90 days", 365: "year" })[days] || "period";
 
-async function load() {
-  $("#updated").textContent = "Loading…";
-  let d;
-  try {
-    const r = await fetch("admin/api/summary", { credentials: "same-origin" });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    d = await r.json();
-  } catch (e) { $("#updated").innerHTML = `<span class="err">Couldn't load: ${esc(e.message)}</span>`; return; }
-  const t = d.totals;
-  const tiles = [
-    ["Installs", num(t.installs)], ["Active 7 days", num(t.active_7d)], ["Active 30 days", num(t.active_30d)],
-    ["Disk freed", bytes(t.disk_freed), "disk"], ["RAM recovered", bytes(t.ram_recovered), "ram"],
-    ["Processes ended", num(t.processes_ended)], ["Cleanups", num(t.cleanups)],
-    ["Avg RAM in use", t.ram_used_pct == null ? "–" : `${t.ram_used_pct}%`], ["Opt-outs 30 days", num(t.optouts_30d)],
+function renderOverview() {
+  const n = data.totals.now, p = data.totals.prev || {};
+  const k = [
+    ["Active installs", num(n.active), "", n.active, p.active],
+    ["New installs", num(n.new_installs), "", n.new_installs, p.new_installs],
+    ["Disk freed", bytes(n.disk_freed), "disk", n.disk_freed, p.disk_freed],
+    ["RAM recovered", bytes(n.ram_recovered), "ram", n.ram_recovered, p.ram_recovered],
   ];
-  $("#tiles").innerHTML = tiles.map(([l, v, c]) => `<div class="tile"><div class="sub">${esc(l)}</div><div class="v ${c || ""}">${esc(v)}</div></div>`).join("");
-  columns("weekly", d.weekly, "active", (r) => `${r.week}: ${num(r.active)} active · ${bytes(r.disk)} disk · ${bytes(r.ram)} RAM`);
-  columns("new_installs", d.new_installs, "n", (r) => `${r.week}: ${num(r.n)} new`);
-  table("countries", d.countries, [{ h: "Country", f: (r) => flag(r.country) + esc(r.country) }, { h: "Installs", k: "n", n: 1, f: (r) => num(r.n) }], "n");
+  $("#kpis").innerHTML = k.map(([l, v, c, a, b]) => `<div class="kpi"><div class="sub">${esc(l)}</div><div class="v ${c}">${esc(v)}</div>${delta(a, b)}</div>`).join("");
+  const a = data.totals.all;
+  $("#minis").innerHTML = [
+    ["Processes ended", num(n.processes_ended)], ["Cleanups", num(n.cleanups)], ["Reports", num(n.reports)],
+    ["Opt-outs", num(n.optouts)], ["Avg RAM in use", data.totals.ram_used_pct == null ? "–" : `${data.totals.ram_used_pct}%`],
+    ["Installs, all time", num(a.installs)],
+  ].map(([l, v]) => `<div class="mini"><div class="sub">${esc(l)}</div><div class="v">${esc(v)}</div></div>`).join("");
+  renderChart();
+}
+
+// ---------- the main chart: one measure at a time (never two scales on one axis) ----------
+const METRIC = { active: ["Active installs", num, ""], reports: ["Reports", num, ""], disk: ["Disk freed", bytes, "disk"], ram: ["RAM recovered", bytes, "ram"] };
+function renderChart() {
+  $$("#metric button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.m === metric)));
+  const [title, fmt, cls] = METRIC[metric];
+  $("#chart-title").textContent = title + (data.days === 1 ? " per hour" : " per day");
+  const plot = $("#plot"); plot.className = `plot ${cls}`;
+  const s = data.series, svg = $("#svg");
+  const W = plot.clientWidth || 800, H = plot.clientHeight || 220, L = 56, B = 22, T = 8;
+  const vals = s.map((r) => Number(r[metric]) || 0), max = Math.max(...vals, 1);
+  const x = (i) => L + (s.length < 2 ? (W - L) / 2 : (i / (s.length - 1)) * (W - L - 4));
+  const y = (v) => T + (H - T - B) * (1 - v / max);
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const ticks = [0, 0.5, 1].map((f) => f * max);
+  const step = Math.max(1, Math.ceil(s.length / 8));
+  const dateFmt = (t) => { const d = new Date(t); return data.days === 1 ? d.toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit" }) : d.toLocaleDateString("en", { month: "short", day: "numeric" }); };
+  const pts = vals.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`);
+  svg.innerHTML = `<g class="grid">${ticks.map((v) => `<line x1="${L}" x2="${W}" y1="${y(v)}" y2="${y(v)}"/>`).join("")}</g>
+    <g class="axis">${ticks.map((v) => `<text x="${L - 8}" y="${y(v) + 4}" text-anchor="end">${esc(fmt(v))}</text>`).join("")}
+      ${s.map((r, i) => (i % step === 0 || i === s.length - 1) ? `<text x="${x(i)}" y="${H - 4}" text-anchor="middle">${esc(dateFmt(r.day))}</text>` : "").join("")}</g>
+    ${s.length ? `<path class="area" d="M${x(0)},${y(0)} L${pts.join(" L")} L${x(s.length - 1)},${y(0)} Z"/><path class="line" d="M${pts.join(" L")}"/>` : ""}`;
+  // hover: crosshair + tooltip for the nearest point
+  const cur = plot.querySelector(".cursor"), dot = plot.querySelector(".dot"), tip = plot.querySelector(".tip");
+  plot.onmousemove = (e) => {
+    if (!s.length) return;
+    const r = plot.getBoundingClientRect(), px = ((e.clientX - r.left) / r.width) * W;
+    const i = Math.max(0, Math.min(s.length - 1, Math.round(((px - L) / (W - L - 4)) * (s.length - 1))));
+    const sx = (x(i) / W) * r.width, sy = (y(vals[i]) / H) * r.height;
+    cur.style.left = `${sx}px`; dot.style.left = `${sx}px`; dot.style.top = `${sy}px`;
+    tip.innerHTML = `<b>${esc(fmt(vals[i]))}</b> · ${esc(dateFmt(s[i].day))}`;
+    tip.style.left = `${Math.min(sx + 10, r.width - tip.offsetWidth - 4)}px`;
+    [cur, dot, tip].forEach((el) => el.classList.remove("hidden"));
+  };
+  plot.onmouseleave = () => [cur, dot, tip].forEach((el) => el.classList.add("hidden"));
+}
+
+// ---------- the other tabs ----------
+function renderTables() {
+  clearMore();
+  const d = data;
   table("freed", d.freed, [{ h: "Type", f: (r) => esc(kindName(r.kind)) + ` <span class="sub">${esc(r.area)}</span>` },
-    { h: "Freed", n: 1, f: (r) => bytes(r.bytes) }, { h: "Installs", n: 1, f: (r) => num(r.installs) }], "bytes", (r) => r.area === "memory" ? "ram" : "disk");
-  table("apps_cpu", d.apps_cpu, [{ h: "App", k: "app" }, { h: "Avg CPU", n: 1, f: (r) => `${r.avg_cpu}%` }, { h: "Installs", n: 1, f: (r) => num(r.installs) }], "installs");
-  table("apps_mem", d.apps_mem, [{ h: "App", k: "app" }, { h: "Avg memory", n: 1, f: (r) => bytes(r.avg_mem) }, { h: "Installs", n: 1, f: (r) => num(r.installs) }], "installs", "ram");
+    { h: "Freed", n: 1, f: (r) => bytes(r.bytes) }, { h: "Count", n: 1, f: (r) => num(r.count) }, { h: "Installs", n: 1, f: (r) => num(r.installs) }],
+    "bytes", (r) => r.area === "memory" ? "ram" : "disk", 15);
+  table("sources", d.sources, [{ h: "Started by", f: (r) => esc(SOURCE[r.name] || r.name) }, { h: "Cleanups", n: 1, f: (r) => num(r.n) },
+    { h: "Freed", n: 1, f: (r) => bytes(r.bytes) }], "bytes");
+  table("apps_cpu", d.apps_cpu, [{ h: "App", k: "app" }, { h: "Avg CPU", n: 1, f: (r) => `${r.avg_cpu}%` }, { h: "Installs", n: 1, f: (r) => num(r.installs) }], "installs", "", 15);
+  table("apps_mem", d.apps_mem, [{ h: "App", k: "app" }, { h: "Avg memory", n: 1, f: (r) => bytes(r.avg_mem) }, { h: "Installs", n: 1, f: (r) => num(r.installs) }], "installs", "ram", 15);
+  table("countries", d.countries, [{ h: "Country", f: (r) => flag(r.country) + esc(r.country) }, { h: "Installs", n: 1, f: (r) => num(r.n) }], "n");
+  table("versions", d.versions, [{ h: "Version", k: "name" }, { h: "Installs", n: 1, f: (r) => num(r.n) }], "n");
   table("ram", d.ram, [{ h: "RAM", k: "name" }, { h: "Installs", n: 1, f: (r) => num(r.n) }], "n", "ram");
   table("cores", d.cores, [{ h: "Cores", k: "name" }, { h: "Installs", n: 1, f: (r) => num(r.n) }], "n");
-  table("versions", d.versions, [{ h: "Version", k: "name" }, { h: "Installs", n: 1, f: (r) => num(r.n) }], "n");
   table("builds", d.builds, [{ h: "Build", k: "name" }, { h: "Installs", n: 1, f: (r) => num(r.n) }], "n");
   table("tweaks", d.tweaks, [{ h: "Tweak", k: "tweak" }, { h: "Installs", n: 1, f: (r) => num(r.installs) }], "installs");
-  $("#ext_tiles").innerHTML = [
-    ["Extension installs", num(t.ext_installs)], ["Active 30 days", num(t.ext_active_30d)], ["Tabs slept", num(t.tabs_slept), "ram"],
-    ["Tabs closed", num(t.tabs_closed)], ["Avg tabs open", t.ext_tabs_avg == null ? "–" : num(t.ext_tabs_avg)],
-    ["Auto-sleep on", t.ext_auto_sleep_pct == null ? "–" : `${t.ext_auto_sleep_pct}%`],
-  ].map(([l, v, c]) => `<div class="tile"><div class="sub">${esc(l)}</div><div class="v ${c || ""}">${esc(v)}</div></div>`).join("");
-  columns("ext_weekly", d.ext_weekly, "slept", (r) => `${r.week}: ${num(r.active)} active · ${num(r.slept)} slept · ${num(r.closed)} closed`);
+  const n = d.totals.now;
+  $("#ext_minis").innerHTML = [
+    ["Active", num(n.ext_active)], ["Installs, all time", num(d.totals.all.ext_installs)], ["Tabs slept", num(n.tabs_slept)],
+    ["Tabs closed", num(n.tabs_closed)], ["Avg tabs open", d.totals.ext_tabs_avg == null ? "–" : num(d.totals.ext_tabs_avg)],
+    ["Auto-sleep on", d.totals.ext_auto_sleep_pct == null ? "–" : `${d.totals.ext_auto_sleep_pct}%`],
+  ].map(([l, v]) => `<div class="mini"><div class="sub">${esc(l)}</div><div class="v">${esc(v)}</div></div>`).join("");
   table("ext_browsers", d.ext_browsers, [{ h: "Browser", k: "name" }, { h: "Installs", n: 1, f: (r) => num(r.n) }], "n");
   table("ext_tabs", d.ext_tabs, [{ h: "Tabs", k: "name" }, { h: "Installs", n: 1, f: (r) => num(r.n) }], "n");
-  $("#updated").textContent = `Updated ${new Date().toLocaleTimeString()}`;
 }
-$("#reload").onclick = load;
+
+const EXPORTS = [["events", "One row per thing cleaned"], ["reports", "One row per report, with its machine snapshot"],
+  ["app_use", "Top apps in each report"], ["installs", "Latest state of each install"], ["ext_reports", "One row per extension report"],
+  ["ext_installs", "Latest state of each extension install"], ["optouts", "Opt-outs per day"]];
+$("#exports").innerHTML = EXPORTS.map(([t, d]) => `<a href="admin/api/export/${t}.csv" download><b>${esc(t)}.csv</b><div class="sub">${esc(d)}</div></a>`).join("");
+
+// ---------- tabs, range, loading ----------
+function showTab(name) {
+  if (!$(`[data-panel="${name}"]`)) name = "overview";
+  tab = name; store.set("tab", name);
+  $$(".tabs button").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === name)));
+  $$("[data-panel]").forEach((p) => { p.hidden = p.dataset.panel !== name; });
+  if (name === "overview" && data) renderChart();
+}
+$$(".tabs button").forEach((b) => b.onclick = () => showTab(b.dataset.tab));
+$$("#range button").forEach((b) => b.onclick = () => { days = b.dataset.days; store.set("days", days); load(); });
+$$("#metric button").forEach((b) => b.onclick = () => { metric = b.dataset.m; store.set("metric", metric); renderChart(); });
+window.addEventListener("resize", () => data && tab === "overview" && renderChart());
+
+async function load() {
+  $$("#range button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.days === days)));
+  $("#updated").textContent = "Loading…";
+  try {
+    const r = await fetch(`admin/api/summary?days=${encodeURIComponent(days)}`, { credentials: "same-origin" });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    data = await r.json();
+  } catch (e) { $("#updated").innerHTML = `<span class="err">Couldn't load: ${esc(e.message)}</span>`; return; }
+  renderOverview();
+  renderTables();
+  showTab(tab);
+  $("#updated").textContent = `Updated ${new Date().toLocaleTimeString("en")} · ${num(data.totals.all.reports)} reports, ${num(data.totals.all.events)} events stored`;
+}
+showTab(tab);
 load();
+setInterval(() => document.visibilityState === "visible" && load(), 60000);
 </script>
 </body>
 </html>
