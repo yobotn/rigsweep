@@ -338,4 +338,5 @@ I18N["ar"] = {
     "st.offNone": "لم يُوقَف أي شيء بعد.",
     "st.restore": "استعادة",
     "st.restored": "تمت استعادة {name}",
+    "impact.title": "الأثر", "impact.week": "هذا الأسبوع", "impact.month": "30 يومًا", "impact.all": "منذ البداية", "impact.disk": "مساحة القرص المحرَّرة", "impact.ram": "الذاكرة المستعادة", "impact.procs": "العمليات المُنهاة", "impact.runs": "مرات التنظيف", "impact.top": "الأكثر تحريرًا للمساحة", "impact.empty": "لم يُنظَّف شيء بعد. ستظهر المجاميع هنا بعد أول تنظيف.", "impact.emptyPeriod": "لم يُنظَّف شيء في هذه الفترة.", "impact.since": "منذ {d}", "impact.milestone": "🎉 حرّر RigSweep حتى الآن {n} على هذا الكمبيوتر.", "impact.k.agent": "أدوات CLI للوكلاء", "impact.k.mcp": "خوادم MCP", "impact.k.server": "خوادم التطوير", "impact.k.browser": "متصفحات الأتمتة", "impact.k.daemon": "خدمات البناء الخلفية", "impact.k.vm": "آلة WSL / Docker الافتراضية", "impact.k.wsl": "جلسات WSL", "impact.k.shell": "أدوات صدفة عالقة", "impact.k.earlier": "عمليات تنظيف سابقة", "impact.k.worktree": "Git worktrees", "impact.k.dirOther": "مجلدات بناء أخرى",
 };

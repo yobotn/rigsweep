@@ -70,6 +70,25 @@
           </div>
         </div>
       </div>
+      <div class="card impact" id="impact">
+        <div class="impact-head">
+          <h2 data-i18n="impact.title"></h2>
+          <div class="seg" role="radiogroup" id="im-period">
+            <button role="radio" data-period="week" data-i18n="impact.week"></button>
+            <button role="radio" data-period="month" data-i18n="impact.month"></button>
+            <button role="radio" data-period="all" data-i18n="impact.all"></button>
+          </div>
+        </div>
+        <div class="impact-stats">
+          <div><div class="label" data-i18n="impact.disk"></div><div class="big disk" id="im-disk">–</div></div>
+          <div><div class="label" data-i18n="impact.ram"></div><div class="big ram" id="im-ram">–</div></div>
+          <div><div class="label" data-i18n="impact.procs"></div><div class="big" id="im-procs">–</div></div>
+          <div><div class="label" data-i18n="impact.runs"></div><div class="big" id="im-runs">–</div></div>
+        </div>
+        <div class="label" data-i18n="impact.top"></div>
+        <ul id="im-top"></ul>
+        <div class="sub" id="im-since"></div>
+      </div>
       <div class="tiles">
         <div class="tile link" data-go="processes" role="button" tabindex="0"><div class="label" data-i18n="dash.procs"></div><div class="value skel" id="t-procs">–</div></div>
         <div class="tile link" data-go="tweaks" role="button" tabindex="0"><div class="label" data-i18n="dash.tweaks"></div><div class="value skel" id="t-tweaks">–</div><div class="meter"><i id="t-tweaks-bar" style="width:0"></i></div></div>

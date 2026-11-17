@@ -113,6 +113,8 @@ pub struct CleanResult {
     pub skipped_running: Vec<String>,
     /// files that were locked or denied (left in place)
     pub locked_files: u64,
+    /// what was emptied, by cache type only (for the Impact counters)
+    pub impact: Vec<crate::impact::Freed>,
 }
 
 // ---------- discovery ----------
@@ -429,11 +431,14 @@ pub fn clean(targets: &[CleanTarget]) -> CleanResult {
                 if !mine.iter().any(|t| t.profile == p.dir && t.key == i.key) {
                     continue;
                 }
+                let mut got = 0;
                 for path in &i.paths {
                     let (f, l) = empty_dir(path);
-                    res.freed += f;
+                    got += f;
                     res.locked_files += l;
                 }
+                res.freed += got;
+                res.impact.push(crate::impact::Freed::new("browser", format!("browser:{}", i.key), got, 1));
                 let pname = if p.dir.is_empty() { "shared" } else { p.name.as_str() };
                 res.cleaned.push(format!("{} / {} / {}", b.def.name, pname, i.key));
             }

@@ -1219,6 +1219,8 @@ pub struct DiskCleanResult {
     pub done: Vec<String>,
     pub skipped: Vec<String>,
     pub locked_files: u64,
+    /// what was freed, by folder or cache type only (for the Impact counters)
+    pub impact: Vec<crate::impact::Freed>,
 }
 
 fn plain_segment(s: &str) -> bool {
@@ -1557,8 +1559,19 @@ fn run(cfg: &Config, targets: Vec<DiskTarget>, save: &dyn Fn(&[DiskTarget])) -> 
                 Err(e) => r.skipped.push(format!("{label}: {e}")),
             }
         }
+        let got = FREED.load(Ordering::Relaxed) - before;
+        if got > 0 {
+            let kind = match t.kind.as_str() {
+                "cache" => CACHES.iter().find(|d| d.id == t.id).map(|d| format!("cache:{}", d.id)),
+                "worktree" => Some("worktree".into()),
+                _ => Some(crate::impact::dir_kind(&t.name, LEFTOVER)),
+            };
+            if let Some(kind) = kind {
+                r.impact.push(crate::impact::Freed::new("disk", kind, got, 1));
+            }
+        }
         if stopped {
-            pending[0].bytes = pending[0].bytes.saturating_sub(FREED.load(Ordering::Relaxed) - before);
+            pending[0].bytes = pending[0].bytes.saturating_sub(got);
             break;
         }
         pending.remove(0);
@@ -1934,6 +1947,7 @@ mod tests {
         let r = clean(&cfg, &[ok]);
         assert_eq!(r.cleaned.len(), 1, "{r:?}");
         assert_eq!(r.freed, 300);
+        assert_eq!(r.impact.iter().map(|f| f.bytes).sum::<u64>(), 300); // every byte freed is counted, by type
         assert!(!app.join("node_modules").exists());
         assert!(app.join("package.json").exists());
         assert_eq!(fs::read_dir(&app).unwrap().count(), 1); // no leftover folder

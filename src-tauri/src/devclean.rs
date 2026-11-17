@@ -177,6 +177,8 @@ pub struct KillResult {
     pub freed_mem: u64,
     /// RAM in use right before the first kill, from the live meter (0 if it has no sample yet)
     pub mem_before: u64,
+    /// what was ended, by category only (for the Impact counters)
+    pub impact: Vec<crate::impact::Freed>,
 }
 
 /// Remembers when each process tree last used CPU, so "idle" is measured, not guessed.
@@ -999,6 +1001,8 @@ pub fn kill(fresh: &DevReport, targets: &[KillTarget]) -> KillResult {
         match res {
             Ok(n) => {
                 r.freed_mem += item.tree_mem;
+                let kind = crate::impact::mem_kind(item.kind, item.eco, &item.reasons);
+                r.impact.push(crate::impact::Freed::new("memory", kind, item.tree_mem, n as u64));
                 r.ended.push(format!("{} (PID {}, {} process(es))", item.label, item.pid, n));
             }
             Err(e) => r.failed.push(format!("{} (PID {}): {e}", item.label, item.pid)),

@@ -338,4 +338,5 @@ I18N["pt-BR"] = {
     "st.offNone": "Nada desativado ainda.",
     "st.restore": "Restaurar",
     "st.restored": "{name} restaurado",
+    "impact.title": "Impacto", "impact.week": "Esta semana", "impact.month": "30 dias", "impact.all": "Desde o início", "impact.disk": "Disco liberado", "impact.ram": "RAM recuperada", "impact.procs": "Processos encerrados", "impact.runs": "Limpezas", "impact.top": "O que mais liberou", "impact.empty": "Nada foi limpo ainda. Seus totais aparecem aqui depois da primeira limpeza.", "impact.emptyPeriod": "Nada foi limpo neste período.", "impact.since": "Contando desde {d}", "impact.milestone": "🎉 O RigSweep já liberou {n} neste PC.", "impact.k.agent": "CLIs de agentes", "impact.k.mcp": "Servidores MCP", "impact.k.server": "Servidores de dev", "impact.k.browser": "Navegadores de automação", "impact.k.daemon": "Daemons de build", "impact.k.vm": "VM do WSL / Docker", "impact.k.wsl": "Sessões do WSL", "impact.k.shell": "Ferramentas de shell travadas", "impact.k.earlier": "Limpezas anteriores", "impact.k.worktree": "Worktrees do Git", "impact.k.dirOther": "Outras pastas de build",
 };

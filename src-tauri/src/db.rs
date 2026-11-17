@@ -5,6 +5,7 @@ use serde_json::Value;
 use std::path::PathBuf;
 
 use crate::catalog::Tweak;
+use crate::impact::Freed;
 
 pub struct Db {
     conn: Connection,
@@ -111,7 +112,11 @@ impl Db {
              CREATE TABLE IF NOT EXISTS custom_tweaks(id TEXT PRIMARY KEY, json TEXT NOT NULL);
              CREATE TABLE IF NOT EXISTS settings(key TEXT PRIMARY KEY, value TEXT NOT NULL);
              CREATE TABLE IF NOT EXISTS snapshots(
-                id INTEGER PRIMARY KEY AUTOINCREMENT, ts TEXT NOT NULL, label TEXT NOT NULL, metrics_json TEXT NOT NULL);",
+                id INTEGER PRIMARY KEY AUTOINCREMENT, ts TEXT NOT NULL, label TEXT NOT NULL, metrics_json TEXT NOT NULL);
+             CREATE TABLE IF NOT EXISTS impact(
+                id INTEGER PRIMARY KEY AUTOINCREMENT, run INTEGER NOT NULL, ts TEXT NOT NULL, source TEXT NOT NULL,
+                area TEXT NOT NULL, kind TEXT NOT NULL, bytes INTEGER NOT NULL, count INTEGER NOT NULL);
+             CREATE INDEX IF NOT EXISTS impact_ts ON impact(ts);",
         )?;
         Ok(Db { conn })
     }
@@ -297,6 +302,67 @@ impl Db {
     }
 
     // ---------- settings ----------
+    // ---------- impact ----------
+    /// Record one cleanup run (`source` = "gui" | "auto"); empty or zero rows are skipped.
+    pub fn add_impact(&self, source: &str, items: &[Freed]) {
+        let items: Vec<&Freed> = items.iter().filter(|f| f.bytes > 0 || f.count > 0).collect();
+        if items.is_empty() {
+            return;
+        }
+        let run: i64 = self.conn.query_row("SELECT COALESCE(MAX(run), 0) + 1 FROM impact", [], |r| r.get(0)).unwrap_or(1).max(1);
+        let ts = now();
+        for f in items {
+            let _ = self.conn.execute(
+                "INSERT INTO impact(run, ts, source, area, kind, bytes, count) VALUES(?1,?2,?3,?4,?5,?6,?7)",
+                params![run, ts, source, f.area, f.kind, f.bytes as i64, f.count as i64],
+            );
+        }
+    }
+
+    /// (run, row) for every record at or after `since` ("YYYY-MM-DD HH:MM:SS"), or all of them.
+    pub fn impact_rows(&self, since: Option<&str>) -> Result<Vec<(i64, Freed)>> {
+        let mut st = self.conn.prepare(
+            "SELECT run, area, kind, bytes, count FROM impact WHERE ?1 IS NULL OR ts >= ?1 ORDER BY id",
+        )?;
+        let rows = st
+            .query_map(params![since], |r| {
+                let (b, c): (i64, i64) = (r.get(3)?, r.get(4)?);
+                Ok((r.get(0)?, Freed { area: r.get(1)?, kind: r.get(2)?, bytes: b.max(0) as u64, count: c.max(0) as u64 }))
+            })?
+            .collect::<std::result::Result<Vec<_>, _>>()?;
+        Ok(rows)
+    }
+
+    pub fn impact_since(&self) -> String {
+        self.conn.query_row("SELECT COALESCE(MIN(ts), '') FROM impact", [], |r| r.get(0)).unwrap_or_default()
+    }
+
+    /// Once: turn the totals already in History into "earlier" records, so existing users start
+    /// with real numbers. Runs before any new record is written.
+    pub fn backfill_impact(&self) -> Result<()> {
+        const KEY: &str = "impact_backfilled";
+        if self.get_setting(KEY).is_some() {
+            return Ok(());
+        }
+        let mut st = self.conn.prepare(
+            "SELECT id, ts, source, action, detail FROM history WHERE result='ok' AND action IN ('disk_clean','browser_clean','dev_cleanup') ORDER BY id",
+        )?;
+        let rows = st
+            .query_map([], |r| Ok((r.get::<_, i64>(0)?, r.get::<_, String>(1)?, r.get::<_, String>(2)?, r.get::<_, String>(3)?, r.get::<_, String>(4)?)))?
+            .collect::<std::result::Result<Vec<_>, _>>()?;
+        // rows written in the same second belong to one cleanup: they share a (negative) run
+        let mut run_of: std::collections::HashMap<String, i64> = Default::default();
+        for (id, ts, source, action, detail) in rows {
+            let Some(f) = crate::impact::from_history(&action, &detail) else { continue };
+            let run = *run_of.entry(ts.clone()).or_insert(-id);
+            self.conn.execute(
+                "INSERT INTO impact(run, ts, source, area, kind, bytes, count) VALUES(?1,?2,?3,?4,?5,?6,?7)",
+                params![run, ts, source, f.area, f.kind, f.bytes as i64, f.count as i64],
+            )?;
+        }
+        self.set_setting(KEY, "1")
+    }
+
     pub fn get_setting(&self, key: &str) -> Option<String> {
         self.conn
             .query_row("SELECT value FROM settings WHERE key=?1", params![key], |r| r.get(0))
@@ -318,6 +384,22 @@ impl Db {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    #[test]
+    fn impact_backfill_then_new_runs() {
+        let db = Db::open_in_memory().unwrap();
+        db.log("gui", None, "disk_clean", true, "cache npm (512.0 MB)");
+        db.log("gui", None, "disk_clean", true, "freed 512.0 MB, 0 locked file(s) left");
+        db.log("auto", None, "dev_cleanup", true, "ended vite (PID 1, 2 process(es))");
+        db.backfill_impact().unwrap();
+        db.backfill_impact().unwrap(); // only once
+        db.add_impact("gui", &[Freed::new("memory", "mcp", 100, 2), Freed::new("memory", "agent", 0, 0)]);
+        let t = crate::impact::total(&db.impact_rows(None).unwrap());
+        assert_eq!((t.disk, t.memory, t.processes), (536870912, 100, 3));
+        assert_eq!(t.kinds.len(), 3); // disk earlier, memory earlier, mcp; the empty agent row is dropped
+        assert!(t.cleanups >= 2);
+        assert!(db.impact_rows(Some("2999-01-01 00:00:00")).unwrap().is_empty());
+    }
 
     #[test]
     fn backup_is_captured_only_once() {

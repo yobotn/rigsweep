@@ -338,4 +338,5 @@ I18N["ja"] = {
     "st.offNone": "オフにした項目はまだありません。",
     "st.restore": "元に戻す",
     "st.restored": "{name} を元に戻しました",
+    "impact.title": "効果", "impact.week": "今週", "impact.month": "30 日", "impact.all": "累計", "impact.disk": "解放したディスク", "impact.ram": "回収したメモリ", "impact.procs": "終了したプロセス", "impact.runs": "クリーンアップ回数", "impact.top": "解放量の多い項目", "impact.empty": "まだ何もクリーンアップしていません。最初のクリーンアップ後にここに合計が表示されます。", "impact.emptyPeriod": "この期間のクリーンアップはありません。", "impact.since": "{d} から集計", "impact.milestone": "🎉 RigSweep はこの PC でこれまでに {n} を解放しました。", "impact.k.agent": "エージェント CLI", "impact.k.mcp": "MCP サーバー", "impact.k.server": "開発サーバー", "impact.k.browser": "自動化ブラウザー", "impact.k.daemon": "ビルドデーモン", "impact.k.vm": "WSL / Docker VM", "impact.k.wsl": "WSL セッション", "impact.k.shell": "取り残されたシェルツール", "impact.k.earlier": "以前のクリーンアップ", "impact.k.worktree": "Git ワークツリー", "impact.k.dirOther": "その他のビルドフォルダー",
 };

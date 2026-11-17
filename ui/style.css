@@ -80,6 +80,29 @@ textarea { width: 100%; font-family: Consolas, monospace; font-size: 13px; margi
 .tile .label { color: var(--muted); font-size: 12px; }
 .tile .value { white-space: nowrap; font-size: 22px; font-weight: 600; margin-top: 4px; font-variant-numeric: tabular-nums; }
 .grid2 { display: grid; grid-template-columns: 1.3fr 1fr; gap: 14px; }
+/* Impact: what RigSweep has freed on this PC */
+.impact { margin-bottom: 16px; }
+.impact .label { color: var(--muted); font-size: 12px; }
+.impact-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.impact-head h2 { margin: 0; }
+.seg { display: inline-flex; background: var(--panel2); border: 1px solid var(--border); border-radius: 8px; padding: 2px; }
+.seg button { background: none; border: 0; color: var(--muted); padding: 4px 10px; border-radius: 6px; font-size: 12px; }
+.seg button[aria-checked="true"] { background: var(--panel); color: var(--text); box-shadow: 0 0 0 1px var(--border); }
+.impact-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 14px 0 12px; }
+.impact-stats .big { font-size: 28px; font-weight: 700; margin-top: 2px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.impact-stats .big.disk { color: var(--safe); }
+.impact-stats .big.ram { color: var(--c-mem); }
+#im-top { list-style: none; margin: 6px 0 8px; padding: 0; display: grid; gap: 2px; }
+#im-top .empty-state { color: var(--muted); padding: 6px 0; }
+.im-row { width: 100%; display: grid; grid-template-columns: minmax(110px, 1fr) 2fr minmax(64px, auto); gap: 12px; align-items: center;
+  background: none; border: 0; padding: 5px 6px; border-radius: 6px; color: var(--text); text-align: start; font: inherit; cursor: pointer; }
+.im-row:hover { background: var(--row-hover); }
+.im-row:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.im-row .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.im-row .bar { height: 8px; background: var(--panel2); border-radius: 4px; overflow: hidden; }
+.im-row .bar i { display: block; height: 100%; background: var(--safe); transition: width .4s; }
+.im-row.memory .bar i { background: var(--c-mem); }
+.im-row .num { text-align: end; color: var(--muted); font-variant-numeric: tabular-nums; }
 @media (max-width: 1100px) { .grid2 { grid-template-columns: 1fr; } }
 
 .tbl { width: 100%; border-collapse: collapse; font-size: 13px; }

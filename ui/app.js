@@ -201,6 +201,7 @@ function rerender() {
     caution: `<span class="risk caution">${esc(t("risk.caution"))}</span>`,
   });
   if (state) { setStatusPills(); renderTweaks(); }
+  renderImpact();
   showTab(currentTab);
 }
 
@@ -1240,7 +1241,63 @@ function feedItem(h) {
     <div class="sub">${esc(h.ts)} · ${esc(tOr("src." + h.source, h.source))}</div></div></li>`;
 }
 
+// ---------- impact: what RigSweep has freed on this PC ----------
+let impact = null;
+let impactPeriod = ["week", "month", "all"].includes(safeGet("impact_period")) ? safeGet("impact_period") : "month";
+const IM_TAB = { memory: "cleanup", disk: "disk", browser: "browser" };
+function impactLabel(k) {
+  if (k.kind === "earlier") return t("impact.k.earlier");
+  if (k.area === "memory") return tOr("impact.k." + k.kind, k.kind);
+  if (k.kind === "worktree") return t("impact.k.worktree");
+  if (k.kind === "dir:other") return t("impact.k.dirOther");
+  if (k.kind.startsWith("dir:")) return k.kind.slice(4); // a folder name reads the same in every language
+  if (k.kind.startsWith("cache:")) return tOr("disk.cache." + k.kind.slice(6), k.kind.slice(6));
+  if (k.kind.startsWith("browser:")) return tOr("bc.item." + k.kind.slice(8), k.kind.slice(8));
+  return k.kind;
+}
+async function loadImpact() {
+  try { impact = await invoke("get_impact"); } catch (e) { console.error("get_impact", e); return; }
+  renderImpact();
+  impactMilestone();
+}
+function renderImpact() {
+  document.querySelectorAll("#im-period button").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.period === impactPeriod)));
+  $("#im-period").setAttribute("aria-label", t("impact.title"));
+  if (!impact) return;
+  const p = impact[impactPeriod];
+  $("#im-disk").textContent = fmtBytes(p.disk + p.browser);
+  $("#im-ram").textContent = fmtBytes(p.memory);
+  $("#im-procs").textContent = ltr(String(p.processes));
+  $("#im-runs").textContent = ltr(String(p.cleanups));
+  const top = p.kinds.filter((k) => k.bytes > 0).slice(0, 5);
+  const max = top[0]?.bytes || 1;
+  $("#im-top").innerHTML = top.length ? top.map((k) => `<li><button class="im-row ${esc(k.area)}" data-go="${IM_TAB[k.area] || "dashboard"}">
+      <span class="name" title="${esc(impactLabel(k))}"><bdi>${esc(impactLabel(k))}</bdi></span>
+      <span class="bar" aria-hidden="true"><i style="width:${Math.max(2, (k.bytes / max) * 100)}%"></i></span>
+      <span class="num">${fmtBytes(k.bytes)}</span></button></li>`).join("")
+    : `<li class="empty-state">${esc(t(impact.all.cleanups ? "impact.emptyPeriod" : "impact.empty"))}</li>`;
+  $("#im-since").textContent = impact.since ? t("impact.since", { d: impact.since.slice(0, 10) }) : "";
+}
+// a toast the first time the all-time total passes each of these (in GB)
+const IM_MILESTONES = [10, 50, 100, 250, 500, 1000];
+function impactMilestone() {
+  const gb = (impact.all.disk + impact.all.browser) / 1024 ** 3;
+  const hit = IM_MILESTONES.filter((m) => gb >= m).at(-1);
+  if (!hit || hit <= Number(safeGet("impact_ms") || 0)) return;
+  safeSet("impact_ms", String(hit));
+  toast(t("impact.milestone", { n: fmtBytes(hit * 1024 ** 3) }), "ok", 8000);
+}
+$("#im-period").addEventListener("click", (e) => {
+  const b = e.target.closest("button[data-period]");
+  if (!b) return;
+  impactPeriod = b.dataset.period;
+  safeSet("impact_period", impactPeriod);
+  renderImpact();
+});
+$("#im-top").addEventListener("click", (e) => { const b = e.target.closest("[data-go]"); if (b) showTab(b.dataset.go); });
+
 async function renderDashboard() {
+  loadImpact();
   const [snap, hist, devr] = await Promise.all([
     invoke("get_processes").catch(() => null),
     invoke("get_history", { limit: 60 }).catch(() => []),

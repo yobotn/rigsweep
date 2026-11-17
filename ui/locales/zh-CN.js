@@ -338,4 +338,5 @@ I18N["zh-CN"] = {
     "st.offNone": "还没有关闭任何项。",
     "st.restore": "还原",
     "st.restored": "已还原 {name}",
+    "impact.title": "清理成果", "impact.week": "本周", "impact.month": "30 天", "impact.all": "全部", "impact.disk": "已释放磁盘", "impact.ram": "已回收内存", "impact.procs": "已结束进程", "impact.runs": "清理次数", "impact.top": "释放最多的项目", "impact.empty": "还没有清理过。第一次清理后，这里会显示总计。", "impact.emptyPeriod": "这段时间没有清理记录。", "impact.since": "自 {d} 起统计", "impact.milestone": "🎉 RigSweep 已在这台电脑上释放了 {n}。", "impact.k.agent": "智能体 CLI", "impact.k.mcp": "MCP 服务器", "impact.k.server": "开发服务器", "impact.k.browser": "自动化浏览器", "impact.k.daemon": "构建守护进程", "impact.k.vm": "WSL / Docker 虚拟机", "impact.k.wsl": "WSL 会话", "impact.k.shell": "卡住的 Shell 工具", "impact.k.earlier": "早期清理", "impact.k.worktree": "Git 工作树", "impact.k.dirOther": "其他构建文件夹",
 };

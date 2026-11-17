@@ -338,4 +338,5 @@ I18N["ko"] = {
     "st.offNone": "아직 끈 항목이 없습니다.",
     "st.restore": "복원",
     "st.restored": "{name}을(를) 복원했습니다",
+    "impact.title": "성과", "impact.week": "이번 주", "impact.month": "30일", "impact.all": "전체 기간", "impact.disk": "확보한 디스크", "impact.ram": "회수한 메모리", "impact.procs": "종료한 프로세스", "impact.runs": "정리 횟수", "impact.top": "가장 많이 확보한 항목", "impact.empty": "아직 정리한 항목이 없습니다. 첫 정리 후 여기에 합계가 표시됩니다.", "impact.emptyPeriod": "이 기간에는 정리한 항목이 없습니다.", "impact.since": "{d}부터 집계", "impact.milestone": "🎉 RigSweep이 지금까지 이 PC에서 {n}를 확보했습니다.", "impact.k.agent": "에이전트 CLI", "impact.k.mcp": "MCP 서버", "impact.k.server": "개발 서버", "impact.k.browser": "자동화 브라우저", "impact.k.daemon": "빌드 데몬", "impact.k.vm": "WSL / Docker VM", "impact.k.wsl": "WSL 세션", "impact.k.shell": "멈춘 셸 도구", "impact.k.earlier": "이전 정리", "impact.k.worktree": "Git 워크트리", "impact.k.dirOther": "기타 빌드 폴더",
 };

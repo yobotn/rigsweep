@@ -338,4 +338,5 @@ I18N["ru"] = {
     "st.offNone": "Пока ничего не отключено.",
     "st.restore": "Восстановить",
     "st.restored": "{name}: восстановлено",
+    "impact.title": "Итоги", "impact.week": "Эта неделя", "impact.month": "30 дней", "impact.all": "За всё время", "impact.disk": "Освобождено на диске", "impact.ram": "Возвращено ОЗУ", "impact.procs": "Завершено процессов", "impact.runs": "Очисток", "impact.top": "Больше всего освободили", "impact.empty": "Пока ничего не очищено. Итоги появятся здесь после первой очистки.", "impact.emptyPeriod": "За этот период ничего не очищено.", "impact.since": "Подсчёт с {d}", "impact.milestone": "🎉 RigSweep уже освободил на этом ПК {n}.", "impact.k.agent": "CLI агентов", "impact.k.mcp": "MCP-серверы", "impact.k.server": "Dev-серверы", "impact.k.browser": "Браузеры автоматизации", "impact.k.daemon": "Демоны сборки", "impact.k.vm": "ВМ WSL / Docker", "impact.k.wsl": "Сеансы WSL", "impact.k.shell": "Зависшие утилиты оболочки", "impact.k.earlier": "Прошлые очистки", "impact.k.worktree": "Git worktree", "impact.k.dirOther": "Другие папки сборки",
 };

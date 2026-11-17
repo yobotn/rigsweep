@@ -131,7 +131,17 @@
   tweaks.push({ id: "custom.svc.adobearmservice", category: "custom", name: "Adobe Acrobat Update Service (AdobeARMservice)", description: "", risk: "moderate", warning: null,
     actions: [], custom: true, in_profile: true, drift_count: 0, status: { overall: "applied", actions: [] } });
 
+  const F = (area, kind, bytes, count = 1) => ({ area, kind, bytes, count });
+  const kinds = (k) => k.map((x) => F(...x));
+  const period = (disk, memory, browser, processes, cleanups, k) => ({ disk, memory, browser, processes, cleanups, kinds: kinds(k) });
+  const impact = {
+    week: period(14.2 * GB, 6.8 * GB, 1.1 * GB, 23, 9, [["disk", "dir:target", 9.6 * GB], ["memory", "mcp", 3.1 * GB, 11], ["disk", "dir:node_modules", 2.9 * GB, 4], ["memory", "browser", 2.2 * GB, 5], ["disk", "cache:npm", 1.7 * GB], ["browser", "browser:cache", 1.1 * GB]]),
+    month: period(61.5 * GB, 24.3 * GB, 3.9 * GB, 87, 31, [["disk", "dir:target", 38.2 * GB, 7], ["disk", "dir:node_modules", 11.4 * GB, 12], ["memory", "mcp", 10.6 * GB, 40], ["memory", "browser", 7.9 * GB, 19], ["disk", "cache:pnpm", 6.3 * GB], ["browser", "browser:cache", 3.9 * GB]]),
+    all: period(212 * GB, 71 * GB, 12 * GB, 304, 118, [["disk", "dir:target", 121 * GB, 25], ["disk", "dir:node_modules", 41 * GB, 50], ["memory", "mcp", 30 * GB, 130], ["disk", "cache:cargo", 22 * GB], ["memory", "browser", 21 * GB, 60]]),
+    since: "2026-09-02 10:14:00",
+  };
   const replies = {
+    get_impact: impact,
     get_state: { elevated: true, categories: cat.categories, tweaks, paused: false, startup_registered: true, backup_count: 41, data_dir: "",
       settings: { start_with_windows: true, stay_in_tray: true, watchdog_minutes: 30, dev_folders: [], idle_minutes: 120,
         auto_kill_stale: false, badge_enabled: true, badge_warn_gb: 1, badge_alert_gb: 2 } },

@@ -338,4 +338,5 @@ I18N["de"] = {
     "st.offNone": "Noch nichts deaktiviert.",
     "st.restore": "Wiederherstellen",
     "st.restored": "{name} wiederhergestellt",
+    "impact.title": "Bilanz", "impact.week": "Diese Woche", "impact.month": "30 Tage", "impact.all": "Gesamt", "impact.disk": "Speicher freigegeben", "impact.ram": "RAM zurückgewonnen", "impact.procs": "Prozesse beendet", "impact.runs": "Bereinigungen", "impact.top": "Am meisten freigegeben", "impact.empty": "Noch nichts bereinigt. Nach der ersten Bereinigung erscheinen hier Ihre Summen.", "impact.emptyPeriod": "In diesem Zeitraum wurde nichts bereinigt.", "impact.since": "Gezählt seit {d}", "impact.milestone": "🎉 RigSweep hat auf diesem PC bisher {n} freigegeben.", "impact.k.agent": "Agent-CLIs", "impact.k.mcp": "MCP-Server", "impact.k.server": "Dev-Server", "impact.k.browser": "Automatisierungs-Browser", "impact.k.daemon": "Build-Daemons", "impact.k.vm": "WSL-/Docker-VM", "impact.k.wsl": "WSL-Sitzungen", "impact.k.shell": "Hängende Shell-Tools", "impact.k.earlier": "Frühere Bereinigungen", "impact.k.worktree": "Git-Worktrees", "impact.k.dirOther": "Andere Build-Ordner",
 };

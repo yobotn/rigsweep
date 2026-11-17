@@ -386,9 +386,65 @@ pub async fn kill_dev_processes(app: AppHandle, state: State<'_, AppState>, targ
     for f in &result.failed {
         db.log("gui", None, "dev_cleanup", false, f);
     }
+    db.add_impact("gui", &result.impact);
     let before = db.add_snapshot("before cleanup", &serde_json::to_value(before).map_err(err)?).map_err(err)?;
     let after = db.add_snapshot("after cleanup", &serde_json::to_value(after).map_err(err)?).map_err(err)?;
     Ok(CleanupResponse { result, before, after })
+}
+
+// ---------- impact ----------
+
+/// What RigSweep has freed on this PC: this week, the last 30 days and all time.
+#[tauri::command]
+pub fn get_impact(state: State<'_, AppState>) -> R<crate::impact::Summary> {
+    let db = lock(&state)?;
+    let ago = |d: i64| (chrono::Local::now() - chrono::Duration::days(d)).format("%Y-%m-%d %H:%M:%S").to_string();
+    let sum = |since: Option<&str>| db.impact_rows(since).map(|r| crate::impact::total(&r)).map_err(err);
+    Ok(crate::impact::Summary { week: sum(Some(&ago(7)))?, month: sum(Some(&ago(30)))?, all: sum(None)?, since: db.impact_since() })
+}
+
+/// The anonymous weekly report exactly as it would be sent, and this PC's sharing default.
+/// Nothing is sent: this feeds the Preview until sharing ships.
+#[derive(Serialize)]
+pub struct ReportPreview {
+    pub report: crate::report::Report,
+    pub consent_default: crate::report::Consent,
+}
+
+#[tauri::command]
+pub async fn get_report_preview(app: AppHandle, state: State<'_, AppState>) -> R<ReportPreview> {
+    use crate::report;
+    let (catalog, install_id, week, tweaks) = {
+        let db = lock(&state)?;
+        let id = match db.get_setting("install_id") {
+            Some(id) if !id.is_empty() => id,
+            _ => {
+                let id = report::new_install_id();
+                db.set_setting("install_id", &id).map_err(err)?;
+                id
+            }
+        };
+        let since = (chrono::Local::now() - chrono::Duration::days(7)).format("%Y-%m-%d %H:%M:%S").to_string();
+        let week = crate::impact::total(&db.impact_rows(Some(&since)).map_err(err)?);
+        (engine::load_catalog(&db), id, week, db.enabled_ids().map_err(err)?)
+    };
+    let snap = state.analyzer.lock().map_err(|_| "analyzer lock poisoned")?.snapshot(&catalog);
+    let live = crate::live::history();
+    let ram_used_avg = if live.is_empty() { snap.mem_used } else { live.iter().map(|s| s.mem_used).sum::<u64>() / live.len() as u64 };
+    let r = report::build(report::Inputs {
+        install_id: &install_id,
+        app_version: &app.package_info().version.to_string(),
+        windows_build: &report::windows_build(),
+        week,
+        machine: report::Machine {
+            ram_total: snap.mem_total,
+            ram_used_avg,
+            cores: std::thread::available_parallelism().map(|n| n.get()).unwrap_or(0),
+        },
+        procs: snap.processes.iter().map(|p| (p.name.clone(), p.cpu, p.mem)).collect(),
+        tweaks,
+    });
+    Ok(ReportPreview { report: r, consent_default: report::local_consent_default() })
 }
 
 // ---------- browser cleanup ----------
@@ -412,6 +468,7 @@ pub async fn clean_browser_caches(state: State<'_, AppState>, targets: Vec<Clean
     if r.freed > 0 {
         db.log("gui", None, "browser_clean", true, &format!("freed {:.1} MB, {} locked file(s) left", r.freed as f64 / 1048576.0, r.locked_files));
     }
+    db.add_impact("gui", &r.impact);
     Ok(r)
 }
 
@@ -460,6 +517,7 @@ fn log_disk_clean(app: &AppHandle, r: &DiskCleanResult) {
     if r.freed > 0 {
         db.log("gui", None, "disk_clean", true, &format!("freed {:.1} MB, {} locked file(s) left", r.freed as f64 / 1048576.0, r.locked_files));
     }
+    db.add_impact("gui", &r.impact);
 }
 
 fn disk_job(state: &State<'_, AppState>) -> R<JobView> {

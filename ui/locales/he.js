@@ -338,4 +338,5 @@ I18N["he"] = {
     "st.offNone": "עוד לא כובה כלום.",
     "st.restore": "שחזר",
     "st.restored": "{name} שוחזר",
+    "impact.title": "השפעה", "impact.week": "השבוע", "impact.month": "30 יום", "impact.all": "מאז ומעולם", "impact.disk": "שטח דיסק שהתפנה", "impact.ram": "זיכרון שהוחזר", "impact.procs": "תהליכים שנסגרו", "impact.runs": "ניקויים", "impact.top": "מה פינה הכי הרבה", "impact.empty": "עוד לא נוקה כלום. הסיכומים יופיעו כאן אחרי הניקוי הראשון.", "impact.emptyPeriod": "לא נוקה כלום בתקופה הזו.", "impact.since": "נספר מאז {d}", "impact.milestone": "🎉 עד עכשיו RigSweep פינה {n} במחשב הזה.", "impact.k.agent": "כלי CLI של סוכנים", "impact.k.mcp": "שרתי MCP", "impact.k.server": "שרתי פיתוח", "impact.k.browser": "דפדפני אוטומציה", "impact.k.daemon": "דמוני בנייה", "impact.k.vm": "מכונת WSL / Docker", "impact.k.wsl": "סשנים של WSL", "impact.k.shell": "כלי מעטפת תקועים", "impact.k.earlier": "ניקויים קודמים", "impact.k.worktree": "Git worktrees", "impact.k.dirOther": "תיקיות בנייה אחרות",
 };

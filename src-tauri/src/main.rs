@@ -14,10 +14,12 @@ mod engine;
 mod hardware;
 mod icons;
 mod heat;
+mod impact;
 mod kill;
 mod live;
 mod update;
 mod persistence;
+mod report;
 mod startup;
 mod util;
 
@@ -88,6 +90,7 @@ fn run_app(start_hidden: bool) {
             return;
         }
     };
+    let _ = db.backfill_impact(); // once: past cleanup totals become the first Impact numbers
 
     let analyzer = match analyzer::Analyzer::new() {
         Ok(a) => a,
@@ -107,6 +110,8 @@ fn run_app(start_hidden: bool) {
         })
         .invoke_handler(tauri::generate_handler![
             commands::get_state,
+            commands::get_impact,
+            commands::get_report_preview,
             commands::apply_tweaks,
             commands::restore_tweaks,
             commands::restore_all,
@@ -268,6 +273,7 @@ fn spawn_dev_monitor(app: AppHandle) {
                 for f in &result.failed {
                     db.log("auto", None, "dev_cleanup", false, f);
                 }
+                db.add_impact("auto", &result.impact);
             }
             if !result.ended.is_empty() {
                 let _ = app.emit("dev-autocleaned", &result);
