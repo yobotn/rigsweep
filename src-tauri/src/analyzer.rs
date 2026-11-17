@@ -17,6 +17,36 @@ pub struct HostedService {
 }
 
 #[derive(Serialize, Clone, Debug)]
+pub struct ProcRef {
+    pub pid: u32,
+    pub name: String,
+    pub cpu: f32,
+    pub mem: u64,
+}
+
+/// One process in depth, for "Why is this busy?".
+#[derive(Serialize, Clone, Debug)]
+pub struct ProcDetail {
+    pub pid: u32,
+    pub name: String,
+    pub exe: String,
+    pub cmd: String,
+    pub start_time: u64,
+    pub cpu: f32,
+    pub mem: u64,
+    pub disk_read: u64,
+    pub disk_write: u64,
+    pub threads: usize,
+    /// who started it, nearest first
+    pub parents: Vec<ProcRef>,
+    /// what it started, busiest first
+    pub children: Vec<ProcRef>,
+    /// from the file's version information
+    pub company: String,
+    pub description: String,
+}
+
+#[derive(Serialize, Clone, Debug)]
 pub struct ProcInfo {
     pub pid: u32,
     /// sent back on kill so a reused PID is never hit
@@ -224,6 +254,64 @@ impl Analyzer {
         }
     }
 
+    /// Everything RigSweep can tell about one process, for "Why is this busy?": its command line,
+    /// who started it, what it started, and its CPU / memory / disk right now.
+    pub fn detail(&mut self, pid: u32) -> Option<ProcDetail> {
+        let me = Pid::from_u32(pid);
+        let since = self.last.elapsed();
+        if since.as_millis() < 300 {
+            std::thread::sleep(std::time::Duration::from_millis(300 - since.as_millis() as u64));
+        }
+        self.sys.refresh_cpu_usage();
+        self.sys.refresh_processes(ProcessesToUpdate::All, true);
+        let interval = self.last.elapsed().as_secs_f32().max(0.001);
+        self.last = Instant::now();
+        self.sys.refresh_processes_specifics(
+            ProcessesToUpdate::Some(&[me]),
+            false,
+            ProcessRefreshKind::nothing().with_cmd(UpdateKind::Always).with_exe(UpdateKind::OnlyIfNotSet),
+        );
+        let ncpu = self.sys.cpus().len().max(1) as f32;
+        let p = self.sys.process(me)?;
+        let name = |p: &sysinfo::Process| p.name().to_string_lossy().into_owned();
+        // up to five parents (the chain that started it)
+        let mut parents = vec![];
+        let mut cur = p.parent();
+        while let Some(pp) = cur.and_then(|x| self.sys.process(x)) {
+            if parents.len() >= 5 || pp.pid() == me {
+                break;
+            }
+            parents.push(ProcRef { pid: pp.pid().as_u32(), name: name(pp), cpu: pp.cpu_usage() / ncpu, mem: pp.memory() });
+            cur = pp.parent();
+        }
+        let mut children: Vec<ProcRef> = self
+            .sys
+            .processes()
+            .values()
+            .filter(|c| c.parent() == Some(me))
+            .map(|c| ProcRef { pid: c.pid().as_u32(), name: name(c), cpu: c.cpu_usage() / ncpu, mem: c.memory() })
+            .collect();
+        children.sort_by(|a, b| b.cpu.total_cmp(&a.cpu).then(b.mem.cmp(&a.mem)));
+        children.truncate(15);
+        let du = p.disk_usage();
+        Some(ProcDetail {
+            pid,
+            name: name(p),
+            exe: p.exe().map(|e| e.display().to_string()).unwrap_or_default(),
+            cmd: p.cmd().iter().map(|a| a.to_string_lossy().into_owned()).collect::<Vec<_>>().join(" "),
+            start_time: p.start_time(),
+            cpu: p.cpu_usage() / ncpu,
+            mem: p.memory(),
+            disk_read: (du.read_bytes as f32 / interval) as u64,
+            disk_write: (du.written_bytes as f32 / interval) as u64,
+            threads: p.tasks().map(|t| t.len()).unwrap_or(0),
+            parents,
+            children,
+            company: String::new(),
+            description: String::new(),
+        })
+    }
+
     /// End one process, only if it is still the one the user saw (same PID *and* start time).
     pub fn kill(&mut self, pid: u32, start_time: u64) -> Result<String, String> {
         self.sys.refresh_processes(ProcessesToUpdate::Some(&[Pid::from_u32(pid)]), true);
@@ -234,5 +322,17 @@ impl Analyzer {
         }
         crate::kill::terminate(pid, start_time).map_err(|e| format!("couldn't end {name}: {e}"))?;
         Ok(name)
+    }
+}
+
+#[cfg(test)]
+mod why_tests {
+    #[test]
+    fn detail_describes_a_running_process() {
+        let mut a = super::Analyzer::new().unwrap();
+        let d = a.detail(std::process::id()).expect("this test process exists");
+        assert!(d.name.to_lowercase().contains("rigsweep"), "{}", d.name);
+        assert!(!d.parents.is_empty(), "cargo started it");
+        assert!(a.detail(u32::MAX - 7).is_none());
     }
 }

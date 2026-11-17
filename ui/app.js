@@ -1179,7 +1179,7 @@ function renderProcesses() {
       <td class="num">${fmtBytes(p.mem)}</td>
       <td class="num">${diskOf(p) ? fmtBytes(diskOf(p)) : "–"}</td>
       <td>${svcs}</td>
-      <td>${p.protected ? `<span class="sub">🔒</span>` : `<button class="small ghost" data-kill="${p.pid}" data-start="${p.start_time}" data-name="${esc(p.name)}">${esc(t("proc.end"))}</button>`}</td>
+      <td><div class="row-acts"><button class="small ghost" data-why="${p.pid}">${esc(t("why.btn"))}</button>${p.protected ? `<span class="sub lock">🔒</span>` : `<button class="small ghost" data-kill="${p.pid}" data-start="${p.start_time}" data-name="${esc(p.name)}">${esc(t("proc.end"))}</button>`}</div></td>
     </tr>`;
   }).join("");
 }
@@ -1444,13 +1444,13 @@ async function renderDashboard() {
     snapshot = snap;
     $("#t-procs").textContent = ltr(`${snap.process_count} / ${snap.service_running}`);
     const top = [...snap.processes].sort((a, b) => (b.cpu + diskOf(b) / 5e6) - (a.cpu + diskOf(a) / 5e6)).slice(0, 8);
-    $("#dash-top").innerHTML = top.map((p) => `<tr><td><div class="named">${ico(p.exe)}<div><b>${esc(p.name)}</b>${p.services.length ? `<div class="sub">${esc(p.services.map((s) => s.name).join(", "))}</div>` : ""}</div></div></td>
+    $("#dash-top").innerHTML = top.map((p) => `<tr><td><div class="named">${ico(p.exe)}<div><button class="linkish" data-why="${p.pid}" title="${esc(t("why.btn"))}"><b>${esc(p.name)}</b></button>${p.services.length ? `<div class="sub">${esc(p.services.map((s) => s.name).join(", "))}</div>` : ""}</div></div></td>
       <td class="num ${p.cpu > 25 ? "vhot" : p.cpu > 5 ? "hot" : ""}">${p.cpu.toFixed(1)}%</td><td class="num">${fmtBytes(p.mem)}</td><td class="num">${diskOf(p) ? fmtBytes(diskOf(p)) : "–"}</td></tr>`).join("");
     const chrome = snap.processes.filter((p) => p.name.toLowerCase() === "chrome.exe");
     const cmem = chrome.reduce((n, p) => n + p.mem, 0);
     // Defender busy: offer to record what it is scanning
     const mp = snap.processes.find((p) => p.name.toLowerCase() === "msmpeng.exe");
-    if (mp && mp.cpu > 5) callouts.push(`<div class="callout">${esc(t("mp.callout", { c: mp.cpu.toFixed(0) }))} <button class="small" data-mp-why>${esc(t("mp.why"))}</button></div>`);
+    if (mp && mp.cpu > 5) callouts.push(`<div class="callout">${esc(t("mp.callout", { c: mp.cpu.toFixed(0) }))} <button class="small" data-why="${mp.pid}">${esc(t("mp.why"))}</button></div>`);
     if (cmem > 1.5 * 1024 ** 3) callouts.push(`<div class="callout">${esc(t("dash.chrome", { n: chrome.length, mem: fmtBytes(cmem) }))} <button class="small ghost" data-go="settings">${esc(t("dash.chrome.go"))}</button></div>`);
   } else {
     $("#dash-top").innerHTML = `<tr><td colspan="4" class="loading">${esc(t("err.noData"))}</td></tr>`;
@@ -2124,7 +2124,42 @@ async function defenderWhy(btn) {
   const go = await modal(t("mp.title"), body, dev ? { okText: t("mp.devGo") } : { cancel: false });
   if (go && dev) showTab("tweaks");
 }
-document.addEventListener("click", (e) => { const b = e.target.closest("[data-mp-why]"); if (b) defenderWhy(b); });
+document.addEventListener("click", (e) => { const b = e.target.closest("[data-why]"); if (b) processWhy(Number(b.dataset.why), b); });
+
+// ---------- why is this process busy? ----------
+// Plain-language reasons for processes that are often busy; everything else gets the facts only.
+const WHY_REASON = [
+  [/^msmpeng\.exe$/i, "defender"], [/^(searchindexer|searchprotocolhost|searchfilterhost)\.exe$/i, "search"],
+  [/^(tiworker|trustedinstaller|mousocoreworker|wuauclt|usoclient)\.exe$/i, "update"], [/^svchost\.exe$/i, "svchost"],
+  [/^wmiprvse\.exe$/i, "wmi"], [/^dwm\.exe$/i, "dwm"], [/^vmmem(wsl)?$/i, "vm"], [/^compattelrunner\.exe$/i, "telemetry"],
+  [/^(node|bun|deno|python|pythonw|java|javaw|dotnet|ruby|php|go|cargo|rustc|gradle|msbuild)(\.exe)?$/i, "dev"],
+  [/^(chrome|msedge|firefox|brave|opera|vivaldi)\.exe$/i, "browser"], [/^(code|cursor|windsurf|devenv|idea64|rider64)\.exe$/i, "editor"],
+  [/^rigsweep\.exe$/i, "self"], [/^(system|registry|memory compression|secure system)$/i, "system"],
+];
+async function processWhy(pid, btn) {
+  let d;
+  busy(btn, true);
+  try { d = await invoke("process_why", { pid }); }
+  catch (e) { return toast(t("why.gone", { e: String(e) }), "warn"); }
+  finally { busy(btn, false); }
+  const reason = WHY_REASON.find(([re]) => re.test(d.name))?.[1];
+  const row = (k, v, cls = "") => v ? `<div class="why-row"><span class="k">${esc(t(k))}</span><span class="v ${cls}">${v}</span></div>` : "";
+  const chain = (list) => list.map((p) => `<li><button class="linkish" data-why="${p.pid}">${esc(p.name)}</button> <span class="sub">PID ${p.pid}${p.cpu >= 0.1 ? ` · ${p.cpu.toFixed(1)}%` : ""} · ${fmtBytes(p.mem)}</span></li>`).join("");
+  const body = `${reason ? `<p class="why-reason">${esc(t("why.r." + reason))}</p>` : ""}
+    <div class="why-facts">
+      ${row("why.cpu", `${d.cpu.toFixed(1)}%`)}${row("why.mem", fmtBytes(d.mem))}
+      ${row("why.disk", d.disk_read + d.disk_write ? `${fmtBytes(d.disk_read)}/s ↓ · ${fmtBytes(d.disk_write)}/s ↑` : "")}
+      ${row("why.threads", d.threads ? String(d.threads) : "")}
+      ${row("why.started", d.start_time ? esc(timeAgo(new Date(d.start_time * 1000).toISOString())) : "")}
+      ${row("why.maker", esc(d.company))}${row("why.desc", esc(d.description))}
+      ${row("why.path", `<bdi dir="ltr">${esc(d.exe)}</bdi>`, "mono")}${row("why.cmd", `<bdi dir="ltr">${esc(d.cmd)}</bdi>`, "mono")}
+    </div>
+    ${d.parents.length ? `<h4>${esc(t("why.parents"))}</h4><ul class="why-chain">${chain(d.parents)}</ul>` : ""}
+    ${d.children.length ? `<h4>${esc(t("why.children"))}</h4><ul class="why-chain">${chain(d.children)}</ul>` : ""}`;
+  const defender = reason === "defender";
+  const ok = await modal(t("why.title", { name: d.name }), body, defender ? { okText: t("mp.record") } : { cancel: false });
+  if (ok && defender) defenderWhy(btn);
+}
 
 function renderSpark() {
   const svg = $("#live-spark");

@@ -151,6 +151,23 @@ pub async fn kill_process(state: State<'_, AppState>, pid: u32, start_time: u64)
     r
 }
 
+/// "Why is this busy?": one process in depth, plus the maker and description from its file.
+#[tauri::command]
+pub async fn process_why(state: State<'_, AppState>, pid: u32) -> R<crate::analyzer::ProcDetail> {
+    let mut d = state.analyzer.lock().map_err(|_| "analyzer lock poisoned")?.detail(pid).ok_or("process no longer exists")?;
+    if !d.exe.is_empty() {
+        let q = util::ps_quote(&d.exe);
+        let script = format!("$v = (Get-Item -LiteralPath {q}).VersionInfo; 'RS1' + $v.CompanyName; 'RS2' + $v.FileDescription");
+        if let Ok(out) = tauri::async_runtime::spawn_blocking(move || util::powershell(&script)).await.map_err(err)? {
+            for l in out.lines() {
+                if let Some(v) = l.strip_prefix("RS1") { d.company = v.trim().to_string(); }
+                if let Some(v) = l.strip_prefix("RS2") { d.description = v.trim().to_string(); }
+            }
+        }
+    }
+    Ok(d)
+}
+
 /// Create (or reuse) a custom tweak for a service seen in the analyzer. Returns its id.
 #[tauri::command]
 pub async fn add_custom_service(state: State<'_, AppState>, name: String, display: String) -> R<String> {

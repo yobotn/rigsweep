@@ -124,6 +124,7 @@ fn run_app(start_hidden: bool) {
             commands::reapply_now,
             commands::get_processes,
             commands::kill_process,
+            commands::process_why,
             commands::add_custom_service,
             commands::remove_custom,
             commands::get_startup,

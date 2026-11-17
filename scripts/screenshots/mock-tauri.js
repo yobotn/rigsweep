@@ -187,6 +187,10 @@
     get_history: history,
     get_snapshots: [],
     get_dev_disk: diskReport,
+    process_why: { pid: 18244, name: "node.exe", exe: "C:\\Program Files\\nodejs\\node.exe", cmd: "node C:\\Users\\dev\\code\\shop-web\\node_modules\\vite\\bin\\vite.js --port 5173",
+      start_time: Math.floor(Date.now() / 1000) - 33000, cpu: 7.2, mem: 612 * 1048576, disk_read: 1.2 * 1048576, disk_write: 300 * 1024, threads: 14,
+      parents: [{ pid: 15032, name: "pwsh.exe", cpu: 0, mem: 80 * 1048576 }, { pid: 9876, name: "Code.exe", cpu: 9.7, mem: 1.2 * GB }],
+      children: [{ pid: 18301, name: "esbuild.exe", cpu: 2.1, mem: 96 * 1048576 }], company: "Node.js", description: "Node.js JavaScript Runtime" },
     get_browser_caches: browsers,
   };
   window.__TAURI__ = {

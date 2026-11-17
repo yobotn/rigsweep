@@ -568,3 +568,15 @@ span.ico:not([data-ico]) { background: transparent; }
 .attention .callout.hot { border-color: #f1b44c66; }
 .attention .callout.vhot { border-color: #f46a6a77; }
 .attention .callout button { border-radius: 999px; }
+
+/* Why is this busy? */
+button.linkish { background: none; border: 0; padding: 0; color: inherit; font: inherit; cursor: pointer; text-align: start; }
+button.linkish:hover { color: var(--accent); text-decoration: underline; }
+.row-acts { display: flex; gap: 6px; justify-content: flex-end; align-items: center; }
+.row-acts .lock { display: inline-block; min-width: 46px; text-align: center; }
+.why-reason { margin: 0 0 12px; padding: 10px 12px; border-radius: 8px; background: var(--panel2); }
+.why-facts { display: grid; gap: 6px; margin-bottom: 8px; }
+.why-row { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 12px; font-size: 13px; }
+.why-row .k { color: var(--muted); }
+.why-row .v.mono { font-family: ui-monospace, Consolas, monospace; font-size: 12px; overflow-wrap: anywhere; }
+.why-chain { list-style: none; margin: 4px 0 10px; padding: 0; font-size: 13px; display: grid; gap: 4px; }
