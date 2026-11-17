@@ -1,5 +1,5 @@
 # Builds the stats collector, tests it against a real Postgres, and uploads it plus the site (docs/)
-# to the server over SSH. Off until the repository variable DEPLOY_ENABLED is "true".
+# to the server over SSH and reloads it with pm2 (runs as the apps user; see server/deploy/README.md). Off until the repository variable DEPLOY_ENABLED is "true".
 # Secrets: DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY (private key), DEPLOY_KNOWN_HOSTS (ssh-keyscan output).
 name: deploy
 
@@ -47,13 +47,14 @@ jobs:
       - name: Upload site
         run: |
           rsync -az --delete --exclude CNAME --exclude .nojekyll \
-            docs/ "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/var/www/rigsweep/"
+            docs/ "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/opt/rigsweep/site/"
 
-      - name: Upload collector and restart
+      - name: Upload collector and reload (pm2)
         run: |
           target="${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}"
-          scp server/target/release/rigsweep-stats "$target:/opt/rigsweep-stats/rigsweep-stats.new"
-          ssh "$target" 'chmod 755 /opt/rigsweep-stats/rigsweep-stats.new &&
-            mv -f /opt/rigsweep-stats/rigsweep-stats.new /opt/rigsweep-stats/rigsweep-stats &&
-            sudo systemctl restart rigsweep-stats &&
-            sleep 2 && curl -fsS http://127.0.0.1:8787/healthz'
+          scp server/target/release/rigsweep-stats "$target:/opt/rigsweep/bin/rigsweep-stats.new"
+          scp server/deploy/ecosystem.config.js "$target:/opt/rigsweep/ecosystem.config.js"
+          ssh "$target" 'chmod 755 /opt/rigsweep/bin/rigsweep-stats.new &&
+            mv -f /opt/rigsweep/bin/rigsweep-stats.new /opt/rigsweep/bin/rigsweep-stats &&
+            pm2 startOrReload /opt/rigsweep/ecosystem.config.js && pm2 save &&
+            sleep 2 && curl -fsS http://127.0.0.1:2000/healthz'

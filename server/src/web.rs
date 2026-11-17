@@ -92,6 +92,8 @@ pub struct Config {
     pub geo: Geo,
     /// reports allowed per IP per 10 minutes
     pub rate_max: u32,
+    /// the static site (rigsweep.com, the repo's docs/ folder); None = API only
+    pub site_dir: Option<std::path::PathBuf>,
 }
 
 #[derive(Clone)]
@@ -105,6 +107,7 @@ struct Inner {
 }
 
 pub fn router(pool: PgPool, cfg: Config) -> Router {
+    let site = cfg.site_dir.clone();
     let limiter = Limiter { hits: Mutex::new(HashMap::new()), max: cfg.rate_max, window: Duration::from_secs(600) };
     let st = AppState(Arc::new(Inner { pool, cfg, limiter, totals: Mutex::new(None) }));
     // the browser extension calls these from its own origin: open CORS, no cookies involved
@@ -117,7 +120,7 @@ pub fn router(pool: PgPool, cfg: Config) -> Router {
         .route("/v1/ext/report", post(ext_report))
         .route("/v1/install/{id}", delete(forget))
         .layer(cors);
-    Router::new()
+    let mut app = Router::new()
         .route("/v1/report", post(report))
         .merge(open)
         .route("/v1/totals", get(totals))
@@ -125,15 +128,45 @@ pub fn router(pool: PgPool, cfg: Config) -> Router {
         .route("/admin/api/summary", get(admin_summary))
         .route("/healthz", get(|| async { "ok" }))
         .layer(DefaultBodyLimit::max(32 * 1024))
-        .with_state(st)
+        .with_state(st);
+    if let Some(dir) = site {
+        // everything that isn't an API route is a file from the site; unknown paths get 404.html with status 404
+        let files = tower_http::services::ServeDir::new(&dir).not_found_service(tower_http::services::ServeFile::new(dir.join("404.html")));
+        let files = tower::ServiceBuilder::new()
+            .layer(tower_http::set_header::SetResponseHeaderLayer::if_not_present(header::X_CONTENT_TYPE_OPTIONS, HeaderValue::from_static("nosniff")))
+            .layer(tower_http::set_header::SetResponseHeaderLayer::if_not_present(
+                header::REFERRER_POLICY,
+                HeaderValue::from_static("strict-origin-when-cross-origin"),
+            ))
+            .service(files);
+        app = app.fallback_service(files);
+    }
+    app.layer(axum::middleware::from_fn(www_redirect))
 }
 
-/// Caddy sets X-Real-IP; the server itself only listens on localhost.
+/// www.example.com/anything -> https://example.com/anything (301).
+/// stats.example.com serves only the API, the dashboard and the health check; anything else
+/// (like its bare address) goes to the site: stats.example.com/x -> https://example.com/x (301).
+async fn www_redirect(req: axum::extract::Request, next: axum::middleware::Next) -> Response {
+    let host = req.headers().get(header::HOST).and_then(|v| v.to_str().ok()).unwrap_or("");
+    let path = req.uri().path();
+    let api = path.starts_with("/v1/") || path == "/admin" || path.starts_with("/admin/") || path == "/healthz";
+    let target = host.strip_prefix("www.").or_else(|| host.strip_prefix("stats.").filter(|_| !api));
+    if let Some(bare) = target {
+        let pq = req.uri().path_and_query().map(|p| p.as_str()).unwrap_or("/");
+        if let Ok(loc) = HeaderValue::from_str(&format!("https://{bare}{pq}")) {
+            return (StatusCode::MOVED_PERMANENTLY, [(header::LOCATION, loc)]).into_response();
+        }
+    }
+    next.run(req).await
+}
+
+/// The server listens on localhost only and is reached through the Cloudflare tunnel, so
+/// Cloudflare's CF-Connecting-IP is the visitor. X-Real-IP is kept for other proxies and tests.
 fn client_ip(headers: &HeaderMap, ext: &Extensions) -> Option<IpAddr> {
-    headers
-        .get("x-real-ip")
-        .and_then(|v| v.to_str().ok())
-        .and_then(|s| s.trim().parse().ok())
+    ["cf-connecting-ip", "x-real-ip"]
+        .iter()
+        .find_map(|h| headers.get(*h).and_then(|v| v.to_str().ok()).and_then(|s| s.trim().parse().ok()))
         .or_else(|| ext.get::<ConnectInfo<SocketAddr>>().map(|c| c.0.ip()))
 }
 
@@ -215,7 +248,7 @@ async fn totals(State(st): State<AppState>) -> Response {
     res
 }
 
-/// HTTP Basic auth against ADMIN_USER / ADMIN_PASSWORD (HTTPS only, via Caddy). Off when no password is set.
+/// HTTP Basic auth against ADMIN_USER / ADMIN_PASSWORD (HTTPS only, via Cloudflare). Off when no password is set.
 fn admin_ok(st: &AppState, headers: &HeaderMap) -> Result<(), Response> {
     let cfg = &st.0.cfg;
     if cfg.admin_password.is_empty() {

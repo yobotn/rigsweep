@@ -2,3 +2,10 @@ node_modules/
 src-tauri/target/
 src-tauri/gen/
 server/target/
+
+# server secrets: live in the project root, never committed (pushed with ~/.yobotn/server/push-secret.sh)
+*.env
+.env.*
+!*.env.example
+!.env.example
+*.crt

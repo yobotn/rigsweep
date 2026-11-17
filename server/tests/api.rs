@@ -53,7 +53,7 @@ async fn reports_totals_admin_and_optout() {
     pg.create_database("stats").await.unwrap();
     let pool = sqlx::PgPool::connect(&pg.settings().url("stats")).await.unwrap();
     MIGRATOR.run(&pool).await.unwrap();
-    let app = router(pool.clone(), Config { admin_user: "admin".into(), admin_password: "s3cret".into(), geo: Geo::none(), rate_max: 5 });
+    let app = router(pool.clone(), Config { admin_user: "admin".into(), admin_password: "s3cret".into(), geo: Geo::none(), rate_max: 5, site_dir: None });
 
     let a = "0123456789abcdef0123456789abcdef";
     let b = "fedcba9876543210fedcba9876543210";

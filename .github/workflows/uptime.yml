@@ -1,0 +1,31 @@
+# Checks the site and the stats server every 15 minutes. A failed run makes GitHub email the repository owner,
+# so a dead server is noticed without any outside monitoring service.
+name: uptime
+
+on:
+  schedule:
+    - cron: "7,22,37,52 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: rigsweep.com and stats.rigsweep.com respond
+        run: |
+          set -u
+          fail=0
+          check() {
+            for i in 1 2 3; do
+              code=$(curl -s -o /dev/null -m 20 -w '%{http_code}' "$1") && [ "$code" = "$2" ] && { echo "ok   $1 ($code)"; return; }
+              sleep 20
+            done
+            echo "::error::$1 answered ${code:-nothing}, expected $2"; fail=1
+          }
+          check https://rigsweep.com/ 200
+          check https://stats.rigsweep.com/healthz 200
+          check https://stats.rigsweep.com/v1/totals 200
+          exit $fail
