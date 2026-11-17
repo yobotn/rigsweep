@@ -1,0 +1,59 @@
+# Builds the stats collector, tests it against a real Postgres, and uploads it plus the site (docs/)
+# to the server over SSH. Off until the repository variable DEPLOY_ENABLED is "true".
+# Secrets: DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY (private key), DEPLOY_KNOWN_HOSTS (ssh-keyscan output).
+name: deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["docs/**", "server/**", ".github/workflows/deploy.yml"]
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    if: ${{ vars.DEPLOY_ENABLED == 'true' }}
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: server
+
+      - name: Test (real Postgres, no Docker)
+        working-directory: server
+        run: cargo test --locked
+
+      - name: Build
+        working-directory: server
+        run: cargo build --release --locked
+
+      - name: SSH key
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "${{ secrets.DEPLOY_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+
+      - name: Upload site
+        run: |
+          rsync -az --delete --exclude CNAME --exclude .nojekyll \
+            docs/ "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}:/var/www/rigsweep/"
+
+      - name: Upload collector and restart
+        run: |
+          target="${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}"
+          scp server/target/release/rigsweep-stats "$target:/opt/rigsweep-stats/rigsweep-stats.new"
+          ssh "$target" 'chmod 755 /opt/rigsweep-stats/rigsweep-stats.new &&
+            mv -f /opt/rigsweep-stats/rigsweep-stats.new /opt/rigsweep-stats/rigsweep-stats &&
+            sudo systemctl restart rigsweep-stats &&
+            sleep 2 && curl -fsS http://127.0.0.1:8787/healthz'

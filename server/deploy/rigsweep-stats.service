@@ -1,0 +1,28 @@
+# /etc/systemd/system/rigsweep-stats.service
+[Unit]
+Description=RigSweep stats collector
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/opt/rigsweep-stats/rigsweep-stats
+EnvironmentFile=/etc/rigsweep-stats.env
+Restart=on-failure
+RestartSec=3
+
+# runs as a throwaway user with a read-only view of the system
+DynamicUser=yes
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+LockPersonality=yes
+MemoryMax=256M
+
+[Install]
+WantedBy=multi-user.target

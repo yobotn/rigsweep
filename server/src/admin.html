@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>RigSweep Admin</title>
+<style>
+:root { --bg: #0f1218; --panel: #171b24; --panel2: #1e2330; --border: #2a3142; --text: #e6e9ef; --muted: #8b93a7;
+  --disk: #34c38f; --ram: #b392f0; --accent: #4f8cff; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 "Segoe UI", system-ui, sans-serif; }
+main { max-width: 1280px; margin: 0 auto; padding: 24px 16px 48px; }
+header { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+h1 { font-size: 22px; margin: 0; } h2 { font-size: 15px; margin: 0 0 10px; }
+.sub { color: var(--muted); font-size: 12px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.tile, .card { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; min-width: 0; }
+.tile .v { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tile .v.disk { color: var(--disk); } .tile .v.ram { color: var(--ram); }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 14px; }
+@media (max-width: 480px) { .grid { grid-template-columns: 1fr; } }
+table { width: 100%; border-collapse: collapse; }
+td, th { padding: 5px 6px; text-align: start; border-bottom: 1px solid var(--panel2); white-space: nowrap; }
+th { color: var(--muted); font-weight: 500; font-size: 12px; }
+td.n, th.n { text-align: end; font-variant-numeric: tabular-nums; }
+td.bar { width: 45%; } .bar i { display: block; height: 8px; border-radius: 4px; background: var(--accent); min-width: 2px; }
+.bar.disk i { background: var(--disk); } .bar.ram i { background: var(--ram); }
+.cols { display: flex; align-items: flex-end; gap: 6px; height: 140px; padding-top: 8px; }
+.cols div { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px; min-width: 0; height: 100%; }
+.cols i { display: block; width: 100%; background: var(--accent); border-radius: 4px 4px 0 0; min-height: 2px; }
+.cols span { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.empty { color: var(--muted); padding: 10px 0; }
+button { background: var(--panel2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; font: inherit; cursor: pointer; }
+.err { color: #f46a6a; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div><h1>RigSweep usage</h1><div class="sub" id="updated">Loading…</div></div>
+    <button id="reload">Refresh</button>
+  </header>
+  <div class="tiles" id="tiles"></div>
+  <div class="card" style="margin-bottom:14px"><h2>Active installs per week</h2><div class="cols" id="weekly"></div></div>
+  <div class="grid">
+    <div class="card"><h2>Countries <span class="sub">active in 30 days</span></h2><table id="countries"></table></div>
+    <div class="card"><h2>Freed most <span class="sub">30 days</span></h2><table id="freed"></table></div>
+    <div class="card"><h2>Apps by CPU <span class="sub">average %, installs where it's in the top 5</span></h2><table id="apps_cpu"></table></div>
+    <div class="card"><h2>Apps by memory <span class="sub">average, installs where it's in the top 5</span></h2><table id="apps_mem"></table></div>
+    <div class="card"><h2>RAM installed</h2><table id="ram"></table></div>
+    <div class="card"><h2>CPU cores</h2><table id="cores"></table></div>
+    <div class="card"><h2>App versions</h2><table id="versions"></table></div>
+    <div class="card"><h2>Windows builds</h2><table id="builds"></table></div>
+    <div class="card"><h2>Tweaks applied <span class="sub">installs, 30 days</span></h2><table id="tweaks"></table></div>
+    <div class="card"><h2>New installs per week</h2><div class="cols" id="new_installs"></div></div>
+  </div>
+</main>
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const num = (n) => Number(n || 0).toLocaleString("en");
+const bytes = (b) => { b = Number(b || 0); const u = ["B", "KB", "MB", "GB", "TB", "PB"]; let i = 0;
+  while (b >= 1024 && i < u.length - 1) { b /= 1024; i++; } return `${b.toFixed(b < 10 && i ? 1 : 0)} ${u[i]}`; };
+const flag = (c) => /^[A-Z]{2}$/.test(c) ? String.fromCodePoint(...[...c].map((x) => 0x1f1a5 + x.charCodeAt(0))) + " " : "";
+const KIND = { agent: "Agent CLIs", mcp: "MCP servers", server: "Dev servers", browser: "Automation browsers", daemon: "Build daemons",
+  vm: "WSL / Docker VM", wsl: "WSL sessions", shell: "Stuck shell tools", earlier: "Earlier cleanups", worktree: "Git worktrees", "dir:other": "Other build folders" };
+const kindName = (k) => KIND[k] || k.replace(/^(dir|cache|browser):/, "");
+
+function table(id, rows, cols, barKey, barClass = "") {
+  const el = $("#" + id);
+  if (!rows.length) { el.innerHTML = `<tr><td class="empty">No data yet</td></tr>`; return; }
+  const max = Math.max(...rows.map((r) => Number(r[barKey]) || 0), 1);
+  el.innerHTML = `<tr>${cols.map((c) => `<th class="${c.n ? "n" : ""}">${esc(c.h)}</th>`).join("")}<th></th></tr>` +
+    rows.map((r) => `<tr>${cols.map((c) => `<td class="${c.n ? "n" : ""}">${c.f ? c.f(r) : esc(r[c.k])}</td>`).join("")}
+      <td class="bar ${typeof barClass === "function" ? barClass(r) : barClass}"><i style="width:${(Number(r[barKey]) / max) * 100}%"></i></td></tr>`).join("");
+}
+
+function columns(id, rows, key, label) {
+  const el = $("#" + id);
+  if (!rows.length) { el.innerHTML = `<div class="empty">No data yet</div>`; return; }
+  const max = Math.max(...rows.map((r) => Number(r[key]) || 0), 1);
+  el.innerHTML = rows.map((r) => `<div title="${esc(label(r))}"><span>${num(r[key])}</span><i style="height:${(Number(r[key]) / max) * 100}%"></i><span>${esc(String(r.week).slice(5))}</span></div>`).join("");
+}
+
+async function load() {
+  $("#updated").textContent = "Loading…";
+  let d;
+  try {
+    const r = await fetch("admin/api/summary", { credentials: "same-origin" });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    d = await r.json();
+  } catch (e) { $("#updated").innerHTML = `<span class="err">Couldn't load: ${esc(e.message)}</span>`; return; }
+  const t = d.totals;
+  const tiles = [
+    ["Installs", num(t.installs)], ["Active 7 days", num(t.active_7d)], ["Active 30 days", num(t.active_30d)],
+    ["Disk freed", bytes(t.disk_freed), "disk"], ["RAM recovered", bytes(t.ram_recovered), "ram"],
+    ["Processes ended", num(t.processes_ended)], ["Cleanups", num(t.cleanups)],
+    ["Avg RAM in use", t.ram_used_pct == null ? "–" : `${t.ram_used_pct}%`], ["Opt-outs 30 days", num(t.optouts_30d)],
+  ];
+  $("#tiles").innerHTML = tiles.map(([l, v, c]) => `<div class="tile"><div class="sub">${esc(l)}</div><div class="v ${c || ""}">${esc(v)}</div></div>`).join("");
+  columns("weekly", d.weekly, "active", (r) => `${r.week}: ${num(r.active)} active · ${bytes(r.disk)} disk · ${bytes(r.ram)} RAM`);
+  columns("new_installs", d.new_installs, "n", (r) => `${r.week}: ${num(r.n)} new`);
+  table("countries", d.countries, [{ h: "Country", f: (r) => flag(r.country) + esc(r.country) }, { h: "Installs", k: "n", n: 1, f: (r) => num(r.n) }], "n");
+  table("freed", d.freed, [{ h: "Type", f: (r) => esc(kindName(r.kind)) + ` <span class="sub">${esc(r.area)}</span>` },
+    { h: "Freed", n: 1, f: (r) => bytes(r.bytes) }, { h: "Installs", n: 1, f: (r) => num(r.installs) }], "bytes", (r) => r.area === "memory" ? "ram" : "disk");
+  table("apps_cpu", d.apps_cpu, [{ h: "App", k: "app" }, { h: "Avg CPU", n: 1, f: (r) => `${r.avg_cpu}%` }, { h: "Installs", n: 1, f: (r) => num(r.installs) }], "installs");
+  table("apps_mem", d.apps_mem, [{ h: "App", k: "app" }, { h: "Avg memory", n: 1, f: (r) => bytes(r.avg_mem) }, { h: "Installs", n: 1, f: (r) => num(r.installs) }], "installs", "ram");
+  table("ram", d.ram, [{ h: "RAM", k: "name" }, { h: "Installs", n: 1, f: (r) => num(r.n) }], "n", "ram");
+  table("cores", d.cores, [{ h: "Cores", k: "name" }, { h: "Installs", n: 1, f: (r) => num(r.n) }], "n");
+  table("versions", d.versions, [{ h: "Version", k: "name" }, { h: "Installs", n: 1, f: (r) => num(r.n) }], "n");
+  table("builds", d.builds, [{ h: "Build", k: "name" }, { h: "Installs", n: 1, f: (r) => num(r.n) }], "n");
+  table("tweaks", d.tweaks, [{ h: "Tweak", k: "tweak" }, { h: "Installs", n: 1, f: (r) => num(r.installs) }], "installs");
+  $("#updated").textContent = `Updated ${new Date().toLocaleTimeString()}`;
+}
+$("#reload").onclick = load;
+load();
+</script>
+</body>
+</html>

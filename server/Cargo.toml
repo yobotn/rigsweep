@@ -1,0 +1,33 @@
+[package]
+name = "rigsweep-stats"
+version = "0.1.0"
+description = "Collector for RigSweep's anonymous usage totals, public counters and the owner's admin dashboard"
+license = "MIT"
+repository = "https://github.com/yobotn/rigsweep"
+edition = "2021"
+publish = false
+
+[dependencies]
+axum = "0.8"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "signal", "net"] }
+sqlx = { version = "0.8", default-features = false, features = ["runtime-tokio", "tls-rustls", "postgres", "chrono", "migrate", "macros", "json"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+chrono = { version = "0.4", features = ["serde"] }
+tower-http = { version = "0.6", features = ["cors", "limit"] }
+maxminddb = "0.24"
+base64 = "0.22"
+subtle = "2"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+anyhow = "1"
+
+[dev-dependencies]
+postgresql_embedded = "0.22"
+tower = { version = "0.5", features = ["util"] }
+http-body-util = "0.1"
+
+[profile.release]
+codegen-units = 1
+lto = true
+strip = true
