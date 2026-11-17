@@ -140,6 +140,47 @@ function busy(btn, on, label) {
   else { btn.disabled = false; btn.classList.remove("is-busy"); btn.removeAttribute("aria-busy"); if (btn._t) btn.textContent = btn._t; }
 }
 
+// ---------- keeping scanned lists current ----------
+// Dev Cleanup, Browser, Startup and Dev Disk show a scan of things that change outside the app
+// (a dev server starts, a browser closes, a build fills target\). Callers share the scan in flight;
+// `fresh` asks for one that starts after now (the Scan button, or right after an action).
+const scans = {}, scannedAt = {};
+function scanOnce(key, fn, fresh = false) {
+  const s = scans[key];
+  if (s) return fresh ? (s.again ||= s.p.catch(() => {}).then(() => scanOnce(key, fn))) : s.p;
+  const p = fn().finally(() => { scannedAt[key] = Date.now(); if (scans[key]?.p === p) delete scans[key]; });
+  scans[key] = { p };
+  return p;
+}
+// A list is rescanned when its tab opens or the window comes back once it's older than `stale`,
+// and on a timer while it's in view (`every`). Dev Disk walks whole drives, so it has no timer.
+const FRESH = {
+  cleanup: { stale: 5000, every: 15000, run: () => loadDev() },
+  browser: { stale: 15000, every: 60000, run: () => loadBrowsers() },
+  startup: { stale: 30000, every: 0, run: () => loadStartup() },
+  disk: { stale: 300000, every: 0, run: () => loadDisk(), skip: () => jobActive(diskJob) },
+  tweaks: { stale: 60000, every: 0, run: () => scanOnce("tweaks", loadState) }, // status can drift outside the app
+};
+function refreshTab(tab, why) { // why: "open" | "focus" | "timer"
+  const f = FRESH[tab], sec = document.getElementById(`tab-${tab}`);
+  if (!f || !sec || document.visibilityState !== "visible" || f.skip?.()) return;
+  if (why === "timer" && !f.every) return;
+  if (Date.now() - (scannedAt[tab] || 0) < (why === "timer" ? f.every : f.stale)) return;
+  // never redraw under a confirm dialog, or while a scan or clean-up on this tab is running
+  if (why !== "open" && !$("#modal").classList.contains("hidden")) return;
+  if (sec.querySelector("[aria-busy]")) return;
+  // the table is redrawn: put keyboard focus back on the same checkbox or button
+  const a = document.activeElement, d = a && sec.contains(a) && Object.entries(a.dataset || {})[0];
+  Promise.resolve(f.run()).then(() => {
+    if (!d || document.activeElement !== document.body) return;
+    const attr = "data-" + d[0].replace(/[A-Z]/g, (c) => "-" + c.toLowerCase());
+    sec.querySelector(`[${attr}="${CSS.escape(d[1])}"]`)?.focus();
+  }).catch(() => {});
+}
+addEventListener("focus", () => refreshTab(currentTab, "focus"));
+document.addEventListener("visibilitychange", () => refreshTab(currentTab, "focus"));
+setInterval(() => refreshTab(currentTab, "timer"), 5000);
+
 // label for a history row: translated action and tweak name, raw values as the fallback
 const tOr = (k, fb) => { const v = t(k); return v === k ? fb : v; };
 const actLabel = (h) => tOr("act." + h.action, h.action);
@@ -178,12 +219,11 @@ function showTab(name) {
   document.querySelectorAll(".tab").forEach((s) => s.classList.toggle("active", s.id === `tab-${name}`));
   safeSet("tab", name);
   clearInterval(procTimer);
-  if (name === "startup") { if (!startup) loadStartup(); else renderStartup(); }
+  if (name === "startup" && startup) renderStartup();
   if (name === "processes") { loadProcesses(); procTimer = setInterval(() => $("#proc-auto").checked && loadProcesses(), 3000); }
   if (name === "dashboard") { loadDashboard(); procTimer = setInterval(() => document.visibilityState === "visible" && loadDashboard(), 10000); }
-  if (name === "cleanup") loadDev();
-  if (name === "disk") { renderDiskAuto(); if (!disk) loadDisk(); }
-  if (name === "browser") loadBrowsers();
+  if (name === "disk") renderDiskAuto();
+  refreshTab(name, "open"); // cleanup, browser, startup, disk: rescan if the last scan is old
   if (name === "report") loadSnapshots();
   if (name === "hardware") loadHardware();
   if (name === "history") loadHistory();
@@ -363,14 +403,18 @@ const ecoLabel = (p) => p.kind === "agent" ? t("kind.agent") : p.kind === "vm" ?
 // a shell-leftovers row has no folder: show which commands are stuck instead
 const devWhere = (p) => p.eco === "shell" ? p.cmd : p.project;
 
-async function loadDev(btn) {
+// a button press or an action asks for a fresh scan; a tab switch or timer shares one in flight
+async function loadDev(btn, fresh = !!btn) {
   busy(btn, true);
+  try { await scanOnce("cleanup", scanDev, fresh); } catch {} finally { busy(btn, false); }
+}
+async function scanDev() {
   try { dev = await call("get_dev_processes"); }
   catch (e) {
     // keep the last good list if there is one; otherwise say what failed in place of the spinner
     if (!dev) $("#clean-body").innerHTML = `<tr><td colspan="7" class="loading"><p>${esc(t("err.failed"))}: ${esc(e)}</p><button class="ghost" data-retry>${esc(t("clean.scan"))}</button></td></tr>`;
-    return;
-  } finally { busy(btn, false); }
+    throw e;
+  }
   // keep the user's ticks across rescans, and tick every stale row, including ones that only
   // became stale after a later scan (idle is measured over time), unless the user un-ticked it
   const keys = new Set(dev.items.map(devKey));
@@ -418,6 +462,7 @@ $("#btn-clean-scan").onclick = (e) => loadDev(e.target);
 $("#clean-body").addEventListener("click", (e) => { if (e.target.closest("[data-retry]")) loadDev(e.target.closest("button")); });
 $("#btn-clean-stale").onclick = async (e) => {
   await loadDev(e.target); // fresh scan, so rows that just went stale are included
+  if (!dev) return;
   const stale = dev.items.filter((p) => p.stale && !p.protected);
   stale.forEach((p) => { devSel.add(devKey(p)); devUnticked.delete(devKey(p)); });
   renderDev();
@@ -447,7 +492,7 @@ $("#btn-clean-end").onclick = async (e) => {
     if (r.result.mem_before && recovery) { recovery.before = r.result.mem_before; recovery.estimate = r.result.freed_mem; renderLive(); }
     picked.forEach((p) => devSel.delete(devKey(p)));
   } finally { busy(e.target, false); }
-  loadDev();
+  loadDev(null, true);
 };
 
 // ---------- browser cleanup ----------
@@ -458,10 +503,13 @@ const bcKey = (b, p, i) => `${b.id}|${p.dir}|${i.key}`;
 const bcRows = () => (bc?.browsers || []).flatMap((b) => b.profiles.flatMap((p) => p.items.map((i) => ({ b, p, i, k: bcKey(b, p, i) }))));
 const bcPreselect = (r) => r.i.tier === "safe" && r.i.bytes >= 1048576 && !r.b.running;
 
-async function loadBrowsers(btn) {
+async function loadBrowsers(btn, fresh = !!btn) {
   busy(btn, true, t("bc.scanning"));
+  try { await scanOnce("browser", scanBrowsers, fresh); } finally { busy(btn, false); }
+}
+async function scanBrowsers() {
   if (!bc) $("#bc-body").innerHTML = `<tr><td colspan="5" class="loading"><span class="spinner"></span> ${esc(t("bc.scanning"))}</td></tr>`;
-  try { bc = await call("get_browser_caches"); } finally { busy(btn, false); }
+  bc = await call("get_browser_caches");
   const rows = bcRows(), keys = new Set(rows.map((r) => r.k));
   bcSel = new Set([...bcSel].filter((k) => keys.has(k)));
   rows.forEach((r) => {
@@ -530,7 +578,7 @@ $("#btn-bc-clean").onclick = async (e) => {
     if (r.skipped_running.length) msg += "\n" + t("bc.skipped", { b: r.skipped_running.join(", ") });
     toast(msg, r.skipped_running.length ? "warn" : "ok", 9000);
   } finally { busy(e.target, false); }
-  loadBrowsers();
+  loadBrowsers(null, true);
 };
 
 // ---------- dev disk ----------
@@ -590,10 +638,9 @@ $("#disk-auto").addEventListener("change", async () => {
 });
 const DISK_ECO = { node: "Node", rust: "Rust", java: "Java", dotnet: ".NET", python: "Python", browser: "", go: "Go", leftover: "" };
 
-let diskLoading = null;     // the scan in flight: a second click or tab switch waits for it
-function loadDisk() {
-  if (!diskLoading) diskLoading = scanDisk().finally(() => { diskLoading = null; });
-  return diskLoading;
+// a tab switch waits for the scan in flight; the Scan button or a finished clean-up starts a new one
+function loadDisk(fresh = false) {
+  return scanOnce("disk", scanDisk, fresh);
 }
 async function scanDisk() {
   const btn = $("#btn-disk-scan");
@@ -720,7 +767,7 @@ $("#disk-body").addEventListener("click", async (e) => {
     renderDisk();
   }
 });
-$("#btn-disk-scan").onclick = () => loadDisk();
+$("#btn-disk-scan").onclick = () => loadDisk(true);
 $("#btn-disk-suggest").onclick = () => { diskRows().filter(diskSuggested).forEach((r) => diskSel.add(r.k)); renderDisk(); };
 $("#btn-disk-clean").onclick = async (e) => {
   const picked = diskRows().filter((r) => diskSel.has(r.k));
@@ -805,7 +852,7 @@ function onDiskJobEnd(j) {
     disk.stale_total = disk.projects.filter((p) => p.stale).reduce((a, p) => a + sum(p), 0);
     renderDisk();
   }
-  if (currentTab === "disk" || disk) loadDisk();
+  if (currentTab === "disk" || disk) loadDisk(true);
 }
 
 // a long path is cut at the start: the file name is the part worth seeing
@@ -1070,10 +1117,13 @@ const ST_KINDS = ["service", "task", "run", "folder"];
 // VPN clients and security agents: often managed by an employer, worth a second look
 const ST_SECURITY = /vpn|forti|security|antivirus|anti-virus|endpoint|defend|crowdstrike|sentinelone|sophos|eset|kaspersky|norton|mcafee|bitdefender|zscaler|globalprotect|cisco/i;
 
-async function loadStartup(btn) {
+async function loadStartup(btn, fresh = !!btn) {
   busy(btn, true);
+  try { await scanOnce("startup", scanStartup, fresh); } finally { busy(btn, false); }
+}
+async function scanStartup() {
   if (!startup) $("#st-body").innerHTML = `<tr><td colspan="3" class="loading"><span class="spinner"></span> ${esc(t("st.scanning"))}</td></tr>`;
-  try { startup = await call("get_startup"); } catch { startup = startup || []; } finally { busy(btn, false); }
+  try { startup = await call("get_startup"); } catch { startup = startup || []; }
   renderStartup();
 }
 
@@ -1156,7 +1206,7 @@ $("#st-body").addEventListener("click", async (e) => {
     selected.add(id);
   } catch { busy(el, false); return; }
   await loadState();
-  loadStartup();
+  loadStartup(null, true);
 });
 
 $("#st-off").addEventListener("click", async (e) => {
@@ -1169,7 +1219,7 @@ $("#st-off").addEventListener("click", async (e) => {
     toast(t("st.restored", { name: el.dataset.name }), "ok");
   } catch { busy(el, false); return; }
   await loadState();
-  loadStartup();
+  loadStartup(null, true);
 });
 
 // ---------- dashboard ----------
@@ -1747,7 +1797,7 @@ listen("dev-autocleaned", (e) => {
   // the trees were ended a moment before this event; samples from just before it count
   if (r.mem_before) startRecovery(r.mem_before, Date.now() - 2500, r.freed_mem, true);
   toast(t("clean.auto.done", { n: r.ended.length, mem: fmtBytes(r.freed_mem) }) + "\n• " + r.ended.join("\n• "), "ok", 8000);
-  if (currentTab === "cleanup") loadDev();
+  if (currentTab === "cleanup") loadDev(null, true); else delete scannedAt.cleanup;
 });
 listen("request-restore-all", () => { showTab("history"); restoreAll(); });
 
