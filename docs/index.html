@@ -13,6 +13,9 @@
   <link rel="alternate" type="text/markdown" href="https://rigsweep.com/index.md" title="RigSweep homepage as Markdown" />
   <link rel="alternate" type="text/plain" href="https://rigsweep.com/llms.txt" title="llms.txt" />
   <link rel="sitemap" type="application/xml" href="https://rigsweep.com/sitemap.xml" />
+  <link rel="api-catalog" href="https://rigsweep.com/.well-known/api-catalog" />
+  <link rel="service-desc" type="application/vnd.oai.openapi+json" href="https://rigsweep.com/openapi.json" title="RigSweep API (OpenAPI 3.1)" />
+  <link rel="service-doc" type="text/html" href="https://rigsweep.com/developers/" title="RigSweep API and developer docs" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="RigSweep" />
   <meta property="og:title" content="RigSweep: room for your agents" />
@@ -40,7 +43,7 @@
         "name": "RigSweep",
         "url": "https://rigsweep.com/",
         "logo": "https://rigsweep.com/icon.png",
-        "sameAs": ["https://github.com/yobotn/rigsweep"],
+        "sameAs": ["https://github.com/yobotn/rigsweep", "https://github.com/yobotn"],
         "contactPoint": { "@type": "ContactPoint", "contactType": "customer support", "url": "https://github.com/yobotn/rigsweep/issues", "availableLanguage": ["en", "de", "es", "fr", "it", "pt", "ru", "ja", "ko", "zh"] }
       },
       {
@@ -77,10 +80,21 @@
         "publisher": { "@id": "https://rigsweep.com/#org" }
       },
       {
+        "@type": "WebAPI",
+        "@id": "https://rigsweep.com/#api",
+        "name": "RigSweep API",
+        "description": "Public impact counters and the anonymous, opt-in usage-stats endpoints of RigSweep. No API key needed; JSON in and out, RFC 9457 errors.",
+        "url": "https://stats.rigsweep.com/v1/",
+        "documentation": "https://rigsweep.com/developers/",
+        "provider": { "@id": "https://rigsweep.com/#org" },
+        "isAccessibleForFree": true,
+        "termsOfService": "https://rigsweep.com/privacy/"
+      },
+      {
         "@type": "FAQPage",
         "@id": "https://rigsweep.com/#faq",
         "mainEntity": [
-          {"@type":"Question","name":"What does RigSweep do?","acceptedAnswer":{"@type":"Answer","text":"RigSweep is a free, open-source Windows app for developers who work with AI coding agents. It finds dev servers, build daemons, MCP servers and agent CLIs that keep running after you close a terminal, shows each one with its project, RAM and ports, and ends the ones you pick. It also deletes old node_modules, package and AI tool caches and leftover git worktrees, empties browser caches and applies reversible Windows tweaks."}},
+          {"@type":"Question","name":"What does RigSweep do?","acceptedAnswer":{"@type":"Answer","text":"RigSweep is a free, open-source Windows app for developers who work with AI coding agents. It finds dev servers, build daemons, MCP servers and agent CLIs that keep running after you close a terminal, shows each one with its project, RAM and ports, and ends the ones you pick. It also deletes old node_modules and package caches, empties browser caches and applies reversible Windows tweaks."}},
           {"@type":"Question","name":"How do I stop node.exe processes that keep running after I close the terminal?","acceptedAnswer":{"@type":"Answer","text":"Open Dev Cleanup. Processes whose terminal is gone are marked as orphans and pre-selected, with their whole process tree, project folder and listening ports (like a stuck localhost:3000). Click End selected, and RigSweep ends each tree after checking that the process ID still belongs to the same program."}},
           {"@type":"Question","name":"Which AI agents and dev stacks does it support?","acceptedAnswer":{"@type":"Answer","text":"Claude Code, Codex, Gemini CLI, opencode, Aider and Goose, plus the MCP servers and headless browsers they start. Dev stacks: Node, Bun, Deno, Python, Java, Gradle, Maven, .NET, Ruby, PHP, Rust and Go, and the WSL 2 / Docker VM."}},
           {"@type":"Question","name":"Is it safe? Can I undo changes?","acceptedAnswer":{"@type":"Answer","text":"Nothing is ended or deleted without your confirmation. Every Windows tweak backs up the original value first and can be restored one by one or all at once, and a System Restore point is created before the first change. Editor language servers and core Windows services are locked."}},
@@ -380,7 +394,7 @@
       <span class="eyebrow" data-t="faq.eyebrow">FAQ</span>
       <h2 data-t="faq.h">❓ Questions developers ask</h2>
       <div class="faq">
-        <div class="card"><h3 data-t="faq.q1">What does RigSweep do?</h3><p data-t="faq.a1">RigSweep is a free, open-source Windows app for developers who work with AI coding agents. It finds dev servers, build daemons, MCP servers and agent CLIs that keep running after you close a terminal, shows each one with its project, RAM and ports, and ends the ones you pick. It also deletes old node_modules, package and AI tool caches and leftover git worktrees, empties browser caches and applies reversible Windows tweaks.</p></div>
+        <div class="card"><h3 data-t="faq.q1">What does RigSweep do?</h3><p data-t="faq.a1">RigSweep is a free, open-source Windows app for developers who work with AI coding agents. It finds dev servers, build daemons, MCP servers and agent CLIs that keep running after you close a terminal, shows each one with its project, RAM and ports, and ends the ones you pick. It also deletes old node_modules and package caches, empties browser caches and applies reversible Windows tweaks.</p></div>
         <div class="card"><h3 data-t="faq.q2">How do I stop node.exe processes that keep running after I close the terminal?</h3><p data-t="faq.a2">Open Dev Cleanup. Processes whose terminal is gone are marked as orphans and pre-selected, with their whole process tree, project folder and listening ports (like a stuck localhost:3000). Click End selected, and RigSweep ends each tree after checking that the process ID still belongs to the same program.</p></div>
         <div class="card"><h3 data-t="faq.q3">Which AI agents and dev stacks does it support?</h3><p data-t="faq.a3">Claude Code, Codex, Gemini CLI, opencode, Aider and Goose, plus the MCP servers and headless browsers they start. Dev stacks: Node, Bun, Deno, Python, Java, Gradle, Maven, .NET, Ruby, PHP, Rust and Go, and the WSL 2 / Docker VM.</p></div>
         <div class="card"><h3 data-t="faq.q4">Is it safe? Can I undo changes?</h3><p data-t="faq.a4">Nothing is ended or deleted without your confirmation. Every Windows tweak backs up the original value first and can be restored one by one or all at once, and a System Restore point is created before the first change. Editor language servers and core Windows services are locked.</p></div>
@@ -410,7 +424,7 @@
 
     <footer>
       <div data-t="foot.l">🧹 RigSweep · free forever under the MIT license</div>
-      <div><a href="https://github.com/yobotn/rigsweep">GitHub</a> (<a href="https://github.com/yobotn">@yobotn</a>) · <a href="https://github.com/yobotn/rigsweep/blob/main/LICENSE">MIT</a> · <a href="/cli/" data-t="foot.cli">CLI</a> · <a href="/about/" data-t="foot.about">About</a> · <a href="/privacy/" data-t="foot.privacy">Privacy</a> · <a href="/contact/" data-t="foot.contact">Contact</a> · <a href="#disclaimer" data-t="foot.disc">Disclaimer</a> · <a href="https://github.com/yobotn/rigsweep/issues/12" data-t="foot.vote">Vote on features</a> · <a href="https://github.com/yobotn/rigsweep/issues" data-t="foot.issues">Report an issue</a></div>
+      <div><a href="https://github.com/yobotn/rigsweep">GitHub</a> (<a href="https://github.com/yobotn">@yobotn</a>) · <a href="https://github.com/yobotn/rigsweep/blob/main/LICENSE">MIT</a> · <a href="/cli/" data-t="foot.cli">CLI</a> · <a href="/developers/">API</a> · <a href="/about/" data-t="foot.about">About</a> · <a href="/privacy/" data-t="foot.privacy">Privacy</a> · <a href="/contact/" data-t="foot.contact">Contact</a> · <a href="#disclaimer" data-t="foot.disc">Disclaimer</a> · <a href="https://github.com/yobotn/rigsweep/issues/12" data-t="foot.vote">Vote on features</a> · <a href="https://github.com/yobotn/rigsweep/issues" data-t="foot.issues">Report an issue</a></div>
     </footer>
   </main>
 

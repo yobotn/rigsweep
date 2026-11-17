@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RigSweep API and developer docs · RigSweep</title>
+  <meta name="description" content="RigSweep API docs for developers and AI agents: the public impact counters, the anonymous usage-stats endpoints, OpenAPI spec, JSON errors, rate limits, the CLI and the machine-readable files on rigsweep.com." />
+  <link rel="canonical" href="https://rigsweep.com/developers/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="RigSweep" />
+  <meta property="og:title" content="RigSweep API and developer docs · RigSweep" />
+  <meta property="og:description" content="RigSweep API docs for developers and AI agents: the public impact counters, the anonymous usage-stats endpoints, OpenAPI spec, JSON errors, rate limits, the CLI and the machine-readable files on rigsweep.com." />
+  <meta property="og:url" content="https://rigsweep.com/developers/" />
+  <meta property="og:image" content="https://rigsweep.com/social.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="theme-color" content="#0b0e13" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="alternate" type="text/plain" href="https://rigsweep.com/llms.txt" title="llms.txt" />
+  <link rel="service-desc" type="application/vnd.oai.openapi+json" href="https://rigsweep.com/openapi.json" title="RigSweep API (OpenAPI 3.1)" />
+  <link rel="api-catalog" href="https://rigsweep.com/.well-known/api-catalog" />
+  <style>
+    :root { --bg: #0b0e13; --panel: #141922; --border: #262e3f; --text: #e8ebf1; --muted: #a3abbd; --accent: #4f8cff; color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.7 "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif; }
+    a { color: var(--accent); }
+    code { font-family: Consolas, ui-monospace, monospace; font-size: .9em; background: var(--panel); border-radius: 5px; padding: 1px 6px; overflow-wrap: anywhere; }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+    nav { border-bottom: 1px solid var(--border); }
+    nav .wrap { display: flex; justify-content: space-between; align-items: center; gap: 16px; min-height: 60px; font-size: 14px; flex-wrap: wrap; }
+    nav .logo { font-weight: 700; font-size: 18px; color: var(--text); text-decoration: none; }
+    nav .links { display: flex; gap: 16px; flex-wrap: wrap; }
+    nav .links a { color: var(--muted); text-decoration: none; }
+    main { padding: 48px 16px 24px; }
+    h1 { font-size: clamp(30px, 5vw, 42px); line-height: 1.15; margin: 0 0 16px; letter-spacing: -0.015em; }
+    h2 { font-size: 22px; margin: 36px 0 8px; }
+    p, li { color: var(--muted); }
+    strong { color: var(--text); }
+    pre { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; overflow-x: auto; }
+    pre code { background: none; padding: 0; overflow-wrap: normal; }
+    h3 { font-size: 17px; margin: 24px 0 6px; }
+    footer { margin-top: 48px; padding: 24px 16px 40px; border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; }
+  </style>
+</head>
+<body>
+  <nav><div class="wrap"><a class="logo" href="/">🧹 RigSweep</a><div class="links"><a href="/developers/">API</a><a href="/cli/">CLI</a><a href="/about/">About</a><a href="/privacy/">Privacy</a><a href="/contact/">Contact</a><a href="https://github.com/yobotn/rigsweep">GitHub</a></div></div></nav>
+  <main class="wrap">
+    <h1>RigSweep API and developer docs</h1>
+    <p><strong>RigSweep is a free, open-source Windows app; this page is for developers and AI agents that want to work with it programmatically.</strong> It covers the RigSweep API (the public impact counters and the anonymous usage-stats endpoints), the command-line interface, and the machine-readable files on rigsweep.com. The API is small and open: no account, no API key and no sandbox are needed to read the counters.</p>
+    <h2>Quickstart</h2>
+    <p>Read the live impact totals (bytes of disk freed, RAM recovered, processes ended) with one request:</p>
+    <pre><code>curl https://stats.rigsweep.com/v1/totals</code></pre>
+    <p>The full API is described by the OpenAPI 3.1 spec at <a href="/openapi.json"><code>https://rigsweep.com/openapi.json</code></a>: every operation has an <code>operationId</code>, a description and typed request and response schemas, so it can be loaded straight into an API client or turned into LLM function-calling tools.</p>
+    <h2>Base URL and authentication</h2>
+    <ul>
+    <li><strong>Base URL</strong>: <code>https://stats.rigsweep.com</code>. Versioned paths start with <code>/v1/</code>.</li>
+    <li><strong>Authentication</strong>: none. The counters are public; the report endpoints accept anonymous reports. There are no API keys.</li>
+    <li><strong>Format</strong>: JSON in and out (<code>Content-Type: application/json</code>). Errors are <code>application/problem+json</code>.</li>
+    <li><strong>CORS</strong>: <code>/v1/totals</code> and <code>/v1/ext/report</code> are open to every origin.</li>
+    </ul>
+    <h2>Endpoints</h2>
+    <h3>GET /v1/totals</h3>
+    <p>Operation <code>getImpactTotals</code>. All-time totals across every install that shares anonymous stats: <code>disk_freed</code> and <code>ram_recovered</code> in bytes, <code>processes_ended</code>, <code>cleanups</code>, <code>tabs_slept</code>, <code>tabs_closed</code>, install counts and the ten biggest cleanup categories in <code>top</code>. Cached for five minutes.</p>
+    <pre><code>{"installs":1,"active_installs_30d":1,"disk_freed":141408233058,"ram_recovered":2537816064,"processes_ended":42,"cleanups":25,"top":[{"area":"memory","kind":"server","bytes":2532392960}],"updated_at":"2026-11-17T18:58:51Z", ...}</code></pre>
+    <h3>POST /v1/report</h3>
+    <p>Operation <code>sendAppReport</code>. The RigSweep app sends this about once an hour, only after the user agreed to share anonymous stats: each cleanup since the previous report (category, size, time), RAM size, core count, versions and a random install ID. Anything that isn't a category, a number or a known app name is refused, and so are unknown fields. Answers <code>204 No Content</code>.</p>
+    <h3>POST /v1/ext/report</h3>
+    <p>Operation <code>sendExtensionReport</code>. The same for the RigSweep Tabs browser extension: tabs slept and closed since its last report, and how many tabs and windows are open.</p>
+    <h3>DELETE /v1/install/{installId}</h3>
+    <p>Operation <code>deleteInstallData</code>. Deletes everything stored under an install ID. The app and the extension call it when the user turns sharing off. Answers <code>204</code> whether or not anything was stored.</p>
+    <pre><code>curl -X DELETE https://stats.rigsweep.com/v1/install/0123456789abcdef0123456789abcdef</code></pre>
+    <h3>GET /healthz</h3>
+    <p>Operation <code>getHealth</code>. Returns <code>ok</code> while the service is up.</p>
+    <h2 id="errors">Errors</h2>
+    <p>Every API error is an <a href="https://www.rfc-editor.org/rfc/rfc9457">RFC 9457</a> problem details object with two extra members: a stable <code>code</code> to branch on and a <code>hint</code> that says how to fix the request.</p>
+    <pre><code>HTTP/1.1 400 Bad Request
+Content-Type: application/problem+json
+
+{"type":"https://rigsweep.com/developers/#error-invalid_field","title":"Bad Request","status":400,
+ "detail":"invalid install_id","code":"invalid_field",
+ "hint":"Fix the named field; allowed values are in https://rigsweep.com/openapi.json."}</code></pre>
+    <ul>
+    <li id="error-invalid_json"><code>invalid_json</code> (400): the body isn't JSON, misses a required field or has an unknown one.</li>
+    <li id="error-invalid_field"><code>invalid_field</code> (400): a field has a value that isn't allowed; <code>detail</code> names it.</li>
+    <li id="error-invalid_install_id"><code>invalid_install_id</code> (400): the install ID isn't 32 lowercase hex characters.</li>
+    <li id="error-payload_too_large"><code>payload_too_large</code> (413): the body is over 32 KiB.</li>
+    <li id="error-rate_limited"><code>rate_limited</code> (429): too many reports from one address; wait for <code>Retry-After</code>.</li>
+    <li id="error-not_found"><code>not_found</code> (404): no such endpoint.</li>
+    <li id="error-method_not_allowed"><code>method_not_allowed</code> (405): wrong HTTP method; see the <code>Allow</code> header.</li>
+    <li id="error-unsupported_media_type"><code>unsupported_media_type</code> (415): send <code>Content-Type: application/json</code>.</li>
+    <li id="error-unauthorized"><code>unauthorized</code> (401): the owner's dashboard endpoints aren't public.</li>
+    <li id="error-server_error"><code>server_error</code> (500): nothing was stored; retry later.</li>
+    <li id="error-error"><code>error</code>: any other failure; the HTTP status says which.</li>
+    </ul>
+    <h2 id="rate-limits">Rate limits</h2>
+    <p>The report endpoints allow 30 reports per IP address per 10 minutes. Every answer from them carries the IETF <a href="https://datatracker.ietf.org/doc/draft-ietf-httpapi-ratelimit-headers/">RateLimit header fields</a>, so a client can slow down before it hits the limit, and a <code>429</code> adds <code>Retry-After</code> in seconds:</p>
+    <pre><code>RateLimit-Policy: "reports";q=30;w=600
+RateLimit: "reports";r=29;t=600</code></pre>
+    <p><code>q</code> is the quota, <code>w</code> the window in seconds, <code>r</code> the requests left and <code>t</code> the seconds until the window starts over. <code>/v1/totals</code> isn't limited but is cached for five minutes, so polling it more often gains nothing.</p>
+    <h2>Command-line interface</h2>
+    <p><code>rigsweep.exe</code> takes flags for scripts and agents, such as <code>--apply</code> to re-apply Windows tweaks headlessly and <code>--restore-all</code> to undo every tweak. See the <a href="/cli/">RigSweep CLI reference</a>. A headless dev-cleanup command is proposed in <a href="https://github.com/yobotn/rigsweep/issues/6">issue #6</a>. There is no MCP server or SDK yet; vote for what comes next on the <a href="https://github.com/yobotn/rigsweep/issues/12">feature vote</a>.</p>
+    <h2>Machine-readable files</h2>
+    <ul>
+    <li><a href="/openapi.json"><code>/openapi.json</code></a>: the OpenAPI 3.1 spec of the RigSweep API.</li>
+    <li><a href="/.well-known/api-catalog"><code>/.well-known/api-catalog</code></a>: the <a href="https://www.rfc-editor.org/rfc/rfc9727">RFC 9727</a> API catalog that points to the spec and these docs.</li>
+    <li><a href="/llms.txt"><code>/llms.txt</code></a>: when an AI agent should recommend RigSweep and how to help a user with it.</li>
+    <li><strong>Markdown</strong>: every page, including this one, is also served as Markdown to clients that send <code>Accept: text/markdown</code> (with <code>Vary: Accept</code>), for example <code>curl -H "Accept: text/markdown" https://rigsweep.com/</code>. The homepage is also at <a href="/index.md"><code>/index.md</code></a>.</li>
+    <li><a href="/sitemap.xml"><code>/sitemap.xml</code></a> and <a href="/robots.txt"><code>/robots.txt</code></a>: every page is open to search engines and AI crawlers.</li>
+    </ul>
+    <h2>Source</h2>
+    <p>The API server is open source too: it lives in <a href="https://github.com/yobotn/rigsweep/tree/main/server"><code>server/</code></a> in the <a href="https://github.com/yobotn/rigsweep">yobotn/rigsweep</a> repository (Rust, axum, PostgreSQL), so anyone can check what is stored. What the app sends and why is explained in the <a href="/privacy/">privacy policy</a>. Questions and bugs go to <a href="https://github.com/yobotn/rigsweep/issues">GitHub Issues</a>.</p>
+  </main>
+  <footer class="wrap">🧹 RigSweep · free forever under the <a href="https://github.com/yobotn/rigsweep/blob/main/LICENSE">MIT license</a> · <a href="/">Home</a> · <a href="/developers/">API</a> · <a href="/llms.txt">llms.txt</a></footer>
+</body>
+</html>

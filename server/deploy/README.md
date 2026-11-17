@@ -87,6 +87,24 @@ the migrations are retried every 15 seconds.
 - The country comes from Cloudflare's `CF-IPCountry` header (Network → IP Geolocation must be on). No GeoIP database.
 - The visitor IP (rate limit only, never stored) comes from `CF-Connecting-IP`. Only the tunnel can reach the app.
 - Recommended: SSL/TLS → **Always Use HTTPS**; Security → WAF managed rules.
+- **Bot Fight Mode is off** (Security → Bots), and AI crawlers aren't blocked. Bot Fight Mode challenges
+  requests from datacenter IPs, which is where AI agents (ChatGPT-User, Claude-User, PerplexityBot…), search
+  crawlers and agent-readiness scanners run, so with it on they got a challenge page instead of the site. WAF skip
+  rules can't exempt anything from Bot Fight Mode, so leave it off and leave "Block AI bots" off; `robots.txt` allows
+  everyone. The uptime workflow requests the homepage as `Claude-User` from a GitHub runner (a datacenter IP), so
+  a challenge coming back shows up as a failed run.
+
+## What agents get
+
+The same program answers agents and API clients (tests: `tests/agents.rs`, `scripts/check-site.js`):
+
+- **Markdown**: every page URL also answers `Accept: text/markdown` with its `index.md` (`Vary: Accept`).
+  `node scripts/prerender-site.js` writes those files; CI fails when they're stale.
+- **API description**: `/openapi.json` (OpenAPI 3.1), `/.well-known/api-catalog` (RFC 9727) and the
+  developer page `/developers/` (`/docs` and `/api` redirect there). Change the spec with the routes:
+  `tests/agents.rs` calls every operation in it.
+- **Errors**: every `/v1/*` and `/admin/api/*` error is RFC 9457 `application/problem+json` with a `code` and a
+  `hint`. **Rate limits**: the report endpoints send `RateLimit-Policy` / `RateLimit`, and `Retry-After` on 429.
 
 ## First-time server setup
 
@@ -106,8 +124,22 @@ sudo -iu apps pm2 install pm2-logrotate
 
 ## Deploys
 
-**From GitHub** (`.github/workflows/deploy.yml`): every push to `main` that touches `docs/` or `server/` tests,
-builds, uploads and reloads. Repository settings → Secrets and variables → Actions:
+**By hand over `ssh yobotn`** (how it's done today), from Git Bash in the repo root:
+
+```sh
+bash scripts/deploy.sh          # site + server
+bash scripts/deploy.sh site     # only docs/
+bash scripts/deploy.sh server   # only the binary + ecosystem.config.js
+```
+
+It runs the site checks, copies `docs/` exactly (`tar` over ssh, then `rsync --delete` on the server, owned by
+`apps`), runs the server tests, builds the Linux binary in Docker (start Docker Desktop first), installs it with
+the pm2 config, reloads pm2 **as `apps`** (`sudo -iu apps pm2 …`; the `pm2` alias only exists in an interactive
+login), and finally checks the public URLs through Cloudflare, including the Markdown and agent checks.
+
+**From GitHub** (`.github/workflows/deploy.yml`): set up but not active yet. The secrets and `DEPLOY_ENABLED`
+are in place; it starts running once the workflow is on `main`, and from then on every push to `main` that touches
+`docs/` or `server/` tests, builds, uploads and reloads. Repository settings → Secrets and variables → Actions:
 
 | Name | Kind | Value |
 | --- | --- | --- |
@@ -116,16 +148,6 @@ builds, uploads and reloads. Repository settings → Secrets and variables → A
 | `DEPLOY_SSH_KEY` | secret | a private key made just for this (`ssh-keygen -t ed25519`); its `.pub` goes in `/home/apps/.ssh/authorized_keys` |
 | `DEPLOY_KNOWN_HOSTS` | secret | output of `ssh-keyscan 159.89.102.105` |
 | `DEPLOY_ENABLED` | variable | `true` |
-
-**By hand** from the PC (Linux build in Docker, so it matches the server):
-
-```sh
-docker run --rm -v "$PWD/server:/src" -v rigsweep-target:/target -v rigsweep-cargo:/usr/local/cargo/registry \
-  -e CARGO_TARGET_DIR=/target -w /src rust:1-bookworm \
-  sh -c "cargo build --release --locked && cp /target/release/rigsweep-stats /src/target/rigsweep-stats-linux"
-scp server/target/rigsweep-stats-linux yobotn:/tmp/rigsweep-stats
-ssh yobotn 'sudo install -o apps -g apps -m 755 /tmp/rigsweep-stats /opt/rigsweep/bin/rigsweep-stats && pm2 reload rigsweep'
-```
 
 ## Checking it
 
@@ -136,5 +158,6 @@ ssh yobotn 'sudo install -o apps -g apps -m 755 /tmp/rigsweep-stats /opt/rigswee
 ## Testing locally
 
 `cargo test` in `server/` downloads and runs a real PostgreSQL (postgresql_embedded), on Windows too. The first
-run takes a minute or two while it downloads. `tests/site.rs` covers the site, the www redirect and the health check
-without a database.
+run takes a minute or two while it downloads. `tests/site.rs` (the site, the www redirect, the health check) and
+`tests/agents.rs` (Markdown negotiation, JSON errors, rate-limit headers, the OpenAPI spec against the routes) need
+no database: `cargo test --test site --test agents`.

@@ -1,0 +1,16 @@
+{
+  "linkset": [
+    {
+      "anchor": "https://stats.rigsweep.com/v1/",
+      "service-desc": [
+        { "href": "https://rigsweep.com/openapi.json", "type": "application/vnd.oai.openapi+json;version=3.1" }
+      ],
+      "service-doc": [
+        { "href": "https://rigsweep.com/developers/", "type": "text/html" }
+      ],
+      "status": [
+        { "href": "https://stats.rigsweep.com/healthz", "type": "text/plain" }
+      ]
+    }
+  ]
+}

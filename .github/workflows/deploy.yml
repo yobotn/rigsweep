@@ -29,6 +29,11 @@ jobs:
         with:
           workspaces: server
 
+      - name: Site checks (Markdown twins, OpenAPI, links)
+        run: |
+          node scripts/prerender-site.js --check
+          node scripts/check-site.js
+
       - name: Test (real Postgres, no Docker)
         working-directory: server
         run: cargo test --locked

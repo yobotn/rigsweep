@@ -18,14 +18,22 @@ jobs:
         run: |
           set -u
           fail=0
+          # url, expected status, expected content-type prefix, extra curl args
           check() {
+            url=$1; want=$2; type=$3; shift 3
             for i in 1 2 3; do
-              code=$(curl -s -o /dev/null -m 20 -w '%{http_code}' "$1") && [ "$code" = "$2" ] && { echo "ok   $1 ($code)"; return; }
+              got=$(curl -s -o /dev/null -m 20 -w '%{http_code} %{content_type}' "$@" "$url") &&
+                [ "${got%% *}" = "$want" ] && case "${got#* }" in "$type"*) true ;; *) false ;; esac &&
+                { echo "ok   $url $* ($got)"; return; }
               sleep 20
             done
-            echo "::error::$1 answered ${code:-nothing}, expected $2"; fail=1
+            echo "::error::$url $* answered '${got:-nothing}', expected $want $type"; fail=1
           }
-          check https://rigsweep.com/ 200
-          check https://stats.rigsweep.com/healthz 200
-          check https://stats.rigsweep.com/v1/totals 200
+          check https://rigsweep.com/ 200 text/html
+          check https://stats.rigsweep.com/healthz 200 text/plain
+          check https://stats.rigsweep.com/v1/totals 200 application/json
+          # AI agents from a datacenter IP (this runner): a Cloudflare bot challenge here means Bot Fight Mode
+          # or an AI-bot block is back on (see server/deploy/README.md, Cloudflare)
+          check https://rigsweep.com/ 200 text/html -A "Mozilla/5.0 (compatible; Claude-User/1.0; +https://www.anthropic.com)"
+          check https://rigsweep.com/ 200 text/markdown -H "Accept: text/markdown"
           exit $fail

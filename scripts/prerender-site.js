@@ -1,7 +1,7 @@
 // Bakes the English homepage text into docs/index.html so search engines and AI agents that don't
 // run JavaScript see the full page (the language switcher still swaps it at runtime). Also keeps the
 // JSON-LD (version + FAQ) in sync with docs/locales/en.js and writes docs/index.md, the Markdown
-// version of the homepage for agents.
+// version of the homepage for agents, plus docs/<page>/index.md for every inner page.
 // Usage: node scripts/prerender-site.js          rewrite the files
 //        node scripts/prerender-site.js --check  exit 1 if they are out of date (CI)
 const fs = require("fs"), path = require("path");
@@ -93,12 +93,42 @@ ${en["disc.p"]}
 
 ## Links
 
-- [CLI reference](https://rigsweep.com/cli/) · [About](https://rigsweep.com/about/) · [Privacy](https://rigsweep.com/privacy/) · [Contact](https://rigsweep.com/contact/)
+- [API and developer docs](https://rigsweep.com/developers/) · [CLI reference](https://rigsweep.com/cli/) · [About](https://rigsweep.com/about/) · [Privacy](https://rigsweep.com/privacy/) · [Contact](https://rigsweep.com/contact/)
 - [Vote on upcoming features](https://github.com/yobotn/rigsweep/issues/12)
 - [Report an issue](https://github.com/yobotn/rigsweep/issues)
 `;
 
+// ---- <page>/index.md for every inner page ----
+// The server sends these to clients that ask for Accept: text/markdown (see server/src/web.rs).
+// The pages use a small set of tags (h1-h3, p, ul/li, pre, code, a, strong, em), all handled here.
+const decode = (s) => s.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&");
+const inline = (s) => decode(s
+  .replace(/<code>([\s\S]*?)<\/code>/g, "`$1`")
+  .replace(/<(strong|b)>([\s\S]*?)<\/\1>/g, "**$2**")
+  .replace(/<em>([\s\S]*?)<\/em>/g, "*$1*")
+  .replace(/<a href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g, (m, href, text) => `[${text}](${href.startsWith("/") ? "https://rigsweep.com" + href : href})`)
+  .replace(/<[^>]+>/g, "")
+  .replace(/\s*\n\s*/g, " ")).trim();
+const pageMd = (page) => {
+  const main = page.match(/<main[^>]*>([\s\S]*?)<\/main>/)[1];
+  const desc = page.match(/<meta name="description" content="([^"]+)"/);
+  const blocks = [];
+  // pre blocks keep their text verbatim; everything else is one block element per match
+  const re = /<pre><code>([\s\S]*?)<\/code><\/pre>|<h([1-6])[^>]*>([\s\S]*?)<\/h\2>|<p[^>]*>([\s\S]*?)<\/p>|<ul[^>]*>([\s\S]*?)<\/ul>/g;
+  for (const m of main.matchAll(re)) {
+    if (m[1] !== undefined) blocks.push("```\n" + decode(m[1]) + "\n```");
+    else if (m[2]) {
+      blocks.push(`${"#".repeat(+m[2])} ${inline(m[3])}`);
+      if (m[2] === "1" && desc) blocks.push(`> ${decode(desc[1])}`);
+    } else if (m[4] !== undefined) blocks.push(inline(m[4]));
+    else blocks.push([...m[5].matchAll(/<li[^>]*>([\s\S]*?)<\/li>/g)].map((li) => `- ${inline(li[1])}`).join("\n"));
+  }
+  return blocks.join("\n\n") + "\n";
+};
 const out = { "docs/index.html": html, "docs/index.md": index };
+for (const d of fs.readdirSync(p("docs")).sort()) {
+  if (fs.existsSync(p(`docs/${d}/index.html`))) out[`docs/${d}/index.md`] = pageMd(read(`docs/${d}/index.html`));
+}
 let stale = 0;
 for (const [f, s] of Object.entries(out)) {
   // compare without line endings: Windows CI checks files out with CRLF

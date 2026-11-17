@@ -42,7 +42,7 @@ if (!ld) fail("index.html", "no JSON-LD");
 else {
   try {
     const types = JSON.parse(ld[1])["@graph"].map((n) => n["@type"]);
-    for (const t of ["Organization", "WebSite", "SoftwareApplication", "FAQPage"]) if (!types.includes(t)) fail("index.html", `JSON-LD lacks ${t}`);
+    for (const t of ["Organization", "WebSite", "SoftwareApplication", "WebAPI", "FAQPage"]) if (!types.includes(t)) fail("index.html", `JSON-LD lacks ${t}`);
   } catch (e) { fail("index.html", `JSON-LD doesn't parse: ${e.message}`); }
 }
 
@@ -70,5 +70,73 @@ for (const f of ["llms.txt", "index.md"]) {
   for (const [, p] of read(f).matchAll(/https:\/\/rigsweep\.com(\/[^\s)]*)/g)) if (!exists(p)) fail(f, `broken link ${p}`);
 }
 
+// ---- Markdown twins: every page has <page>/index.md for Accept: text/markdown ----
+for (const f of pages) {
+  if (f === "404.html") continue;
+  const mdf = f.replace(/index\.html$/, "index.md");
+  if (!fs.existsSync(path.join(docs, mdf))) { fail(mdf, "missing (run node scripts/prerender-site.js)"); continue; }
+  const md = read(mdf);
+  if (!/^# \S/.test(md) || md.length < 500) fail(mdf, "needs an H1 and at least 500 characters");
+  for (const [, raw] of md.matchAll(/https:\/\/rigsweep\.com(\/[^\s)`"'}]*)/g)) {
+    const p = raw.replace(/[.,;:]+$/, "");
+    if (!exists(p)) fail(mdf, `broken link ${p}`);
+  }
+}
+
+// ---- OpenAPI 3.1: unique operationIds, descriptions, typed responses, refs that resolve ----
+let spec;
+try { spec = JSON.parse(read("openapi.json")); } catch (e) { fail("openapi.json", `doesn't parse: ${e.message}`); }
+if (spec) {
+  if (!/^3\.1\.\d+$/.test(spec.openapi || "")) fail("openapi.json", "openapi must be 3.1.x");
+  for (const k of ["title", "version", "description"]) if (!spec.info?.[k]) fail("openapi.json", `info.${k} missing`);
+  if (!spec.servers?.length) fail("openapi.json", "no servers");
+  const resolve = (ref) => ref.replace(/^#\//, "").split("/").reduce((o, k) => o?.[k.replace(/~1/g, "/").replace(/~0/g, "~")], spec);
+  (function walk(o, at) {
+    if (!o || typeof o !== "object") return;
+    if (typeof o.$ref === "string" && resolve(o.$ref) === undefined) fail("openapi.json", `${at}: $ref ${o.$ref} doesn't resolve`);
+    for (const [k, v] of Object.entries(o)) walk(v, `${at}/${k}`);
+  })(spec, "#");
+  const ids = new Set();
+  for (const [route, item] of Object.entries(spec.paths || {})) {
+    for (const [method, op] of Object.entries(item)) {
+      const where = `${method.toUpperCase()} ${route}`;
+      if (!op.operationId || !/^[A-Za-z][A-Za-z0-9_]*$/.test(op.operationId)) fail("openapi.json", `${where}: missing or invalid operationId`);
+      else if (ids.has(op.operationId)) fail("openapi.json", `${where}: duplicate operationId ${op.operationId}`);
+      ids.add(op.operationId);
+      if (!op.summary || !op.description) fail("openapi.json", `${where}: needs summary and description`);
+      for (const prm of op.parameters || []) if (!prm.schema || !prm.description) fail("openapi.json", `${where}: parameter ${prm.name} needs a schema and description`);
+      for (const [code, r] of Object.entries(op.responses || {})) {
+        const res = r.$ref ? resolve(r.$ref) : r;
+        if (!res?.description) fail("openapi.json", `${where} ${code}: no description`);
+        if (+code >= 400 && !res?.content?.["application/problem+json"]) fail("openapi.json", `${where} ${code}: errors must be application/problem+json`);
+      }
+      if (!op.responses) fail("openapi.json", `${where}: no responses`);
+    }
+  }
+  // every error code the API can send is documented on the developer page (the problem `type` links there)
+  const dev = read("developers/index.html");
+  for (const code of spec.components?.schemas?.Problem?.properties?.code?.enum || []) {
+    if (!dev.includes(`id="error-${code}"`)) fail("developers/index.html", `no #error-${code} entry`);
+  }
+}
+
+// ---- RFC 9727 API catalog (RFC 9264 linkset) ----
+try {
+  const cat = JSON.parse(read(".well-known/api-catalog"));
+  if (!Array.isArray(cat.linkset) || !cat.linkset.length) fail("api-catalog", "needs a linkset array");
+  for (const ctx of cat.linkset || []) {
+    if (!ctx.anchor) fail("api-catalog", "every link context needs an anchor");
+    for (const rel of ["service-desc", "service-doc"]) {
+      if (!ctx[rel]?.length) fail("api-catalog", `missing ${rel}`);
+      for (const l of ctx[rel] || []) { const m = l.href?.match(/^https:\/\/rigsweep\.com(\/.*)$/); if (m && !exists(m[1])) fail("api-catalog", `${rel} ${l.href} has no file`); }
+    }
+  }
+} catch (e) { fail("api-catalog", `doesn't parse: ${e.message}`); }
+
+// ---- the homepage links the docs, the spec and the catalog ----
+for (const href of ["/developers/", "https://rigsweep.com/openapi.json", "https://rigsweep.com/.well-known/api-catalog"]) {
+  if (!home.includes(`href="${href}"`)) fail("index.html", `doesn't link ${href}`);
+}
+
 if (problems) { console.log(`\n${problems} problem(s)`); process.exit(1); }
-console.log(`site OK: ${pages.length} pages, ${locs.length} sitemap URLs, llms.txt, JSON-LD`);
+console.log(`site OK: ${pages.length} pages + Markdown twins, ${locs.length} sitemap URLs, llms.txt, JSON-LD, OpenAPI, API catalog`);

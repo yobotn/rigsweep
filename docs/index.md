@@ -50,7 +50,7 @@ Dev Cleanup finds leftover dev servers, build daemons and agent sessions across 
 
 ### What does RigSweep do?
 
-RigSweep is a free, open-source Windows app for developers who work with AI coding agents. It finds dev servers, build daemons, MCP servers and agent CLIs that keep running after you close a terminal, shows each one with its project, RAM and ports, and ends the ones you pick. It also deletes old node_modules, package and AI tool caches and leftover git worktrees, empties browser caches and applies reversible Windows tweaks.
+RigSweep is a free, open-source Windows app for developers who work with AI coding agents. It finds dev servers, build daemons, MCP servers and agent CLIs that keep running after you close a terminal, shows each one with its project, RAM and ports, and ends the ones you pick. It also deletes old node_modules and package caches, empties browser caches and applies reversible Windows tweaks.
 
 ### How do I stop node.exe processes that keep running after I close the terminal?
 
@@ -88,6 +88,6 @@ RigSweep changes Windows services, scheduled tasks, registry policies and Micros
 
 ## Links
 
-- [CLI reference](https://rigsweep.com/cli/) · [About](https://rigsweep.com/about/) · [Privacy](https://rigsweep.com/privacy/) · [Contact](https://rigsweep.com/contact/)
+- [API and developer docs](https://rigsweep.com/developers/) · [CLI reference](https://rigsweep.com/cli/) · [About](https://rigsweep.com/about/) · [Privacy](https://rigsweep.com/privacy/) · [Contact](https://rigsweep.com/contact/)
 - [Vote on upcoming features](https://github.com/yobotn/rigsweep/issues/12)
 - [Report an issue](https://github.com/yobotn/rigsweep/issues)

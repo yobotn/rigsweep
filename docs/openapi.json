@@ -1,0 +1,806 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "RigSweep API",
+    "version": "1.0.0",
+    "summary": "Public impact counters and the anonymous usage-stats endpoints of RigSweep.",
+    "description": "RigSweep is a free, open-source Windows app that frees RAM, CPU and disk on developer machines cluttered by AI coding agent sessions. This API serves the public impact counters shown on rigsweep.com and receives the anonymous, opt-in usage reports the app and its browser extension send. No API key is needed. Errors are RFC 9457 problem details (application/problem+json). The report endpoints send RateLimit-Policy and RateLimit headers (draft-ietf-httpapi-ratelimit-headers) and Retry-After on 429. Developer guide: https://rigsweep.com/developers/",
+    "license": {
+      "name": "MIT",
+      "identifier": "MIT"
+    },
+    "contact": {
+      "name": "RigSweep on GitHub",
+      "url": "https://github.com/yobotn/rigsweep/issues"
+    }
+  },
+  "externalDocs": {
+    "description": "RigSweep API developer guide",
+    "url": "https://rigsweep.com/developers/"
+  },
+  "servers": [
+    {
+      "url": "https://stats.rigsweep.com",
+      "description": "Production"
+    }
+  ],
+  "security": [],
+  "tags": [
+    {
+      "name": "Counters",
+      "description": "Public, read-only totals."
+    },
+    {
+      "name": "Reports",
+      "description": "Anonymous usage reports sent by the RigSweep app and the RigSweep Tabs extension after the user opts in."
+    },
+    {
+      "name": "Health",
+      "description": "Service health."
+    }
+  ],
+  "paths": {
+    "/v1/totals": {
+      "get": {
+        "operationId": "getImpactTotals",
+        "summary": "Get the public impact totals",
+        "description": "All-time totals across every RigSweep install that shares anonymous stats: disk freed, RAM recovered, processes ended, cleanups and browser tabs handled, plus the ten biggest cleanup categories. Cached for 5 minutes. CORS is open to every origin.",
+        "tags": [
+          "Counters"
+        ],
+        "responses": {
+          "200": {
+            "description": "The totals.",
+            "headers": {
+              "Cache-Control": {
+                "description": "public, max-age=300",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Totals"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/v1/report": {
+      "post": {
+        "operationId": "sendAppReport",
+        "summary": "Send an anonymous usage report from the RigSweep app",
+        "description": "Used by the RigSweep desktop app about once an hour, only after the user agreed to share anonymous stats. Version 2 sends each cleanup since the previous report; version 1 (0.8.0 test builds) sent 7-day totals. Fields that don't look like a category, a number or a known app name are refused, so no paths or names can be stored. Unknown fields are refused. Resending the same events stores them once.",
+        "tags": [
+          "Reports"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppReport"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Stored.",
+            "headers": {
+              "RateLimit-Policy": {
+                "$ref": "#/components/headers/RateLimitPolicy"
+              },
+              "RateLimit": {
+                "$ref": "#/components/headers/RateLimit"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "413": {
+            "$ref": "#/components/responses/TooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/v1/ext/report": {
+      "post": {
+        "operationId": "sendExtensionReport",
+        "summary": "Send an anonymous usage report from the RigSweep Tabs extension",
+        "description": "Used by the RigSweep Tabs browser extension, only after the user opted in: counts of tabs slept and closed since its previous report, and how many tabs and windows are open. CORS is open to every origin.",
+        "tags": [
+          "Reports"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExtensionReport"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Stored.",
+            "headers": {
+              "RateLimit-Policy": {
+                "$ref": "#/components/headers/RateLimitPolicy"
+              },
+              "RateLimit": {
+                "$ref": "#/components/headers/RateLimit"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "413": {
+            "$ref": "#/components/responses/TooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/v1/install/{installId}": {
+      "delete": {
+        "operationId": "deleteInstallData",
+        "summary": "Delete everything an install has sent",
+        "description": "Deletes every report and event stored under this install ID (app or extension). The app and extension call it when the user turns sharing off. The answer is the same whether or not anything was stored.",
+        "tags": [
+          "Reports"
+        ],
+        "parameters": [
+          {
+            "name": "installId",
+            "in": "path",
+            "required": true,
+            "description": "The random install ID the reports were sent with.",
+            "schema": {
+              "$ref": "#/components/schemas/InstallId"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted (or there was nothing to delete)."
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/ServerError"
+          }
+        }
+      }
+    },
+    "/healthz": {
+      "get": {
+        "operationId": "getHealth",
+        "summary": "Check that the service is up",
+        "description": "Returns the text ok. Doesn't touch the database.",
+        "tags": [
+          "Health"
+        ],
+        "responses": {
+          "200": {
+            "description": "The service is up.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "const": "ok"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "headers": {
+      "RateLimitPolicy": {
+        "description": "The quota policy (draft-ietf-httpapi-ratelimit-headers): quota q per window w seconds, e.g. \"reports\";q=30;w=600.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "RateLimit": {
+        "description": "What is left in the current window: r requests remaining, t seconds until it resets, e.g. \"reports\";r=29;t=600.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "RetryAfter": {
+        "description": "Seconds to wait before sending again.",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "The body or a parameter is invalid. `code` is invalid_json, invalid_field or invalid_install_id; `detail` names the field.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "TooLarge": {
+        "description": "The body is larger than 32 KiB (`code`: payload_too_large).",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "RateLimited": {
+        "description": "More reports from this IP address than the policy allows (30 per 10 minutes). `code`: rate_limited.",
+        "headers": {
+          "Retry-After": {
+            "$ref": "#/components/headers/RetryAfter"
+          },
+          "RateLimit-Policy": {
+            "$ref": "#/components/headers/RateLimitPolicy"
+          },
+          "RateLimit": {
+            "$ref": "#/components/headers/RateLimit"
+          }
+        },
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      },
+      "ServerError": {
+        "description": "The server couldn't complete the request (`code`: server_error). Nothing was stored; retry later.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/Problem"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Problem": {
+        "type": "object",
+        "description": "RFC 9457 problem details, with a stable `code` and a `hint` on how to fix the request.",
+        "required": [
+          "type",
+          "title",
+          "status",
+          "detail",
+          "code",
+          "hint"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "format": "uri",
+            "description": "Link to this error on the developer page.",
+            "examples": [
+              "https://rigsweep.com/developers/#error-invalid_field"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "description": "The HTTP status text.",
+            "examples": [
+              "Bad Request"
+            ]
+          },
+          "status": {
+            "type": "integer",
+            "description": "The HTTP status code.",
+            "examples": [
+              400
+            ]
+          },
+          "detail": {
+            "type": "string",
+            "description": "What was wrong with this request.",
+            "examples": [
+              "invalid install_id"
+            ]
+          },
+          "code": {
+            "type": "string",
+            "description": "Stable machine-readable error code.",
+            "enum": [
+              "invalid_json",
+              "invalid_field",
+              "invalid_install_id",
+              "rate_limited",
+              "payload_too_large",
+              "not_found",
+              "method_not_allowed",
+              "unsupported_media_type",
+              "unauthorized",
+              "server_error",
+              "error"
+            ]
+          },
+          "hint": {
+            "type": "string",
+            "description": "How to fix the request.",
+            "examples": [
+              "Fix the named field; allowed values are in https://rigsweep.com/openapi.json."
+            ]
+          }
+        }
+      },
+      "InstallId": {
+        "type": "string",
+        "description": "Random install ID: 32 lowercase hex characters. Not tied to the user or the PC.",
+        "pattern": "^[0-9a-f]{32}$",
+        "examples": [
+          "0123456789abcdef0123456789abcdef"
+        ]
+      },
+      "Minute": {
+        "type": "string",
+        "description": "UTC time to the minute (seconds allowed), after 2020 and no more than a day in the future.",
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}(:\\d{2})?Z$",
+        "examples": [
+          "2026-11-17T14:05Z"
+        ]
+      },
+      "Area": {
+        "type": "string",
+        "enum": [
+          "memory",
+          "disk",
+          "browser"
+        ],
+        "description": "What a cleanup freed: RAM (processes ended), disk, or browser data."
+      },
+      "Kind": {
+        "type": "string",
+        "description": "Cleanup category, e.g. dir:node_modules, cache:npm, mcp, server.",
+        "pattern": "^[a-z0-9_.:+-]{1,48}$",
+        "examples": [
+          "dir:node_modules"
+        ]
+      },
+      "Totals": {
+        "type": "object",
+        "required": [
+          "installs",
+          "active_installs_30d",
+          "ext_installs",
+          "disk_freed",
+          "ram_recovered",
+          "processes_ended",
+          "cleanups",
+          "tabs_slept",
+          "tabs_closed",
+          "updated_at",
+          "top"
+        ],
+        "properties": {
+          "installs": {
+            "type": "integer",
+            "description": "Installs that ever shared stats."
+          },
+          "active_installs_30d": {
+            "type": "integer",
+            "description": "Installs that sent a report in the last 30 days."
+          },
+          "ext_installs": {
+            "type": "integer",
+            "description": "Browser extension installs that ever shared stats."
+          },
+          "disk_freed": {
+            "type": "integer",
+            "description": "Bytes of disk and browser data freed."
+          },
+          "ram_recovered": {
+            "type": "integer",
+            "description": "Bytes of RAM freed by ending processes."
+          },
+          "processes_ended": {
+            "type": "integer",
+            "description": "Processes ended."
+          },
+          "cleanups": {
+            "type": "integer",
+            "description": "Cleanup runs."
+          },
+          "tabs_slept": {
+            "type": "integer",
+            "description": "Browser tabs put to sleep by the extension."
+          },
+          "tabs_closed": {
+            "type": "integer",
+            "description": "Duplicate and matching tabs closed by the extension."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the totals were computed."
+          },
+          "top": {
+            "type": "array",
+            "maxItems": 10,
+            "description": "The ten biggest cleanup categories by bytes freed.",
+            "items": {
+              "type": "object",
+              "required": [
+                "area",
+                "kind",
+                "bytes"
+              ],
+              "properties": {
+                "area": {
+                  "$ref": "#/components/schemas/Area"
+                },
+                "kind": {
+                  "$ref": "#/components/schemas/Kind"
+                },
+                "bytes": {
+                  "type": "integer",
+                  "description": "Bytes freed in this category."
+                }
+              }
+            }
+          }
+        }
+      },
+      "AppUse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "app",
+          "cpu",
+          "mem"
+        ],
+        "properties": {
+          "app": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9 ./+#-]{1,40}$",
+            "description": "Well-known app name (unknown programs are never sent)."
+          },
+          "cpu": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100000,
+            "description": "Average CPU percent."
+          },
+          "mem": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Average memory in bytes."
+          }
+        }
+      },
+      "Event": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "seq",
+          "at",
+          "run",
+          "source",
+          "area",
+          "kind",
+          "bytes",
+          "count"
+        ],
+        "description": "One thing cleaned (report v2).",
+        "properties": {
+          "seq": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "The PC's own increasing row number; a resent event is stored once."
+          },
+          "at": {
+            "$ref": "#/components/schemas/Minute"
+          },
+          "run": {
+            "type": "integer",
+            "description": "Rows of one cleanup share a run (negative for records rebuilt from old history)."
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "gui",
+              "auto",
+              "watchdog",
+              "cli",
+              "import"
+            ],
+            "description": "What started the cleanup."
+          },
+          "area": {
+            "$ref": "#/components/schemas/Area"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/Kind"
+          },
+          "bytes": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Bytes freed."
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000,
+            "description": "Items (processes, folders) cleaned."
+          }
+        }
+      },
+      "Freed": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "area",
+          "kind",
+          "bytes",
+          "count"
+        ],
+        "description": "A 7-day total for one category (report v1).",
+        "properties": {
+          "area": {
+            "$ref": "#/components/schemas/Area"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/Kind"
+          },
+          "bytes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000
+          }
+        }
+      },
+      "AppReport": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "v",
+          "install_id",
+          "app_version",
+          "windows_build",
+          "machine",
+          "top_cpu",
+          "top_mem",
+          "tweaks"
+        ],
+        "description": "v = 2: `events` (and `since` after the first report), no `freed`, `processes` or `cleanups`. v = 1: `processes`, `cleanups` and `freed`, no `events` or `since`.",
+        "properties": {
+          "v": {
+            "type": "integer",
+            "enum": [
+              1,
+              2
+            ],
+            "description": "Report format version."
+          },
+          "install_id": {
+            "$ref": "#/components/schemas/InstallId"
+          },
+          "app_version": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9.+-]{1,24}$",
+            "examples": [
+              "0.8.0"
+            ]
+          },
+          "windows_build": {
+            "type": "string",
+            "pattern": "^[0-9]{1,10}$",
+            "examples": [
+              "26300"
+            ]
+          },
+          "since": {
+            "$ref": "#/components/schemas/Minute",
+            "description": "v2: when the previous accepted report was sent."
+          },
+          "events": {
+            "type": "array",
+            "maxItems": 5000,
+            "items": {
+              "$ref": "#/components/schemas/Event"
+            }
+          },
+          "processes": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000,
+            "description": "v1 only."
+          },
+          "cleanups": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100000,
+            "description": "v1 only."
+          },
+          "freed": {
+            "type": "array",
+            "maxItems": 120,
+            "items": {
+              "$ref": "#/components/schemas/Freed"
+            },
+            "description": "v1 only."
+          },
+          "machine": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "ram_total",
+              "ram_used_avg",
+              "cores"
+            ],
+            "properties": {
+              "ram_total": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Installed RAM in bytes."
+              },
+              "ram_used_avg": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Average RAM in use, bytes."
+              },
+              "cores": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4096
+              }
+            }
+          },
+          "top_cpu": {
+            "type": "array",
+            "maxItems": 10,
+            "items": {
+              "$ref": "#/components/schemas/AppUse"
+            }
+          },
+          "top_mem": {
+            "type": "array",
+            "maxItems": 10,
+            "items": {
+              "$ref": "#/components/schemas/AppUse"
+            }
+          },
+          "tweaks": {
+            "type": "array",
+            "maxItems": 300,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z0-9_.-]{1,64}$"
+            },
+            "description": "IDs of applied Windows tweaks from the public catalog."
+          }
+        }
+      },
+      "ExtensionReport": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "v",
+          "install_id",
+          "ext_version",
+          "browser",
+          "browser_major",
+          "tabs_slept",
+          "dupes_closed",
+          "matches_closed",
+          "tabs_open",
+          "windows_open",
+          "auto_sleep"
+        ],
+        "properties": {
+          "v": {
+            "type": "integer",
+            "const": 1
+          },
+          "install_id": {
+            "$ref": "#/components/schemas/InstallId"
+          },
+          "ext_version": {
+            "type": "string",
+            "pattern": "^[0-9.]{1,24}$",
+            "examples": [
+              "1.1.0"
+            ]
+          },
+          "since": {
+            "$ref": "#/components/schemas/Minute",
+            "description": "When the previous accepted report was sent; absent on the first."
+          },
+          "browser": {
+            "type": "string",
+            "enum": [
+              "Chrome",
+              "Edge",
+              "Brave",
+              "Opera",
+              "Vivaldi",
+              "Chromium",
+              "Other"
+            ]
+          },
+          "browser_major": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000
+          },
+          "tabs_slept": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000,
+            "description": "Since the last report."
+          },
+          "dupes_closed": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000,
+            "description": "Since the last report."
+          },
+          "matches_closed": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000,
+            "description": "Since the last report."
+          },
+          "tabs_open": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100000,
+            "description": "Open right now."
+          },
+          "windows_open": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 10000,
+            "description": "Open right now."
+          },
+          "auto_sleep": {
+            "type": "boolean",
+            "description": "Whether automatic tab sleeping is on."
+          }
+        }
+      }
+    }
+  }
+}
