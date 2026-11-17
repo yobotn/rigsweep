@@ -1,6 +1,6 @@
-//! The anonymous weekly report and the sharing default. Nothing here sends anything yet: this
-//! builds the exact payload (shown in a Preview before any sending ships) and decides, on this
-//! PC, whether sharing starts on (opt-out) or waits for a yes (opt-in, EU/EEA, UK, Switzerland).
+//! The anonymous weekly report and the sharing default. This builds the exact payload (also shown
+//! in the Preview) and decides, on this PC, whether sharing starts on (opt-out) or waits for a yes
+//! (opt-in: EU/EEA, UK, Switzerland, unknown). Sending is in `share.rs`.
 //!
 //! What a report never holds: paths, project / folder / process names outside the known-app list,
 //! command lines, user or machine names, hardware IDs, the region it was decided in.
@@ -127,6 +127,11 @@ pub fn build(i: Inputs) -> Report {
     }
 }
 
+/// 32 lowercase hex characters, as made by `new_install_id` (the server checks the same).
+pub fn install_id_ok(id: &str) -> bool {
+    id.len() == 32 && id.chars().all(|c| c.is_ascii_digit() || ('a'..='f').contains(&c))
+}
+
 /// A new random install id: 128 bits from the OS-seeded hasher keys, as hex.
 pub fn new_install_id() -> String {
     use std::hash::{BuildHasher, Hasher};
@@ -238,5 +243,35 @@ mod tests {
         let (a, b) = (new_install_id(), new_install_id());
         assert_eq!(a.len(), 32);
         assert_ne!(a, b);
+    }
+}
+
+#[cfg(test)]
+mod wire {
+    /// `RIGSWEEP_REPORT_OUT=path cargo test -- --ignored dump_report`: writes a real report for the
+    /// server's contract check (server/tests/contract.rs).
+    #[test]
+    #[ignore]
+    fn dump_report() {
+        use super::*;
+        use crate::impact::Freed;
+        let mut week = Totals::default();
+        week.processes = 3;
+        week.cleanups = 2;
+        week.kinds = vec![
+            Freed { area: "disk".into(), kind: "dir:node_modules".into(), bytes: 5_000_000, count: 2 },
+            Freed { area: "memory".into(), kind: "mcp".into(), bytes: 900_000, count: 3 },
+            Freed { area: "browser".into(), kind: "browser:cache".into(), bytes: 70_000, count: 1 },
+        ];
+        let r = build(Inputs {
+            install_id: &new_install_id(),
+            app_version: env!("CARGO_PKG_VERSION"),
+            windows_build: &windows_build(),
+            week,
+            machine: Machine { ram_total: 34_000_000_000, ram_used_avg: 20_000_000_000, cores: 16 },
+            procs: vec![("chrome.exe".into(), 12.5, 4_000_000_000), ("Code.exe".into(), 3.0, 2_000_000_000), ("secret.exe".into(), 50.0, 1)],
+            tweaks: vec!["telemetry.diagtrack".into()],
+        });
+        std::fs::write(std::env::var("RIGSWEEP_REPORT_OUT").unwrap(), serde_json::to_string(&r).unwrap()).unwrap();
     }
 }

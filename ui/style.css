@@ -429,3 +429,8 @@ button:focus-visible, .tile.link:focus-visible, .tile.heat:focus-visible { outli
 .ico { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; display: inline-block; border-radius: 3px; }
 span.ico { background: var(--panel2); }
 span.ico:not([data-ico]) { background: transparent; }
+
+/* anonymous stats: the report preview */
+.share-pre { font: 11.5px/1.5 Consolas, ui-monospace, monospace; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; max-height: 300px; overflow: auto; white-space: pre; margin: 8px 0 0; direction: ltr; text-align: left; }
+.share-details { margin-top: 10px; }
+.share-details summary { cursor: pointer; color: var(--accent); }

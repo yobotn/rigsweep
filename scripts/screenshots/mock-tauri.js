@@ -140,8 +140,19 @@
     all: period(212 * GB, 71 * GB, 12 * GB, 304, 118, [["disk", "dir:target", 121 * GB, 25], ["disk", "dir:node_modules", 41 * GB, 50], ["memory", "mcp", 30 * GB, 130], ["disk", "cache:cargo", 22 * GB], ["memory", "browser", 21 * GB, 60]]),
     since: "2026-09-02 10:14:00",
   };
+  // ?notice=opt_out / opt_in shows the first-run stats notice; otherwise it counts as already seen
+  const notice = q.get("notice");
+  const share = { enabled: notice !== "opt_in", chosen: false, notice_seen: !notice, consent_default: notice || "opt_out",
+    install_id: "3f9c2a71d04e4b8c9a6e15b27d8c40f1", last_sent: notice ? null : ago(2 * 24 * 60), last_report: null };
+  const report = { v: 1, install_id: share.install_id, app_version: "0.8.0", windows_build: "26100", processes: 23, cleanups: 9,
+    freed: impact.week.kinds, machine: { ram_total: 32 * GB, ram_used_avg: 21.4 * GB, cores: 16 },
+    top_cpu: [{ app: "Chrome", cpu: 38.5, mem: 4.1 * GB }, { app: "VS Code", cpu: 12.2, mem: 2.3 * GB }, { app: "Node.js", cpu: 9.8, mem: 1.9 * GB }],
+    top_mem: [{ app: "Chrome", cpu: 38.5, mem: 4.1 * GB }, { app: "WSL / Docker VM", cpu: 3.1, mem: 3.6 * GB }, { app: "VS Code", cpu: 12.2, mem: 2.3 * GB }],
+    tweaks: ["telemetry.advertising", "telemetry.diagtrack", "telemetry.policy"] };
   const replies = {
     get_impact: impact,
+    get_share_state: share,
+    get_report_preview: { report, consent_default: share.consent_default },
     get_state: { elevated: true, categories: cat.categories, tweaks, paused: false, startup_registered: true, backup_count: 41, data_dir: "",
       settings: { start_with_windows: true, stay_in_tray: true, watchdog_minutes: 30, dev_folders: [], idle_minutes: 120,
         auto_kill_stale: false, badge_enabled: true, badge_warn_gb: 1, badge_alert_gb: 2 } },

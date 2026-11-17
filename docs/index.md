@@ -66,7 +66,7 @@ Nothing is ended or deleted without your confirmation. Every Windows tweak backs
 
 ### Is RigSweep free? Does it collect data?
 
-Yes, it's free forever under the MIT license. There is no telemetry, no analytics and no account. The only network request is the update check, which stays off unless you turn it on or click Check now.
+Yes, it's free forever under the MIT license, with no account and no ads. RigSweep asks once whether to share anonymous weekly totals (how much it freed, by type, and which well-known apps use the most). Nothing is sent before you answer, the exact report is shown in Settings, and turning it off deletes what was sent. No paths, project names or personal data are ever included. The update check stays off unless you turn it on or click Check now.
 
 ### Does it run on macOS or Linux?
 

@@ -42,6 +42,9 @@ windows = { version = "0.62", features = [
   "Wdk_Graphics_Direct3D",
 ] }
 tauri-plugin-updater = "2"
+# the weekly stats report; the same HTTP/TLS stack the updater already uses
+reqwest = { version = "0.13", default-features = false, features = ["json"] }
+rustls = { version = "0.23", default-features = false, features = ["ring"] }
 
 [profile.release]
 codegen-units = 1

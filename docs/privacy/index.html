@@ -4,12 +4,12 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Privacy policy · RigSweep</title>
-  <meta name="description" content="RigSweep has no telemetry, no analytics and no account. The only network request is an opt-in update check. Everything it stores stays on your PC." />
+  <meta name="description" content="RigSweep has no account and no ads. It shares anonymous weekly totals only after you answer a first-run question, never with paths or names, and deletes them when you turn sharing off." />
   <link rel="canonical" href="https://rigsweep.com/privacy/" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="RigSweep" />
   <meta property="og:title" content="Privacy policy · RigSweep" />
-  <meta property="og:description" content="RigSweep has no telemetry, no analytics and no account. The only network request is an opt-in update check. Everything it stores stays on your PC." />
+  <meta property="og:description" content="RigSweep has no account and no ads. It shares anonymous weekly totals only after you answer a first-run question, never with paths or names, and deletes them when you turn sharing off." />
   <meta property="og:url" content="https://rigsweep.com/privacy/" />
   <meta property="og:image" content="https://rigsweep.com/social.png" />
   <meta name="twitter:card" content="summary_large_image" />
@@ -40,12 +40,30 @@
   <nav><div class="wrap"><a class="logo" href="/">🧹 RigSweep</a><div class="links"><a href="/cli/">CLI</a><a href="/about/">About</a><a href="/privacy/">Privacy</a><a href="/contact/">Contact</a><a href="https://github.com/yobotn/rigsweep">GitHub</a></div></div></nav>
   <main class="wrap">
     <h1>Privacy policy</h1>
-    <p><em>Last updated: November 11, 2026</em></p>
-    <p><strong>Short version: RigSweep collects nothing.</strong> It has no telemetry, no analytics, no crash reporting and no account.</p>
+    <p><em>Last updated: November 17, 2026</em></p>
+    <p><strong>Short version:</strong> RigSweep has no account and no ads. It can share <strong>anonymous weekly totals</strong> (how much it freed, by type, and which well-known apps use the most), but only after you answer a question the first time you open it. The report never contains file paths, project names or anything that identifies you, you can see exactly what is sent, and turning sharing off deletes what was sent.</p>
     <h2>The app</h2>
-    <p>This program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it. The only network request RigSweep can make is the <strong>update check</strong>, and only when you ask for it: clicking <em>Check now</em> in Settings, or turning on <em>Check for updates automatically</em> (off by default). It downloads <code>latest.json</code> from the project's GitHub Releases and sends nothing about your PC. An update is installed only after you click <em>Install</em>, and only if its signature matches RigSweep's signing key. Like any download, that request is handled by GitHub under <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub's privacy statement</a>.</p>
+    <p>This program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it. RigSweep can make two kinds of network request, each only after you choose it.</p>
+    <h2>Update check</h2>
+    <p>Only when you ask for it: clicking <em>Check now</em> in Settings, or turning on <em>Check for updates automatically</em> (off by default). It downloads <code>latest.json</code> from the project's GitHub Releases and sends nothing about your PC. An update is installed only after you click <em>Install</em>, and only if its signature matches RigSweep's signing key. Like any download, that request is handled by GitHub under <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub's privacy statement</a>.</p>
+    <h2>Anonymous weekly stats</h2>
+    <p><strong>Why:</strong> to show public counters of how much RigSweep frees for everyone, and to learn which cleanups and which apps matter most, so we know what to build next.</p>
+    <p><strong>When you are asked:</strong> the first time you open RigSweep (or the first time after updating to a version that has this), a dialog explains it and offers <em>Show what's sent</em>. Nothing is sent until you answer. In most countries the suggested answer is to share; in the EU/EEA, the UK and Switzerland, and wherever the region can't be told, it stays off unless you choose to share. The region is worked out on your PC from the Windows home location and time zone, and is never sent.</p>
+    <p><strong>What a report contains</strong>, about once a week:</p>
+    <ul>
+      <li>a random install ID made on your PC (not derived from your hardware; you can replace it at any time)</li>
+      <li>the RigSweep version and the Windows build number</li>
+      <li>totals for the last 7 days: processes ended, cleanups run, and disk space and memory freed by type (for example "node_modules folders", "MCP servers", "npm cache")</li>
+      <li>the top 5 apps by CPU and by memory, but only from a fixed list of well-known apps such as Chrome, VS Code or Docker Desktop; anything else is left out</li>
+      <li>total RAM, average RAM in use, and the number of CPU cores</li>
+      <li>which built-in tweaks are on (custom tweaks are left out, because they name your services)</li>
+    </ul>
+    <p><strong>What it never contains:</strong> file or folder paths, project, folder or process names (apart from the well-known apps above), command lines, user or computer names, hardware or network IDs, or your files. The server rejects any report with free text in it.</p>
+    <p><strong>Your IP address</strong> is used only at the moment a report arrives, to look up the country with the <a href="https://db-ip.com">IP Geolocation by DB-IP</a> database (CC BY 4.0). Only the two-letter country code is kept. The IP address is never stored or written to logs.</p>
+    <p><strong>Where it goes:</strong> to <code>stats.rigsweep.com</code>, on servers we rent from DigitalOcean. Combined totals across all installs may be shown publicly on rigsweep.com. Reports are not sold or shared with anyone, and there are no third-party trackers or ads.</p>
+    <p><strong>Your control:</strong> <em>Settings → Anonymous stats</em> shows the exact next report, the last one sent and your install ID. Turning sharing off stops it and asks the server to delete everything sent under your install ID; <em>New random ID</em> does the same and starts over with a new one.</p>
     <h2>What is stored on your PC</h2>
-    <p>Backups of original Windows settings, cleanup history and before/after measurements are stored locally in <code>%ProgramData%\RigSweep\rigsweep.db</code>. Nothing is uploaded. Uninstalling RigSweep and deleting that folder removes it all.</p>
+    <p>Backups of original Windows settings, cleanup history and before/after measurements are stored locally in <code>%ProgramData%\RigSweep\rigsweep.db</code>. None of that is uploaded; only the anonymous totals described above are, if you choose to share them. Uninstalling RigSweep and deleting that folder removes it all.</p>
     <h2>The Chrome tab helper</h2>
     <p>The optional extension uses only the <code>tabs</code>, <code>storage</code> and <code>alarms</code> permissions and makes no network requests. Its settings stay in your browser.</p>
     <h2>This website</h2>

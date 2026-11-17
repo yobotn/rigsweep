@@ -404,7 +404,7 @@ pub fn get_impact(state: State<'_, AppState>) -> R<crate::impact::Summary> {
 }
 
 /// The anonymous weekly report exactly as it would be sent, and this PC's sharing default.
-/// Nothing is sent: this feeds the Preview until sharing ships.
+/// Exactly what the next weekly report would hold, plus the sharing state.
 #[derive(Serialize)]
 pub struct ReportPreview {
     pub report: crate::report::Report,
@@ -412,39 +412,29 @@ pub struct ReportPreview {
 }
 
 #[tauri::command]
-pub async fn get_report_preview(app: AppHandle, state: State<'_, AppState>) -> R<ReportPreview> {
-    use crate::report;
-    let (catalog, install_id, week, tweaks) = {
-        let db = lock(&state)?;
-        let id = match db.get_setting("install_id") {
-            Some(id) if !id.is_empty() => id,
-            _ => {
-                let id = report::new_install_id();
-                db.set_setting("install_id", &id).map_err(err)?;
-                id
-            }
-        };
-        let since = (chrono::Local::now() - chrono::Duration::days(7)).format("%Y-%m-%d %H:%M:%S").to_string();
-        let week = crate::impact::total(&db.impact_rows(Some(&since)).map_err(err)?);
-        (engine::load_catalog(&db), id, week, db.enabled_ids().map_err(err)?)
-    };
-    let snap = state.analyzer.lock().map_err(|_| "analyzer lock poisoned")?.snapshot(&catalog);
-    let live = crate::live::history();
-    let ram_used_avg = if live.is_empty() { snap.mem_used } else { live.iter().map(|s| s.mem_used).sum::<u64>() / live.len() as u64 };
-    let r = report::build(report::Inputs {
-        install_id: &install_id,
-        app_version: &app.package_info().version.to_string(),
-        windows_build: &report::windows_build(),
-        week,
-        machine: report::Machine {
-            ram_total: snap.mem_total,
-            ram_used_avg,
-            cores: std::thread::available_parallelism().map(|n| n.get()).unwrap_or(0),
-        },
-        procs: snap.processes.iter().map(|p| (p.name.clone(), p.cpu, p.mem)).collect(),
-        tweaks,
-    });
-    Ok(ReportPreview { report: r, consent_default: report::local_consent_default() })
+pub async fn get_report_preview(app: AppHandle) -> R<ReportPreview> {
+    let report = tauri::async_runtime::spawn_blocking(move || crate::share::build_report(&app)).await.map_err(err)??;
+    Ok(ReportPreview { report, consent_default: crate::report::local_consent_default() })
+}
+
+#[tauri::command]
+pub async fn get_share_state(state: State<'_, AppState>) -> R<crate::share::ShareState> {
+    Ok(crate::share::state(&*lock(&state)?))
+}
+
+#[tauri::command]
+pub async fn set_share(app: AppHandle, on: bool) -> R<crate::share::ShareState> {
+    crate::share::set(&app, on)
+}
+
+#[tauri::command]
+pub async fn share_notice_seen(app: AppHandle) -> R<crate::share::ShareState> {
+    crate::share::notice_seen(&app)
+}
+
+#[tauri::command]
+pub async fn reset_install_id(app: AppHandle) -> R<crate::share::ShareState> {
+    crate::share::reset_id(&app)
 }
 
 // ---------- browser cleanup ----------

@@ -20,6 +20,7 @@ mod live;
 mod update;
 mod persistence;
 mod report;
+mod share;
 mod startup;
 mod util;
 
@@ -112,6 +113,10 @@ fn run_app(start_hidden: bool) {
             commands::get_state,
             commands::get_impact,
             commands::get_report_preview,
+            commands::get_share_state,
+            commands::set_share,
+            commands::share_notice_seen,
+            commands::reset_install_id,
             commands::apply_tweaks,
             commands::restore_tweaks,
             commands::restore_all,
@@ -158,6 +163,7 @@ fn run_app(start_hidden: bool) {
             spawn_watchdog(app.handle().clone());
             spawn_dev_monitor(app.handle().clone());
             live::spawn(app.handle().clone());
+            share::spawn(app.handle().clone());
             let h = app.handle().clone();
             update::spawn_auto_check(app.handle().clone(), move || {
                 let state = h.state::<AppState>();

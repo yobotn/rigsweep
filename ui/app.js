@@ -102,13 +102,14 @@ function toast(msg, kind = "info", ms) {
   box.appendChild(el);
 }
 
-function modal(title, html, { okText = t("common.ok"), danger = false, cancel = true } = {}) {
+function modal(title, html, { okText = t("common.ok"), cancelText = t("common.cancel"), danger = false, cancel = true } = {}) {
   return new Promise((resolve) => {
     const box = $("#modal"), ok = $("#modal-ok"), cn = $("#modal-cancel");
     const prev = document.activeElement;
     $("#modal-title").textContent = title;
     $("#modal-body").innerHTML = html;
     ok.textContent = okText;
+    cn.textContent = cancelText;
     ok.className = danger ? "danger" : "primary";
     cn.style.display = cancel ? "" : "none";
     box.classList.remove("hidden");
@@ -1605,6 +1606,7 @@ function renderSettings() {
   renderUpdate();
   $("#s-info").textContent = t("set.info", { s: state.startup_registered ? t("set.registered") : t("set.notRegistered"), d: state.data_dir });
   loadAv();
+  loadShare();
 }
 
 async function loadAv() {
@@ -1865,6 +1867,72 @@ async function ensureDisclaimer() {
   safeSet("disclaimer_v1", "1");
 }
 
+// ---------- anonymous stats ----------
+let shareState = null;
+
+async function previewHtml() {
+  let json = "";
+  try { json = JSON.stringify((await invoke("get_report_preview")).report, null, 2); } catch (e) { json = String(e); }
+  return `<pre class="share-pre">${esc(json)}</pre>`;
+}
+
+function renderShare() {
+  const s = shareState;
+  if (!s) return;
+  $("#s-share").checked = s.enabled;
+  const parts = [s.enabled ? (s.last_sent ? t("share.last", { d: s.last_sent }) : t("share.never")) : t("share.off"),
+    t("share.id", { id: s.install_id })];
+  $("#share-status").innerHTML = parts.map(esc).join("<br>");
+}
+
+async function loadShare() {
+  try { shareState = await invoke("get_share_state"); } catch { shareState = null; }
+  renderShare();
+  return shareState;
+}
+
+$("#s-share").onchange = async (e) => {
+  const on = e.target.checked;
+  e.target.disabled = true;
+  try {
+    shareState = await call("set_share", { on });
+    toast(t(on ? "share.onDone" : "share.offDone"), "ok");
+  } catch { e.target.checked = !on; } finally { e.target.disabled = false; }
+  renderShare();
+};
+
+$("#btn-share-preview").onclick = async (e) => {
+  busy(e.target, true);
+  let html;
+  try { html = await previewHtml(); } finally { busy(e.target, false); }
+  await modal(t("share.previewTitle"), html, { cancel: false });
+};
+
+$("#btn-share-reset").onclick = async (e) => {
+  busy(e.target, true);
+  try { shareState = await call("reset_install_id"); toast(t("share.resetDone"), "ok"); } finally { busy(e.target, false); }
+  renderShare();
+};
+
+// Shown once (also to people updating from a version without sharing). Nothing is sent before it.
+async function ensureShareNotice() {
+  const s = await loadShare();
+  if (!s || s.notice_seen) return;
+  const optIn = s.consent_default === "opt_in";
+  const body = `<p>${esc(t(optIn ? "share.notice.optin" : "share.notice.optout"))}</p>
+    <p class="hint">${esc(t("share.hint"))}</p>
+    <details class="share-details"><summary>${esc(t("share.preview"))}</summary>${await previewHtml()}</details>`;
+  const yes = await modal(t("share.notice.title"), body, {
+    okText: t(optIn ? "share.yes" : "share.keep"),
+    cancelText: t(optIn ? "share.no" : "share.turnOff"),
+  });
+  try {
+    shareState = await invoke(yes && !optIn ? "share_notice_seen" : "set_share", yes && !optIn ? undefined : { on: yes });
+    if (yes) toast(t("share.onDone"), "ok");
+  } catch (e) { console.error(e); }
+  renderShare();
+}
+
 // ---------- boot ----------
 (async () => {
   applyI18n();
@@ -1872,7 +1940,7 @@ async function ensureDisclaimer() {
   pollDiskJob(); // a cleanup may still be running from before a reload
   currentTab = safeGet("tab") || "dashboard";
   rerender();
-  ensureDisclaimer();
+  ensureDisclaimer().then(ensureShareNotice);
   // the heat tile waits for the first live sample; never let a skeleton spin forever
   setTimeout(() => document.querySelectorAll(".skel").forEach((el) => el.classList.remove("skel")), 8000);
 })();
