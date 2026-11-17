@@ -64,6 +64,15 @@ pub async fn save_report(pool: &PgPool, r: &Report, country: &str) -> sqlx::Resu
     .bind(r.events.iter().map(|e| e.count as i64).collect::<Vec<_>>())
     .execute(&mut *tx)
     .await?;
+    // The first v2 report of an install repeats, row by row, everything its v1 reports already sent as
+    // totals: those v1 rows (no seq) and counts are superseded, so they go.
+    if !r.events.is_empty() {
+        sqlx::query("DELETE FROM events WHERE install_id = $1 AND seq IS NULL").bind(&r.install_id).execute(&mut *tx).await?;
+        sqlx::query("UPDATE reports SET processes = NULL, cleanups = NULL WHERE install_id = $1 AND v = 1")
+            .bind(&r.install_id)
+            .execute(&mut *tx)
+            .await?;
+    }
     // v1 (test builds): the 7-day totals become events dated now
     sqlx::query(
         "INSERT INTO events (report_id, install_id, at, area, kind, bytes, count)

@@ -76,6 +76,9 @@ async fn reports_totals_admin_and_optout() {
     assert_eq!(call(&app, post(&v2, "203.0.113.2")).await.0, StatusCode::NO_CONTENT);
     let ev: i64 = sqlx::query_scalar("SELECT count(*) FROM events WHERE seq IS NOT NULL").fetch_one(&pool).await.unwrap();
     assert_eq!(ev, 2);
+    // b's earlier v1 totals are superseded by its row-by-row history, so nothing is counted twice
+    let old: i64 = sqlx::query_scalar("SELECT count(*) FROM events WHERE install_id = $1 AND seq IS NULL").bind(b).fetch_one(&pool).await.unwrap();
+    assert_eq!(old, 0);
     let at: String = sqlx::query_scalar("SELECT to_char(at AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24:MI') FROM events WHERE seq = 1")
         .fetch_one(&pool)
         .await
@@ -93,10 +96,10 @@ async fn reports_totals_admin_and_optout() {
     let (st, t) = call(&app, get("/v1/totals", None)).await;
     assert_eq!(st, StatusCode::OK);
     assert_eq!(t["installs"], 2);
-    assert_eq!(t["disk_freed"], 1000 + 3000 + 7000 + 500);
-    assert_eq!(t["ram_recovered"], 3 * 500 + 100);
-    assert_eq!(t["processes_ended"], 3 * 2 + 4);
-    assert_eq!(t["cleanups"], 3 * 2 + 1); // v1 counts + one v2 run
+    assert_eq!(t["disk_freed"], 1000 + 3000 + 500); // b: only its v2 rows
+    assert_eq!(t["ram_recovered"], 2 * 500 + 100);
+    assert_eq!(t["processes_ended"], 2 * 2 + 4);
+    assert_eq!(t["cleanups"], 2 * 2 + 1); // a's v1 counts + b's one v2 run
     assert_eq!(t["top"][0]["kind"], "dir:target");
 
     // the dashboard needs the password
