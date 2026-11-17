@@ -1490,15 +1490,31 @@ function renderDashCharts() {
   Object.keys(CHARTS).forEach(drawChart);
 }
 
+// Live charts keep their SVG shapes and only get new coordinates on each sample: nothing is
+// re-parsed or re-created, and an attribute that didn't change isn't touched.
+const SVG_NS = "http://www.w3.org/2000/svg";
+function shape(svg, key, tag, cls) {
+  let el = svg.querySelector(`:scope > [data-k="${key}"]`);
+  if (!el) { el = document.createElementNS(SVG_NS, tag); el.dataset.k = key; svg.append(el); }
+  if (cls != null && el.getAttribute("class") !== cls) el.setAttribute("class", cls);
+  return el;
+}
+function setAttrs(el, attrs) {
+  for (const [k, v] of Object.entries(attrs)) if (el.getAttribute(k) !== String(v)) el.setAttribute(k, v);
+  return el;
+}
+
 function drawChart(id) {
   const plot = $(`#p-${id}`), svg = plot.querySelector("svg"), c = CHARTS[id];
   const enough = live.length >= 2;
   plot.querySelector(".chart-empty").classList.toggle("hidden", enough);
-  if (!enough) { svg.innerHTML = ""; chartHover(id); return; }
+  if (!enough) { svg.replaceChildren(); chartHover(id); return; }
   const W = 300, H = 100, t0 = live[0].t, span = Math.max(1, live.at(-1).t - t0);
   const pts = live.map((s) => `${(((s.t - t0) / span) * W).toFixed(1)},${(H - c.val(s)).toFixed(1)}`).join(" ");
-  svg.innerHTML = `<line class="grid" x1="0" x2="${W}" y1="50" y2="50" /><line class="grid" x1="0" x2="${W}" y1="0.5" y2="0.5" />
-    <polygon class="area" points="0,${H} ${pts} ${W},${H}" /><polyline class="line" points="${pts}" />`;
+  setAttrs(shape(svg, "g1", "line", "grid"), { x1: 0, x2: W, y1: 50, y2: 50 });
+  setAttrs(shape(svg, "g2", "line", "grid"), { x1: 0, x2: W, y1: 0.5, y2: 0.5 });
+  setAttrs(shape(svg, "area", "polygon", "area"), { points: `0,${H} ${pts} ${W},${H}` });
+  setAttrs(shape(svg, "line", "polyline", "line"), { points: pts });
   chartHover(id);
 }
 
@@ -1957,7 +1973,7 @@ function renderHeat() {
   if (!has) {
     $("#t-heat").textContent = t("heat.na");
     $("#t-heat-sub").textContent = t("heat.naHint");
-    $("#heat-spark").innerHTML = "";
+    $("#heat-spark").replaceChildren();
     $("#heat-callout").innerHTML = "";
     tile.classList.add("na");
     return;
@@ -1972,7 +1988,9 @@ function renderHeat() {
     const W = 300, H = 28, t0 = pts[0].t, span = Math.max(1, pts.at(-1).t - t0);
     const y = (c) => H - 1 - ((Math.min(100, Math.max(30, c)) - 30) / 70) * (H - 2);
     const line = pts.map((s) => `${(((s.t - t0) / span) * W).toFixed(1)},${y(heatOf(s)).toFixed(1)}`).join(" ");
-    $("#heat-spark").innerHTML = `<line class="warn" x1="0" x2="${W}" y1="${y(HEAT.warm)}" y2="${y(HEAT.warm)}" /><polyline class="${heatCls(peak) || "ok"}" points="${line}" />`;
+    const svg = $("#heat-spark");
+    setAttrs(shape(svg, "warn", "line", "warn"), { x1: 0, x2: W, y1: y(HEAT.warm), y2: y(HEAT.warm) });
+    setAttrs(shape(svg, "line", "polyline", heatCls(peak) || "ok"), { points: line });
   }
   // warn only when it stays hot (last 3 samples), not on a single spike
   const recent = live.slice(-3);
@@ -1988,7 +2006,7 @@ $("#heat-callout").addEventListener("click", (e) => { if (e.target.dataset.go) s
 
 function renderSpark() {
   const svg = $("#live-spark");
-  if (live.length < 2) { svg.innerHTML = ""; return; }
+  if (live.length < 2) { svg.replaceChildren(); return; }
   const W = 300, H = 48, t0 = live[0].t, span = Math.max(1, live.at(-1).t - t0);
   // RAM is zoomed to its recent range (a 2 GB drop on a 32 GB machine would look flat otherwise)
   const mems = live.map((s) => s.mem_used);
@@ -1999,12 +2017,14 @@ function renderSpark() {
   const yc = (s) => H - 2 - (Math.min(100, s.cpu) / 100) * (H - 4);
   const mem = live.map((s) => `${x(s).toFixed(1)},${ym(s).toFixed(1)}`).join(" ");
   const cpu = live.map((s) => `${x(s).toFixed(1)},${yc(s).toFixed(1)}`).join(" ");
-  let mark = "";
+  setAttrs(shape(svg, "area", "polygon", "area"), { points: `0,${H} ${mem} ${W},${H}` });
+  setAttrs(shape(svg, "cpu", "polyline", "cpu"), { points: cpu });
+  setAttrs(shape(svg, "mem", "polyline", "mem"), { points: mem });
+  const mark = shape(svg, "mark", "line", "mark");
   if (recovery && recovery.since >= t0) {
     const mx = (((recovery.since - t0) / span) * W).toFixed(1);
-    mark = `<line class="mark" x1="${mx}" x2="${mx}" y1="0" y2="${H}" />`;
-  }
-  svg.innerHTML = `<polygon class="area" points="0,${H} ${mem} ${W},${H}" /><polyline class="cpu" points="${cpu}" /><polyline class="mem" points="${mem}" />${mark}`;
+    setAttrs(mark, { x1: mx, x2: mx, y1: 0, y2: H, display: "inline" });
+  } else setAttrs(mark, { display: "none" });
 }
 
 // Samples arrive every 2 s; they are always kept, but drawn only while someone can see them
