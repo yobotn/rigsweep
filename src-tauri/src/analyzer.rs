@@ -63,7 +63,12 @@ pub struct Analyzer {
     last: Instant,
     idle: IdleTracker,
     pub last_dev: DevReport,
+    /// the service list rarely changes: listing all ~300 services on every refresh was most of the
+    /// Processes page's own CPU, so it is reused for SERVICES_TTL
+    services: Option<(Instant, Vec<service::SvcInfo>)>,
 }
+
+const SERVICES_TTL: std::time::Duration = std::time::Duration::from_secs(30);
 
 impl Analyzer {
     pub fn new() -> Result<Analyzer, String> {
@@ -71,7 +76,7 @@ impl Analyzer {
         sys.refresh_cpu_usage();
         sys.refresh_memory();
         sys.refresh_processes(ProcessesToUpdate::All, true);
-        Ok(Analyzer { sys, last: Instant::now(), idle: IdleTracker::default(), last_dev: DevReport::default() })
+        Ok(Analyzer { sys, last: Instant::now(), idle: IdleTracker::default(), last_dev: DevReport::default(), services: None })
     }
 
     pub fn snapshot(&mut self, catalog: &Catalog) -> Snapshot {
@@ -99,7 +104,14 @@ impl Analyzer {
             })
             .collect();
 
-        let services = service::list_services().unwrap_or_default();
+        let services = match &self.services {
+            Some((at, list)) if at.elapsed() < SERVICES_TTL => list.clone(),
+            _ => {
+                let list = service::list_services().unwrap_or_default();
+                self.services = Some((Instant::now(), list.clone()));
+                list
+            }
+        };
         let service_running = services.iter().filter(|s| s.running).count();
         let mut by_pid: HashMap<u32, Vec<HostedService>> = HashMap::new();
         for s in services.into_iter().filter(|s| s.running && s.pid != 0) {

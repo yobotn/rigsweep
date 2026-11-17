@@ -68,7 +68,7 @@ async fn reports_totals_admin_and_optout() {
     let v2 = json!({
         "v": 2, "install_id": b, "app_version": "0.8.0", "windows_build": "26300", "since": "2026-11-17T13:00Z",
         "events": [{"seq": 1, "at": "2026-11-17T13:42Z", "run": 1, "source": "gui", "area": "disk", "kind": "dir:node_modules", "bytes": 500, "count": 1},
-                   {"seq": 2, "at": "2026-11-17T13:42Z", "run": 1, "source": "gui", "area": "memory", "kind": "mcp", "bytes": 100, "count": 4}],
+                   {"seq": 2, "at": "2026-11-17T13:42Z", "run": 1, "source": "gui", "area": "memory", "kind": "mcp", "bytes": 100, "count": 4, "cpu": 7.5}],
         "machine": {"ram_total": 34359738368u64, "ram_used_avg": 17179869184u64, "cores": 16},
         "top_cpu": [], "top_mem": [], "tweaks": ["telemetry.diagtrack"],
         "seen": [{"kind": "process", "name": "ArmouryCrate.Service.exe", "display": "", "exe": "ArmouryCrate.Service.exe", "folder": "ASUS",
@@ -94,6 +94,8 @@ async fn reports_totals_admin_and_optout() {
         .await
         .unwrap();
     assert_eq!(at, "2026-11-17 13:42");
+    let cpu: f32 = sqlx::query_scalar("SELECT cpu FROM events WHERE seq = 2").fetch_one(&pool).await.unwrap();
+    assert_eq!(cpu, 7.5);
 
     // free text where a category belongs is refused
     let mut bad = report(a, 1);

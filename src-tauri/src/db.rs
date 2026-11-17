@@ -118,6 +118,11 @@ impl Db {
                 area TEXT NOT NULL, kind TEXT NOT NULL, bytes INTEGER NOT NULL, count INTEGER NOT NULL);
              CREATE INDEX IF NOT EXISTS impact_ts ON impact(ts);",
         )?;
+        // 0.8.2: the CPU an ended process tree was using is kept next to its memory
+        let has_cpu: bool = conn.prepare("SELECT 1 FROM pragma_table_info('impact') WHERE name = 'cpu'")?.exists([])?;
+        if !has_cpu {
+            conn.execute("ALTER TABLE impact ADD COLUMN cpu REAL NOT NULL DEFAULT 0", [])?;
+        }
         Ok(Db { conn })
     }
 
@@ -313,8 +318,8 @@ impl Db {
         let ts = now();
         for f in items {
             let _ = self.conn.execute(
-                "INSERT INTO impact(run, ts, source, area, kind, bytes, count) VALUES(?1,?2,?3,?4,?5,?6,?7)",
-                params![run, ts, source, f.area, f.kind, f.bytes as i64, f.count as i64],
+                "INSERT INTO impact(run, ts, source, area, kind, bytes, count, cpu) VALUES(?1,?2,?3,?4,?5,?6,?7,?8)",
+                params![run, ts, source, f.area, f.kind, f.bytes as i64, f.count as i64, f.cpu as f64],
             );
         }
     }
@@ -322,12 +327,13 @@ impl Db {
     /// (run, row) for every record at or after `since` ("YYYY-MM-DD HH:MM:SS"), or all of them.
     pub fn impact_rows(&self, since: Option<&str>) -> Result<Vec<(i64, Freed)>> {
         let mut st = self.conn.prepare(
-            "SELECT run, area, kind, bytes, count FROM impact WHERE ?1 IS NULL OR ts >= ?1 ORDER BY id",
+            "SELECT run, area, kind, bytes, count, cpu FROM impact WHERE ?1 IS NULL OR ts >= ?1 ORDER BY id",
         )?;
         let rows = st
             .query_map(params![since], |r| {
                 let (b, c): (i64, i64) = (r.get(3)?, r.get(4)?);
-                Ok((r.get(0)?, Freed { area: r.get(1)?, kind: r.get(2)?, bytes: b.max(0) as u64, count: c.max(0) as u64 }))
+                let cpu: f64 = r.get(5)?;
+                Ok((r.get(0)?, Freed { area: r.get(1)?, kind: r.get(2)?, bytes: b.max(0) as u64, count: c.max(0) as u64, cpu: cpu.max(0.0) as f32 }))
             })?
             .collect::<std::result::Result<Vec<_>, _>>()?;
         Ok(rows)
@@ -338,7 +344,7 @@ impl Db {
     pub fn impact_events_after(&self, after_id: i64, limit: usize) -> Result<Vec<crate::report::Event>> {
         use chrono::TimeZone;
         let mut st = self.conn.prepare(
-            "SELECT id, ts, run, source, area, kind, bytes, count FROM impact WHERE id > ?1 ORDER BY id LIMIT ?2",
+            "SELECT id, ts, run, source, area, kind, bytes, count, cpu FROM impact WHERE id > ?1 ORDER BY id LIMIT ?2",
         )?;
         let rows = st
             .query_map(params![after_id, limit as i64], |r| {
@@ -360,6 +366,7 @@ impl Db {
                     kind: r.get(5)?,
                     bytes: b.max(0) as u64,
                     count: c.max(0) as u64,
+                    cpu: (r.get::<_, f64>(8)?.max(0.0)) as f32,
                 })
             })?
             .collect::<std::result::Result<Vec<_>, _>>()?;

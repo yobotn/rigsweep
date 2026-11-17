@@ -1,4 +1,9 @@
 I18N["he"] = {
+    "set.liveRefresh": "דפים חיים מתרעננים כל (שניות)",
+    "ready.checking": "בודק…",
+    "ready.none.dev": "אין תהליכי פיתוח נטושים",
+    "ready.none.disk": "אין תיקיות בנייה או מטמונים ישנים",
+    "ready.none.bc": "אין מטמון דפדפנים ששווה לנקות",
     "upd.noReboot": "רק RigSweep מופעל מחדש, לא המחשב.",
     "ready.cap.dev": "{n} תהליכי פיתוח נטושים",
     "ready.cap.disk": "תיקיות בנייה ומטמונים ישנים ({n})",

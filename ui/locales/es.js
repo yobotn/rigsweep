@@ -1,4 +1,9 @@
 I18N["es"] = {
+    "set.liveRefresh": "Las páginas en vivo se actualizan cada (segundos)",
+    "ready.checking": "Comprobando…",
+    "ready.none.dev": "No hay procesos de desarrollo obsoletos",
+    "ready.none.disk": "No hay carpetas de compilación ni cachés antiguas",
+    "ready.none.bc": "No hay cachés del navegador que valga la pena borrar",
     "upd.noReboot": "Solo se reinicia RigSweep, no tu PC.",
     "ready.cap.dev": "{n} procesos de desarrollo obsoletos",
     "ready.cap.disk": "carpetas de compilación y cachés antiguas ({n})",

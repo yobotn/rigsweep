@@ -1,4 +1,9 @@
 I18N["ja"] = {
+    "set.liveRefresh": "ライブページの更新間隔 (秒)",
+    "ready.checking": "確認中…",
+    "ready.none.dev": "放置された開発プロセスはありません",
+    "ready.none.disk": "古いビルドフォルダーやキャッシュはありません",
+    "ready.none.bc": "消す価値のあるブラウザーキャッシュはありません",
     "upd.noReboot": "再起動するのは RigSweep だけで、PC は再起動しません。",
     "ready.cap.dev": "放置された開発プロセス {n} 個",
     "ready.cap.disk": "古いビルドフォルダーとキャッシュ ({n} 件)",

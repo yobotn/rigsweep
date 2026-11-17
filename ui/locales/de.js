@@ -1,4 +1,9 @@
 I18N["de"] = {
+    "set.liveRefresh": "Live-Seiten aktualisieren alle (Sekunden)",
+    "ready.checking": "Wird geprüft…",
+    "ready.none.dev": "Keine veralteten Dev-Prozesse",
+    "ready.none.disk": "Keine alten Build-Ordner oder Caches",
+    "ready.none.bc": "Keine Browser-Caches, die sich lohnen",
     "upd.noReboot": "Nur RigSweep startet neu, nicht dein PC.",
     "ready.cap.dev": "{n} veraltete Dev-Prozesse",
     "ready.cap.disk": "alte Build-Ordner und Caches ({n})",

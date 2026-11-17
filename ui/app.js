@@ -346,9 +346,9 @@ function showTab(name) {
   safeSet("tab", name);
   clearInterval(procTimer);
   if (name === "startup" && startup) renderStartup();
-  if (name === "processes") { loadProcesses(); procTimer = setInterval(() => $("#proc-auto").checked && document.visibilityState === "visible" && loadProcesses(), 3000); }
+  if (name === "processes") { loadProcesses(); procTimer = setInterval(() => $("#proc-auto").checked && document.visibilityState === "visible" && loadProcesses(), liveMs()); }
   if (LIVE_TABS.has(name) && !document.hidden) queueMicrotask(renderLive); // after the script has loaded (renderLive uses later bindings)
-  if (name === "dashboard") { loadDashboard(); procTimer = setInterval(() => document.visibilityState === "visible" && loadDashboard(), 10000); }
+  if (name === "dashboard") { loadDashboard(); procTimer = setInterval(() => document.visibilityState === "visible" && loadDashboard(), liveMs() * 2); }
   if (name === "disk") renderDiskAuto();
   refreshTab(name, "open"); // cleanup, browser, startup, disk: rescan if the last scan is old
   if (name === "report") loadSnapshots();
@@ -543,7 +543,7 @@ async function scanDev() {
   try { dev = await call("get_dev_processes"); }
   catch (e) {
     // keep the last good list if there is one; otherwise say what failed in place of the spinner
-    if (!dev) $("#clean-body").innerHTML = `<tr><td colspan="7" class="loading"><p>${esc(t("err.failed"))}: ${esc(e)}</p><button class="ghost" data-retry>${esc(t("clean.scan"))}</button></td></tr>`;
+    if (!dev) $("#clean-body").innerHTML = `<tr><td colspan="8" class="loading"><p>${esc(t("err.failed"))}: ${esc(e)}</p><button class="ghost" data-retry>${esc(t("clean.scan"))}</button></td></tr>`;
     throw e;
   }
   // keep the user's ticks across rescans, and tick every stale row, including ones that only
@@ -560,12 +560,12 @@ function renderDev() {
   $("#clean-summary").textContent = dev.items.length
     ? t("clean.summary", { n: dev.items.length, mem: fmtBytes(dev.total_mem), s: dev.stale_count, sm: fmtBytes(dev.stale_mem) }) : "";
   if (!dev.items.length) {
-    $("#clean-body").innerHTML = `<tr><td colspan="7" class="loading">${esc(t("clean.none"))}</td></tr>`;
+    $("#clean-body").innerHTML = `<tr><td colspan="8" class="loading">${esc(t("clean.none"))}</td></tr>`;
     return;
   }
   const devRank = (p) => p.protected ? 0 : p.stale ? 2 + p.reasons.length : 1; // stale with most reasons first
   const devVal = (p, k) => k === "what" ? p.label : k === "project" ? devWhere(p) || "" : k === "age" ? p.age_secs
-    : k === "ports" ? p.ports.length : k === "status" ? devRank(p) * 1e15 + p.tree_mem : p.tree_mem;
+    : k === "ports" ? p.ports.length : k === "status" ? devRank(p) * 1e15 + p.tree_mem : k === "cpu" ? p.cpu : p.tree_mem;
   $("#clean-body").innerHTML = [...dev.items].sort(sorter("dev", devVal)).map((p) => {
     const k = devKey(p);
     const reasons = p.reasons.length ? p.reasons : ["active"];
@@ -577,6 +577,7 @@ function renderDev() {
       <td title="${esc(p.eco === "shell" ? p.cmd : p.project_path)}" class="${p.eco === "shell" || p.eco === "wsl" ? "mono-cut" : ""}"><bdi dir="ltr">${esc(devWhere(p) || "—")}</bdi></td>
       <td class="num">${p.age_secs ? fmtAge(p.age_secs) : "—"}</td>
       <td class="num">${p.tree_mem ? fmtBytes(p.tree_mem) : "—"}</td>
+      <td class="num ${p.cpu > 25 ? "vhot" : p.cpu > 5 ? "hot" : ""}">${p.cpu >= 0.1 ? `${p.cpu.toFixed(1)}%` : "—"}</td>
       <td>${p.ports.length ? p.ports.slice(0, 4).map((x) => `<code>${x}</code>`).join(" ") + (p.ports.length > 4 ? " …" : "") : "–"}</td>
       <td>${badges}</td>
     </tr>`;
@@ -617,6 +618,7 @@ $("#btn-clean-end").onclick = async (e) => {
   try {
     const r = await call("kill_dev_processes", { targets: picked.map((p) => ({ pid: p.pid, start_time: p.start_time, label: p.label, project: p.project, project_path: p.project_path, ports: p.ports })) });
     let msg = t("clean.done", { n: r.result.ended.length, mem: fmtBytes(r.result.freed_mem) });
+    if (r.result.freed_cpu >= 0.5) msg += " · " + t("ready.cpu", { c: r.result.freed_cpu.toFixed(0) });
     if (r.result.failed.length) msg += `\n\n${t("clean.failed")}\n• ` + r.result.failed.join("\n• ");
     toast(msg + `\n${t("clean.seeReport")}`, r.result.failed.length ? "warn" : "ok", 10000);
     reportPick = { before: r.before.id, after: r.after.id };
@@ -1745,6 +1747,7 @@ function renderSettings() {
   $("#s-startup").checked = s.start_with_windows;
   $("#s-tray").checked = s.stay_in_tray;
   $("#s-watchdog").value = s.watchdog_minutes;
+  $("#s-live").value = s.live_refresh_secs ?? 5;
   $("#s-idle").value = s.idle_minutes ?? 120;
   $("#s-autokill").checked = !!s.auto_kill_stale;
   $("#s-badge").checked = s.badge_enabled ?? true;
@@ -1783,6 +1786,9 @@ $("#btn-chrome").onclick = async () => {
   const p = await call("open_chrome_helper");
   await modal(t("chrome.title"), `<p class="sub">${esc(t("chrome.opened", { p }))}</p>${t("chrome.steps")}`, { cancel: false });
 };
+
+// how often the live pages refresh (Settings → General); the Dashboard uses twice this
+function liveMs() { return Math.min(60, Math.max(2, Number(state?.settings?.live_refresh_secs) || 5)) * 1000; }
 
 // ---------- settings: tabs and autosave ----------
 let settingsTab = safeGet("settingsTab") || "general";
@@ -1824,6 +1830,7 @@ async function saveSettings() {
     start_with_windows: $("#s-startup").checked,
     stay_in_tray: $("#s-tray").checked,
     watchdog_minutes: Math.max(1, Number($("#s-watchdog").value) || 30),
+    live_refresh_secs: Math.min(60, Math.max(2, Math.round(Number($("#s-live").value)) || 5)),
     idle_minutes: Math.min(10080, Math.max(1, Math.round(Number($("#s-idle").value)) || 120)),
     auto_kill_stale: $("#s-autokill").checked,
     badge_enabled: $("#s-badge").checked,
@@ -2036,13 +2043,16 @@ function readyRows() {
   return rows;
 }
 function renderReady() {
-  const rows = readyRows(), box = $("#ready");
-  box.hidden = !rows.length;
+  const have = readyRows();
+  // always the same three tiles: checking, nothing to free, or the amount, so nothing jumps around
+  const SLOTS = [["dev", "🧹", "cleanup", () => dev], ["disk", "💾", "disk", () => disk], ["bc", "🌐", "browser", () => bc]];
+  const rows = SLOTS.map(([key, icon, go, data]) => have.find((r) => r.key === key)
+    || { key, icon, go, state: data() ? "none" : "checking", big: data() ? "✓" : "", cap: t(data() ? `ready.none.${key}` : "ready.checking"), text: t(data() ? `ready.none.${key}` : "ready.checking") });
   // one tile per kind: the amount big, what it is underneath, the actions at the bottom
-  $("#ready-list").innerHTML = rows.map((r) => `<li class="ready-tile ${r.key}" aria-label="${esc(r.text)}">
-    <div class="ready-top"><span class="ready-ico" aria-hidden="true">${r.icon}</span><span class="ready-big">${esc(r.big)}</span></div>
+  $("#ready-list").innerHTML = rows.map((r) => `<li class="ready-tile ${r.key} ${r.state || "has"}" aria-label="${esc(r.text)}" ${r.state === "checking" ? 'aria-busy="true"' : ""}>
+    <div class="ready-top"><span class="ready-ico" aria-hidden="true">${r.icon}</span><span class="ready-big">${r.state === "checking" ? '<span class="skel-bar"></span>' : esc(r.big)}</span></div>
     <div class="ready-cap">${esc(r.cap)}</div>
-    <div class="ready-acts"><button class="small ghost" data-go="${r.go}">${esc(t("ready.review"))}</button><button class="small primary" data-ready="${r.key}">${esc(r.act)}</button></div></li>`).join("");
+    <div class="ready-acts"><button class="small ghost" data-go="${r.go}">${esc(t("ready.review"))}</button>${r.state ? "" : `<button class="small primary" data-ready="${r.key}">${esc(r.act)}</button>`}</div></li>`).join("");
 }
 $("#ready-list").addEventListener("click", (e) => {
   const go = e.target.closest("[data-go]");

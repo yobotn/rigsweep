@@ -1,4 +1,9 @@
 I18N["zh-CN"] = {
+    "set.liveRefresh": "实时页面刷新间隔（秒）",
+    "ready.checking": "正在检查…",
+    "ready.none.dev": "没有闲置的开发进程",
+    "ready.none.disk": "没有旧的构建文件夹或缓存",
+    "ready.none.bc": "没有值得清理的浏览器缓存",
     "upd.noReboot": "只会重新启动 RigSweep，不会重启电脑。",
     "ready.cap.dev": "{n} 个闲置开发进程",
     "ready.cap.disk": "旧构建文件夹和缓存（{n} 项）",

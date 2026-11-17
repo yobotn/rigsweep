@@ -686,14 +686,25 @@ pub async fn defender_why(seconds: u32) -> R<serde_json::Value> {
             "$ErrorActionPreference = 'Stop'
              $f = Join-Path $env:TEMP ('rigsweep-defender-' + [guid]::NewGuid() + '.etl')
              try {{
-               New-MpPerformanceRecording -RecordTo $f -Seconds {secs} | Out-Null
-               $r = Get-MpPerformanceReport -Path $f -TopProcesses 8 -TopPaths 8 -TopPathsDepth 3 -TopExtensions 8 -Raw
-               [pscustomobject]@{{ processes = @($r.TopProcesses); paths = @($r.TopPaths); extensions = @($r.TopExtensions) }} |
+               # the recorder also writes progress text to the host and information streams: silence them all
+               New-MpPerformanceRecording -RecordTo $f -Seconds {secs} *> $null
+               $r = Get-MpPerformanceReport -Path $f -TopProcesses 8 -TopPaths 8 -TopPathsDepth 3 -TopExtensions 8 -Raw 3> $null 4> $null 6> $null
+               $json = [pscustomobject]@{{ processes = @($r.TopProcesses); paths = @($r.TopPaths); extensions = @($r.TopExtensions) }} |
                  ConvertTo-Json -Depth 3 -Compress
+               'RIGSWEEP-JSON-BEGIN'; $json; 'RIGSWEEP-JSON-END'
              }} finally {{ Remove-Item $f -ErrorAction SilentlyContinue }}"
         );
         let out = util::powershell(&script).map_err(err)?;
-        serde_json::from_str::<serde_json::Value>(out.trim()).map_err(|e| format!("unexpected Defender report: {e}"))
+        // only what's between the markers is the report; anything else (a stray progress line) is ignored
+        let json = out
+            .split_once("RIGSWEEP-JSON-BEGIN")
+            .and_then(|(_, rest)| rest.split_once("RIGSWEEP-JSON-END"))
+            .map(|(j, _)| j.trim())
+            .unwrap_or("");
+        serde_json::from_str::<serde_json::Value>(json).map_err(|e| {
+            let tail: String = out.trim().chars().rev().take(300).collect::<Vec<_>>().into_iter().rev().collect();
+            format!("unexpected Defender report ({e}). PowerShell said: {tail}")
+        })
     })
     .await
     .map_err(err)?

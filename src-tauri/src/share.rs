@@ -339,9 +339,10 @@ mod tests {
     #[test]
     fn each_cleanup_row_is_sent_once_as_is() {
         let db = Db::open_in_memory().unwrap();
-        db.add_impact("gui", &[crate::impact::Freed::new("disk", "dir:target", 1000, 1), crate::impact::Freed::new("memory", "mcp", 50, 2)]);
+        db.add_impact("gui", &[crate::impact::Freed::new("disk", "dir:target", 1000, 1), crate::impact::Freed::new("memory", "mcp", 50, 2).with_cpu(12.46)]);
         let first = db.impact_events_after(last_seq(&db), MAX_EVENTS).unwrap();
         assert_eq!(first.len(), 2);
+        assert_eq!((first[0].cpu, first[1].cpu), (0.0, 12.5), "the CPU an ended tree used travels with it");
         assert_eq!((first[0].kind.as_str(), first[0].bytes, first[0].source.as_str()), ("dir:target", 1000, "gui"));
         assert_eq!(first[0].run, first[1].run);
         assert!(first[0].at.ends_with('Z') && first[0].at.len() == 17, "{}", first[0].at);

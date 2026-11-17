@@ -1,4 +1,9 @@
 I18N["fr"] = {
+    "set.liveRefresh": "Les pages en direct s’actualisent toutes les (secondes)",
+    "ready.checking": "Vérification…",
+    "ready.none.dev": "Aucun processus dev inactif",
+    "ready.none.disk": "Aucun ancien dossier de build ni cache",
+    "ready.none.bc": "Aucun cache de navigateur à vider",
     "upd.noReboot": "Seul RigSweep redémarre, pas votre PC.",
     "ready.cap.dev": "{n} processus dev inactifs",
     "ready.cap.disk": "anciens dossiers de build et caches ({n})",

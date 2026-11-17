@@ -13,11 +13,19 @@ pub struct Freed {
     pub bytes: u64,
     /// processes ended (memory) or folders / caches emptied (disk, browser)
     pub count: u64,
+    /// memory rows: the share of the whole CPU those processes were using when ended (%)
+    #[serde(default)]
+    pub cpu: f32,
 }
 
 impl Freed {
     pub fn new(area: &str, kind: impl Into<String>, bytes: u64, count: u64) -> Freed {
-        Freed { area: area.into(), kind: kind.into(), bytes, count }
+        Freed { area: area.into(), kind: kind.into(), bytes, count, cpu: 0.0 }
+    }
+
+    pub fn with_cpu(mut self, cpu: f32) -> Freed {
+        self.cpu = (cpu.max(0.0) * 10.0).round() / 10.0;
+        self
     }
 }
 

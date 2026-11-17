@@ -44,6 +44,9 @@ pub struct Event {
     pub kind: String,
     pub bytes: u64,
     pub count: u64,
+    /// memory rows: CPU (% of the whole CPU) the ended processes were using; absent before 0.8.2
+    #[serde(default)]
+    pub cpu: f32,
 }
 
 /// v1 (0.8.0 test builds): totals for the last 7 days in `processes`, `cleanups`, `freed`.
@@ -272,6 +275,7 @@ impl Report {
                     || !kind_ok(&e.kind)
                     || e.bytes > 64 * TB
                     || e.count > 1_000_000
+                    || !(0.0..=100_000.0).contains(&e.cpu)
             })
         {
             return bad("events");

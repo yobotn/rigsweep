@@ -1,4 +1,9 @@
 I18N["it"] = {
+    "set.liveRefresh": "Le pagine live si aggiornano ogni (secondi)",
+    "ready.checking": "Controllo…",
+    "ready.none.dev": "Nessun processo di sviluppo inattivo",
+    "ready.none.disk": "Nessuna vecchia cartella di build o cache",
+    "ready.none.bc": "Nessuna cache del browser da svuotare",
     "upd.noReboot": "Si riavvia solo RigSweep, non il PC.",
     "ready.cap.dev": "{n} processi di sviluppo inattivi",
     "ready.cap.disk": "vecchie cartelle di build e cache ({n})",

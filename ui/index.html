@@ -32,10 +32,12 @@
         <div><h1 data-i18n="dash.title"></h1><div class="sub live-sub"><i class="pulse"></i><span data-i18n="live.now"></span></div></div>
         <button id="btn-refresh-dash" class="ghost" data-i18n="common.refresh"></button>
       </header>
-      <div id="heat-callout" class="callouts"></div>
-      <div id="hw-callout" class="callouts"></div>
-      <div id="dash-callouts" class="callouts"></div>
-      <div class="card ready" id="ready" hidden>
+      <div class="attention">
+        <div id="heat-callout" class="callouts"></div>
+        <div id="hw-callout" class="callouts"></div>
+        <div id="dash-callouts" class="callouts"></div>
+      </div>
+      <div class="card ready" id="ready">
         <h2 data-i18n="ready.title"></h2>
         <ul id="ready-list"></ul>
       </div>
@@ -139,10 +141,10 @@
       <div class="card flush"><table class="tbl">
         <thead><tr>
           <th></th><th data-sort="what" data-i18n="clean.col.what"></th><th data-sort="project" data-i18n="clean.col.project"></th>
-          <th data-sort="age" class="num" data-i18n="clean.col.age"></th><th data-sort="mem" class="num" data-i18n="clean.col.mem"></th>
+          <th data-sort="age" class="num" data-i18n="clean.col.age"></th><th data-sort="mem" class="num" data-i18n="clean.col.mem"></th><th data-sort="cpu" class="num" data-i18n="col.cpu"></th>
           <th data-sort="ports" data-sort-first="-1" data-i18n="clean.col.ports"></th><th data-sort="status" data-sort-first="-1" data-i18n="clean.col.status"></th>
         </tr></thead>
-        <tbody id="clean-body"><tr><td colspan="7" class="loading"><span class="spinner"></span></td></tr></tbody>
+        <tbody id="clean-body"><tr><td colspan="8" class="loading"><span class="spinner"></span></td></tr></tbody>
       </table></div>
     </section>
 
@@ -339,6 +341,7 @@
           <label class="chk"><input type="checkbox" id="s-tray" /> <span data-i18n="set.tray"></span></label>
           <label><span data-i18n="set.watchdog"></span> <input type="number" id="s-watchdog" min="1" max="1440" /></label>
           <p class="hint" data-i18n="set.watchdogHint"></p>
+          <label><span data-i18n="set.liveRefresh"></span> <input type="number" id="s-live" min="2" max="60" /></label>
           <label><span data-i18n="set.language"></span> <select id="lang-select"></select></label>
         </div>
         <div class="card form autosave" id="upd-card">

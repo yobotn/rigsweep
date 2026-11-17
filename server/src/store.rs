@@ -48,8 +48,8 @@ pub async fn save_report(pool: &PgPool, r: &Report, country: &str) -> sqlx::Resu
     .await?;
     // v2: one row per thing cleaned; a resent event (same install + seq) is kept once
     sqlx::query(
-        "INSERT INTO events (report_id, install_id, seq, at, run, source, area, kind, bytes, count)
-         SELECT $1, $2, * FROM UNNEST($3::bigint[], $4::timestamptz[], $5::bigint[], $6::text[], $7::text[], $8::text[], $9::bigint[], $10::bigint[])
+        "INSERT INTO events (report_id, install_id, seq, at, run, source, area, kind, bytes, count, cpu)
+         SELECT $1, $2, * FROM UNNEST($3::bigint[], $4::timestamptz[], $5::bigint[], $6::text[], $7::text[], $8::text[], $9::bigint[], $10::bigint[], $11::real[])
          ON CONFLICT (install_id, seq) DO NOTHING",
     )
     .bind(id)
@@ -62,6 +62,7 @@ pub async fn save_report(pool: &PgPool, r: &Report, country: &str) -> sqlx::Resu
     .bind(r.events.iter().map(|e| e.kind.clone()).collect::<Vec<_>>())
     .bind(r.events.iter().map(|e| e.bytes as i64).collect::<Vec<_>>())
     .bind(r.events.iter().map(|e| e.count as i64).collect::<Vec<_>>())
+    .bind(r.events.iter().map(|e| e.cpu).collect::<Vec<_>>())
     .execute(&mut *tx)
     .await?;
     // The first v2 report of an install repeats, row by row, everything its v1 reports already sent as

@@ -25,6 +25,8 @@ pub struct Event {
     pub kind: String,
     pub bytes: u64,
     pub count: u64,
+    /// memory rows: CPU (% of the whole CPU) the ended processes were using
+    pub cpu: f32,
 }
 
 #[derive(Serialize, Clone, Debug, PartialEq)]

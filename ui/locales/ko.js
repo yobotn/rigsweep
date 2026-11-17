@@ -1,4 +1,9 @@
 I18N["ko"] = {
+    "set.liveRefresh": "실시간 페이지 새로 고침 간격(초)",
+    "ready.checking": "확인 중…",
+    "ready.none.dev": "오래된 개발 프로세스가 없습니다",
+    "ready.none.disk": "오래된 빌드 폴더나 캐시가 없습니다",
+    "ready.none.bc": "정리할 만한 브라우저 캐시가 없습니다",
     "upd.noReboot": "RigSweep만 다시 시작되며 PC는 다시 시작되지 않습니다.",
     "ready.cap.dev": "오래된 개발 프로세스 {n}개",
     "ready.cap.disk": "오래된 빌드 폴더와 캐시 ({n}개)",

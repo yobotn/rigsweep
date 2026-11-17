@@ -550,3 +550,21 @@ span.ico:not([data-ico]) { background: transparent; }
 #tab-dashboard .feed li { border-bottom: 0; padding: 8px 10px; border-radius: 8px; }
 #tab-dashboard .feed li:nth-child(even) { background: #ffffff05; }
 #tab-dashboard .grid2 > .card, #tab-dashboard .tiles > .tile, #tab-dashboard .charts > .card { border-radius: 12px; }
+
+/* Ready to free: calm states */
+.ready-tile.none .ready-big { color: var(--safe); }
+.ready-tile.none .ready-cap, .ready-tile.checking .ready-cap { color: var(--muted); }
+.ready-tile.checking .ready-big .skel-bar { display: inline-block; width: 90px; height: 22px; vertical-align: middle; }
+
+/* Dashboard attention items: compact chips in one row, not full-width bars */
+.attention { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+.attention:not(:has(.callout)) { display: none; }
+.attention .callouts { display: contents; }
+.attention .callout {
+  display: inline-flex; align-items: center; gap: 10px; width: auto; margin: 0; padding: 6px 6px 6px 14px;
+  border-radius: 999px; font-size: 13px; border: 1px solid var(--border); background: var(--panel2); box-shadow: none;
+}
+.attention .callout::before { display: none; }
+.attention .callout.hot { border-color: #f1b44c66; }
+.attention .callout.vhot { border-color: #f46a6a77; }
+.attention .callout button { border-radius: 999px; }
