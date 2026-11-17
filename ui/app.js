@@ -226,9 +226,36 @@ function rerender() {
     caution: `<span class="risk caution">${esc(t("risk.caution"))}</span>`,
   });
   if (state) { setStatusPills(); renderTweaks(); }
+  setupIntros();
   renderImpact();
   showTab(currentTab);
 }
+
+// ---------- page intros ----------
+// Each page's explanation shows one line; "How it works" opens the rest (remembered per page).
+const introsOpen = new Set(JSON.parse(safeGet("introsOpen") || "[]"));
+function setupIntros() {
+  document.querySelectorAll(".intro").forEach((box) => {
+    const page = box.closest(".tab")?.id || "";
+    let btn = box.querySelector(".intro-toggle");
+    if (!btn) {
+      btn = document.createElement("button");
+      btn.className = "intro-toggle";
+      btn.type = "button";
+      box.append(btn);
+      btn.onclick = () => {
+        if (introsOpen.has(page)) introsOpen.delete(page); else introsOpen.add(page);
+        safeSet("introsOpen", JSON.stringify([...introsOpen]));
+        setupIntros();
+      };
+    }
+    const open = introsOpen.has(page);
+    box.classList.toggle("collapsed", !open);
+    btn.textContent = open ? t("intro.less") : t("intro.more");
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+  });
+}
+setupIntros();
 
 // ---------- tabs ----------
 document.querySelectorAll("nav button").forEach((b) =>
@@ -246,11 +273,12 @@ function showTab(name) {
   safeSet("tab", name);
   clearInterval(procTimer);
   if (name === "startup" && startup) renderStartup();
-  if (name === "processes") { loadProcesses(); procTimer = setInterval(() => $("#proc-auto").checked && loadProcesses(), 3000); }
+  if (name === "processes") { loadProcesses(); procTimer = setInterval(() => $("#proc-auto").checked && document.visibilityState === "visible" && loadProcesses(), 3000); }
   if (name === "dashboard") { loadDashboard(); procTimer = setInterval(() => document.visibilityState === "visible" && loadDashboard(), 10000); }
   if (name === "disk") renderDiskAuto();
   refreshTab(name, "open"); // cleanup, browser, startup, disk: rescan if the last scan is old
   if (name === "report") loadSnapshots();
+  if (name === "impact") loadImpact();
   if (name === "hardware") loadHardware();
   if (name === "history") loadHistory();
   if (name === "settings") renderSettings();
@@ -268,16 +296,19 @@ async function loadState() {
   renderTweaks();
 }
 
+// Status shows up only when something needs attention: not elevated, or the watchdog paused.
 function setStatusPills() {
-  $("#admin-status").textContent = state.elevated ? t("admin.ok") : t("admin.bad");
-  $("#admin-status").classList.toggle("bad", !state.elevated);
+  const banner = $("#admin-banner");
+  banner.textContent = state.elevated ? "" : t("admin.bad");
+  banner.classList.toggle("hidden", !!state.elevated);
   setPaused(state.paused);
 }
 
 function setPaused(p) {
   if (state) state.paused = p;
-  $("#watchdog-status").textContent = p ? t("watchdog.paused") : t("watchdog.every", { n: state?.settings.watchdog_minutes ?? 30 });
-  $("#watchdog-status").classList.toggle("bad", p);
+  const pill = $("#watchdog-status");
+  pill.textContent = p ? t("watchdog.paused") : "";
+  pill.classList.toggle("hidden", !p);
 }
 
 // ---------- tweaks ----------
@@ -1126,7 +1157,9 @@ async function fetchIcons() {
   if (!batch.length) return;
   let res = {};
   try { res = await invoke("get_icons", { paths: batch.map(([, p]) => p) }); } catch {}
-  batch.forEach(([k, p]) => { icoCache.set(k, res[p] || ""); icoWanted.delete(k); });
+  // only PNG data URLs from the backend are kept, so nothing else can reach an <img src>
+  const png = (u) => (typeof u === "string" && /^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(u) ? u : "");
+  batch.forEach(([k, p]) => { icoCache.set(k, png(res[p])); icoWanted.delete(k); });
   document.querySelectorAll("span.ico[data-ico]").forEach((el) => {
     const url = icoCache.get(el.dataset.ico);
     if (url === undefined) return;
@@ -1294,7 +1327,7 @@ function renderImpact() {
   $("#im-ram").textContent = fmtBytes(p.memory);
   $("#im-procs").textContent = ltr(String(p.processes));
   $("#im-runs").textContent = ltr(String(p.cleanups));
-  const top = p.kinds.filter((k) => k.bytes > 0).slice(0, 5);
+  const top = p.kinds.filter((k) => k.bytes > 0).slice(0, 10);
   const max = top[0]?.bytes || 1;
   $("#im-top").innerHTML = top.length ? top.map((k) => `<li><button class="im-row ${esc(k.area)}" data-go="${IM_TAB[k.area] || "dashboard"}">
       <span class="name" title="${esc(impactLabel(k))}"><bdi>${esc(impactLabel(k))}</bdi></span>
@@ -1516,7 +1549,7 @@ function renderHardware() {
     ["hw.model", esc(g.name)],
     ["hw.vram", nz(g.vram) ? fmtBytes(g.vram) : null],
     ["hw.driver", esc([g.driver, g.driver_date && `(${g.driver_date})`].filter(Boolean).join(" "))],
-    ["hw.display", nz(g.width) ? `${g.width}×${g.height}${nz(g.hz) ? ` @ ${g.hz} Hz` : ""}` : null],
+    ["hw.display", nz(g.width) ? `${Number(g.width)}×${Number(g.height)}${nz(g.hz) ? ` @ ${Number(g.hz)} Hz` : ""}` : null],
     ["heat.title", last?.gpu_temp != null ? fmtTemp(last.gpu_temp) : null],
   ])}</div>`);
   const ram = hw.ram || [];
@@ -1525,7 +1558,7 @@ function renderHardware() {
     cards.push(`<div class="card"><h2>🧠 ${esc(t("hw.ram"))}</h2>${kv([
       ["hw.installed", fmtBytes(total)],
       ["hw.type", esc(RAM_TYPES[m0.type] || "")],
-      ["hw.ramSpeed", nz(m0.mhz || m0.rated) ? `${m0.mhz || m0.rated} MT/s` : null],
+      ["hw.ramSpeed", nz(m0.mhz || m0.rated) ? `${Number(m0.mhz || m0.rated)} MT/s` : null],
       ["hw.slots", hw.ram_slots ? esc(t("hw.slotsVal", { u: ram.length, n: hw.ram_slots })) : null],
       ["hw.modules", groupModules(ram)],
     ])}</div>`);
@@ -1656,7 +1689,41 @@ $("#btn-chrome").onclick = async () => {
   await modal(t("chrome.title"), `<p class="sub">${esc(t("chrome.opened", { p }))}</p>${t("chrome.steps")}`, { cancel: false });
 };
 
-$("#btn-save-settings").onclick = async (e) => {
+// ---------- settings: tabs and autosave ----------
+let settingsTab = safeGet("settingsTab") || "general";
+function showSettingsTab(name) {
+  if (!document.querySelector(`[data-stab-panel="${name}"]`)) name = "general";
+  settingsTab = name;
+  document.querySelectorAll("[data-stab]").forEach((b) => {
+    const on = b.dataset.stab === name;
+    b.classList.toggle("active", on);
+    b.setAttribute("aria-selected", on ? "true" : "false");
+    b.tabIndex = on ? 0 : -1;
+  });
+  document.querySelectorAll("[data-stab-panel]").forEach((p) => { p.hidden = p.dataset.stabPanel !== name; });
+  safeSet("settingsTab", name);
+}
+document.querySelectorAll("[data-stab]").forEach((b) => b.addEventListener("click", () => showSettingsTab(b.dataset.stab)));
+$(".subtabs").addEventListener("keydown", (e) => {
+  if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
+  const tabs = [...document.querySelectorAll("[data-stab]")];
+  const i = tabs.findIndex((b) => b.dataset.stab === settingsTab);
+  const rtl = document.documentElement.dir === "rtl";
+  const step = { ArrowRight: rtl ? -1 : 1, ArrowLeft: rtl ? 1 : -1 }[e.key];
+  const next = e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : (i + step + tabs.length) % tabs.length;
+  e.preventDefault();
+  showSettingsTab(tabs[next].dataset.stab);
+  tabs[next].focus();
+});
+showSettingsTab(settingsTab);
+
+// Every field in an .autosave card saves itself shortly after it changes; no Save button.
+let saveTimer = null;
+document.querySelectorAll(".autosave input, .autosave textarea").forEach((el) => {
+  el.addEventListener("change", () => { clearTimeout(saveTimer); saveTimer = setTimeout(saveSettings, 300); });
+});
+
+async function saveSettings() {
   const settings = {
     ...state.settings,
     start_with_windows: $("#s-startup").checked,
@@ -1674,14 +1741,19 @@ $("#btn-save-settings").onclick = async (e) => {
     disk_disabled: state.settings.disk_disabled || [],
     disk_stale_days: Math.min(3650, Math.max(1, Math.round(Number($("#s-disk-stale").value)) || 30)),
   };
-  busy(e.target, true, t("set.saving"));
+  const status = $("#set-saved");
+  status.textContent = t("set.saving");
   try {
     const notes = await call("save_settings", { settings });
-    toast([t("set.saved"), ...notes].join("\n"), "ok");
-  } finally { busy(e.target, false); }
+    status.textContent = t("set.saved");
+    if (notes.length) toast(notes.join("\n"), "ok");
+  } catch (err) {
+    status.textContent = "";
+    throw err;
+  }
   await loadState();
   renderSettings();
-};
+}
 
 // ---------- updates ----------
 // Nothing is checked unless the user clicks "Check now" or turns on automatic checks (off by
@@ -1906,7 +1978,7 @@ function renderShare() {
   $("#s-share").checked = s.enabled;
   // "Last sent: {d}" with {d} as a live time-ago element
   const status = !s.enabled ? esc(t("share.off")) : !s.last_sent ? esc(t("share.never"))
-    : esc(t("share.last")).replace("{d}", agoHtml(s.last_sent));
+    : esc(t("share.last")).replace("{d}", () => agoHtml(s.last_sent));
   $("#share-status").innerHTML = [status, esc(t("share.id", { id: s.install_id }))].join("<br>");
 }
 

@@ -11,6 +11,7 @@
     <div class="brand"><span class="bolt">🧹</span> RigSweep<div class="tagline" data-i18n="tagline"></div></div>
     <nav>
       <button data-tab="dashboard" class="active" data-i18n="nav.dashboard"></button>
+      <button data-tab="impact" data-i18n="nav.impact"></button>
       <div class="nav-group" data-i18n="nav.g.clean"></div>
       <button data-tab="cleanup" data-i18n="nav.cleanup"></button>
       <button data-tab="disk" data-i18n="nav.disk"></button>
@@ -28,13 +29,12 @@
     </nav>
     <div class="side-foot">
       <button id="update-pill" class="pill update hidden"></button>
-      <select id="lang-select" aria-label="Language"></select>
-      <div id="watchdog-status" class="pill"></div>
-      <div id="admin-status" class="pill"></div>
+      <div id="watchdog-status" class="pill bad hidden"></div>
     </div>
   </aside>
 
   <main>
+    <div id="admin-banner" class="banner bad hidden" role="alert"></div>
     <!-- DASHBOARD -->
     <section id="tab-dashboard" class="tab active">
       <header>
@@ -70,25 +70,6 @@
           </div>
         </div>
       </div>
-      <div class="card impact" id="impact">
-        <div class="impact-head">
-          <h2 data-i18n="impact.title"></h2>
-          <div class="seg" role="radiogroup" id="im-period">
-            <button role="radio" data-period="week" data-i18n="impact.week"></button>
-            <button role="radio" data-period="month" data-i18n="impact.month"></button>
-            <button role="radio" data-period="all" data-i18n="impact.all"></button>
-          </div>
-        </div>
-        <div class="impact-stats">
-          <div><div class="label" data-i18n="impact.disk"></div><div class="big disk" id="im-disk">–</div></div>
-          <div><div class="label" data-i18n="impact.ram"></div><div class="big ram" id="im-ram">–</div></div>
-          <div><div class="label" data-i18n="impact.procs"></div><div class="big" id="im-procs">–</div></div>
-          <div><div class="label" data-i18n="impact.runs"></div><div class="big" id="im-runs">–</div></div>
-        </div>
-        <div class="label" data-i18n="impact.top"></div>
-        <ul id="im-top"></ul>
-        <div class="sub" id="im-since"></div>
-      </div>
       <div class="tiles">
         <div class="tile link" data-go="processes" role="button" tabindex="0"><div class="label" data-i18n="dash.procs"></div><div class="value skel" id="t-procs">–</div></div>
         <div class="tile link" data-go="tweaks" role="button" tabindex="0"><div class="label" data-i18n="dash.tweaks"></div><div class="value skel" id="t-tweaks">–</div><div class="meter"><i id="t-tweaks-bar" style="width:0"></i></div></div>
@@ -112,6 +93,32 @@
       </div>
     </section>
 
+    <!-- IMPACT -->
+    <section id="tab-impact" class="tab">
+      <header>
+        <h1 data-i18n="impact.title"></h1>
+        <div class="seg" role="radiogroup" id="im-period">
+          <button role="radio" data-period="week" data-i18n="impact.week"></button>
+          <button role="radio" data-period="month" data-i18n="impact.month"></button>
+          <button role="radio" data-period="all" data-i18n="impact.all"></button>
+        </div>
+      </header>
+      <div class="card impact" id="impact">
+        <div class="impact-stats">
+          <div><div class="label" data-i18n="impact.disk"></div><div class="big disk" id="im-disk">–</div></div>
+          <div><div class="label" data-i18n="impact.ram"></div><div class="big ram" id="im-ram">–</div></div>
+          <div><div class="label" data-i18n="impact.procs"></div><div class="big" id="im-procs">–</div></div>
+          <div><div class="label" data-i18n="impact.runs"></div><div class="big" id="im-runs">–</div></div>
+        </div>
+      </div>
+      <div class="card impact">
+        <h2 class="label" data-i18n="impact.top"></h2>
+        <ul id="im-top"></ul>
+        <div class="sub" id="im-since"></div>
+      </div>
+    </section>
+
+
     <!-- DEV CLEANUP -->
     <section id="tab-cleanup" class="tab">
       <header>
@@ -122,8 +129,7 @@
           <button id="btn-clean-end" class="danger" data-i18n="clean.end"></button>
         </div>
       </header>
-      <p class="hint" data-i18n="clean.hint"></p>
-      <p class="hint" data-i18n="clean.hint.leftovers"></p>
+      <div class="intro"><p class="hint" data-i18n="clean.hint"></p><p class="hint" data-i18n="clean.hint.leftovers"></p></div>
       <div id="live" class="live">
         <div class="live-nums">
           <div><span class="k"><i class="swatch mem"></i><span data-i18n="col.ram">RAM</span></span> <b id="live-mem">–</b></div>
@@ -155,7 +161,7 @@
           <button id="btn-disk-clean" class="danger" data-i18n="disk.clean"></button>
         </div>
       </header>
-      <p class="hint" data-i18n="disk.hint"></p>
+      <div class="intro"><p class="hint" data-i18n="disk.hint"></p></div>
       <div id="disk-auto" class="autobar">
         <b data-i18n="disk.auto.title"></b>
         <label><span data-i18n="disk.auto.days"></span> <select id="da-days"></select></label>
@@ -191,7 +197,7 @@
     <!-- HARDWARE -->
     <section id="tab-hardware" class="tab">
       <header><h1 data-i18n="hw.title"></h1><button id="btn-hw-refresh" class="ghost" data-i18n="common.refresh"></button></header>
-      <p class="hint" data-i18n="hw.hint"></p>
+      <div class="intro"><p class="hint" data-i18n="hw.hint"></p></div>
       <h2 class="hw-h" data-i18n="hw.disks"></h2>
       <div id="hw-disks" class="hw-grid"><div class="card"><span class="skel-bar"></span><span class="skel-bar"></span><span class="skel-bar"></span><span class="skel-bar"></span></div></div>
       <div id="hw-parts" class="hw-grid"><div class="card"><span class="skel-bar"></span><span class="skel-bar"></span><span class="skel-bar"></span><span class="skel-bar"></span></div><div class="card"><span class="skel-bar"></span><span class="skel-bar"></span><span class="skel-bar"></span><span class="skel-bar"></span></div><div class="card"><span class="skel-bar"></span><span class="skel-bar"></span><span class="skel-bar"></span><span class="skel-bar"></span></div><div class="card"><span class="skel-bar"></span><span class="skel-bar"></span><span class="skel-bar"></span><span class="skel-bar"></span></div></div>
@@ -207,7 +213,7 @@
           <button id="btn-bc-clean" class="danger" data-i18n="bc.clean"></button>
         </div>
       </header>
-      <p class="hint" data-i18n="bc.hint"></p>
+      <div class="intro"><p class="hint" data-i18n="bc.hint"></p></div>
       <div id="bc-summary" class="summary"></div>
       <div class="card flush"><table class="tbl">
         <thead><tr>
@@ -228,7 +234,7 @@
           <button id="btn-clear-snaps" class="ghost" data-i18n="report.clear"></button>
         </div>
       </header>
-      <p class="hint" data-i18n="report.hint"></p>
+      <div class="intro"><p class="hint" data-i18n="report.hint"></p></div>
       <div class="pickers">
         <label><span data-i18n="report.before"></span> <select id="snap-before"></select></label>
         <span class="arrow">→</span>
@@ -261,7 +267,7 @@
           <button id="btn-st-scan" class="ghost" data-i18n="common.refresh"></button>
         </div>
       </header>
-      <p class="hint" data-i18n="st.hint"></p>
+      <div class="intro"><p class="hint" data-i18n="st.hint"></p></div>
       <div id="st-summary" class="summary"></div>
       <div class="card flush"><table class="tbl">
         <thead><tr><th data-sort="what" data-i18n="st.col.what"></th><th data-sort="when" data-i18n="st.col.when"></th><th></th></tr></thead>
@@ -312,74 +318,97 @@
 
     <!-- SETTINGS -->
     <section id="tab-settings" class="tab">
-      <header><h1 data-i18n="set.title"></h1><button id="btn-save-settings" class="primary" data-i18n="common.save"></button></header>
-      <div class="card form">
-        <h2 data-i18n="set.general"></h2>
-        <label class="chk"><input type="checkbox" id="s-startup" /> <span data-i18n="set.startup"></span></label>
-        <label class="chk"><input type="checkbox" id="s-tray" /> <span data-i18n="set.tray"></span></label>
-        <label><span data-i18n="set.watchdog"></span> <input type="number" id="s-watchdog" min="1" max="1440" /></label>
-        <label><span data-i18n="set.idle"></span> <input type="number" id="s-idle" min="1" max="10080" /></label>
-        <label class="chk"><input type="checkbox" id="s-autokill" /> <span data-i18n="set.autokill"></span></label>
-        <label class="chk"><input type="checkbox" id="s-badge" /> <span data-i18n="set.badge"></span></label>
-        <label><span data-i18n="set.badgeWarn"></span> <input type="number" id="s-badge-warn" min="0.1" max="256" step="0.5" /></label>
-        <label><span data-i18n="set.badgeAlert"></span> <input type="number" id="s-badge-alert" min="0.1" max="256" step="0.5" /></label>
-        <label><span data-i18n="set.folders"></span>
-          <textarea id="s-folders" rows="6" spellcheck="false"></textarea>
-        </label>
-        <p class="hint" id="s-info"></p>
+      <header><h1 data-i18n="set.title"></h1><div id="set-saved" class="sub save-state" aria-live="polite"></div></header>
+      <div class="subtabs" role="tablist" aria-label="Settings">
+        <button role="tab" data-stab="general" data-i18n="set.tab.general"></button>
+        <button role="tab" data-stab="cleanup" data-i18n="set.tab.cleanup"></button>
+        <button role="tab" data-stab="disk" data-i18n="set.tab.disk"></button>
+        <button role="tab" data-stab="defender" data-i18n="set.tab.defender"></button>
+        <button role="tab" data-stab="privacy" data-i18n="set.tab.privacy"></button>
+        <button role="tab" data-stab="about" data-i18n="set.tab.about"></button>
       </div>
 
-      <div class="card form">
-        <h2 data-i18n="set.disk"></h2>
-        <label><span data-i18n="set.diskRoots"></span>
-          <textarea id="s-disk-roots" rows="4" spellcheck="false"></textarea>
-        </label>
-        <label><span data-i18n="set.diskExcludes"></span>
-          <textarea id="s-disk-excludes" rows="4" spellcheck="false" placeholder="D:\work\legacy-app&#10;vendor&#10;old-*"></textarea>
-        </label>
-        <label><span data-i18n="set.diskStale"></span> <input type="number" id="s-disk-stale" min="1" max="3650" /></label>
-        <p class="hint" data-i18n="set.diskBuiltin"></p>
-      </div>
-
-      <div class="card form" id="upd-card">
-        <h2 data-i18n="upd.title"></h2>
-        <p class="hint" data-i18n="upd.hint"></p>
-        <label class="chk"><input type="checkbox" id="s-autoupdate" /> <span data-i18n="upd.auto"></span></label>
-        <div id="upd-status" class="sub"></div>
-        <div id="upd-notes" class="upd-notes hidden"></div>
-        <div class="actions">
-          <button id="btn-upd-check" class="ghost" data-i18n="upd.check"></button>
-          <button id="btn-upd-install" class="primary hidden" data-i18n="upd.install"></button>
+      <div class="stab" role="tabpanel" data-stab-panel="general">
+        <div class="card form autosave">
+          <label class="chk"><input type="checkbox" id="s-startup" /> <span data-i18n="set.startup"></span></label>
+          <label class="chk"><input type="checkbox" id="s-tray" /> <span data-i18n="set.tray"></span></label>
+          <label><span data-i18n="set.watchdog"></span> <input type="number" id="s-watchdog" min="1" max="1440" /></label>
+          <p class="hint" data-i18n="set.watchdogHint"></p>
+          <label><span data-i18n="set.language"></span> <select id="lang-select"></select></label>
+        </div>
+        <div class="card form autosave" id="upd-card">
+          <h2 data-i18n="upd.title"></h2>
+          <p class="hint" data-i18n="upd.hint"></p>
+          <label class="chk"><input type="checkbox" id="s-autoupdate" /> <span data-i18n="upd.auto"></span></label>
+          <div id="upd-status" class="sub"></div>
+          <div id="upd-notes" class="upd-notes hidden"></div>
+          <div class="actions">
+            <button id="btn-upd-check" class="ghost" data-i18n="upd.check"></button>
+            <button id="btn-upd-install" class="primary hidden" data-i18n="upd.install"></button>
+          </div>
         </div>
       </div>
 
-      <div class="card form" id="share-card">
-        <h2 data-i18n="share.title"></h2>
-        <p class="hint" data-i18n="share.hint"></p>
-        <label class="chk"><input type="checkbox" id="s-share" /> <span data-i18n="share.toggle"></span></label>
-        <div id="share-status" class="sub"></div>
-        <div class="actions">
-          <button id="btn-share-preview" class="ghost" data-i18n="share.preview"></button>
-          <button id="btn-share-reset" class="ghost" data-i18n="share.reset"></button>
+      <div class="stab" role="tabpanel" data-stab-panel="cleanup" hidden>
+        <div class="card form autosave">
+          <label><span data-i18n="set.idle"></span> <input type="number" id="s-idle" min="1" max="10080" /></label>
+          <label class="chk"><input type="checkbox" id="s-autokill" /> <span data-i18n="set.autokill"></span></label>
+          <label class="chk"><input type="checkbox" id="s-badge" /> <span data-i18n="set.badge"></span></label>
+          <label><span data-i18n="set.badgeWarn"></span> <input type="number" id="s-badge-warn" min="0.1" max="256" step="0.5" /></label>
+          <label><span data-i18n="set.badgeAlert"></span> <input type="number" id="s-badge-alert" min="0.1" max="256" step="0.5" /></label>
         </div>
       </div>
 
-      <div class="card form" id="av-card">
-        <h2 data-i18n="av.title"></h2>
-        <p class="hint" data-i18n="av.hint"></p>
-        <div id="av-status" class="sub"></div>
-        <div class="actions"><button id="btn-av" class="ghost"></button></div>
+      <div class="stab" role="tabpanel" data-stab-panel="disk" hidden>
+        <div class="card form autosave">
+          <label><span data-i18n="set.diskRoots"></span>
+            <textarea id="s-disk-roots" rows="4" spellcheck="false"></textarea>
+          </label>
+          <label><span data-i18n="set.diskExcludes"></span>
+            <textarea id="s-disk-excludes" rows="4" spellcheck="false" placeholder="D:\work\legacy-app&#10;vendor&#10;old-*"></textarea>
+          </label>
+          <label><span data-i18n="set.diskStale"></span> <input type="number" id="s-disk-stale" min="1" max="3650" /></label>
+          <p class="hint" data-i18n="set.diskBuiltin"></p>
+        </div>
       </div>
 
-      <div class="card form">
-        <h2 data-i18n="chrome.title"></h2>
-        <p class="hint" data-i18n="chrome.hint"></p>
-        <div class="actions"><button id="btn-chrome" class="ghost" data-i18n="chrome.open"></button></div>
+      <div class="stab" role="tabpanel" data-stab-panel="defender" hidden>
+        <div class="card form autosave">
+          <label><span data-i18n="set.folders"></span>
+            <textarea id="s-folders" rows="6" spellcheck="false"></textarea>
+          </label>
+        </div>
+        <div class="card form" id="av-card">
+          <h2 data-i18n="av.title"></h2>
+          <p class="hint" data-i18n="av.hint"></p>
+          <div id="av-status" class="sub"></div>
+          <div class="actions"><button id="btn-av" class="ghost"></button></div>
+        </div>
       </div>
 
-      <div class="card form">
-        <h2 data-i18n="disc.title"></h2>
-        <p class="hint" data-i18n="disc.body"></p>
+      <div class="stab" role="tabpanel" data-stab-panel="privacy" hidden>
+        <div class="card form" id="share-card">
+          <p class="hint" data-i18n="share.hint"></p>
+          <label class="chk"><input type="checkbox" id="s-share" /> <span data-i18n="share.toggle"></span></label>
+          <div id="share-status" class="sub"></div>
+          <div class="actions">
+            <button id="btn-share-preview" class="ghost" data-i18n="share.preview"></button>
+            <button id="btn-share-reset" class="ghost" data-i18n="share.reset"></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="stab" role="tabpanel" data-stab-panel="about" hidden>
+        <div class="card form">
+          <h2 data-i18n="chrome.title"></h2>
+          <p class="hint" data-i18n="chrome.hint"></p>
+          <div class="actions"><button id="btn-chrome" class="ghost" data-i18n="chrome.open"></button></div>
+        </div>
+        <div class="card form">
+          <h2 data-i18n="disc.title"></h2>
+          <p class="hint" data-i18n="disc.body"></p>
+          <p class="hint" id="s-info"></p>
+        </div>
       </div>
     </section>
   </main>

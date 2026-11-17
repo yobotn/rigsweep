@@ -173,7 +173,7 @@ th[aria-sort="ascending"] .th-sort::after { content: "↑"; opacity: 1; color: v
 
 /* ---------- RigSweep additions ---------- */
 .tagline { font-size: 11px; font-weight: 400; color: var(--muted); margin-top: 2px; }
-.side-foot select, .pickers select {
+.side-foot select, .pickers select, .stab select {
   background: var(--panel2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; padding: 5px 8px; font: inherit; font-size: 12px;
 }
 .card.form + .card.form { margin-top: 14px; }
@@ -434,3 +434,39 @@ span.ico:not([data-ico]) { background: transparent; }
 .share-pre { font: 11.5px/1.5 Consolas, ui-monospace, monospace; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; max-height: 300px; overflow: auto; white-space: pre; margin: 8px 0 0; direction: ltr; text-align: left; }
 .share-details { margin-top: 10px; }
 .share-details summary { cursor: pointer; color: var(--accent); }
+
+/* ---------- settings tabs ---------- */
+.subtabs {
+  display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 18px; padding-bottom: 0;
+  border-bottom: 1px solid var(--border);
+}
+.subtabs button {
+  background: none; border: 0; border-radius: 6px 6px 0 0; color: var(--muted); font: inherit; font-size: 13px;
+  padding: 8px 14px; cursor: pointer; margin-bottom: -1px; border-bottom: 2px solid transparent;
+}
+.subtabs button:hover { color: var(--text); background: var(--panel2); }
+.subtabs button.active { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
+.subtabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.stab { max-width: 760px; }
+.stab .card.form + .card.form { margin-top: 14px; }
+.stab .card.form label { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.stab .card.form label > textarea { flex: 1 1 100%; }
+.stab select { min-width: 180px; padding: 7px 10px; font-size: 13px; }
+.save-state { min-height: 1.4em; }
+
+/* shown only when RigSweep isn't elevated */
+.banner {
+  margin: 0 0 16px; padding: 10px 14px; border-radius: var(--radius); font-size: 13px;
+  background: #f46a6a1a; border: 1px solid #f46a6a55; color: var(--text);
+}
+
+/* page intros: the first line, the rest behind "How it works" */
+.intro { margin: 0 0 14px; }
+.intro .hint { margin: 0 0 6px; }
+.intro.collapsed .hint { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; margin: 0; }
+.intro.collapsed .hint + .hint { display: none; }
+.intro-toggle {
+  background: none; border: 0; padding: 2px 0; margin-top: 2px; color: var(--accent); font: inherit; font-size: 12px; cursor: pointer;
+}
+.intro-toggle:hover { text-decoration: underline; }
+.intro-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
