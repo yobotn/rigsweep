@@ -156,6 +156,17 @@
     .hero p.sub { color: var(--muted); font-size: clamp(17px, 2.2vw, 20px); max-width: 700px; margin: 0 auto var(--s4); }
     .hero .meta { margin-top: var(--s2); color: var(--muted); font-size: 13px; }
     .hero .frame { margin: var(--s4) auto 0; max-width: 1000px; }
+    .live { margin: var(--s3) auto 0; max-width: 820px; }
+    .live-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+    .live-row > div { background: var(--panel); border: 1px solid var(--border2); border-radius: 12px; padding: 14px 10px; min-width: 0; }
+    .live-row b { display: block; font-size: clamp(22px, 3.4vw, 30px); font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
+      background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; white-space: nowrap;
+      direction: ltr; unicode-bidi: isolate; }
+    .live-row span { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+    .live-note { margin: 10px 0 0; color: var(--muted); font-size: 12px; display: flex; justify-content: center; align-items: center; gap: 6px; }
+    .live-note .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent2); box-shadow: 0 0 0 0 rgba(52,195,143,.6); animation: pulse 2s infinite; }
+    @keyframes pulse { 70% { box-shadow: 0 0 0 7px rgba(52,195,143,0); } 100% { box-shadow: 0 0 0 0 rgba(52,195,143,0); } }
+    @media (prefers-reduced-motion: reduce) { .live-note .dot { animation: none; } }
 
     /* ecosystem strip */
     .chips { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
@@ -251,6 +262,15 @@
         <a class="btn" href="https://github.com/yobotn/rigsweep" data-t="cta.source">⭐ View on GitHub</a>
       </div>
       <div class="meta" data-t="hero.meta">Windows 10 / 11 · ~3 MB installer · 12 languages</div>
+      <div class="live" id="live" hidden>
+        <div class="live-row">
+          <div><b data-live="disk_freed" data-unit="bytes"></b><span data-t="live.disk">disk space freed</span></div>
+          <div><b data-live="ram_recovered" data-unit="bytes"></b><span data-t="live.ram">RAM recovered</span></div>
+          <div data-needs="tabs_slept"><b data-live="tabs_slept"></b><span data-t="live.tabs">browser tabs slept</span></div>
+          <div><b data-live="installs"></b><span data-t="live.pcs">PCs sharing</span></div>
+        </div>
+        <p class="live-note"><i class="dot"></i><span data-t="live.note">Live totals from people who share anonymous stats</span></p>
+      </div>
       <div class="frame">
         <div class="bar"><i></i><i></i><i></i><span>RigSweep</span></div>
         <img id="img-hero" src="screenshots/cleanup.png" alt="RigSweep Dev Cleanup" />
@@ -430,7 +450,39 @@
       document.getElementById("img-dashboard").src = `screenshots/${DASH[lang] || DASH.en}.png`;
       document.getElementById("img-hero").src = `screenshots/${HERO.includes(lang) ? "cleanup-" + lang : "cleanup"}.png`;
       try { localStorage.setItem("lang", lang); } catch {}
+      renderLive(false);
     }
+
+    // Live totals from stats.rigsweep.com (anonymous, opt-out in the app). Hidden until there is
+    // something worth showing, and on any error.
+    const MIN_INSTALLS = 5;
+    let liveData = null;
+    function fmtLive(v, unit) {
+      const lang = document.documentElement.lang || "en";
+      if (unit !== "bytes") return new Intl.NumberFormat(lang, { notation: v >= 1e5 ? "compact" : "standard", maximumFractionDigits: v >= 1e5 ? 1 : 0 }).format(Math.round(v));
+      const u = ["byte", "kilobyte", "megabyte", "gigabyte", "terabyte", "petabyte"];
+      let i = 0;
+      while (v >= 1024 && i < u.length - 1) { v /= 1024; i++; }
+      return new Intl.NumberFormat(lang, { style: "unit", unit: u[i], unitDisplay: "short", maximumFractionDigits: v < 10 ? 1 : 0 }).format(v);
+    }
+    function renderLive(animate) {
+      if (!liveData) return;
+      const box = document.getElementById("live");
+      box.querySelectorAll("[data-needs]").forEach((el) => { el.hidden = !Number(liveData[el.dataset.needs]); });
+      const still = !animate || matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const t0 = performance.now(), ms = 1400;
+      const step = (now) => {
+        const k = still ? 1 : Math.min(1, (now - t0) / ms), ease = 1 - Math.pow(1 - k, 3);
+        box.querySelectorAll("[data-live]").forEach((el) => { el.textContent = fmtLive(Number(liveData[el.dataset.live] || 0) * ease, el.dataset.unit); });
+        if (k < 1) requestAnimationFrame(step);
+      };
+      step(t0);
+      box.hidden = false;
+    }
+    fetch("https://stats.rigsweep.com/v1/totals")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d && Number(d.installs) >= MIN_INSTALLS) { liveData = d; renderLive(true); } })
+      .catch(() => {});
     sel.addEventListener("change", () => apply(sel.value));
     let saved = null;
     try { saved = localStorage.getItem("lang"); } catch {}
