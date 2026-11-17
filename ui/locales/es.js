@@ -1,4 +1,5 @@
 I18N["es"] = {
+    "upd.noReboot": "Solo se reinicia RigSweep, no tu PC.",
     "ready.cap.dev": "{n} procesos de desarrollo obsoletos",
     "ready.cap.disk": "carpetas de compilación y cachés antiguas ({n})",
     "ready.cap.bc": "cachés del navegador",
@@ -227,7 +228,7 @@ I18N["es"] = {
     "upd.latest": "✓ Tienes la versión más reciente ({v}).",
     "upd.available": "🎉 Ya está disponible RigSweep {v} (tienes la {c}).",
     "upd.notes": "Novedades",
-    "upd.install": "Instalar y reiniciar",
+    "upd.install": "Actualizar RigSweep",
     "upd.pill": "⬆ Actualizar a {v}",
     "upd.confirm.title": "¿Instalar RigSweep {v}?",
     "upd.confirm.body": "RigSweep se cerrará, el instalador lo actualizará y se volverá a abrir. Tus ajustes, copias de seguridad y configuración se conservan.",

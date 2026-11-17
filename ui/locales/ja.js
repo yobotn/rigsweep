@@ -1,4 +1,5 @@
 I18N["ja"] = {
+    "upd.noReboot": "再起動するのは RigSweep だけで、PC は再起動しません。",
     "ready.cap.dev": "放置された開発プロセス {n} 個",
     "ready.cap.disk": "古いビルドフォルダーとキャッシュ ({n} 件)",
     "ready.cap.bc": "ブラウザーのキャッシュ",
@@ -227,7 +228,7 @@ I18N["ja"] = {
     "upd.latest": "✓ 最新バージョン ({v}) を使用しています。",
     "upd.available": "🎉 RigSweep {v} を利用できます (現在: {c})。",
     "upd.notes": "新機能",
-    "upd.install": "インストールして再起動",
+    "upd.install": "RigSweep を更新",
     "upd.pill": "⬆ {v} に更新",
     "upd.confirm.title": "RigSweep {v} をインストールしますか?",
     "upd.confirm.body": "RigSweep が終了し、インストーラーで更新された後、再び起動します。最適化、バックアップ、設定はそのまま保持されます。",

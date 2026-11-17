@@ -1,4 +1,5 @@
 I18N["he"] = {
+    "upd.noReboot": "רק RigSweep מופעל מחדש, לא המחשב.",
     "ready.cap.dev": "{n} תהליכי פיתוח נטושים",
     "ready.cap.disk": "תיקיות בנייה ומטמונים ישנים ({n})",
     "ready.cap.bc": "מטמון דפדפנים",
@@ -227,7 +228,7 @@ I18N["he"] = {
     "upd.latest": "✓ מותקנת הגרסה העדכנית ביותר ({v}).",
     "upd.available": "🎉 גרסה {v} של RigSweep זמינה (מותקנת: {c}).",
     "upd.notes": "מה חדש",
-    "upd.install": "התקן והפעל מחדש",
+    "upd.install": "לעדכן את RigSweep",
     "upd.pill": "⬆ עדכן לגרסה {v}",
     "upd.confirm.title": "להתקין את RigSweep {v}?",
     "upd.confirm.body": "RigSweep ייסגר, תוכנית ההתקנה תעדכן אותו, והוא יופעל שוב. הכוונונים, הגיבויים וההגדרות נשמרים.",

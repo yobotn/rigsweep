@@ -1,4 +1,5 @@
 I18N["zh-CN"] = {
+    "upd.noReboot": "只会重新启动 RigSweep，不会重启电脑。",
     "ready.cap.dev": "{n} 个闲置开发进程",
     "ready.cap.disk": "旧构建文件夹和缓存（{n} 项）",
     "ready.cap.bc": "浏览器缓存",
@@ -227,7 +228,7 @@ I18N["zh-CN"] = {
     "upd.latest": "✓ 你使用的已是最新版本（{v}）。",
     "upd.available": "🎉 RigSweep {v} 已发布（当前版本：{c}）。",
     "upd.notes": "新增功能",
-    "upd.install": "安装并重启",
+    "upd.install": "更新 RigSweep",
     "upd.pill": "⬆ 更新到 {v}",
     "upd.confirm.title": "安装 RigSweep {v}？",
     "upd.confirm.body": "RigSweep 将关闭，由安装程序完成更新后再重新启动。你的优化、备份和设置都会保留。",

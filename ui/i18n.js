@@ -214,7 +214,7 @@ const I18N = {
     "upd.latest": "✓ You have the latest version ({v}).",
     "upd.available": "🎉 RigSweep {v} is available (you have {c}).",
     "upd.notes": "What's new",
-    "upd.install": "Install and restart",
+    "upd.install": "Update RigSweep", "upd.noReboot": "Only RigSweep restarts, not your PC.",
     "upd.pill": "⬆ Update to {v}",
     "upd.confirm.title": "Install RigSweep {v}?",
     "upd.confirm.body": "RigSweep closes, the installer updates it, and RigSweep starts again. Your tweaks, backups and settings are kept.",

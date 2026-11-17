@@ -1882,7 +1882,7 @@ $("#btn-upd-check").onclick = async (e) => {
 
 $("#btn-upd-install").onclick = async (e) => {
   if (!update) return;
-  if (!(await modal(t("upd.confirm.title", { v: update.version }), `<p>${esc(t("upd.confirm.body"))}</p>`, { okText: t("upd.install") }))) return;
+  if (!(await modal(t("upd.confirm.title", { v: update.version }), `<p>${esc(t("upd.confirm.body"))}</p><p class="sub">${esc(t("upd.noReboot"))}</p>`, { okText: t("upd.install") }))) return;
   busy(e.target, true, t("upd.downloading", { p: "" }));
   $("#btn-upd-check").disabled = true;
   try { await invoke("install_update"); }  // on success RigSweep exits while the installer runs

@@ -1,4 +1,5 @@
 I18N["ko"] = {
+    "upd.noReboot": "RigSweep만 다시 시작되며 PC는 다시 시작되지 않습니다.",
     "ready.cap.dev": "오래된 개발 프로세스 {n}개",
     "ready.cap.disk": "오래된 빌드 폴더와 캐시 ({n}개)",
     "ready.cap.bc": "브라우저 캐시",
@@ -227,7 +228,7 @@ I18N["ko"] = {
     "upd.latest": "✓ 최신 버전({v})을 사용하고 있습니다.",
     "upd.available": "🎉 RigSweep {v}을(를) 사용할 수 있습니다(현재 {c}).",
     "upd.notes": "새로운 기능",
-    "upd.install": "설치 후 다시 시작",
+    "upd.install": "RigSweep 업데이트",
     "upd.pill": "⬆ {v}(으)로 업데이트",
     "upd.confirm.title": "RigSweep {v}을(를) 설치할까요?",
     "upd.confirm.body": "RigSweep이 종료되고 설치 프로그램이 업데이트한 다음 다시 시작됩니다. 시스템 조정, 백업 및 설정은 그대로 유지됩니다.",

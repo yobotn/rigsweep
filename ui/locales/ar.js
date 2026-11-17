@@ -1,4 +1,5 @@
 I18N["ar"] = {
+    "upd.noReboot": "يُعاد تشغيل RigSweep فقط، وليس جهازك.",
     "ready.cap.dev": "{n} من عمليات التطوير المهملة",
     "ready.cap.disk": "مجلدات بناء وذاكرات مؤقتة قديمة ({n})",
     "ready.cap.bc": "ذاكرة المتصفحات المؤقتة",
@@ -227,7 +228,7 @@ I18N["ar"] = {
     "upd.latest": "✓ لديك أحدث إصدار ({v}).",
     "upd.available": "🎉 يتوفر الإصدار RigSweep {v} (لديك {c}).",
     "upd.notes": "ما الجديد",
-    "upd.install": "التثبيت وإعادة التشغيل",
+    "upd.install": "تحديث RigSweep",
     "upd.pill": "⬆ التحديث إلى {v}",
     "upd.confirm.title": "هل تريد تثبيت RigSweep {v}؟",
     "upd.confirm.body": "يُغلَق RigSweep، ويحدّثه برنامج التثبيت، ثم يبدأ من جديد. يتم الاحتفاظ بتحسيناتك ونسخك الاحتياطية وإعداداتك.",
