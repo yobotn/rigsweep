@@ -13,6 +13,18 @@ const fmtBytes = (b) => {
   return ltr(`${neg ? "-" : ""}${b.toFixed(b < 10 ? 1 : 0)} ${u[i]}`);
 };
 const fmtAge = (s) => s < 3600 ? `${Math.max(1, Math.round(s / 60))}m` : s < 86400 ? `${(s / 3600).toFixed(1)}h` : `${(s / 86400).toFixed(1)}d`;
+// Backend timestamps are local "YYYY-MM-DD HH:MM:SS". timeAgo → "5 minutes ago" / "yesterday" in the UI
+// language; fullDate → the exact date and time, for tooltips. Anything unparseable is shown as is.
+const parseTs = (ts) => { const d = new Date(String(ts ?? "").replace(" ", "T")); return isNaN(d) ? null : d; };
+const AGO_UNITS = [["year", 31536000], ["month", 2592000], ["week", 604800], ["day", 86400], ["hour", 3600], ["minute", 60]];
+function timeAgo(ts) {
+  const d = parseTs(ts);
+  if (!d) return ts ?? "";
+  const s = (d - Date.now()) / 1000, rtf = new Intl.RelativeTimeFormat(LANG, { numeric: "auto" });
+  const u = AGO_UNITS.find(([, n]) => Math.abs(s) >= n);
+  return u ? rtf.format(Math.trunc(s / u[1]), u[0]) : rtf.format(0, "second");
+}
+const fullDate = (ts) => parseTs(ts)?.toLocaleString(LANG, { dateStyle: "medium", timeStyle: "short" }) ?? (ts ?? "");
 
 let state = null;          // StateView from backend
 let selected = new Set();  // tweak ids checked in the UI
@@ -928,11 +940,11 @@ const METRICS = [
   ["dev_procs", String, true],
 ];
 const metricVal = (m, k) => k === "mem_free" ? m.mem_total - m.mem_used : m[k] ?? 0;
-const snapLabel = (s) => `${s.ts} · ${t("label." + s.label) === "label." + s.label ? s.label : t("label." + s.label)}`;
+const snapLabel = (s) => `${timeAgo(s.ts)} ·${t("label." + s.label) === "label." + s.label ? s.label : t("label." + s.label)}`;
 
 async function loadSnapshots() {
   snaps = await call("get_snapshots");
-  const opts = snaps.map((s) => `<option value="${s.id}">${esc(snapLabel(s))}</option>`).join("");
+  const opts = snaps.map((s) => `<option value="${s.id}" title="${esc(fullDate(s.ts))}">${esc(snapLabel(s))}</option>`).join("");
   $("#snap-before").innerHTML = opts;
   $("#snap-after").innerHTML = opts;
   if (snaps.length) {
@@ -1239,7 +1251,7 @@ function feedItem(h) {
   const cls = h.result !== "ok" ? "err" : h.action === "drift" || h.action === "reapply" ? "info" : "";
   const name = tweakName(h.tweak_id);
   return `<li title="${esc(h.detail)}"><i class="dot ${cls}"></i><div class="what"><b>${esc(actLabel(h))}</b>${name ? ` · ${esc(name)}` : ""}
-    <div class="sub">${esc(h.ts)} · ${esc(tOr("src." + h.source, h.source))}</div></div></li>`;
+    <div class="sub"><span title="${esc(fullDate(h.ts))}">${esc(timeAgo(h.ts))}</span> ·${esc(tOr("src." + h.source, h.source))}</div></div></li>`;
 }
 
 // ---------- impact: what RigSweep has freed on this PC ----------
@@ -1277,7 +1289,7 @@ function renderImpact() {
       <span class="bar" aria-hidden="true"><i style="width:${Math.max(2, (k.bytes / max) * 100)}%"></i></span>
       <span class="num">${fmtBytes(k.bytes)}</span></button></li>`).join("")
     : `<li class="empty-state">${esc(t(impact.all.cleanups ? "impact.emptyPeriod" : "impact.empty"))}</li>`;
-  $("#im-since").textContent = impact.since ? t("impact.since", { d: impact.since.slice(0, 10) }) : "";
+  $("#im-since").textContent = impact.since ? t("impact.since", { d: parseTs(impact.since)?.toLocaleDateString(LANG, { dateStyle: "medium" }) ?? impact.since.slice(0, 10) }) : "";
 }
 // a toast the first time the all-time total passes each of these (in GB)
 const IM_MILESTONES = [10, 50, 100, 250, 500, 1000];
@@ -1550,7 +1562,7 @@ async function loadHistory() {
   const rows = await call("get_history", { limit: 500 });
   $("#backup-info").textContent = t("hist.info", { n: state?.backup_count ?? 0, dir: state?.data_dir ?? "" });
   $("#hist-body").innerHTML = rows.length ? rows.map((h) => `<tr>
-    <td class="ts">${esc(h.ts)}</td><td>${esc(tOr("src." + h.source, h.source))}</td><td title="${esc(h.tweak_id || "")}">${esc(tweakName(h.tweak_id))}</td><td>${esc(actLabel(h))}</td>
+    <td class="ts" title="${esc(fullDate(h.ts))}">${esc(timeAgo(h.ts))}</td><td>${esc(tOr("src." + h.source, h.source))}</td><td title="${esc(h.tweak_id || "")}">${esc(tweakName(h.tweak_id))}</td><td>${esc(actLabel(h))}</td>
     <td><span class="badge ${h.result === "ok" ? "active" : "orphan"}">${esc(h.result)}</span></td>
     <td class="sub">${esc(h.detail)}</td></tr>`).join("")
     : `<tr><td colspan="6" class="loading">${esc(t("dash.empty"))}</td></tr>`;
@@ -1880,7 +1892,7 @@ function renderShare() {
   const s = shareState;
   if (!s) return;
   $("#s-share").checked = s.enabled;
-  const parts = [s.enabled ? (s.last_sent ? t("share.last", { d: s.last_sent }) : t("share.never")) : t("share.off"),
+  const parts = [s.enabled ? (s.last_sent ? t("share.last", { d: timeAgo(s.last_sent) }) : t("share.never")) : t("share.off"),
     t("share.id", { id: s.install_id })];
   $("#share-status").innerHTML = parts.map(esc).join("<br>");
 }
