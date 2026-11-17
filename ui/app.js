@@ -25,6 +25,18 @@ function timeAgo(ts) {
   return u ? rtf.format(Math.trunc(s / u[1]), u[0]) : rtf.format(0, "second");
 }
 const fullDate = (ts) => parseTs(ts)?.toLocaleString(LANG, { dateStyle: "medium", timeStyle: "short" }) ?? (ts ?? "");
+// A self-updating "time ago": any element with data-ago="<ts>" is refreshed by the ticker below, so the
+// labels keep up without re-rendering their section. data-ago-after is text that follows the time
+// (used by <option>s, which can't hold a child element).
+const agoHtml = (ts) => `<time data-ago="${esc(ts)}" title="${esc(fullDate(ts))}">${esc(timeAgo(ts))}</time>`;
+function refreshAgo() {
+  document.querySelectorAll("[data-ago]").forEach((el) => {
+    const txt = timeAgo(el.dataset.ago) + (el.dataset.agoAfter ?? "");
+    if (el.textContent !== txt) el.textContent = txt;
+  });
+}
+setInterval(() => { if (!document.hidden) refreshAgo(); }, 30000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshAgo(); });
 
 let state = null;          // StateView from backend
 let selected = new Set();  // tweak ids checked in the UI
@@ -940,11 +952,11 @@ const METRICS = [
   ["dev_procs", String, true],
 ];
 const metricVal = (m, k) => k === "mem_free" ? m.mem_total - m.mem_used : m[k] ?? 0;
-const snapLabel = (s) => `${timeAgo(s.ts)} ·${t("label." + s.label) === "label." + s.label ? s.label : t("label." + s.label)}`;
+const snapName = (s) => t("label." + s.label) === "label." + s.label ? s.label : t("label." + s.label);
 
 async function loadSnapshots() {
   snaps = await call("get_snapshots");
-  const opts = snaps.map((s) => `<option value="${s.id}" title="${esc(fullDate(s.ts))}">${esc(snapLabel(s))}</option>`).join("");
+  const opts = snaps.map((s) => `<option value="${s.id}" title="${esc(fullDate(s.ts))}" data-ago="${esc(s.ts)}" data-ago-after="${esc(" · " + snapName(s))}">${esc(timeAgo(s.ts) + " · " + snapName(s))}</option>`).join("");
   $("#snap-before").innerHTML = opts;
   $("#snap-after").innerHTML = opts;
   if (snaps.length) {
@@ -994,7 +1006,7 @@ function reportMarkdown() {
     const vb = metricVal(b.metrics, k), va = metricVal(a.metrics, k), d = va - vb;
     return `| ${t("m." + k)} | ${f(vb)} | ${f(va)} | ${d > 0 ? "+" : ""}${f(d)} |`;
   });
-  return [`**RigSweep Boost Report** · ${snapLabel(b)} → ${snapLabel(a)}`, "",
+  return [`**RigSweep Boost Report** · ${fullDate(b.ts)} · ${snapName(b)} → ${fullDate(a.ts)} · ${snapName(a)}`, "",
     `| | ${t("report.before")} | ${t("report.after")} | ${t("report.change")} |`, "|---|---:|---:|---:|", ...rows].join("\n");
 }
 
@@ -1251,7 +1263,7 @@ function feedItem(h) {
   const cls = h.result !== "ok" ? "err" : h.action === "drift" || h.action === "reapply" ? "info" : "";
   const name = tweakName(h.tweak_id);
   return `<li title="${esc(h.detail)}"><i class="dot ${cls}"></i><div class="what"><b>${esc(actLabel(h))}</b>${name ? ` · ${esc(name)}` : ""}
-    <div class="sub"><span title="${esc(fullDate(h.ts))}">${esc(timeAgo(h.ts))}</span> ·${esc(tOr("src." + h.source, h.source))}</div></div></li>`;
+    <div class="sub">${agoHtml(h.ts)} · ${esc(tOr("src." + h.source, h.source))}</div></div></li>`;
 }
 
 // ---------- impact: what RigSweep has freed on this PC ----------
@@ -1562,7 +1574,7 @@ async function loadHistory() {
   const rows = await call("get_history", { limit: 500 });
   $("#backup-info").textContent = t("hist.info", { n: state?.backup_count ?? 0, dir: state?.data_dir ?? "" });
   $("#hist-body").innerHTML = rows.length ? rows.map((h) => `<tr>
-    <td class="ts" title="${esc(fullDate(h.ts))}">${esc(timeAgo(h.ts))}</td><td>${esc(tOr("src." + h.source, h.source))}</td><td title="${esc(h.tweak_id || "")}">${esc(tweakName(h.tweak_id))}</td><td>${esc(actLabel(h))}</td>
+    <td class="ts">${agoHtml(h.ts)}</td><td>${esc(tOr("src." + h.source, h.source))}</td><td title="${esc(h.tweak_id || "")}">${esc(tweakName(h.tweak_id))}</td><td>${esc(actLabel(h))}</td>
     <td><span class="badge ${h.result === "ok" ? "active" : "orphan"}">${esc(h.result)}</span></td>
     <td class="sub">${esc(h.detail)}</td></tr>`).join("")
     : `<tr><td colspan="6" class="loading">${esc(t("dash.empty"))}</td></tr>`;
@@ -1892,9 +1904,10 @@ function renderShare() {
   const s = shareState;
   if (!s) return;
   $("#s-share").checked = s.enabled;
-  const parts = [s.enabled ? (s.last_sent ? t("share.last", { d: timeAgo(s.last_sent) }) : t("share.never")) : t("share.off"),
-    t("share.id", { id: s.install_id })];
-  $("#share-status").innerHTML = parts.map(esc).join("<br>");
+  // "Last sent: {d}" with {d} as a live time-ago element
+  const status = !s.enabled ? esc(t("share.off")) : !s.last_sent ? esc(t("share.never"))
+    : esc(t("share.last")).replace("{d}", agoHtml(s.last_sent));
+  $("#share-status").innerHTML = [status, esc(t("share.id", { id: s.install_id }))].join("<br>");
 }
 
 async function loadShare() {
