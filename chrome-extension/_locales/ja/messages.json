@@ -136,5 +136,91 @@
   },
   "footer": {
     "message": "RigSweep の一部 · MIT"
+  },
+  "lifetime": {
+    "message": "💤 スリープ $SLEPT$ タブ · 🧹 クローズ $CLOSED$（$DATE$ 以降）",
+    "placeholders": {
+      "slept": {
+        "content": "$1",
+        "example": "120"
+      },
+      "closed": {
+        "content": "$2",
+        "example": "14"
+      },
+      "date": {
+        "content": "$3",
+        "example": "11/17/2026"
+      }
+    }
+  },
+  "shareTitle": {
+    "message": "📊 匿名の統計"
+  },
+  "shareHint": {
+    "message": "RigSweep Tabs は週に 1 回、匿名の件数を送信します。スリープ・クローズしたタブの数、開いているタブとウィンドウの数、自動スリープのオン／オフ、ブラウザーと拡張機能のバージョンです。rigsweep.com の公開カウンターに使われます。送信しないもの: URL、ページのタイトル、サイト、登録したパターン、閲覧内容。IP アドレスは国の判定にだけ使い、保存しません。"
+  },
+  "shareToggle": {
+    "message": "匿名の統計を毎週共有する"
+  },
+  "shareLast": {
+    "message": "最終送信: $DATE$",
+    "placeholders": {
+      "date": {
+        "content": "$1",
+        "example": "11/17/2026, 10:00"
+      }
+    }
+  },
+  "shareNever": {
+    "message": "オン。最初のレポートはまもなく送信されます。"
+  },
+  "shareOff": {
+    "message": "オフ。何も送信しません。"
+  },
+  "shareId": {
+    "message": "ランダム ID: $ID$",
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "3f9c2a71d04e4b8c9a6e15b27d8c40f1"
+      }
+    }
+  },
+  "sharePreview": {
+    "message": "送信内容を表示"
+  },
+  "shareReset": {
+    "message": "新しいランダム ID"
+  },
+  "shareResetDone": {
+    "message": "新しい ID にしました。古い ID で送信したデータは削除しました。"
+  },
+  "shareOffDone": {
+    "message": "共有をオフにしました。このブラウザーが送信したデータは削除しました。"
+  },
+  "shareOnDone": {
+    "message": "ありがとうございます！共有をオンにしました。"
+  },
+  "noticeTitle": {
+    "message": "📊 RigSweep が解放した量の集計にご協力ください"
+  },
+  "noticeOptOut": {
+    "message": "RigSweep Tabs は匿名の件数を毎週共有し、みんなでどれだけタブを解放できたかを示し、次に何を作るかを決めるのに役立てています。今すぐ、またはいつでもこのポップアップの下部でオフにできます。"
+  },
+  "noticeOptIn": {
+    "message": "匿名の件数を毎週共有しますか？みんなでどれだけタブを解放できたかがわかり、次に何を作るかを決めるのに役立ちます。いつでもこのポップアップの下部で変更できます。"
+  },
+  "shareKeep": {
+    "message": "共有を続ける"
+  },
+  "shareTurnOff": {
+    "message": "オフにする"
+  },
+  "shareYes": {
+    "message": "共有する"
+  },
+  "shareNo": {
+    "message": "共有しない"
   }
 }

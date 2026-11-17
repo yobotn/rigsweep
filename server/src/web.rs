@@ -17,7 +17,7 @@ use serde_json::Value;
 use sqlx::PgPool;
 use subtle::ConstantTimeEq;
 
-use crate::model::{install_id_ok, Report};
+use crate::model::{install_id_ok, ExtReport, Report};
 use crate::store;
 
 pub struct Geo {
@@ -107,9 +107,19 @@ struct Inner {
 pub fn router(pool: PgPool, cfg: Config) -> Router {
     let limiter = Limiter { hits: Mutex::new(HashMap::new()), max: cfg.rate_max, window: Duration::from_secs(600) };
     let st = AppState(Arc::new(Inner { pool, cfg, limiter, totals: Mutex::new(None) }));
+    // the browser extension calls these from its own origin: open CORS, no cookies involved
+    let cors = tower_http::cors::CorsLayer::new()
+        .allow_origin(tower_http::cors::Any)
+        .allow_methods([axum::http::Method::POST, axum::http::Method::DELETE])
+        .allow_headers([header::CONTENT_TYPE])
+        .max_age(Duration::from_secs(86400));
+    let open = Router::new()
+        .route("/v1/ext/report", post(ext_report))
+        .route("/v1/install/{id}", delete(forget))
+        .layer(cors);
     Router::new()
         .route("/v1/report", post(report))
-        .route("/v1/install/{id}", delete(forget))
+        .merge(open)
         .route("/v1/totals", get(totals))
         .route("/admin", get(admin_page))
         .route("/admin/api/summary", get(admin_summary))
@@ -148,6 +158,27 @@ async fn report(State(st): State<AppState>, headers: HeaderMap, ext: Extensions,
     }
     let country = st.0.cfg.geo.country(&headers, ip);
     match store::save_report(&st.0.pool, &r, &country).await {
+        Ok(()) => StatusCode::NO_CONTENT.into_response(),
+        Err(e) => fail(e),
+    }
+}
+
+async fn ext_report(State(st): State<AppState>, headers: HeaderMap, ext: Extensions, body: axum::body::Bytes) -> Response {
+    let ip = client_ip(&headers, &ext);
+    if let Some(ip) = ip {
+        if !st.0.limiter.allow(ip) {
+            return StatusCode::TOO_MANY_REQUESTS.into_response();
+        }
+    }
+    let r: ExtReport = match serde_json::from_slice(&body) {
+        Ok(r) => r,
+        Err(_) => return (StatusCode::BAD_REQUEST, "invalid json").into_response(),
+    };
+    if let Err(e) = r.validate() {
+        return (StatusCode::BAD_REQUEST, e).into_response();
+    }
+    let country = st.0.cfg.geo.country(&headers, ip);
+    match store::save_ext_report(&st.0.pool, &r, &country).await {
         Ok(()) => StatusCode::NO_CONTENT.into_response(),
         Err(e) => fail(e),
     }

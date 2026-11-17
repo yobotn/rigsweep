@@ -136,5 +136,91 @@
   },
   "footer": {
     "message": "חלק מ-RigSweep · MIT"
+  },
+  "lifetime": {
+    "message": "💤 $SLEPT$ כרטיסיות הורדמו · 🧹 $CLOSED$ נסגרו מאז $DATE$",
+    "placeholders": {
+      "slept": {
+        "content": "$1",
+        "example": "120"
+      },
+      "closed": {
+        "content": "$2",
+        "example": "14"
+      },
+      "date": {
+        "content": "$3",
+        "example": "11/17/2026"
+      }
+    }
+  },
+  "shareTitle": {
+    "message": "📊 סטטיסטיקה אנונימית"
+  },
+  "shareHint": {
+    "message": "פעם בשבוע RigSweep Tabs שולחת ספירות אנונימיות: כמה כרטיסיות הורדמו ונסגרו, כמה כרטיסיות וחלונות פתוחים, אם השינה האוטומטית מופעלת, וגרסת הדפדפן וההרחבה. מהן נבנים המונים הציבוריים באתר rigsweep.com. אף פעם לא נשלחים: כתובות URL, כותרות של דפים, אתרים, התבניות שלכם או כל דבר שאתם גולשים בו. כתובת ה-IP משמשת רק כדי לזהות את המדינה ולא נשמרת."
+  },
+  "shareToggle": {
+    "message": "שיתוף סטטיסטיקה אנונימית שבועית"
+  },
+  "shareLast": {
+    "message": "נשלח לאחרונה: $DATE$.",
+    "placeholders": {
+      "date": {
+        "content": "$1",
+        "example": "11/17/2026, 10:00"
+      }
+    }
+  },
+  "shareNever": {
+    "message": "פועל. הדוח הראשון יישלח בקרוב."
+  },
+  "shareOff": {
+    "message": "כבוי. שום דבר לא נשלח."
+  },
+  "shareId": {
+    "message": "מזהה אקראי: $ID$",
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "3f9c2a71d04e4b8c9a6e15b27d8c40f1"
+      }
+    }
+  },
+  "sharePreview": {
+    "message": "הצגת מה שנשלח"
+  },
+  "shareReset": {
+    "message": "מזהה אקראי חדש"
+  },
+  "shareResetDone": {
+    "message": "נוצר מזהה חדש. הנתונים שנשלחו עם הקודם נמחקו."
+  },
+  "shareOffDone": {
+    "message": "השיתוף כבוי. מה שהדפדפן הזה שלח נמחק."
+  },
+  "shareOnDone": {
+    "message": "תודה! השיתוף פועל."
+  },
+  "noticeTitle": {
+    "message": "📊 עזרו לנו לספור כמה RigSweep מפנה"
+  },
+  "noticeOptOut": {
+    "message": "RigSweep Tabs משתפת ספירות אנונימיות פעם בשבוע, כדי שנוכל להראות כמה כרטיסיות היא מפנה אצל כולם ולדעת מה לבנות בהמשך. אפשר לכבות את זה עכשיו, או בכל זמן בתחתית החלון הזה."
+  },
+  "noticeOptIn": {
+    "message": "לשתף ספירות אנונימיות פעם בשבוע? הן מראות כמה כרטיסיות RigSweep מפנה אצל כולם ועוזרות להחליט מה לבנות בהמשך. אפשר לשנות את זה בכל זמן בתחתית החלון הזה."
+  },
+  "shareKeep": {
+    "message": "להמשיך לשתף"
+  },
+  "shareTurnOff": {
+    "message": "לכבות"
+  },
+  "shareYes": {
+    "message": "לשתף"
+  },
+  "shareNo": {
+    "message": "לא, תודה"
   }
 }

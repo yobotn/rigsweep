@@ -136,5 +136,91 @@
   },
   "footer": {
     "message": "Teil von RigSweep · MIT"
+  },
+  "lifetime": {
+    "message": "💤 $SLEPT$ Tabs schlafen gelegt · 🧹 $CLOSED$ geschlossen seit $DATE$",
+    "placeholders": {
+      "slept": {
+        "content": "$1",
+        "example": "120"
+      },
+      "closed": {
+        "content": "$2",
+        "example": "14"
+      },
+      "date": {
+        "content": "$3",
+        "example": "11/17/2026"
+      }
+    }
+  },
+  "shareTitle": {
+    "message": "📊 Anonyme Statistik"
+  },
+  "shareHint": {
+    "message": "Einmal pro Woche sendet RigSweep Tabs anonyme Zahlen: wie viele Tabs schlafen gelegt und geschlossen wurden, wie viele Tabs und Fenster offen sind, ob Auto-Schlaf an ist, sowie Browser- und Erweiterungsversion. Daraus entstehen die öffentlichen Zähler auf rigsweep.com. Nie gesendet: URLs, Seitentitel, Websites, deine Muster oder irgendetwas, das du aufrufst. Deine IP-Adresse wird nur zur Bestimmung des Landes genutzt und nie gespeichert."
+  },
+  "shareToggle": {
+    "message": "Anonyme Wochenstatistik teilen"
+  },
+  "shareLast": {
+    "message": "Zuletzt gesendet: $DATE$.",
+    "placeholders": {
+      "date": {
+        "content": "$1",
+        "example": "11/17/2026, 10:00"
+      }
+    }
+  },
+  "shareNever": {
+    "message": "An. Der erste Bericht wird bald gesendet."
+  },
+  "shareOff": {
+    "message": "Aus. Es wird nichts gesendet."
+  },
+  "shareId": {
+    "message": "Zufällige ID: $ID$",
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "3f9c2a71d04e4b8c9a6e15b27d8c40f1"
+      }
+    }
+  },
+  "sharePreview": {
+    "message": "Zeigen, was gesendet wird"
+  },
+  "shareReset": {
+    "message": "Neue zufällige ID"
+  },
+  "shareResetDone": {
+    "message": "Neue ID. Die unter der alten ID gesendeten Daten wurden gelöscht."
+  },
+  "shareOffDone": {
+    "message": "Teilen ist aus. Was dieser Browser gesendet hat, wurde gelöscht."
+  },
+  "shareOnDone": {
+    "message": "Danke! Teilen ist an."
+  },
+  "noticeTitle": {
+    "message": "📊 Hilf mitzuzählen, was RigSweep freigibt"
+  },
+  "noticeOptOut": {
+    "message": "RigSweep Tabs teilt anonyme Wochenzahlen, damit wir zeigen können, wie viele Tabs es bei allen freigibt, und wissen, was wir als Nächstes bauen. Du kannst das jetzt oder jederzeit unten in diesem Fenster ausschalten."
+  },
+  "noticeOptIn": {
+    "message": "Möchtest du anonyme Wochenzahlen teilen? Sie zeigen, wie viele Tabs RigSweep bei allen freigibt, und helfen zu entscheiden, was als Nächstes kommt. Du kannst das jederzeit unten in diesem Fenster ändern."
+  },
+  "shareKeep": {
+    "message": "Weiter teilen"
+  },
+  "shareTurnOff": {
+    "message": "Ausschalten"
+  },
+  "shareYes": {
+    "message": "Statistik teilen"
+  },
+  "shareNo": {
+    "message": "Nein, danke"
   }
 }

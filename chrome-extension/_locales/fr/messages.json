@@ -136,5 +136,91 @@
   },
   "footer": {
     "message": "Fait partie de RigSweep · MIT"
+  },
+  "lifetime": {
+    "message": "💤 $SLEPT$ onglets mis en veille · 🧹 $CLOSED$ fermés depuis le $DATE$",
+    "placeholders": {
+      "slept": {
+        "content": "$1",
+        "example": "120"
+      },
+      "closed": {
+        "content": "$2",
+        "example": "14"
+      },
+      "date": {
+        "content": "$3",
+        "example": "11/17/2026"
+      }
+    }
+  },
+  "shareTitle": {
+    "message": "📊 Statistiques anonymes"
+  },
+  "shareHint": {
+    "message": "Une fois par semaine, RigSweep Tabs envoie des chiffres anonymes : combien d'onglets il a mis en veille et fermés, combien d'onglets et de fenêtres sont ouverts, si la mise en veille automatique est activée, et les versions du navigateur et de l'extension. Ils alimentent les compteurs publics de rigsweep.com. Jamais envoyés : URL, titres de pages, sites, vos motifs ou quoi que ce soit de votre navigation. Votre adresse IP sert uniquement à trouver le pays et n'est jamais conservée."
+  },
+  "shareToggle": {
+    "message": "Partager des statistiques hebdomadaires anonymes"
+  },
+  "shareLast": {
+    "message": "Dernier envoi : $DATE$.",
+    "placeholders": {
+      "date": {
+        "content": "$1",
+        "example": "11/17/2026, 10:00"
+      }
+    }
+  },
+  "shareNever": {
+    "message": "Activé. Le premier rapport part bientôt."
+  },
+  "shareOff": {
+    "message": "Désactivé. Rien n'est envoyé."
+  },
+  "shareId": {
+    "message": "ID aléatoire : $ID$",
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "3f9c2a71d04e4b8c9a6e15b27d8c40f1"
+      }
+    }
+  },
+  "sharePreview": {
+    "message": "Voir ce qui est envoyé"
+  },
+  "shareReset": {
+    "message": "Nouvel ID aléatoire"
+  },
+  "shareResetDone": {
+    "message": "Nouvel ID. Les données envoyées sous l'ancien ont été supprimées."
+  },
+  "shareOffDone": {
+    "message": "Le partage est désactivé. Ce que ce navigateur a envoyé a été supprimé."
+  },
+  "shareOnDone": {
+    "message": "Merci ! Le partage est activé."
+  },
+  "noticeTitle": {
+    "message": "📊 Aidez-nous à compter ce que RigSweep libère"
+  },
+  "noticeOptOut": {
+    "message": "RigSweep Tabs partage des chiffres hebdomadaires anonymes, pour montrer combien d'onglets il libère chez tout le monde et savoir quoi développer ensuite. Vous pouvez le désactiver maintenant, ou à tout moment en bas de cette fenêtre."
+  },
+  "noticeOptIn": {
+    "message": "Voulez-vous partager des chiffres hebdomadaires anonymes ? Ils montrent combien d'onglets RigSweep libère chez tout le monde et aident à choisir la suite. Vous pouvez changer d'avis à tout moment en bas de cette fenêtre."
+  },
+  "shareKeep": {
+    "message": "Continuer à partager"
+  },
+  "shareTurnOff": {
+    "message": "Désactiver"
+  },
+  "shareYes": {
+    "message": "Partager"
+  },
+  "shareNo": {
+    "message": "Non merci"
   }
 }

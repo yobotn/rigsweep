@@ -45,6 +45,52 @@ pub struct Report {
     pub tweaks: Vec<String>,
 }
 
+/// The weekly report of the RigSweep Tabs extension (chrome-extension/stats.js).
+#[derive(Deserialize, Debug, Clone)]
+#[serde(deny_unknown_fields)]
+pub struct ExtReport {
+    pub v: u32,
+    pub install_id: String,
+    pub ext_version: String,
+    pub browser: String,
+    pub browser_major: u32,
+    /// counts since the last report
+    pub tabs_slept: u64,
+    pub dupes_closed: u64,
+    pub matches_closed: u64,
+    /// open right now
+    pub tabs_open: u32,
+    pub windows_open: u32,
+    pub auto_sleep: bool,
+}
+
+pub const BROWSERS: &[&str] = &["Chrome", "Edge", "Brave", "Opera", "Vivaldi", "Chromium", "Other"];
+
+impl ExtReport {
+    pub fn validate(&self) -> Result<(), String> {
+        let bad = |what: &str| Err(format!("invalid {what}"));
+        if self.v != 1 {
+            return bad("version");
+        }
+        if !install_id_ok(&self.install_id) {
+            return bad("install_id");
+        }
+        if !chars_ok(&self.ext_version, 24, |c| c.is_ascii_digit() || c == '.') {
+            return bad("ext_version");
+        }
+        if !BROWSERS.contains(&self.browser.as_str()) || self.browser_major > 1000 {
+            return bad("browser");
+        }
+        if self.tabs_slept > 1_000_000 || self.dupes_closed > 1_000_000 || self.matches_closed > 1_000_000 {
+            return bad("counts");
+        }
+        if self.tabs_open > 100_000 || self.windows_open > 10_000 {
+            return bad("open");
+        }
+        Ok(())
+    }
+}
+
 const TB: u64 = 1 << 40;
 
 fn chars_ok(s: &str, max: usize, ok: impl Fn(char) -> bool) -> bool {
@@ -140,6 +186,21 @@ mod tests {
         let mut r = sample();
         r.freed[0].area = "files".into();
         assert!(r.validate().is_err());
+    }
+
+    #[test]
+    fn extension_reports_hold_counts_only() {
+        let ok = serde_json::json!({"v": 1, "install_id": "0123456789abcdef0123456789abcdef", "ext_version": "1.1.0",
+            "browser": "Chrome", "browser_major": 131, "tabs_slept": 40, "dupes_closed": 3, "matches_closed": 2,
+            "tabs_open": 57, "windows_open": 3, "auto_sleep": true});
+        let r: ExtReport = serde_json::from_value(ok.clone()).unwrap();
+        assert_eq!(r.validate(), Ok(()));
+        let mut url = ok.clone();
+        url["top_site"] = "github.com".into();
+        assert!(serde_json::from_value::<ExtReport>(url).is_err());
+        let mut b = ok;
+        b["browser"] = "Chrome 131 on my-laptop".into();
+        assert!(serde_json::from_value::<ExtReport>(b).unwrap().validate().is_err());
     }
 
     #[test]

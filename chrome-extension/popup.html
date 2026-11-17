@@ -5,6 +5,17 @@
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
+  <section id="notice" class="notice" hidden>
+    <h2 data-i18n="noticeTitle"></h2>
+    <p id="noticeText"></p>
+    <p class="note" data-i18n="shareHint"></p>
+    <details><summary data-i18n="sharePreview"></summary><pre class="report"></pre></details>
+    <div class="buttons">
+      <button id="noticeYes" class="primary"></button>
+      <button id="noticeNo"></button>
+    </div>
+  </section>
+
   <header>
     <h1 data-i18n="extName"></h1>
     <div class="stats">
@@ -12,6 +23,7 @@
       <div><b id="statSleeping">-</b><span data-i18n="statSleeping"></span></div>
       <div><b id="statWindows">-</b><span data-i18n="statWindows"></span></div>
     </div>
+    <p id="lifetime" class="lifetime"></p>
   </header>
 
   <section>
@@ -48,8 +60,18 @@
     <button id="btnCloseSelected" class="danger" hidden data-i18n="btnCloseSelected"></button>
   </section>
 
+  <section>
+    <h2 data-i18n="shareTitle"></h2>
+    <p class="note" data-i18n="shareHint"></p>
+    <label class="row"><input id="share" type="checkbox"><span data-i18n="shareToggle"></span></label>
+    <p id="shareStatus" class="note"></p>
+    <details><summary data-i18n="sharePreview"></summary><pre class="report"></pre></details>
+    <div class="buttons"><button id="shareReset" data-i18n="shareReset"></button></div>
+  </section>
+
   <p id="status" role="status"></p>
   <footer data-i18n="footer"></footer>
+  <script src="stats.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

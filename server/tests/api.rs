@@ -104,9 +104,42 @@ async fn reports_totals_admin_and_optout() {
     }
     assert_eq!(call(&app, post(&report(b, 1), "198.51.100.9")).await.0, StatusCode::TOO_MANY_REQUESTS);
 
+    // the browser extension: CORS preflight, a report, counts adding up within a week, and opt-out
+    let pre = Request::options("/v1/ext/report")
+        .header(header::ORIGIN, "chrome-extension://abcdefghijklmnop")
+        .header(header::ACCESS_CONTROL_REQUEST_METHOD, "POST")
+        .header(header::ACCESS_CONTROL_REQUEST_HEADERS, "content-type")
+        .body(Body::empty())
+        .unwrap();
+    let res = app.clone().oneshot(pre).await.unwrap();
+    assert!(res.status().is_success());
+    assert_eq!(res.headers()[header::ACCESS_CONTROL_ALLOW_ORIGIN], "*");
+    let e = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+    let ext = |slept: u64| {
+        let v = json!({"v": 1, "install_id": e, "ext_version": "1.1.0", "browser": "Chrome", "browser_major": 131,
+            "tabs_slept": slept, "dupes_closed": 2, "matches_closed": 1, "tabs_open": 57, "windows_open": 3, "auto_sleep": true});
+        Request::post("/v1/ext/report")
+            .header(header::CONTENT_TYPE, "application/json")
+            .header("x-real-ip", "192.0.2.7")
+            .body(Body::from(v.to_string()))
+            .unwrap()
+    };
+    assert_eq!(call(&app, ext(40)).await.0, StatusCode::NO_CONTENT);
+    assert_eq!(call(&app, ext(10)).await.0, StatusCode::NO_CONTENT);
+    let (_, s) = call(&app, get("/admin/api/summary", Some("admin:s3cret"))).await;
+    assert_eq!(s["totals"]["tabs_slept"], 50);
+    assert_eq!(s["totals"]["tabs_closed"], 6);
+    assert_eq!(s["ext_browsers"][0]["name"], "Chrome");
+    assert_eq!(s["ext_tabs"][0]["name"], "31–60");
+    let del = Request::delete(format!("/v1/install/{e}")).body(Body::empty()).unwrap();
+    assert_eq!(call(&app, del).await.0, StatusCode::NO_CONTENT);
+    let left: i64 = sqlx::query_scalar("SELECT count(*) FROM ext_reports").fetch_one(&pool).await.unwrap();
+    assert_eq!(left, 0);
+
     // no IP address is stored anywhere
     let dump: String = sqlx::query_scalar(
-        "SELECT string_agg(t::text, ' ') FROM (SELECT row_to_json(i)::text AS t FROM installs i UNION ALL SELECT row_to_json(r)::text FROM reports r) x",
+        "SELECT string_agg(t::text, ' ') FROM (SELECT row_to_json(i)::text AS t FROM installs i UNION ALL SELECT row_to_json(r)::text FROM reports r
+          UNION ALL SELECT row_to_json(e)::text FROM ext_installs e) x",
     )
     .fetch_one(&pool)
     .await

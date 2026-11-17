@@ -38,3 +38,13 @@ input[type=checkbox] { accent-color: var(--accent); margin: 0; }
 #status { min-height: 1.4em; margin: 0 2px 6px; color: var(--safe); }
 #status.err { color: var(--caution); }
 footer { text-align: center; color: var(--muted); font-size: 11px; }
+
+/* anonymous stats */
+.notice { border-color: var(--accent); }
+.notice p { margin: 4px 0; }
+.lifetime { margin: 6px 0 0; color: var(--muted); font-size: 11px; text-align: center; }
+.lifetime:empty { display: none; }
+details { margin: 4px 0; }
+summary { cursor: pointer; color: var(--accent); font-size: 12px; }
+pre.report { margin: 4px 0 0; padding: 6px; max-height: 160px; overflow: auto; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 6px; font: 11px/1.4 ui-monospace, Consolas, monospace; direction: ltr; text-align: left; }

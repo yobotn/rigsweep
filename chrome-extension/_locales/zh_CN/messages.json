@@ -136,5 +136,91 @@
   },
   "footer": {
     "message": "RigSweep 的一部分 · MIT"
+  },
+  "lifetime": {
+    "message": "💤 已休眠 $SLEPT$ 个标签页 · 🧹 已关闭 $CLOSED$ 个（自 $DATE$ 起）",
+    "placeholders": {
+      "slept": {
+        "content": "$1",
+        "example": "120"
+      },
+      "closed": {
+        "content": "$2",
+        "example": "14"
+      },
+      "date": {
+        "content": "$3",
+        "example": "11/17/2026"
+      }
+    }
+  },
+  "shareTitle": {
+    "message": "📊 匿名统计"
+  },
+  "shareHint": {
+    "message": "RigSweep Tabs 每周发送一次匿名计数：休眠和关闭了多少标签页、当前打开多少标签页和窗口、是否开启自动休眠，以及浏览器和扩展版本。这些数据用于 rigsweep.com 上的公开计数器。绝不发送：网址、页面标题、网站、你的匹配规则或任何浏览内容。IP 地址只用于判断国家，从不保存。"
+  },
+  "shareToggle": {
+    "message": "每周共享匿名统计"
+  },
+  "shareLast": {
+    "message": "上次发送：$DATE$",
+    "placeholders": {
+      "date": {
+        "content": "$1",
+        "example": "11/17/2026, 10:00"
+      }
+    }
+  },
+  "shareNever": {
+    "message": "已开启。第一份报告很快发送。"
+  },
+  "shareOff": {
+    "message": "已关闭。不会发送任何内容。"
+  },
+  "shareId": {
+    "message": "随机 ID：$ID$",
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "3f9c2a71d04e4b8c9a6e15b27d8c40f1"
+      }
+    }
+  },
+  "sharePreview": {
+    "message": "查看发送内容"
+  },
+  "shareReset": {
+    "message": "新的随机 ID"
+  },
+  "shareResetDone": {
+    "message": "已换成新 ID。用旧 ID 发送的数据已删除。"
+  },
+  "shareOffDone": {
+    "message": "已关闭共享。这个浏览器发送过的数据已删除。"
+  },
+  "shareOnDone": {
+    "message": "谢谢！已开启共享。"
+  },
+  "noticeTitle": {
+    "message": "📊 一起统计 RigSweep 释放了多少"
+  },
+  "noticeOptOut": {
+    "message": "RigSweep Tabs 每周共享匿名计数，用来展示它为大家释放了多少标签页，并决定下一步做什么。你可以现在关闭，或随时在此弹窗底部关闭。"
+  },
+  "noticeOptIn": {
+    "message": "愿意每周共享匿名计数吗？它能展示 RigSweep 为大家释放了多少标签页，并帮助决定下一步做什么。你可以随时在此弹窗底部更改。"
+  },
+  "shareKeep": {
+    "message": "继续共享"
+  },
+  "shareTurnOff": {
+    "message": "关闭"
+  },
+  "shareYes": {
+    "message": "共享"
+  },
+  "shareNo": {
+    "message": "不用了"
   }
 }

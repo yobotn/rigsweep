@@ -136,5 +136,91 @@
   },
   "footer": {
     "message": "RigSweep의 일부 · MIT"
+  },
+  "lifetime": {
+    "message": "💤 탭 $SLEPT$개 절전 · 🧹 $CLOSED$개 닫음 ($DATE$ 이후)",
+    "placeholders": {
+      "slept": {
+        "content": "$1",
+        "example": "120"
+      },
+      "closed": {
+        "content": "$2",
+        "example": "14"
+      },
+      "date": {
+        "content": "$3",
+        "example": "11/17/2026"
+      }
+    }
+  },
+  "shareTitle": {
+    "message": "📊 익명 통계"
+  },
+  "shareHint": {
+    "message": "RigSweep Tabs는 일주일에 한 번 익명 수치를 보냅니다. 절전하거나 닫은 탭 수, 열려 있는 탭과 창 수, 자동 절전 사용 여부, 브라우저와 확장 프로그램 버전입니다. rigsweep.com의 공개 카운터에 쓰입니다. 절대 보내지 않는 것: URL, 페이지 제목, 사이트, 패턴, 탐색한 내용. IP 주소는 국가를 확인하는 데만 쓰이고 저장되지 않습니다."
+  },
+  "shareToggle": {
+    "message": "익명 통계를 매주 공유"
+  },
+  "shareLast": {
+    "message": "마지막 전송: $DATE$",
+    "placeholders": {
+      "date": {
+        "content": "$1",
+        "example": "11/17/2026, 10:00"
+      }
+    }
+  },
+  "shareNever": {
+    "message": "켜짐. 첫 보고서가 곧 전송됩니다."
+  },
+  "shareOff": {
+    "message": "꺼짐. 아무것도 보내지 않습니다."
+  },
+  "shareId": {
+    "message": "임의 ID: $ID$",
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "3f9c2a71d04e4b8c9a6e15b27d8c40f1"
+      }
+    }
+  },
+  "sharePreview": {
+    "message": "보내는 내용 보기"
+  },
+  "shareReset": {
+    "message": "새 임의 ID"
+  },
+  "shareResetDone": {
+    "message": "새 ID로 바꿨습니다. 이전 ID로 보낸 데이터는 삭제했습니다."
+  },
+  "shareOffDone": {
+    "message": "공유를 껐습니다. 이 브라우저가 보낸 데이터는 삭제했습니다."
+  },
+  "shareOnDone": {
+    "message": "감사합니다! 공유를 켰습니다."
+  },
+  "noticeTitle": {
+    "message": "📊 RigSweep이 확보한 양을 함께 세어 주세요"
+  },
+  "noticeOptOut": {
+    "message": "RigSweep Tabs는 익명 수치를 매주 공유해 모두가 얼마나 많은 탭을 정리했는지 보여 주고 다음에 만들 기능을 정합니다. 지금 끄거나 언제든 이 팝업 아래쪽에서 끌 수 있습니다."
+  },
+  "noticeOptIn": {
+    "message": "익명 수치를 매주 공유할까요? 모두가 RigSweep으로 얼마나 많은 탭을 정리했는지 보여 주고 다음에 만들 기능을 정하는 데 도움이 됩니다. 언제든 이 팝업 아래쪽에서 바꿀 수 있습니다."
+  },
+  "shareKeep": {
+    "message": "계속 공유"
+  },
+  "shareTurnOff": {
+    "message": "끄기"
+  },
+  "shareYes": {
+    "message": "공유하기"
+  },
+  "shareNo": {
+    "message": "괜찮습니다"
   }
 }

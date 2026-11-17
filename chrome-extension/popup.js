@@ -15,10 +15,55 @@ document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.d
 document.title = t('extName');
 
 async function refreshStats() {
-  const [tabs, wins] = await Promise.all([chrome.tabs.query({}), chrome.windows.getAll()]);
+  const [tabs, wins, share] = await Promise.all([chrome.tabs.query({}), chrome.windows.getAll(), Stats.state()]);
   $('statTabs').textContent = tabs.length;
   $('statSleeping').textContent = tabs.filter(x => x.discarded).length;
   $('statWindows').textContent = wins.length;
+  const tot = share.total;
+  $('lifetime').textContent = tot.slept || tot.dupes || tot.matches
+    ? t('lifetime', tot.slept, tot.dupes + tot.matches, new Date(tot.since).toLocaleDateString()) : '';
+  renderShare(share);
+}
+
+// --- Anonymous stats ---
+function renderShare(s) {
+  $('share').checked = s.enabled;
+  const line = s.enabled ? (s.lastSent ? t('shareLast', new Date(s.lastSent).toLocaleString()) : t('shareNever')) : t('shareOff');
+  $('shareStatus').textContent = line + ' ' + t('shareId', s.installId);
+}
+async function fillPreviews() {
+  const json = JSON.stringify(await Stats.build(), null, 2);
+  document.querySelectorAll('pre.report').forEach(p => { p.textContent = json; });
+}
+document.querySelectorAll('details').forEach(d => d.addEventListener('toggle', () => { if (d.open) fillPreviews(); }));
+$('share').addEventListener('change', async () => {
+  const on = $('share').checked;
+  renderShare(await Stats.setShare(on));
+  status(t(on ? 'shareOnDone' : 'shareOffDone'));
+  if (on) chrome.runtime.sendMessage({ cmd: 'statsKick' });
+});
+$('shareReset').addEventListener('click', async () => {
+  renderShare(await Stats.resetId());
+  status(t('shareResetDone'));
+  chrome.runtime.sendMessage({ cmd: 'statsKick' });
+});
+
+// Shown once; nothing is sent before it is answered.
+async function showNotice() {
+  const s = await Stats.state();
+  if (s.noticeSeen) return;
+  const optIn = s.consentDefault === 'opt_in';
+  $('noticeText').textContent = t(optIn ? 'noticeOptIn' : 'noticeOptOut');
+  $('noticeYes').textContent = t(optIn ? 'shareYes' : 'shareKeep');
+  $('noticeNo').textContent = t(optIn ? 'shareNo' : 'shareTurnOff');
+  $('notice').hidden = false;
+  const done = async yes => {
+    $('notice').hidden = true;
+    renderShare(yes && !optIn ? await Stats.noticeSeen() : await Stats.setShare(yes));
+    if (yes) { status(t('shareOnDone')); chrome.runtime.sendMessage({ cmd: 'statsKick' }); }
+  };
+  $('noticeYes').onclick = () => done(true);
+  $('noticeNo').onclick = () => done(false);
 }
 
 // --- Settings ---
@@ -74,6 +119,7 @@ $('btnCloseDupes').addEventListener('click', async () => {
 async function closeTabs(ids, msgKey) {
   try {
     await chrome.tabs.remove(ids);
+    await Stats.bump(msgKey === 'dupesClosed' ? 'dupes' : 'matches', ids.length);
     status(t(msgKey, ids.length));
   } catch { status(t('errorGeneric'), true); }
   refreshStats();
@@ -126,3 +172,4 @@ $('btnCloseSelected').addEventListener('click', async () => {
 
 loadSettings();
 refreshStats();
+showNotice();

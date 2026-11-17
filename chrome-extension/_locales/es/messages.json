@@ -136,5 +136,91 @@
   },
   "footer": {
     "message": "Parte de RigSweep · MIT"
+  },
+  "lifetime": {
+    "message": "💤 $SLEPT$ pestañas dormidas · 🧹 $CLOSED$ cerradas desde el $DATE$",
+    "placeholders": {
+      "slept": {
+        "content": "$1",
+        "example": "120"
+      },
+      "closed": {
+        "content": "$2",
+        "example": "14"
+      },
+      "date": {
+        "content": "$3",
+        "example": "11/17/2026"
+      }
+    }
+  },
+  "shareTitle": {
+    "message": "📊 Estadísticas anónimas"
+  },
+  "shareHint": {
+    "message": "Una vez por semana, RigSweep Tabs envía recuentos anónimos: cuántas pestañas durmió y cerró, cuántas pestañas y ventanas hay abiertas, si la suspensión automática está activada y la versión del navegador y de la extensión. Alimentan los contadores públicos de rigsweep.com. Nunca se envían: URLs, títulos de páginas, sitios, tus patrones ni nada de lo que navegas. Tu dirección IP solo se usa para saber el país y nunca se guarda."
+  },
+  "shareToggle": {
+    "message": "Compartir estadísticas semanales anónimas"
+  },
+  "shareLast": {
+    "message": "Último envío: $DATE$.",
+    "placeholders": {
+      "date": {
+        "content": "$1",
+        "example": "11/17/2026, 10:00"
+      }
+    }
+  },
+  "shareNever": {
+    "message": "Activado. El primer informe sale pronto."
+  },
+  "shareOff": {
+    "message": "Desactivado. No se envía nada."
+  },
+  "shareId": {
+    "message": "ID aleatorio: $ID$",
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "3f9c2a71d04e4b8c9a6e15b27d8c40f1"
+      }
+    }
+  },
+  "sharePreview": {
+    "message": "Ver qué se envía"
+  },
+  "shareReset": {
+    "message": "Nuevo ID aleatorio"
+  },
+  "shareResetDone": {
+    "message": "Nuevo ID. Se borraron los datos enviados con el anterior."
+  },
+  "shareOffDone": {
+    "message": "Compartir está desactivado. Se borró lo que envió este navegador."
+  },
+  "shareOnDone": {
+    "message": "¡Gracias! Compartir está activado."
+  },
+  "noticeTitle": {
+    "message": "📊 Ayúdanos a contar lo que libera RigSweep"
+  },
+  "noticeOptOut": {
+    "message": "RigSweep Tabs comparte recuentos semanales anónimos para mostrar cuántas pestañas libera entre todos y saber qué construir después. Puedes desactivarlo ahora o cuando quieras al final de esta ventana."
+  },
+  "noticeOptIn": {
+    "message": "¿Quieres compartir recuentos semanales anónimos? Muestran cuántas pestañas libera RigSweep entre todos y ayudan a decidir qué construir después. Puedes cambiarlo cuando quieras al final de esta ventana."
+  },
+  "shareKeep": {
+    "message": "Seguir compartiendo"
+  },
+  "shareTurnOff": {
+    "message": "Desactivar"
+  },
+  "shareYes": {
+    "message": "Compartir"
+  },
+  "shareNo": {
+    "message": "No, gracias"
   }
 }

@@ -136,5 +136,91 @@
   },
   "footer": {
     "message": "Part of RigSweep · MIT"
+  },
+  "lifetime": {
+    "message": "💤 $SLEPT$ tabs slept · 🧹 $CLOSED$ closed since $DATE$",
+    "placeholders": {
+      "slept": {
+        "content": "$1",
+        "example": "120"
+      },
+      "closed": {
+        "content": "$2",
+        "example": "14"
+      },
+      "date": {
+        "content": "$3",
+        "example": "11/17/2026"
+      }
+    }
+  },
+  "shareTitle": {
+    "message": "📊 Anonymous stats"
+  },
+  "shareHint": {
+    "message": "Once a week RigSweep Tabs sends anonymous counts: how many tabs it slept and closed, how many tabs and windows are open, whether auto-sleep is on, and the browser and extension version. They feed the public counters on rigsweep.com. Never sent: URLs, page titles, sites, your patterns or anything you browse. Your IP address is used only to look up the country and is never stored."
+  },
+  "shareToggle": {
+    "message": "Share anonymous weekly stats"
+  },
+  "shareLast": {
+    "message": "Last sent: $DATE$.",
+    "placeholders": {
+      "date": {
+        "content": "$1",
+        "example": "11/17/2026, 10:00"
+      }
+    }
+  },
+  "shareNever": {
+    "message": "On. The first report goes out soon."
+  },
+  "shareOff": {
+    "message": "Off. Nothing is sent."
+  },
+  "shareId": {
+    "message": "Random ID: $ID$",
+    "placeholders": {
+      "id": {
+        "content": "$1",
+        "example": "3f9c2a71d04e4b8c9a6e15b27d8c40f1"
+      }
+    }
+  },
+  "sharePreview": {
+    "message": "Show what's sent"
+  },
+  "shareReset": {
+    "message": "New random ID"
+  },
+  "shareResetDone": {
+    "message": "New ID. The data sent under the old one was deleted."
+  },
+  "shareOffDone": {
+    "message": "Sharing is off. What this browser sent was deleted."
+  },
+  "shareOnDone": {
+    "message": "Thanks! Sharing is on."
+  },
+  "noticeTitle": {
+    "message": "📊 Help count what RigSweep frees"
+  },
+  "noticeOptOut": {
+    "message": "RigSweep Tabs shares anonymous weekly counts, so we can show how many tabs it frees for everyone and know what to build next. You can turn this off now, or any time at the bottom of this popup."
+  },
+  "noticeOptIn": {
+    "message": "Would you like to share anonymous weekly counts? They show how many tabs RigSweep frees for everyone and help decide what to build next. You can change this any time at the bottom of this popup."
+  },
+  "shareKeep": {
+    "message": "Keep sharing"
+  },
+  "shareTurnOff": {
+    "message": "Turn off"
+  },
+  "shareYes": {
+    "message": "Share stats"
+  },
+  "shareNo": {
+    "message": "No thanks"
   }
 }

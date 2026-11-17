@@ -55,6 +55,13 @@ button { background: var(--panel2); color: var(--text); border: 1px solid var(--
     <div class="card"><h2>Tweaks applied <span class="sub">installs, 30 days</span></h2><table id="tweaks"></table></div>
     <div class="card"><h2>New installs per week</h2><div class="cols" id="new_installs"></div></div>
   </div>
+  <h2 style="margin:26px 0 12px;font-size:17px">RigSweep Tabs extension</h2>
+  <div class="tiles" id="ext_tiles"></div>
+  <div class="grid">
+    <div class="card"><h2>Tabs slept per week</h2><div class="cols" id="ext_weekly"></div></div>
+    <div class="card"><h2>Browsers <span class="sub">active in 30 days</span></h2><table id="ext_browsers"></table></div>
+    <div class="card"><h2>Tabs open <span class="sub">latest report per install</span></h2><table id="ext_tabs"></table></div>
+  </div>
 </main>
 <script>
 const $ = (s) => document.querySelector(s);
@@ -111,6 +118,14 @@ async function load() {
   table("versions", d.versions, [{ h: "Version", k: "name" }, { h: "Installs", n: 1, f: (r) => num(r.n) }], "n");
   table("builds", d.builds, [{ h: "Build", k: "name" }, { h: "Installs", n: 1, f: (r) => num(r.n) }], "n");
   table("tweaks", d.tweaks, [{ h: "Tweak", k: "tweak" }, { h: "Installs", n: 1, f: (r) => num(r.installs) }], "installs");
+  $("#ext_tiles").innerHTML = [
+    ["Extension installs", num(t.ext_installs)], ["Active 30 days", num(t.ext_active_30d)], ["Tabs slept", num(t.tabs_slept), "ram"],
+    ["Tabs closed", num(t.tabs_closed)], ["Avg tabs open", t.ext_tabs_avg == null ? "–" : num(t.ext_tabs_avg)],
+    ["Auto-sleep on", t.ext_auto_sleep_pct == null ? "–" : `${t.ext_auto_sleep_pct}%`],
+  ].map(([l, v, c]) => `<div class="tile"><div class="sub">${esc(l)}</div><div class="v ${c || ""}">${esc(v)}</div></div>`).join("");
+  columns("ext_weekly", d.ext_weekly, "slept", (r) => `${r.week}: ${num(r.active)} active · ${num(r.slept)} slept · ${num(r.closed)} closed`);
+  table("ext_browsers", d.ext_browsers, [{ h: "Browser", k: "name" }, { h: "Installs", n: 1, f: (r) => num(r.n) }], "n");
+  table("ext_tabs", d.ext_tabs, [{ h: "Tabs", k: "name" }, { h: "Installs", n: 1, f: (r) => num(r.n) }], "n");
   $("#updated").textContent = `Updated ${new Date().toLocaleTimeString()}`;
 }
 $("#reload").onclick = load;
