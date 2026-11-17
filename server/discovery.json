@@ -1,0 +1,28 @@
+{
+  "_about": "Vendor keywords for the anonymous report's 'seen' section. A service, startup entry, scheduled task or process is reported (by name, never by path) only when one of its words, or its vendor folder under Program Files / ProgramData, matches a keyword here. Short keywords (4 letters or fewer) must equal a whole word; longer ones may also start a word. Shared by the app (src-tauri/src/discovery.rs) and the server (server/src/model.rs), which re-checks every row.",
+  "keywords": [
+    "acer", "predator",
+    "alienware", "dell",
+    "armoury", "asus", "rog",
+    "asrock",
+    "corsair", "icue",
+    "dolby", "nahimic", "waves",
+    "elan", "synaptics",
+    "evga", "gigabyte", "aorus", "zotac",
+    "hp", "hpq", "omen", "hewlett",
+    "intel",
+    "killer", "rivet",
+    "legion", "lenovo", "thinkpad", "vantage",
+    "logi", "logitech",
+    "msi",
+    "nvidia", "geforce",
+    "amd", "radeon", "ryzen",
+    "nzxt",
+    "razer",
+    "realtek",
+    "samsung",
+    "steelseries",
+    "surface",
+    "tobii"
+  ]
+}

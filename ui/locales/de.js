@@ -1,4 +1,7 @@
 I18N["de"] = {
+    "ready.cap.dev": "{n} veraltete Dev-Prozesse",
+    "ready.cap.disk": "alte Build-Ordner und Caches ({n})",
+    "ready.cap.bc": "Browser-Caches",
     "mp.callout": "Microsoft Defender nutzt {c} % CPU.",
     "mp.why": "Warum?",
     "mp.title": "Was Defender scannt",
@@ -37,7 +40,7 @@ I18N["de"] = {
     "set.watchdogHint": "Wie oft der Watchdog deine Optimierungen prüft und alles zurücksetzt, was Windows oder ein App-Update rückgängig gemacht hat.",
     "admin.banner": "RigSweep läuft nicht als Administrator, daher funktionieren Bereinigungen und Optimierungen nicht. Schließe es, öffne es erneut und bestätige die Windows-Abfrage.",
     "share.title": "📊 Anonyme Statistik",
-    "share.hint": "Während RigSweep läuft, sendet es etwa einmal pro Stunde, was seit der letzten Meldung bereinigt wurde, ein Eintrag pro Art mit Zeitpunkt, Art und freigegebener Menge; welche bekannten Apps am meisten CPU und Arbeitsspeicher brauchen; RAM-Größe und Kernzahl deines PCs; die RigSweep-Version und den Windows-Build. Daraus entstehen die öffentlichen Zähler auf rigsweep.com, und sie zeigen, was als Nächstes besser werden soll. Nie gesendet: Dateipfade, Ordner-, Projekt- oder Prozessnamen (außer bekannten Apps wie Chrome oder VS Code), Benutzer- oder PC-Namen, Hardware-IDs. Deine IP-Adresse wird nur zur Bestimmung des Landes genutzt und nie gespeichert.",
+    "share.hint": "Während RigSweep läuft, sendet es etwa einmal pro Stunde, was seit der letzten Meldung bereinigt wurde, ein Eintrag pro Art mit Zeitpunkt, Art und freigegebener Menge; welche bekannten Apps am meisten CPU und Arbeitsspeicher brauchen; einmal am Tag, welche Hardware- und Treibersoftware (aus einer festen Liste von Herstellern wie ASUS, Dell, HP, NVIDIA oder Logitech) installiert ist, ob sie läuft und wie viel sie verbraucht; RAM-Größe und Kernzahl deines PCs; die RigSweep-Version und den Windows-Build. Daraus entstehen die öffentlichen Zähler auf rigsweep.com, und sie zeigen, was als Nächstes besser werden soll. Nie gesendet: Dateipfade, Ordner-, Projekt- oder Prozessnamen (außer bekannten Apps wie Chrome oder VS Code und dieser Herstellersoftware), Benutzer- oder PC-Namen, Hardware-IDs. Deine IP-Adresse wird nur zur Bestimmung des Landes genutzt und nie gespeichert.",
     "share.toggle": "Anonyme Nutzungsstatistik teilen",
     "share.last": "Zuletzt gesendet: {d}",
     "share.never": "An. Der erste Bericht wird gleich gesendet.",

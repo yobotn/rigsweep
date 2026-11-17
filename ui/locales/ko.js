@@ -1,4 +1,7 @@
 I18N["ko"] = {
+    "ready.cap.dev": "오래된 개발 프로세스 {n}개",
+    "ready.cap.disk": "오래된 빌드 폴더와 캐시 ({n}개)",
+    "ready.cap.bc": "브라우저 캐시",
     "mp.callout": "Microsoft Defender가 CPU를 {c}% 사용 중입니다.",
     "mp.why": "이유 보기",
     "mp.title": "Defender가 검사 중인 항목",
@@ -37,7 +40,7 @@ I18N["ko"] = {
     "set.watchdogHint": "워치독이 최적화를 확인하는 간격입니다. Windows나 앱 업데이트가 되돌린 항목을 다시 적용합니다.",
     "admin.banner": "RigSweep이 관리자 권한으로 실행되지 않아 정리와 최적화가 작동하지 않습니다. 닫았다가 다시 열고 Windows 확인 창을 허용하세요.",
     "share.title": "📊 익명 통계",
-    "share.hint": "RigSweep은 실행 중일 때 약 1시간마다 지난 보고 이후 정리한 내용을 보냅니다. 유형마다 한 항목씩 시간, 유형, 확보한 양을 담습니다. 그 밖에CPU와 메모리를 가장 많이 쓰는 잘 알려진 앱, PC의 RAM 용량과 코어 수, RigSweep 버전과 Windows 빌드입니다. rigsweep.com의 공개 카운터에 쓰이고, 다음에 무엇을 개선할지 알려 줍니다. 절대 보내지 않는 것: 파일 경로, 폴더·프로젝트·프로세스 이름(Chrome, VS Code 같은 잘 알려진 앱 제외), 사용자 이름이나 PC 이름, 하드웨어 ID. IP 주소는 국가를 확인하는 데만 쓰이고 저장되지 않습니다.",
+    "share.hint": "RigSweep은 실행 중일 때 약 1시간마다 지난 보고 이후 정리한 내용을 보냅니다. 유형마다 한 항목씩 시간, 유형, 확보한 양을 담습니다. 그 밖에CPU와 메모리를 가장 많이 쓰는 잘 알려진 앱, 하루 한 번 설치된 하드웨어·드라이버 소프트웨어(ASUS, Dell, HP, NVIDIA, Logitech 등 정해진 제조사 목록 기준)와 실행 여부 및 사용량, PC의 RAM 용량과 코어 수, RigSweep 버전과 Windows 빌드입니다. rigsweep.com의 공개 카운터에 쓰이고, 다음에 무엇을 개선할지 알려 줍니다. 절대 보내지 않는 것: 파일 경로, 폴더·프로젝트·프로세스 이름(Chrome, VS Code 같은 잘 알려진 앱과 해당 제조사 소프트웨어 제외), 사용자 이름이나 PC 이름, 하드웨어 ID. IP 주소는 국가를 확인하는 데만 쓰이고 저장되지 않습니다.",
     "share.toggle": "익명 사용 통계 공유",
     "share.last": "마지막 전송: {d}",
     "share.never": "켜짐. 첫 보고서가 곧 전송됩니다.",

@@ -1,4 +1,7 @@
 I18N["it"] = {
+    "ready.cap.dev": "{n} processi di sviluppo inattivi",
+    "ready.cap.disk": "vecchie cartelle di build e cache ({n})",
+    "ready.cap.bc": "cache del browser",
     "mp.callout": "Microsoft Defender usa il {c}% della CPU.",
     "mp.why": "Scopri perché",
     "mp.title": "Cosa sta analizzando Defender",
@@ -37,7 +40,7 @@ I18N["it"] = {
     "set.watchdogHint": "Ogni quanto il watchdog controlla le tue ottimizzazioni e ripristina quelle annullate da Windows o da un aggiornamento di un'app.",
     "admin.banner": "RigSweep non è in esecuzione come amministratore, quindi pulizie e ottimizzazioni non funzionano. Chiudilo, riaprilo e accetta la richiesta di Windows.",
     "share.title": "📊 Statistiche anonime",
-    "share.hint": "Mentre è in esecuzione, RigSweep invia circa ogni ora ciò che ha pulito dall'ultimo invio, una voce per tipo con l'ora, il tipo e quanto ha liberato; quali app note usano più CPU e memoria; la RAM e i core del tuo PC; la versione di RigSweep e la build di Windows. Alimentano i contatori pubblici su rigsweep.com e indicano cosa migliorare. Mai inviati: percorsi di file, nomi di cartelle, progetti o processi (tranne app note come Chrome o VS Code), nomi utente o del PC, ID hardware. Il tuo indirizzo IP serve solo a ricavare il paese e non viene mai salvato.",
+    "share.hint": "Mentre è in esecuzione, RigSweep invia circa ogni ora ciò che ha pulito dall'ultimo invio, una voce per tipo con l'ora, il tipo e quanto ha liberato; quali app note usano più CPU e memoria; una volta al giorno, quale software per hardware e driver (da un elenco fisso di produttori come ASUS, Dell, HP, NVIDIA o Logitech) è installato, se è in esecuzione e quanto consuma; la RAM e i core del tuo PC; la versione di RigSweep e la build di Windows. Alimentano i contatori pubblici su rigsweep.com e indicano cosa migliorare. Mai inviati: percorsi di file, nomi di cartelle, progetti o processi (tranne app note come Chrome o VS Code e quel software dei produttori), nomi utente o del PC, ID hardware. Il tuo indirizzo IP serve solo a ricavare il paese e non viene mai salvato.",
     "share.toggle": "Condividi statistiche d'uso anonime",
     "share.last": "Ultimo invio: {d}",
     "share.never": "Attivo. Il primo report parte a breve.",

@@ -2018,22 +2018,31 @@ function readyRows() {
   const stale = (dev?.items || []).filter((p) => p.stale && !p.protected);
   if (stale.length) {
     const mem = stale.reduce((a, p) => a + p.tree_mem, 0), cpu = stale.reduce((a, p) => a + p.cpu, 0);
-    rows.push({ key: "dev", icon: "🧹", go: "cleanup", act: t("ready.dev.act"),
-      text: t("ready.dev", { n: stale.length, mem: fmtBytes(mem) }) + (cpu >= 1 ? " · " + t("ready.cpu", { c: cpu.toFixed(0) }) : "") });
+    rows.push({ key: "dev", icon: "🧹", go: "cleanup", act: t("ready.dev.act"), big: fmtBytes(mem),
+      cap: t("ready.cap.dev", { n: stale.length }) + (cpu >= 1 ? " · " + t("ready.cpu", { c: cpu.toFixed(0) }) : ""),
+      text: t("ready.dev", { n: stale.length, mem: fmtBytes(mem) }) });
   }
   const dsk = disk ? diskRows().filter(diskSuggested) : [];
-  if (dsk.length) rows.push({ key: "disk", icon: "💾", go: "disk", act: t("ready.clean"),
-    text: t("ready.disk", { size: fmtBytes(dsk.reduce((a, r) => a + r.bytes, 0)), n: dsk.length }) });
+  if (dsk.length) {
+    const size = fmtBytes(dsk.reduce((a, r) => a + r.bytes, 0));
+    rows.push({ key: "disk", icon: "💾", go: "disk", act: t("ready.clean"), big: size, cap: t("ready.cap.disk", { n: dsk.length }),
+      text: t("ready.disk", { size, n: dsk.length }) });
+  }
   const br = bc ? bcRows().filter(bcPreselect) : [];
-  if (br.length) rows.push({ key: "bc", icon: "🌐", go: "browser", act: t("ready.clean"),
-    text: t("ready.bc", { size: fmtBytes(br.reduce((a, r) => a + r.i.bytes, 0)) }) });
+  if (br.length) {
+    const size = fmtBytes(br.reduce((a, r) => a + r.i.bytes, 0));
+    rows.push({ key: "bc", icon: "🌐", go: "browser", act: t("ready.clean"), big: size, cap: t("ready.cap.bc"), text: t("ready.bc", { size }) });
+  }
   return rows;
 }
 function renderReady() {
   const rows = readyRows(), box = $("#ready");
   box.hidden = !rows.length;
-  $("#ready-list").innerHTML = rows.map((r) => `<li><span class="ready-ico" aria-hidden="true">${r.icon}</span><span class="ready-text">${esc(r.text)}</span>
-    <span class="ready-acts"><button class="small ghost" data-go="${r.go}">${esc(t("ready.review"))}</button><button class="small primary" data-ready="${r.key}">${esc(r.act)}</button></span></li>`).join("");
+  // one tile per kind: the amount big, what it is underneath, the actions at the bottom
+  $("#ready-list").innerHTML = rows.map((r) => `<li class="ready-tile ${r.key}" aria-label="${esc(r.text)}">
+    <div class="ready-top"><span class="ready-ico" aria-hidden="true">${r.icon}</span><span class="ready-big">${esc(r.big)}</span></div>
+    <div class="ready-cap">${esc(r.cap)}</div>
+    <div class="ready-acts"><button class="small ghost" data-go="${r.go}">${esc(t("ready.review"))}</button><button class="small primary" data-ready="${r.key}">${esc(r.act)}</button></div></li>`).join("");
 }
 $("#ready-list").addEventListener("click", (e) => {
   const go = e.target.closest("[data-go]");

@@ -60,6 +60,9 @@ pub struct Report {
     pub top_mem: Vec<AppUse>,
     /// built-in tweak ids in the profile (custom ones are left out: they name services)
     pub tweaks: Vec<String>,
+    /// vendor software found on this PC (see discovery.rs), in at most one report a day
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub seen: Vec<crate::discovery::Seen>,
 }
 
 /// Executables reported by name; everything else is left out of the app lists.
@@ -123,6 +126,7 @@ pub struct Inputs<'a> {
     pub machine: Machine,
     pub procs: Vec<(String, f32, u64)>,
     pub tweaks: Vec<String>,
+    pub seen: Vec<crate::discovery::Seen>,
 }
 
 pub fn build(i: Inputs) -> Report {
@@ -140,6 +144,7 @@ pub fn build(i: Inputs) -> Report {
         top_cpu,
         top_mem,
         tweaks,
+        seen: i.seen,
     }
 }
 
@@ -255,6 +260,7 @@ mod tests {
             machine: Machine { ram_total: 1, ram_used_avg: 1, cores: 8 },
             procs: vec![],
             tweaks: vec!["telemetry.diagtrack".into(), "custom.svc.adobearmservice".into()],
+            seen: vec![],
         });
         assert_eq!(r.tweaks, vec!["telemetry.diagtrack"]);
         let (a, b) = (new_install_id(), new_install_id());
@@ -283,6 +289,10 @@ mod wire {
             machine: Machine { ram_total: 34_000_000_000, ram_used_avg: 20_000_000_000, cores: 16 },
             procs: vec![("chrome.exe".into(), 12.5, 4_000_000_000), ("Code.exe".into(), 3.0, 2_000_000_000), ("secret.exe".into(), 50.0, 1)],
             tweaks: vec!["telemetry.diagtrack".into()],
+            seen: crate::discovery::collect(&[], &[crate::analyzer::ProcInfo {
+                pid: 1, start_time: 0, name: "ArmouryCrate.Service.exe".into(), exe: r"C:\Program Files\ASUS\ArmouryCrate\ArmouryCrate.Service.exe".into(),
+                cpu: 1.5, mem: 80_000_000, disk_read: 0, disk_write: 0, services: vec![], protected: false,
+            }], &Default::default()),
         });
         std::fs::write(std::env::var("RIGSWEEP_REPORT_OUT").unwrap(), serde_json::to_string(&r).unwrap()).unwrap();
     }

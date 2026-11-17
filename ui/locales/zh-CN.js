@@ -1,4 +1,7 @@
 I18N["zh-CN"] = {
+    "ready.cap.dev": "{n} 个闲置开发进程",
+    "ready.cap.disk": "旧构建文件夹和缓存（{n} 项）",
+    "ready.cap.bc": "浏览器缓存",
     "mp.callout": "Microsoft Defender 正在使用 {c}% 的 CPU。",
     "mp.why": "查看原因",
     "mp.title": "Defender 正在扫描什么",
@@ -37,7 +40,7 @@ I18N["zh-CN"] = {
     "set.watchdogHint": "看门狗检查你的优化项的频率，会恢复被 Windows 或应用更新撤销的项目。",
     "admin.banner": "RigSweep 没有以管理员身份运行，清理和优化无法生效。请关闭后重新打开，并允许 Windows 的提示。",
     "share.title": "📊 匿名统计",
-    "share.hint": "RigSweep 运行时大约每小时发送一次自上次报告以来的清理记录，每种类型一条，包含时间、类型和释放量；占用 CPU 和内存最多的常见应用；电脑的内存容量和核心数；RigSweep 版本和 Windows 版本号。这些数据用于 rigsweep.com 上的公开计数器，并帮助决定下一步改进什么。绝不发送：文件路径、文件夹/项目/进程名称（Chrome、VS Code 等常见应用除外）、用户名或电脑名、硬件 ID。IP 地址只用于判断国家，从不保存。",
+    "share.hint": "RigSweep 运行时大约每小时发送一次自上次报告以来的清理记录，每种类型一条，包含时间、类型和释放量；占用 CPU 和内存最多的常见应用；每天一次，已安装的硬件与驱动配套软件（来自固定的厂商列表，如 ASUS、Dell、HP、NVIDIA 或 Logitech）、是否在运行以及资源占用；电脑的内存容量和核心数；RigSweep 版本和 Windows 版本号。这些数据用于 rigsweep.com 上的公开计数器，并帮助决定下一步改进什么。绝不发送：文件路径、文件夹/项目/进程名称（Chrome、VS Code 等常见应用及上述厂商软件除外）、用户名或电脑名、硬件 ID。IP 地址只用于判断国家，从不保存。",
     "share.toggle": "共享匿名使用统计",
     "share.last": "上次发送：{d}",
     "share.never": "已开启。第一份报告很快发送。",

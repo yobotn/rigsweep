@@ -70,6 +70,89 @@ pub struct Report {
     pub top_cpu: Vec<AppUse>,
     pub top_mem: Vec<AppUse>,
     pub tweaks: Vec<String>,
+    /// vendor software on the PC (src-tauri/src/discovery.rs), at most once a day
+    #[serde(default)]
+    pub seen: Vec<Seen>,
+}
+
+/// One service, startup entry, scheduled task or program whose own name or vendor folder matches a
+/// keyword in discovery.json. Names only: anything that looks like a path is refused.
+#[derive(Deserialize, Debug, Clone)]
+#[serde(deny_unknown_fields)]
+pub struct Seen {
+    pub kind: String,
+    pub name: String,
+    pub display: String,
+    pub exe: String,
+    pub folder: String,
+    pub keyword: String,
+    pub running: bool,
+    pub startup: bool,
+    pub disabled: bool,
+    pub cpu: f32,
+    pub mem: u64,
+}
+
+pub const SEEN_KINDS: &[&str] = &["service", "task", "run", "folder", "process"];
+
+#[derive(Deserialize)]
+struct KeywordList {
+    keywords: Vec<String>,
+}
+
+/// The vendor keywords, the same file the app reads.
+pub fn keywords() -> &'static [String] {
+    static K: std::sync::OnceLock<Vec<String>> = std::sync::OnceLock::new();
+    K.get_or_init(|| {
+        let l: KeywordList = serde_json::from_str(include_str!("../discovery.json")).expect("discovery.json");
+        l.keywords.into_iter().map(|k| k.to_lowercase()).collect()
+    })
+}
+
+/// Words of `s`, split on symbols and camelCase, lower-cased (same rule as the app).
+pub fn words(s: &str) -> Vec<String> {
+    let mut out = vec![];
+    for part in s.split(|c: char| !c.is_alphanumeric()).filter(|p| !p.is_empty()) {
+        let cs: Vec<char> = part.chars().collect();
+        let mut cur = String::new();
+        for i in 0..cs.len() {
+            let c = cs[i];
+            let boundary = i > 0
+                && ((c.is_uppercase() && cs[i - 1].is_lowercase())
+                    || (c.is_uppercase() && cs[i - 1].is_uppercase() && cs.get(i + 1).is_some_and(|n| n.is_lowercase()))
+                    || (c.is_ascii_digit() != cs[i - 1].is_ascii_digit()));
+            if boundary && !cur.is_empty() {
+                out.push(std::mem::take(&mut cur).to_lowercase());
+            }
+            cur.push(c);
+        }
+        if !cur.is_empty() {
+            out.push(cur.to_lowercase());
+        }
+    }
+    out
+}
+
+/// Does `keyword` (from the list) really occur in these texts? Short keywords must be a whole word.
+pub fn keyword_matches(keyword: &str, texts: &[&str]) -> bool {
+    keywords().iter().any(|k| k == keyword)
+        && texts.iter().flat_map(|t| words(t)).any(|w| w == keyword || (keyword.len() > 4 && w.starts_with(keyword)))
+}
+
+impl Seen {
+    fn ok(&self) -> bool {
+        let text_ok = |s: &str, empty_ok: bool| {
+            (empty_ok || !s.is_empty()) && s.chars().count() <= 120 && !s.chars().any(|c| c.is_control() || c == '\\' || c == '/')
+        };
+        SEEN_KINDS.contains(&self.kind.as_str())
+            && text_ok(&self.name, false)
+            && text_ok(&self.display, true)
+            && text_ok(&self.exe, true)
+            && text_ok(&self.folder, true)
+            && keyword_matches(&self.keyword, &[&self.name, &self.display, &self.exe, &self.folder])
+            && (0.0..=100_000.0).contains(&self.cpu)
+            && self.mem <= 16 * TB
+    }
 }
 
 pub const SOURCES: &[&str] = &["gui", "auto", "watchdog", "cli", "import"];
@@ -209,6 +292,9 @@ impl Report {
                 return bad("apps");
             }
         }
+        if self.seen.len() > 300 || self.seen.iter().any(|s| !s.ok()) {
+            return bad("seen");
+        }
         if self.tweaks.len() > 300 || self.tweaks.iter().any(|t| !chars_ok(t, 64, |c| c.is_ascii_lowercase() || c.is_ascii_digit() || "_.-".contains(c))) {
             return bad("tweaks");
         }
@@ -248,6 +334,27 @@ mod tests {
     fn accepts_a_real_report() {
         assert_eq!(sample().validate(), Ok(()));
         assert_eq!(sample_v2().validate(), Ok(()));
+    }
+
+    #[test]
+    fn seen_rows_must_really_name_a_vendor() {
+        let row = |name: &str, folder: &str, keyword: &str| Seen {
+            kind: "process".into(), name: name.into(), display: String::new(), exe: name.into(), folder: folder.into(),
+            keyword: keyword.into(), running: true, startup: false, disabled: false, cpu: 1.0, mem: 10,
+        };
+        let mut r = sample_v2();
+        r.seen = vec![row("ArmouryCrate.Service.exe", "ASUS", "armoury"), row("helper.exe", "Logitech", "logitech")];
+        assert_eq!(r.validate(), Ok(()));
+        for bad in [
+            row("secret-client-tool.exe", "", "asus"),        // keyword claimed but not in the text
+            row("php-cgi.exe", "", "hp"),                      // hp is not a whole word there
+            row(r"C:\Users\me\asus\x.exe", "", "asus"),    // a path
+            row("AsusTool.exe", "", "notakeyword"),            // not on the list
+        ] {
+            let mut r = sample_v2();
+            r.seen = vec![bad.clone()];
+            assert!(r.validate().is_err(), "{:?} should be refused", bad.name);
+        }
     }
 
     #[test]

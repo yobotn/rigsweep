@@ -9,6 +9,7 @@ mod commands;
 mod db;
 mod devclean;
 mod devdisk;
+mod discovery;
 mod elevation;
 mod engine;
 mod hardware;

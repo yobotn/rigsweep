@@ -4,7 +4,7 @@
 
 - Download: https://github.com/yobotn/rigsweep/releases/latest (Windows 10 / 11, free, MIT)
 - Source: https://github.com/yobotn/rigsweep
-- Current version: 0.8.0
+- Current version: 0.8.1
 - For AI agents: https://rigsweep.com/llms.txt
 
 ## Why it exists
@@ -66,7 +66,7 @@ Nothing is ended or deleted without your confirmation. Every Windows tweak backs
 
 ### Is RigSweep free? Does it collect data?
 
-Yes, it's free forever under the MIT license, with no account and no ads. RigSweep asks once whether to share anonymous usage stats (what it cleaned, by type and size, and which well-known apps use the most). Nothing is sent before you answer, the exact report is shown in Settings, and turning it off deletes what was sent. No paths, project names or personal data are ever included. The update check stays off unless you turn it on or click Check now.
+Yes, it's free forever under the MIT license, with no account and no ads. RigSweep asks once whether to share anonymous usage stats (what it cleaned, by type and size, which well-known apps use the most, and which hardware vendor software is installed). Nothing is sent before you answer, the exact report is shown in Settings, and turning it off deletes what was sent. No paths, project names or personal data are ever included. The update check stays off unless you turn it on or click Check now.
 
 ### Does it run on macOS or Linux?
 

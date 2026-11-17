@@ -70,12 +70,22 @@ async fn reports_totals_admin_and_optout() {
         "events": [{"seq": 1, "at": "2026-11-17T13:42Z", "run": 1, "source": "gui", "area": "disk", "kind": "dir:node_modules", "bytes": 500, "count": 1},
                    {"seq": 2, "at": "2026-11-17T13:42Z", "run": 1, "source": "gui", "area": "memory", "kind": "mcp", "bytes": 100, "count": 4}],
         "machine": {"ram_total": 34359738368u64, "ram_used_avg": 17179869184u64, "cores": 16},
-        "top_cpu": [], "top_mem": [], "tweaks": ["telemetry.diagtrack"]
+        "top_cpu": [], "top_mem": [], "tweaks": ["telemetry.diagtrack"],
+        "seen": [{"kind": "process", "name": "ArmouryCrate.Service.exe", "display": "", "exe": "ArmouryCrate.Service.exe", "folder": "ASUS",
+                  "keyword": "armoury", "running": true, "startup": false, "disabled": false, "cpu": 2.5, "mem": 90000000}]
     });
     assert_eq!(call(&app, post(&v2, "203.0.113.2")).await.0, StatusCode::NO_CONTENT);
     assert_eq!(call(&app, post(&v2, "203.0.113.2")).await.0, StatusCode::NO_CONTENT);
     let ev: i64 = sqlx::query_scalar("SELECT count(*) FROM events WHERE seq IS NOT NULL").fetch_one(&pool).await.unwrap();
     assert_eq!(ev, 2);
+    // vendor software rows are kept raw, one per report (the v2 report above was sent twice)
+    let seen: i64 = sqlx::query_scalar("SELECT count(*) FROM seen WHERE name = 'ArmouryCrate.Service.exe' AND folder = 'ASUS'").fetch_one(&pool).await.unwrap();
+    assert_eq!(seen, 2);
+    let mut leak = v2.clone();
+    leak["seen"][0]["name"] = json!("client-secret-tool.exe");
+    leak["seen"][0]["exe"] = json!("client-secret-tool.exe");
+    leak["seen"][0]["folder"] = json!("");
+    assert_eq!(call(&app, post(&leak, "203.0.113.4")).await.0, StatusCode::BAD_REQUEST, "a name without its keyword is refused");
     // b's earlier v1 totals are superseded by its row-by-row history, so nothing is counted twice
     let old: i64 = sqlx::query_scalar("SELECT count(*) FROM events WHERE install_id = $1 AND seq IS NULL").bind(b).fetch_one(&pool).await.unwrap();
     assert_eq!(old, 0);
@@ -135,6 +145,11 @@ async fn reports_totals_admin_and_optout() {
     let csv = String::from_utf8(res.into_body().collect().await.unwrap().to_bytes().to_vec()).unwrap();
     assert!(csv.starts_with("id,report_id,install_id,seq,at,"));
     assert!(csv.contains("dir:node_modules"));
+    let (_, s) = call(&app, get("/admin/api/summary?days=30", Some("admin:s3cret"))).await;
+    let d = &s["discovered"][0];
+    assert_eq!((d["name"].as_str(), d["installs"].as_i64(), d["folder"].as_str()), (Some("ArmouryCrate.Service.exe"), Some(1), Some("ASUS")));
+    let res = app.clone().oneshot(get("/admin/api/export/seen.csv", Some("admin:s3cret"))).await.unwrap();
+    assert_eq!(res.status(), StatusCode::OK);
 
     // turning sharing off deletes everything that install sent
     let del = Request::delete(format!("/v1/install/{a}")).body(Body::empty()).unwrap();

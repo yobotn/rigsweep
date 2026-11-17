@@ -88,6 +88,27 @@ pub async fn save_report(pool: &PgPool, r: &Report, country: &str) -> sqlx::Resu
     .await?;
     let apps: Vec<(&str, &crate::model::AppUse)> =
         r.top_cpu.iter().map(|a| ("cpu", a)).chain(r.top_mem.iter().map(|a| ("mem", a))).collect();
+    // vendor software on the PC, one raw row per item
+    let s = &r.seen;
+    sqlx::query(
+        "INSERT INTO seen (report_id, install_id, kind, name, display, exe, folder, keyword, running, startup, disabled, cpu, mem)
+         SELECT $1, $2, * FROM UNNEST($3::text[], $4::text[], $5::text[], $6::text[], $7::text[], $8::text[], $9::bool[], $10::bool[], $11::bool[], $12::real[], $13::bigint[])",
+    )
+    .bind(id)
+    .bind(&r.install_id)
+    .bind(s.iter().map(|x| x.kind.clone()).collect::<Vec<_>>())
+    .bind(s.iter().map(|x| x.name.clone()).collect::<Vec<_>>())
+    .bind(s.iter().map(|x| x.display.clone()).collect::<Vec<_>>())
+    .bind(s.iter().map(|x| x.exe.clone()).collect::<Vec<_>>())
+    .bind(s.iter().map(|x| x.folder.clone()).collect::<Vec<_>>())
+    .bind(s.iter().map(|x| x.keyword.clone()).collect::<Vec<_>>())
+    .bind(s.iter().map(|x| x.running).collect::<Vec<_>>())
+    .bind(s.iter().map(|x| x.startup).collect::<Vec<_>>())
+    .bind(s.iter().map(|x| x.disabled).collect::<Vec<_>>())
+    .bind(s.iter().map(|x| x.cpu).collect::<Vec<_>>())
+    .bind(s.iter().map(|x| x.mem as i64).collect::<Vec<_>>())
+    .execute(&mut *tx)
+    .await?;
     sqlx::query("INSERT INTO app_use (report_id, metric, app, cpu, mem) SELECT $1, * FROM UNNEST($2::text[], $3::text[], $4::real[], $5::bigint[])")
         .bind(id)
         .bind(apps.iter().map(|(m, _)| m.to_string()).collect::<Vec<_>>())
@@ -281,6 +302,14 @@ pub async fn admin_summary(pool: &PgPool, days: Option<u32>) -> sqlx::Result<Val
         ("cores", format!("SELECT cores AS name, count(*) AS n FROM {fleet} GROUP BY cores ORDER BY cores")),
         ("tweaks", format!("SELECT t AS tweak, count(*) AS installs FROM {fleet}, unnest(latest.tweaks) AS t GROUP BY t ORDER BY installs DESC, t")),
         ("ext_browsers", format!("SELECT browser AS name, count(*) AS n FROM ext_installs WHERE last_seen >= {cur} GROUP BY 1 ORDER BY n DESC")),
+        // vendor software across installs: the evidence for which tweaks to build next
+        ("discovered", format!(
+            "SELECT kind, name, exe, max(folder) AS folder, keyword, count(DISTINCT install_id) AS installs,
+                    round(100.0 * avg(running::int)) AS running_pct, round(100.0 * avg(startup::int)) AS startup_pct,
+                    round(avg(cpu)::numeric, 1) AS avg_cpu, avg(mem)::bigint AS avg_mem,
+                    count(DISTINCT install_id) FILTER (WHERE disabled) AS disabled
+             FROM seen WHERE at >= {cur} GROUP BY kind, name, exe, keyword
+             ORDER BY installs DESC, avg_mem DESC, name LIMIT 300")),
         ("ext_tabs", format!(
             "SELECT CASE WHEN tabs_open <= 10 THEN '≤ 10' WHEN tabs_open <= 30 THEN '11–30' WHEN tabs_open <= 60 THEN '31–60'
                     WHEN tabs_open <= 100 THEN '61–100' ELSE '> 100' END AS name, count(*) AS n, min(tabs_open) AS lo
@@ -303,7 +332,7 @@ fn latest(from: &str) -> String {
 }
 
 /// Raw tables the owner can download as CSV (for a spreadsheet or a BI tool).
-pub const EXPORTS: &[&str] = &["installs", "reports", "events", "app_use", "ext_installs", "ext_reports", "optouts"];
+pub const EXPORTS: &[&str] = &["installs", "reports", "events", "app_use", "seen", "ext_installs", "ext_reports", "optouts"];
 
 /// One raw table as CSV with a header row, oldest first. `table` must be one of `EXPORTS`.
 pub async fn export_csv(pool: &PgPool, table: &str) -> sqlx::Result<Vec<u8>> {

@@ -4,7 +4,7 @@
 //! first-run notice has been shown, so nobody shares without having seen what and why. Turning
 //! sharing off asks the server to delete everything this install sent and starts a new random id.
 //!
-//! Settings keys: `share` ("on" / "off", missing = the regional default), `share_notice` ("1" once
+//! Settings keys: `share` ("on" / "off", missing = the regional default), `share_notice` (the notice version, see NOTICE, once
 //! the notice was shown), `share_last` (when the last report was accepted), `share_last_seq` (the
 //! last impact row the server has), `share_last_report` (that report, as sent), `install_id`.
 //!
@@ -23,7 +23,13 @@ pub const SERVER: &str = "https://stats.rigsweep.com";
 const EVERY_MINUTES: i64 = 60;
 /// at most this many cleanup rows per report (a long backlog goes out over the next hours)
 const MAX_EVENTS: usize = 2000;
+/// the vendor software section (`seen`) goes out at most this often
+const SEEN_EVERY_HOURS: i64 = 24;
 const TS: &str = "%Y-%m-%d %H:%M:%S";
+/// Version of what the notice describes. When a report gains a new kind of data (2 = the daily vendor
+/// software section), people who agreed to the earlier version see the notice again, and nothing is
+/// sent until they have.
+const NOTICE: &str = "2";
 
 #[derive(Serialize, Clone, Debug)]
 pub struct ShareState {
@@ -63,7 +69,7 @@ pub fn state(db: &Db) -> ShareState {
     ShareState {
         enabled,
         chosen,
-        notice_seen: db.get_setting("share_notice").as_deref() == Some("1"),
+        notice_seen: db.get_setting("share_notice").as_deref() == Some(NOTICE),
         consent_default,
         install_id: install_id(db),
         last_sent: db.get_setting("share_last").filter(|s| !s.is_empty()),
@@ -73,7 +79,7 @@ pub fn state(db: &Db) -> ShareState {
 
 /// Sending is allowed only when sharing is on AND the notice has been shown.
 fn may_send(db: &Db) -> bool {
-    db.get_setting("share_notice").as_deref() == Some("1") && enabled_with(db, report::local_consent_default()).0
+    db.get_setting("share_notice").as_deref() == Some(NOTICE) && enabled_with(db, report::local_consent_default()).0
 }
 
 fn due(db: &Db) -> bool {
@@ -97,8 +103,20 @@ fn since_utc(db: &Db) -> Option<String> {
     Some(t.with_timezone(&chrono::Utc).format("%Y-%m-%dT%H:%MZ").to_string())
 }
 
-/// The report this PC would send now (also the Preview).
+/// Whether the next report carries the vendor software section again.
+fn seen_due(db: &Db) -> bool {
+    match db.get_setting("share_seen_last").and_then(|s| chrono::NaiveDateTime::parse_from_str(&s, TS).ok()) {
+        Some(t) => chrono::Local::now().naive_local() - t >= chrono::Duration::hours(SEEN_EVERY_HOURS),
+        None => true,
+    }
+}
+
+/// The report this PC would send now (also the Preview, which always shows the vendor section).
 pub fn build_report(app: &AppHandle) -> Result<Report, String> {
+    build_report_with(app, true)
+}
+
+fn build_report_with(app: &AppHandle, with_seen: bool) -> Result<Report, String> {
     let state = app.state::<AppState>();
     let (catalog, id, since, events, tweaks) = {
         let db = state.db.lock().map_err(|_| "database lock poisoned")?;
@@ -120,6 +138,12 @@ pub fn build_report(app: &AppHandle) -> Result<Report, String> {
             cores: std::thread::available_parallelism().map(|n| n.get()).unwrap_or(0),
         },
         procs: snap.processes.iter().map(|p| (p.name.clone(), p.cpu, p.mem)).collect(),
+        seen: if with_seen {
+            let enabled: std::collections::HashSet<String> = tweaks.iter().cloned().collect();
+            crate::discovery::collect(&crate::startup::scan(&catalog), &snap.processes, &enabled)
+        } else {
+            vec![]
+        },
         tweaks,
     }))
 }
@@ -162,7 +186,7 @@ pub fn set(app: &AppHandle, on: bool) -> Result<ShareState, String> {
         let db = state.db.lock().map_err(|_| "database lock poisoned")?;
         let was_on = enabled_with(&db, report::local_consent_default()).0;
         db.set_setting("share", if on { "on" } else { "off" }).map_err(|e| e.to_string())?;
-        db.set_setting("share_notice", "1").map_err(|e| e.to_string())?;
+        db.set_setting("share_notice", NOTICE).map_err(|e| e.to_string())?;
         if !on && was_on {
             let old = install_id(&db);
             rotate(&db)?;
@@ -189,6 +213,7 @@ fn rotate(db: &Db) -> Result<(), String> {
     db.set_setting("install_id", &report::new_install_id()).map_err(|e| e.to_string())?;
     db.set_setting("share_last", "").map_err(|e| e.to_string())?;
     db.set_setting("share_last_seq", "").map_err(|e| e.to_string())?;
+    db.set_setting("share_seen_last", "").map_err(|e| e.to_string())?;
     db.set_setting("share_last_report", "").map_err(|e| e.to_string())?;
     Ok(())
 }
@@ -215,7 +240,7 @@ pub fn notice_seen(app: &AppHandle) -> Result<ShareState, String> {
     let state = app.state::<AppState>();
     {
         let db = state.db.lock().map_err(|_| "database lock poisoned")?;
-        db.set_setting("share_notice", "1").map_err(|e| e.to_string())?;
+        db.set_setting("share_notice", NOTICE).map_err(|e| e.to_string())?;
     }
     kick(app.clone());
     let db = state.db.lock().map_err(|_| "database lock poisoned")?;
@@ -224,15 +249,15 @@ pub fn notice_seen(app: &AppHandle) -> Result<ShareState, String> {
 
 /// Send now if allowed and due. Returns whether a report was accepted.
 pub async fn send_if_due(app: &AppHandle) -> Result<bool, String> {
-    let ok = {
+    let (ok, with_seen) = {
         let state = app.state::<AppState>();
         let db = state.db.lock().map_err(|_| "database lock poisoned")?;
-        may_send(&db) && due(&db)
+        (may_send(&db) && due(&db), seen_due(&db))
     };
     if !ok {
         return Ok(false);
     }
-    let r = build_report(app)?;
+    let r = build_report_with(app, with_seen)?;
     post(&r).await?;
     // still the same install and still on? (it may have been turned off while sending)
     let kept = {
@@ -245,6 +270,9 @@ pub async fn send_if_due(app: &AppHandle) -> Result<bool, String> {
                 db.set_setting("share_last_seq", &last.to_string()).map_err(|e| e.to_string())?;
             }
             db.set_setting("share_last_report", &serde_json::to_string_pretty(&r).unwrap_or_default()).map_err(|e| e.to_string())?;
+            if with_seen {
+                db.set_setting("share_seen_last", &chrono::Local::now().format(TS).to_string()).map_err(|e| e.to_string())?;
+            }
         }
         kept
     };
@@ -295,7 +323,7 @@ mod tests {
         let db = Db::open_in_memory().unwrap();
         db.set_setting("share", "on").unwrap();
         assert!(!may_send(&db));
-        db.set_setting("share_notice", "1").unwrap();
+        db.set_setting("share_notice", NOTICE).unwrap();
         assert!(may_send(&db));
         assert!(due(&db));
         let ten_min = (chrono::Local::now() - chrono::Duration::minutes(10)).format(TS).to_string();
@@ -327,6 +355,16 @@ mod tests {
         // a new install id starts over
         rotate(&db).unwrap();
         assert_eq!(db.impact_events_after(last_seq(&db), MAX_EVENTS).unwrap().len(), 3);
+    }
+
+    #[test]
+    fn a_new_notice_version_pauses_sending_until_seen() {
+        let db = Db::open_in_memory().unwrap();
+        db.set_setting("share", "on").unwrap();
+        db.set_setting("share_notice", "1").unwrap(); // agreed before the vendor section existed
+        assert!(!may_send(&db));
+        db.set_setting("share_notice", NOTICE).unwrap();
+        assert!(may_send(&db));
     }
 
     #[test]

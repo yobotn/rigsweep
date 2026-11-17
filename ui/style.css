@@ -524,3 +524,29 @@ span.ico:not([data-ico]) { background: transparent; }
 .mp-list .bar { height: 6px; background: var(--panel2); border-radius: 3px; overflow: hidden; }
 .mp-list .bar i { display: block; height: 100%; background: var(--accent); }
 .mp-list .num { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* ---------- Dashboard: fresh layout, space instead of lines ---------- */
+#tab-dashboard .card.ready { background: none; border: 0; box-shadow: none; padding: 0; }
+#tab-dashboard .card.ready h2 { margin: 0 0 10px; }
+#ready-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+#ready-list li.ready-tile {
+  display: flex; flex-direction: column; gap: 4px; padding: 16px; border: 1px solid var(--border); border-radius: 12px;
+  background: linear-gradient(180deg, var(--panel2), var(--panel)); flex-wrap: nowrap;
+}
+#ready-list li.ready-tile:last-child { padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+.ready-top { display: flex; align-items: center; gap: 10px; }
+.ready-big { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.ready-tile.dev .ready-big { color: var(--c-mem); }
+.ready-tile.disk .ready-big { color: var(--safe); }
+.ready-tile.bc .ready-big { color: var(--accent); }
+.ready-cap { color: var(--muted); font-size: 13px; min-height: 1.4em; }
+.ready-tile .ready-acts { margin-top: auto; padding-top: 10px; margin-inline-start: 0; }
+#tab-dashboard .tbl th, #tab-dashboard .tbl td { border-bottom: 0; padding: 7px 10px; }
+#tab-dashboard .tbl thead th { font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+#tab-dashboard .tbl tbody tr td:first-child { border-start-start-radius: 8px; border-end-start-radius: 8px; }
+#tab-dashboard .tbl tbody tr td:last-child { border-start-end-radius: 8px; border-end-end-radius: 8px; }
+#tab-dashboard .tbl tbody tr:nth-child(even) td { background: #ffffff05; }
+#tab-dashboard .tbl tbody tr:hover td { background: var(--row-hover); }
+#tab-dashboard .feed li { border-bottom: 0; padding: 8px 10px; border-radius: 8px; }
+#tab-dashboard .feed li:nth-child(even) { background: #ffffff05; }
+#tab-dashboard .grid2 > .card, #tab-dashboard .tiles > .tile, #tab-dashboard .charts > .card { border-radius: 12px; }

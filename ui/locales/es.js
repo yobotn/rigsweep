@@ -1,4 +1,7 @@
 I18N["es"] = {
+    "ready.cap.dev": "{n} procesos de desarrollo obsoletos",
+    "ready.cap.disk": "carpetas de compilación y cachés antiguas ({n})",
+    "ready.cap.bc": "cachés del navegador",
     "mp.callout": "Microsoft Defender está usando un {c} % de CPU.",
     "mp.why": "Ver por qué",
     "mp.title": "Qué está analizando Defender",
@@ -37,7 +40,7 @@ I18N["es"] = {
     "set.watchdogHint": "Cada cuánto el vigilante revisa tus ajustes y restaura los que Windows o una actualización de una app hayan deshecho.",
     "admin.banner": "RigSweep no se está ejecutando como administrador, así que las limpiezas y los ajustes no funcionarán. Ciérralo, ábrelo de nuevo y acepta el aviso de Windows.",
     "share.title": "📊 Estadísticas anónimas",
-    "share.hint": "Mientras está en marcha, RigSweep envía más o menos cada hora lo que limpió desde el último informe, una entrada por tipo con la hora, el tipo y cuánto liberó; qué apps conocidas usan más CPU y memoria; la RAM y los núcleos de tu PC; la versión de RigSweep y la compilación de Windows. Alimentan los contadores públicos de rigsweep.com y muestran qué mejorar después. Nunca se envían: rutas de archivos, nombres de carpetas, proyectos o procesos (salvo apps conocidas como Chrome o VS Code), nombres de usuario o de PC, ni identificadores de hardware. Tu dirección IP solo se usa para saber el país y nunca se guarda.",
+    "share.hint": "Mientras está en marcha, RigSweep envía más o menos cada hora lo que limpió desde el último informe, una entrada por tipo con la hora, el tipo y cuánto liberó; qué apps conocidas usan más CPU y memoria; una vez al día, qué software de hardware y controladores (de una lista fija de fabricantes como ASUS, Dell, HP, NVIDIA o Logitech) está instalado, si se está ejecutando y cuánto consume; la RAM y los núcleos de tu PC; la versión de RigSweep y la compilación de Windows. Alimentan los contadores públicos de rigsweep.com y muestran qué mejorar después. Nunca se envían: rutas de archivos, nombres de carpetas, proyectos o procesos (salvo apps conocidas como Chrome o VS Code y ese software de fabricantes), nombres de usuario o de PC, ni identificadores de hardware. Tu dirección IP solo se usa para saber el país y nunca se guarda.",
     "share.toggle": "Compartir estadísticas de uso anónimas",
     "share.last": "Último envío: {d}",
     "share.never": "Activado. El primer informe sale en breve.",

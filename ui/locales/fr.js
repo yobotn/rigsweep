@@ -1,4 +1,7 @@
 I18N["fr"] = {
+    "ready.cap.dev": "{n} processus dev inactifs",
+    "ready.cap.disk": "anciens dossiers de build et caches ({n})",
+    "ready.cap.bc": "caches de navigateur",
     "mp.callout": "Microsoft Defender utilise {c} % du processeur.",
     "mp.why": "Voir pourquoi",
     "mp.title": "Ce que Defender analyse",
@@ -37,7 +40,7 @@ I18N["fr"] = {
     "set.watchdogHint": "Fréquence à laquelle le chien de garde vérifie vos réglages et rétablit ceux que Windows ou une mise à jour d'app a annulés.",
     "admin.banner": "RigSweep ne tourne pas en administrateur : les nettoyages et réglages ne peuvent pas fonctionner. Fermez-le, rouvrez-le et acceptez l'invite de Windows.",
     "share.title": "📊 Statistiques anonymes",
-    "share.hint": "Pendant qu'il tourne, RigSweep envoie environ toutes les heures ce qu'il a nettoyé depuis le dernier envoi, une entrée par type avec l'heure, le type et la quantité libérée ; les applications connues qui consomment le plus de CPU et de mémoire ; la RAM et le nombre de cœurs de votre PC ; la version de RigSweep et le build de Windows. Ils alimentent les compteurs publics de rigsweep.com et montrent quoi améliorer ensuite. Jamais envoyés : chemins de fichiers, noms de dossiers, de projets ou de processus (hors applications connues comme Chrome ou VS Code), noms d'utilisateur ou de PC, identifiants matériels. Votre adresse IP sert uniquement à trouver le pays et n'est jamais conservée.",
+    "share.hint": "Pendant qu'il tourne, RigSweep envoie environ toutes les heures ce qu'il a nettoyé depuis le dernier envoi, une entrée par type avec l'heure, le type et la quantité libérée ; les applications connues qui consomment le plus de CPU et de mémoire ; une fois par jour, les logiciels de matériel et de pilotes installés (parmi une liste fixe de fabricants comme ASUS, Dell, HP, NVIDIA ou Logitech), s'ils tournent et ce qu'ils consomment ; la RAM et le nombre de cœurs de votre PC ; la version de RigSweep et le build de Windows. Ils alimentent les compteurs publics de rigsweep.com et montrent quoi améliorer ensuite. Jamais envoyés : chemins de fichiers, noms de dossiers, de projets ou de processus (hors applications connues comme Chrome ou VS Code et ces logiciels de fabricants), noms d'utilisateur ou de PC, identifiants matériels. Votre adresse IP sert uniquement à trouver le pays et n'est jamais conservée.",
     "share.toggle": "Partager des statistiques d'utilisation anonymes",
     "share.last": "Dernier envoi : {d}",
     "share.never": "Activé. Le premier rapport part bientôt.",

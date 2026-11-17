@@ -76,6 +76,7 @@ button.link { background: none; border: 0; color: var(--accent); cursor: pointer
     <button role="tab" data-tab="cleanups">Cleanups</button>
     <button role="tab" data-tab="apps">Apps</button>
     <button role="tab" data-tab="fleet">Fleet</button>
+    <button role="tab" data-tab="discovered">Discovered</button>
     <button role="tab" data-tab="ext">Extension</button>
     <button role="tab" data-tab="export">Export</button>
   </div>
@@ -117,6 +118,14 @@ button.link { background: none; border: 0; color: var(--accent); cursor: pointer
       <div class="card"><h2>CPU cores</h2><table id="cores"></table></div>
       <div class="card"><h2>Windows builds</h2><table id="builds"></table></div>
       <div class="card"><h2>Tweaks on <span class="sub">installs</span></h2><table id="tweaks"></table></div>
+    </div>
+  </section>
+
+  <section data-panel="discovered" hidden>
+    <div class="card">
+      <h2>Vendor software on users' PCs</h2>
+      <p class="sub" style="margin-top:0">Services, startup entries, scheduled tasks and programs whose name or vendor folder matches a keyword in discovery.json. The most common, heaviest and most often turned off are the next tweaks to build.</p>
+      <table id="discovered"></table>
     </div>
   </section>
 
@@ -262,11 +271,17 @@ function renderTables() {
     ["Tabs closed", num(n.tabs_closed)], ["Avg tabs open", d.totals.ext_tabs_avg == null ? "–" : num(d.totals.ext_tabs_avg)],
     ["Auto-sleep on", d.totals.ext_auto_sleep_pct == null ? "–" : `${d.totals.ext_auto_sleep_pct}%`],
   ].map(([l, v]) => `<div class="mini"><div class="sub">${esc(l)}</div><div class="v">${esc(v)}</div></div>`).join("");
+  table("discovered", d.discovered || [], [
+    { h: "Name", f: (r) => `${esc(r.name)} <span class="sub">${esc(r.kind)}${r.folder ? " · " + esc(r.folder) : ""}</span>` },
+    { h: "Keyword", k: "keyword" }, { h: "Installs", n: 1, f: (r) => num(r.installs) },
+    { h: "Running", n: 1, f: (r) => `${r.running_pct ?? 0}%` }, { h: "At startup", n: 1, f: (r) => `${r.startup_pct ?? 0}%` },
+    { h: "Avg CPU", n: 1, f: (r) => `${r.avg_cpu ?? 0}%` }, { h: "Avg memory", n: 1, f: (r) => bytes(r.avg_mem) },
+    { h: "Turned off", n: 1, f: (r) => num(r.disabled) }], "installs", "", 25);
   table("ext_browsers", d.ext_browsers, [{ h: "Browser", k: "name" }, { h: "Installs", n: 1, f: (r) => num(r.n) }], "n");
   table("ext_tabs", d.ext_tabs, [{ h: "Tabs", k: "name" }, { h: "Installs", n: 1, f: (r) => num(r.n) }], "n");
 }
 
-const EXPORTS = [["events", "One row per thing cleaned"], ["reports", "One row per report, with its machine snapshot"],
+const EXPORTS = [["events", "One row per thing cleaned"], ["seen", "Vendor software found on PCs, one row per item per report"], ["reports", "One row per report, with its machine snapshot"],
   ["app_use", "Top apps in each report"], ["installs", "Latest state of each install"], ["ext_reports", "One row per extension report"],
   ["ext_installs", "Latest state of each extension install"], ["optouts", "Opt-outs per day"]];
 $("#exports").innerHTML = EXPORTS.map(([t, d]) => `<a href="admin/api/export/${t}.csv" download><b>${esc(t)}.csv</b><div class="sub">${esc(d)}</div></a>`).join("");
