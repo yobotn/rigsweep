@@ -1,5 +1,6 @@
 window.T = window.T || {};
 T["ru"] = {
+    "gal.cleanup": "Очистка dev", "gal.dashboard": "Обзор", "gal.impact": "Итоги", "gal.disk": "Диск разработчика", "gal.tweaks": "Настройки ОС", "gal.settings": "Параметры", "gal.label": "Скриншоты",
     "live.title": "Уже освобождено пользователями RigSweep", "live.procs": "dev-процессов завершено", "cta.join": "⬇️ Присоединяйтесь: скачать для Windows",
     "nav.features": "Возможности", "nav.trust": "Антивирус: вопросы",
     "hero.badge": "🆓 Бесплатно и с открытым кодом · MIT",

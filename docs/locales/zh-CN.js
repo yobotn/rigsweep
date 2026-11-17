@@ -1,5 +1,6 @@
 window.T = window.T || {};
 T["zh-CN"] = {
+    "gal.cleanup": "开发清理", "gal.dashboard": "仪表板", "gal.impact": "清理成果", "gal.disk": "开发磁盘", "gal.tweaks": "优化", "gal.settings": "设置", "gal.label": "截图",
     "live.title": "RigSweep 用户迄今释放的资源", "live.procs": "已结束的开发进程", "cta.join": "⬇️ 一起加入：下载 Windows 版",
     "nav.features": "功能", "nav.trust": "防病毒常见问题",
     "hero.badge": "🆓 免费开源 · MIT",

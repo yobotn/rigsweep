@@ -1,5 +1,6 @@
 window.T = window.T || {};
 T["ja"] = {
+    "gal.cleanup": "開発クリーンアップ", "gal.dashboard": "ダッシュボード", "gal.impact": "効果", "gal.disk": "開発ディスク", "gal.tweaks": "最適化", "gal.settings": "設定", "gal.label": "スクリーンショット",
     "live.title": "RigSweep ユーザーがこれまでに解放したもの", "live.procs": "終了した開発プロセス", "cta.join": "⬇️ 参加しよう: Windows 版をダウンロード",
     "nav.features": "機能", "nav.trust": "ウイルス対策 FAQ",
     "hero.badge": "🆓 無料のオープンソース · MIT",

@@ -63,6 +63,9 @@
   const later = new Set(["dev.power", "search.indexer", "updates.no_edge"]);
   const drift = { "telemetry.diagtrack": 3, "telemetry.tasks": 1, "updates.delivery_p2p": 2 };
   const tweaks = cat.tweaks.map((x) => {
+    // the demo PC has no Dell / ASUS / HP / Lenovo software, like most custom-built dev machines
+    if (x.category === "vendor") return { ...x, in_profile: false, drift_count: 0,
+      status: { overall: "not_present", actions: x.actions.map((a) => ({ target: actionTarget(a), status: { state: "not_present" } })) } };
     const on = x.risk === "safe" && !later.has(x.id);
     return {
       ...x, in_profile: on, drift_count: drift[x.id] || 0,
@@ -149,6 +152,27 @@
     top_cpu: [{ app: "Chrome", cpu: 38.5, mem: 4.1 * GB }, { app: "VS Code", cpu: 12.2, mem: 2.3 * GB }, { app: "Node.js", cpu: 9.8, mem: 1.9 * GB }],
     top_mem: [{ app: "Chrome", cpu: 38.5, mem: 4.1 * GB }, { app: "WSL / Docker VM", cpu: 3.1, mem: 3.6 * GB }, { app: "VS Code", cpu: 12.2, mem: 2.3 * GB }],
     tweaks: ["telemetry.advertising", "telemetry.diagtrack", "telemetry.policy"] };
+  // Dev Disk and browser caches (demo values; the Dashboard's "Ready to free" reads them too)
+  const cache = (id, eco, tier, bytes) => ({ id, eco, tier, bytes, total: bytes, disabled: false, busy: false, tool: "", keep_newest: false, show_only: false, paths: [] });
+  const art = (name, eco, tier, bytes) => ({ name, eco, tier, bytes, pnpm: false, suggest: true });
+  const proj = (path, idle, items) => ({ path, last_active: 0, idle_days: idle, busy: false, onedrive: false, stale: idle >= 30, items });
+  const projects = [
+    proj("C:\\Users\\dev\\code\\android-app", 64, [art("build", "java", "build", 3.8 * GB), art(".gradle", "java", "build", 1.2 * GB)]),
+    proj("C:\\Users\\dev\\code\\rust-cli", 41, [art("target", "rust", "build", 9.6 * GB)]),
+    proj("C:\\Users\\dev\\code\\old-landing", 120, [art("node_modules", "node", "deps", 612 * 1048576), art(".next", "node", "build", 284 * 1048576)]),
+    proj("C:\\Users\\dev\\code\\shop-web", 2, [art("node_modules", "node", "deps", 890 * 1048576)]),
+  ];
+  const caches = [cache("npm", "node", "safe", 2.4 * GB), cache("pnpm", "node", "safe", 3.1 * GB), cache("cargo", "rust", "safe", 1.7 * GB), cache("pip", "python", "safe", 640 * 1048576)];
+  const diskReport = { caches, projects, worktrees: [], roots: ["C:\\Users\\dev\\code"], home: "C:\\Users\\dev",
+    cache_total: caches.reduce((a, c) => a + c.bytes, 0), project_total: projects.reduce((a, x) => a + x.items.reduce((b, i) => b + i.bytes, 0), 0),
+    stale_total: 0, worktree_total: 0, scan_ms: 4200 };
+  const bitem = (key, tier, bytes) => ({ key, tier, bytes });
+  const browsers = { safe_total: 1.9 * GB, site_total: 420 * 1048576, browsers: [
+    { id: "chrome", name: "Chrome", running: false, profiles: [{ dir: "Default", name: "Personal", items: [bitem("cache", "safe", 1.1 * GB), bitem("gpu", "safe", 96 * 1048576), bitem("indexeddb", "site", 420 * 1048576)] }] },
+    { id: "edge", name: "Edge", running: false, profiles: [{ dir: "Default", name: "Work", items: [bitem("cache", "safe", 640 * 1048576), bitem("sw", "safe", 88 * 1048576)] }] },
+  ] };
+  // screenshots never show the "freed 100 GB" milestone toast
+  try { localStorage.setItem("impact_ms", "1000"); } catch {}
   const replies = {
     get_impact: impact,
     get_share_state: share,
@@ -162,6 +186,8 @@
     get_live: samples,
     get_history: history,
     get_snapshots: [],
+    get_dev_disk: diskReport,
+    get_browser_caches: browsers,
   };
   window.__TAURI__ = {
     core: {

@@ -151,6 +151,12 @@
     .frame .bar { display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px; background: var(--bg2); border-bottom: 1px solid var(--border); }
     .frame .bar i { width: 10px; height: 10px; border-radius: 50%; background: var(--border2); }
     .frame .bar span { margin-inline-start: 10px; font-size: 12px; color: var(--muted); }
+    .gallery { margin-top: var(--s3); }
+    .gallery-tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 0 0 12px; }
+    .gallery-tabs button { background: none; border: 1px solid var(--border); color: var(--muted); border-radius: 999px; padding: 6px 14px; font: inherit; font-size: 13px; cursor: pointer; }
+    .gallery-tabs button:hover { color: var(--text); border-color: var(--border2); }
+    .gallery-tabs button[aria-selected="true"] { color: var(--text); background: var(--panel); border-color: var(--accent); }
+    .gallery-tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .frame img { display: block; width: 100%; height: auto; aspect-ratio: 1240 / 820; object-fit: cover; object-position: top left; }
 
     /* ---------- sections ---------- */
@@ -288,9 +294,19 @@
         <a class="btn" href="https://github.com/yobotn/rigsweep" data-t="cta.source">⭐ View on GitHub</a>
       </div>
       <div class="meta" data-t="hero.meta">Windows 10 / 11 · ~3 MB installer · 12 languages</div>
-      <div class="frame">
-        <div class="bar"><i></i><i></i><i></i><span>RigSweep</span></div>
-        <img id="img-hero" src="screenshots/cleanup.png" alt="RigSweep Dev Cleanup" />
+      <div class="gallery">
+        <div class="gallery-tabs" role="tablist" data-t-aria="gal.label" aria-label="Screenshots">
+          <button role="tab" data-shot="cleanup" aria-selected="true" data-t="gal.cleanup">Dev Cleanup</button>
+          <button role="tab" data-shot="dashboard" aria-selected="false" data-t="gal.dashboard">Dashboard</button>
+          <button role="tab" data-shot="impact" aria-selected="false" data-t="gal.impact">Impact</button>
+          <button role="tab" data-shot="disk" aria-selected="false" data-t="gal.disk">Dev Disk</button>
+          <button role="tab" data-shot="tweaks" aria-selected="false" data-t="gal.tweaks">Tweaks</button>
+          <button role="tab" data-shot="settings" aria-selected="false" data-t="gal.settings">Settings</button>
+        </div>
+        <div class="frame">
+          <div class="bar"><i></i><i></i><i></i><span>RigSweep</span></div>
+          <img id="img-hero" src="screenshots/cleanup.png" alt="RigSweep Dev Cleanup" />
+        </div>
       </div>
     </header>
 
@@ -456,6 +472,27 @@
     const sel = document.getElementById("lang");
     sel.innerHTML = Object.entries(LANGS).filter(([c]) => T[c]).map(([c, n]) => `<option value="${c}">${n}</option>`).join("");
 
+    // gallery: Dev Cleanup is shown in the page language where a translated screenshot exists
+    let shot = "cleanup";
+    function showShot(name) {
+      shot = name;
+      const lang = document.documentElement.lang || "en";
+      const img = document.getElementById("img-hero");
+      img.src = name === "cleanup" ? `screenshots/${HERO.includes(lang) ? "cleanup-" + lang : "cleanup"}.png`
+        : name === "dashboard" ? `screenshots/${DASH[lang] || DASH.en}.png` : `screenshots/${name}.png`;
+      const tabs = [...document.querySelectorAll(".gallery-tabs [data-shot]")];
+      tabs.forEach((b) => { const on = b.dataset.shot === name; b.setAttribute("aria-selected", String(on)); b.tabIndex = on ? 0 : -1; });
+      img.alt = "RigSweep: " + (tabs.find((b) => b.dataset.shot === name)?.textContent || name);
+    }
+    document.querySelector(".gallery-tabs").addEventListener("click", (e) => { const b = e.target.closest("[data-shot]"); if (b) showShot(b.dataset.shot); });
+    document.querySelector(".gallery-tabs").addEventListener("keydown", (e) => {
+      if (!["ArrowLeft", "ArrowRight"].includes(e.key)) return;
+      const tabs = [...document.querySelectorAll(".gallery-tabs [data-shot]")], i = tabs.findIndex((b) => b.dataset.shot === shot);
+      const step = (e.key === "ArrowRight") !== (document.documentElement.dir === "rtl") ? 1 : -1;
+      const next = tabs[(i + step + tabs.length) % tabs.length];
+      e.preventDefault(); showShot(next.dataset.shot); next.focus();
+    });
+
     function apply(lang) {
       if (!T[lang]) lang = "en";
       document.documentElement.lang = lang;
@@ -465,7 +502,8 @@
       document.querySelectorAll("[data-t-html]").forEach((el) => (el.innerHTML = T[lang][el.dataset.tHtml] ?? T.en[el.dataset.tHtml]));
       sel.value = lang;
       document.getElementById("img-dashboard").src = `screenshots/${DASH[lang] || DASH.en}.png`;
-      document.getElementById("img-hero").src = `screenshots/${HERO.includes(lang) ? "cleanup-" + lang : "cleanup"}.png`;
+      document.querySelectorAll("[data-t-aria]").forEach((el) => el.setAttribute("aria-label", T[lang][el.dataset.tAria] ?? T.en[el.dataset.tAria]));
+      showShot(shot);
       try { localStorage.setItem("lang", lang); } catch {}
       renderLive(false);
     }

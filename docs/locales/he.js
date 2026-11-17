@@ -1,5 +1,6 @@
 window.T = window.T || {};
 T["he"] = {
+    "gal.cleanup": "ניקוי פיתוח", "gal.dashboard": "לוח מחוונים", "gal.impact": "השפעה", "gal.disk": "דיסק פיתוח", "gal.tweaks": "כוונונים", "gal.settings": "הגדרות", "gal.label": "צילומי מסך",
     "live.title": "מה שמשתמשי RigSweep פינו עד עכשיו", "live.procs": "תהליכי פיתוח שנסגרו", "cta.join": "⬇️ הצטרפו: הורדה ל-Windows",
     "nav.features": "תכונות", "nav.trust": "שאלות נפוצות על אנטי-וירוס",
     "hero.badge": "🆓 חינמי וקוד פתוח · MIT",

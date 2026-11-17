@@ -1,5 +1,6 @@
 window.T = window.T || {};
 T["it"] = {
+    "gal.cleanup": "Pulizia dev", "gal.dashboard": "Dashboard", "gal.impact": "Risultati", "gal.disk": "Disco dev", "gal.tweaks": "Ottimizzazioni", "gal.settings": "Impostazioni", "gal.label": "Schermate",
     "live.title": "Liberato finora dagli utenti di RigSweep", "live.procs": "processi di sviluppo chiusi", "cta.join": "⬇️ Unisciti: scarica per Windows",
     "nav.features": "Funzionalità", "nav.trust": "FAQ antivirus",
     "hero.badge": "🆓 Gratis e open source · MIT",

@@ -45,5 +45,8 @@ foreach ($lang in $Langs) {
   Shot $lang "cleanup" $(if ($lang -eq "en") { "cleanup.png" } else { "cleanup-$lang.png" })
 }
 if ($Langs -contains "en") {
-  foreach ($tab in "dashboard", "tweaks", "startup") { Shot "en" $tab "$tab.png" }
+  # the homepage gallery and the README use these
+  foreach ($tab in "dashboard", "impact", "disk", "browser", "tweaks", "startup", "settings") { Shot "en" $tab "$tab.png" }
 }
+# the homepage shows these Dashboards to Spanish and French visitors
+foreach ($lang in "es", "fr") { if ($Langs -contains $lang) { Shot $lang "dashboard" "dashboard-$lang.png" } }

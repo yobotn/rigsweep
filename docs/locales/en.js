@@ -1,6 +1,7 @@
 // Homepage strings. English is the source; the other files follow its keys.
 window.T = window.T || {};
 T["en"] = {
+    "gal.cleanup": "Dev Cleanup", "gal.dashboard": "Dashboard", "gal.impact": "Impact", "gal.disk": "Dev Disk", "gal.tweaks": "Tweaks", "gal.settings": "Settings", "gal.label": "Screenshots",
     "live.title": "Freed by RigSweep users so far", "live.procs": "dev processes ended", "cta.join": "⬇️ Join the impact: download for Windows",
     "nav.features": "Features", "nav.trust": "Antivirus FAQ",
     "hero.badge": "🆓 Free & open source · MIT",

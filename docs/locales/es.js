@@ -1,5 +1,6 @@
 window.T = window.T || {};
 T["es"] = {
+    "gal.cleanup": "Limpieza dev", "gal.dashboard": "Panel", "gal.impact": "Impacto", "gal.disk": "Disco dev", "gal.tweaks": "Ajustes", "gal.settings": "Configuración", "gal.label": "Capturas",
     "live.title": "Liberado por los usuarios de RigSweep hasta ahora", "live.procs": "procesos de desarrollo cerrados", "cta.join": "⬇️ Súmate: descarga para Windows",
     "nav.features": "Funciones", "nav.trust": "FAQ antivirus",
     "hero.badge": "🆓 Gratis y de código abierto · MIT",
