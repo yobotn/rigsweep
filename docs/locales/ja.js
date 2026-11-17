@@ -1,5 +1,6 @@
 window.T = window.T || {};
 T["ja"] = {
+    "live.title": "RigSweep ユーザーがこれまでに解放したもの", "live.procs": "終了した開発プロセス", "cta.join": "⬇️ 参加しよう: Windows 版をダウンロード",
     "nav.features": "機能", "nav.trust": "ウイルス対策 FAQ",
     "hero.badge": "🆓 無料のオープンソース · MIT",
     "hero.title": "<span>エージェント</span>にもっと余裕を。",

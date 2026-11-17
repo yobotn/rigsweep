@@ -1,5 +1,6 @@
 window.T = window.T || {};
 T["es"] = {
+    "live.title": "Liberado por los usuarios de RigSweep hasta ahora", "live.procs": "procesos de desarrollo cerrados", "cta.join": "⬇️ Súmate: descarga para Windows",
     "nav.features": "Funciones", "nav.trust": "FAQ antivirus",
     "hero.badge": "🆓 Gratis y de código abierto · MIT",
     "hero.title": "Espacio para tus <span>agentes</span>.",

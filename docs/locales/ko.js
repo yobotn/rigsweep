@@ -1,5 +1,6 @@
 window.T = window.T || {};
 T["ko"] = {
+    "live.title": "지금까지 RigSweep 사용자가 확보한 것", "live.procs": "종료된 개발 프로세스", "cta.join": "⬇️ 함께하기: Windows용 다운로드",
     "nav.features": "기능", "nav.trust": "바이러스 백신 FAQ",
     "hero.badge": "🆓 무료 오픈 소스 · MIT",
     "hero.title": "<span>에이전트</span>를 위한 여유 공간.",

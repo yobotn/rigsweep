@@ -1,6 +1,7 @@
 // Homepage strings. English is the source; the other files follow its keys.
 window.T = window.T || {};
 T["en"] = {
+    "live.title": "Freed by RigSweep users so far", "live.procs": "dev processes ended", "cta.join": "⬇️ Join the impact: download for Windows",
     "nav.features": "Features", "nav.trust": "Antivirus FAQ",
     "hero.badge": "🆓 Free & open source · MIT",
     "hero.title": "Room for your <span>agents</span>.",

@@ -156,7 +156,8 @@
     .hero p.sub { color: var(--muted); font-size: clamp(17px, 2.2vw, 20px); max-width: 700px; margin: 0 auto var(--s4); }
     .hero .meta { margin-top: var(--s2); color: var(--muted); font-size: 13px; }
     .hero .frame { margin: var(--s4) auto 0; max-width: 1000px; }
-    .live { margin: var(--s3) auto 0; max-width: 820px; }
+    .live { margin: var(--s3) auto var(--s3); max-width: 820px; }
+    .live-title { margin: 0 0 10px; color: var(--muted); font-size: 13px; font-weight: 600; letter-spacing: .02em; }
     .live-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
     .live-row > div { background: var(--panel); border: 1px solid var(--border2); border-radius: 12px; padding: 14px 10px; min-width: 0; }
     .live-row b { display: block; font-size: clamp(22px, 3.4vw, 30px); font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
@@ -257,20 +258,22 @@
       <div class="badge-top" data-t="hero.badge">🆓 Free &amp; open source · MIT</div>
       <h1 data-t-html="hero.title">Room for your <span>agents</span>.</h1>
       <p class="sub" data-t="hero.sub">Free up RAM and CPU on Windows dev machines cluttered by AI-agent sessions, forgotten dev servers and background Windows services. Every change is reversible.</p>
-      <div class="cta">
-        <a class="btn primary" href="https://github.com/yobotn/rigsweep/releases/latest" data-t="cta.download">⬇️ Download for Windows</a>
-        <a class="btn" href="https://github.com/yobotn/rigsweep" data-t="cta.source">⭐ View on GitHub</a>
-      </div>
-      <div class="meta" data-t="hero.meta">Windows 10 / 11 · ~3 MB installer · 12 languages</div>
       <div class="live" id="live" hidden>
+        <p class="live-title" data-t="live.title">Freed by RigSweep users so far</p>
         <div class="live-row">
           <div><b data-live="disk_freed" data-unit="bytes"></b><span data-t="live.disk">disk space freed</span></div>
-          <div><b data-live="ram_recovered" data-unit="bytes"></b><span data-t="live.ram">RAM recovered</span></div>
+          <div data-needs="ram_recovered"><b data-live="ram_recovered" data-unit="bytes"></b><span data-t="live.ram">RAM recovered</span></div>
+          <div data-needs="processes_ended"><b data-live="processes_ended"></b><span data-t="live.procs">dev processes ended</span></div>
           <div data-needs="tabs_slept"><b data-live="tabs_slept"></b><span data-t="live.tabs">browser tabs slept</span></div>
-          <div><b data-live="installs"></b><span data-t="live.pcs">PCs sharing</span></div>
+          <div data-min-installs="25"><b data-live="installs"></b><span data-t="live.pcs">PCs sharing</span></div>
         </div>
         <p class="live-note"><i class="dot"></i><span data-t="live.note">Live totals from people who share anonymous stats</span></p>
       </div>
+      <div class="cta">
+        <a class="btn primary" id="hero-dl" href="https://github.com/yobotn/rigsweep/releases/latest" data-t="cta.download">⬇️ Download for Windows</a>
+        <a class="btn" href="https://github.com/yobotn/rigsweep" data-t="cta.source">⭐ View on GitHub</a>
+      </div>
+      <div class="meta" data-t="hero.meta">Windows 10 / 11 · ~3 MB installer · 12 languages</div>
       <div class="frame">
         <div class="bar"><i></i><i></i><i></i><span>RigSweep</span></div>
         <img id="img-hero" src="screenshots/cleanup.png" alt="RigSweep Dev Cleanup" />
@@ -455,7 +458,7 @@
 
     // Live totals from stats.rigsweep.com (anonymous, opt-out in the app). Hidden until there is
     // something worth showing, and on any error.
-    const MIN_INSTALLS = 5;
+    // the PC count joins the strip only once it says something
     let liveData = null;
     function fmtLive(v, unit) {
       const lang = document.documentElement.lang || "en";
@@ -469,6 +472,10 @@
       if (!liveData) return;
       const box = document.getElementById("live");
       box.querySelectorAll("[data-needs]").forEach((el) => { el.hidden = !Number(liveData[el.dataset.needs]); });
+      box.querySelectorAll("[data-min-installs]").forEach((el) => { el.hidden = Number(liveData.installs) < Number(el.dataset.minInstalls); });
+      // with real numbers above it, the main button invites people to add theirs
+      const dl = document.getElementById("hero-dl"), lang = document.documentElement.lang || "en";
+      dl.textContent = (T[lang] && T[lang]["cta.join"]) || T.en["cta.join"];
       const still = !animate || matchMedia("(prefers-reduced-motion: reduce)").matches;
       const t0 = performance.now(), ms = 1400;
       const step = (now) => {
@@ -481,7 +488,7 @@
     }
     fetch("https://stats.rigsweep.com/v1/totals")
       .then((r) => (r.ok ? r.json() : null))
-      .then((d) => { if (d && Number(d.installs) >= MIN_INSTALLS) { liveData = d; renderLive(true); } })
+      .then((d) => { if (d && Number(d.disk_freed) > 0) { liveData = d; renderLive(true); } })
       .catch(() => {});
     sel.addEventListener("change", () => apply(sel.value));
     let saved = null;

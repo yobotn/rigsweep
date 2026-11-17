@@ -1,5 +1,6 @@
 window.T = window.T || {};
 T["ru"] = {
+    "live.title": "Уже освобождено пользователями RigSweep", "live.procs": "dev-процессов завершено", "cta.join": "⬇️ Присоединяйтесь: скачать для Windows",
     "nav.features": "Возможности", "nav.trust": "Антивирус: вопросы",
     "hero.badge": "🆓 Бесплатно и с открытым кодом · MIT",
     "hero.title": "Место для ваших <span>агентов</span>.",

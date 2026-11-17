@@ -1,5 +1,6 @@
 window.T = window.T || {};
 T["zh-CN"] = {
+    "live.title": "RigSweep 用户迄今释放的资源", "live.procs": "已结束的开发进程", "cta.join": "⬇️ 一起加入：下载 Windows 版",
     "nav.features": "功能", "nav.trust": "防病毒常见问题",
     "hero.badge": "🆓 免费开源 · MIT",
     "hero.title": "给你的<span>智能体</span>腾出空间。",
