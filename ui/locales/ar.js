@@ -1,4 +1,8 @@
 I18N["ar"] = {
+    "nav.overview": "نظرة عامة",
+    "nav.clean": "🧹 التنظيف",
+    "nav.tune": "⚡ التسريع",
+    "nav.pc": "🖥️ هذا الكمبيوتر",
     "common.moreActions": "إجراءات أخرى",
     "nav.impact": "📈 الأثر",
     "intro.more": "كيف يعمل",

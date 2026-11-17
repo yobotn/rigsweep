@@ -14,7 +14,7 @@ const I18N = {
 "kind.browser": "🌐 automation browser", "reason.mcp": "🔌 MCP server", "reason.duplicate": "👯 older copy (newer: PID {p})",
 "live.now": "Live · last 5 min", "live.recovering": "Measuring what this cleanup recovered…", "live.recovered": "↓ {mem} RAM recovered", "live.cpu": "CPU {a}% → {b}%", "live.auto": "auto-cleanup", "live.estimate": "Windows is still reclaiming memory (≈ {mem} expected)",
     "reason.daemon": "♻️ build daemon (restarts when needed)",
-    "nav.dashboard": "🏠 Dashboard", "nav.impact": "📈 Impact", "nav.cleanup": "🧹 Dev Cleanup", "nav.report": "📊 Boost Report",
+    "nav.dashboard": "🏠 Dashboard", "nav.impact": "📈 Impact", "nav.overview": "Overview", "nav.clean": "🧹 Clean up", "nav.tune": "⚡ Speed up", "nav.pc": "🖥️ This PC", "nav.cleanup": "🧹 Dev Cleanup", "nav.report": "📊 Boost Report",
     "nav.tweaks": "⚙️ Tweaks", "nav.processes": "🔍 Processes", "nav.history": "🗂️ History & Backups", "nav.settings": "🛠️ Settings",
     "tagline": "Room for your agents",
     "watchdog.every": "Watchdog: every {n} min", "watchdog.paused": "Watchdog: paused",

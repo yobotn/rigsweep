@@ -1,4 +1,8 @@
 I18N["ja"] = {
+    "nav.overview": "概要",
+    "nav.clean": "🧹 クリーンアップ",
+    "nav.tune": "⚡ 高速化",
+    "nav.pc": "🖥️ この PC",
     "common.moreActions": "その他の操作",
     "nav.impact": "📈 効果",
     "intro.more": "仕組み",

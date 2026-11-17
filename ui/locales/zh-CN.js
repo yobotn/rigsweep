@@ -1,4 +1,8 @@
 I18N["zh-CN"] = {
+    "nav.overview": "概览",
+    "nav.clean": "🧹 清理",
+    "nav.tune": "⚡ 提速",
+    "nav.pc": "🖥️ 这台电脑",
     "common.moreActions": "更多操作",
     "nav.impact": "📈 清理成果",
     "intro.more": "工作原理",

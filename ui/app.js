@@ -41,6 +41,7 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden) refr
 let state = null;          // StateView from backend
 let selected = new Set();  // tweak ids checked in the UI
 let collapsed = new Set(JSON.parse(safeGet("collapsed") || "[]"));
+const LIVE_TABS = new Set(["dashboard", "cleanup"]); // pages that draw the live CPU / memory samples
 let snapshot = null;
 let procTimer = null;
 let currentTab = "dashboard";
@@ -227,6 +228,7 @@ function rerender() {
   });
   if (state) { setStatusPills(); renderTweaks(); }
   setupIntros();
+  renderPageTabs();
   renderImpact();
   showTab(currentTab);
 }
@@ -289,15 +291,53 @@ function setupIntros() {
 }
 setupIntros();
 
-// ---------- tabs ----------
+// ---------- pages and their in-page tabs ----------
+// The sidebar has one entry per group; the pages of a group are tabs at the top of the content.
+const GROUPS = { home: ["dashboard", "impact"], clean: ["cleanup", "disk", "browser"], tune: ["tweaks", "processes", "startup"], pc: ["hardware", "report"] };
+const groupOf = (name) => Object.keys(GROUPS).find((g) => GROUPS[g].includes(name));
+const lastInGroup = JSON.parse(safeGet("lastInGroup") || "{}");
+const noIcon = (s) => s.replace(/^\P{L}+/u, ""); // drops the leading icon: "Dev Cleanup" from the sidebar label
+function renderPageTabs() {
+  for (const [g, pages] of Object.entries(GROUPS)) {
+    for (const name of pages) {
+      const sec = document.getElementById(`tab-${name}`);
+      if (!sec) continue;
+      sec.classList.add("grouped");
+      let strip = sec.querySelector(":scope > .pagetabs");
+      if (!strip) {
+        strip = document.createElement("div");
+        strip.className = "subtabs pagetabs";
+        strip.setAttribute("role", "tablist");
+        sec.prepend(strip);
+      }
+      strip.setAttribute("aria-label", noIcon(t("nav." + (g === "home" ? "dashboard" : g))));
+      strip.innerHTML = pages.map((p) => `<button role="tab" data-page="${p}" aria-selected="${p === name}" tabindex="${p === name ? 0 : -1}"
+        class="${p === name ? "active" : ""}">${esc(noIcon(t("nav." + (p === "dashboard" ? "overview" : p))))}</button>`).join("");
+    }
+  }
+}
+document.addEventListener("click", (e) => { const b = e.target.closest(".pagetabs [data-page]"); if (b) showTab(b.dataset.page); });
+document.addEventListener("keydown", (e) => {
+  const strip = e.target.closest?.(".pagetabs");
+  if (!strip || !["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
+  const tabs = [...strip.querySelectorAll("[data-page]")], i = tabs.indexOf(e.target), rtl = document.documentElement.dir === "rtl";
+  const step = { ArrowRight: rtl ? -1 : 1, ArrowLeft: rtl ? 1 : -1 }[e.key];
+  const next = e.key === "Home" ? 0 : e.key === "End" ? tabs.length - 1 : (i + step + tabs.length) % tabs.length;
+  e.preventDefault();
+  showTab(tabs[next].dataset.page);
+  document.querySelector(`#tab-${tabs[next].dataset.page} .pagetabs [data-page="${tabs[next].dataset.page}"]`)?.focus();
+});
+renderPageTabs();
 document.querySelectorAll("nav button").forEach((b) =>
-  b.addEventListener("click", () => showTab(b.dataset.tab)));
+  b.addEventListener("click", () => showTab(b.dataset.group ? (lastInGroup[b.dataset.group] || b.dataset.tab) : b.dataset.tab)));
 
 function showTab(name) {
   if (!document.getElementById(`tab-${name}`)) name = "dashboard";
   currentTab = name;
+  const group = groupOf(name);
+  if (group) { lastInGroup[group] = name; safeSet("lastInGroup", JSON.stringify(lastInGroup)); }
   document.querySelectorAll("nav button").forEach((b) => {
-    const on = b.dataset.tab === name;
+    const on = b.dataset.group ? b.dataset.group === group : b.dataset.tab === name;
     b.classList.toggle("active", on);
     if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
   });
@@ -306,6 +346,7 @@ function showTab(name) {
   clearInterval(procTimer);
   if (name === "startup" && startup) renderStartup();
   if (name === "processes") { loadProcesses(); procTimer = setInterval(() => $("#proc-auto").checked && document.visibilityState === "visible" && loadProcesses(), 3000); }
+  if (LIVE_TABS.has(name) && !document.hidden) queueMicrotask(renderLive); // after the script has loaded (renderLive uses later bindings)
   if (name === "dashboard") { loadDashboard(); procTimer = setInterval(() => document.visibilityState === "visible" && loadDashboard(), 10000); }
   if (name === "disk") renderDiskAuto();
   refreshTab(name, "open"); // cleanup, browser, startup, disk: rescan if the last scan is old
@@ -1966,11 +2007,15 @@ function renderSpark() {
   svg.innerHTML = `<polygon class="area" points="0,${H} ${mem} ${W},${H}" /><polyline class="cpu" points="${cpu}" /><polyline class="mem" points="${mem}" />${mark}`;
 }
 
+// Samples arrive every 2 s; they are always kept, but drawn only while someone can see them
+// (window visible, on a page that shows them). Showing the window or the page draws them again.
+const liveVisible = () => !document.hidden && LIVE_TABS.has(currentTab);
 listen("live", (e) => {
   live.push(e.payload);
   if (live.length > 150) live.shift();
-  renderLive();
+  if (liveVisible()) renderLive();
 });
+document.addEventListener("visibilitychange", () => { if (liveVisible()) renderLive(); });
 invoke("get_live").then((h) => { if (h?.length) { live = h.concat(live.filter((s) => s.t > h.at(-1).t)); renderLive(); } }).catch(() => {});
 
 // ---------- backend events ----------

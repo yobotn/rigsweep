@@ -1,4 +1,8 @@
 I18N["ko"] = {
+    "nav.overview": "개요",
+    "nav.clean": "🧹 정리",
+    "nav.tune": "⚡ 속도 향상",
+    "nav.pc": "🖥️ 내 PC",
     "common.moreActions": "추가 작업",
     "nav.impact": "📈 성과",
     "intro.more": "작동 방식",

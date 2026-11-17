@@ -1,4 +1,8 @@
 I18N["es"] = {
+    "nav.overview": "Resumen",
+    "nav.clean": "🧹 Limpiar",
+    "nav.tune": "⚡ Acelerar",
+    "nav.pc": "🖥️ Este equipo",
     "common.moreActions": "Más acciones",
     "nav.impact": "📈 Impacto",
     "intro.more": "Cómo funciona",

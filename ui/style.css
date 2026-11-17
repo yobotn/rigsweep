@@ -334,7 +334,8 @@ button:focus-visible, .tile.link:focus-visible, .tile.heat:focus-visible { outli
 
 /* dashboard */
 .live-sub { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
-.pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--safe); animation: pulse 2s infinite; }
+/* a static dot: an endless box-shadow animation repainted the window ~60 times a second */
+.pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--safe); box-shadow: 0 0 0 3px #34c38f33; }
 @keyframes pulse { 0% { box-shadow: 0 0 0 0 #34c38f88; } 70%, 100% { box-shadow: 0 0 0 6px #34c38f00; } }
 .charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; margin-bottom: 12px; }
 .chart { display: flex; flex-direction: column; min-width: 0; }
@@ -496,3 +497,12 @@ span.ico:not([data-ico]) { background: transparent; }
 .tw .name details.chg > summary::-webkit-details-marker { display: none; }
 .tw .name details.chg[open] > summary { color: var(--text); }
 .tw .name details.chg > ul { margin: 6px 0 2px; font-size: 12px; color: var(--muted); }
+
+/* pages of one group: tabs at the top of the content; the page title is the active tab */
+.pagetabs { margin: -6px 0 16px; }
+.tab.grouped > header h1 {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+.tab.grouped > header { min-height: 0; }
+.tab.grouped > header:not(:has(.actions, button, .seg, .sub)) { display: none; }
+.tab.grouped > header .actions, .tab.grouped > header > button { margin-inline-start: auto; }

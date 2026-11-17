@@ -1,4 +1,8 @@
 I18N["ru"] = {
+    "nav.overview": "Обзор",
+    "nav.clean": "🧹 Очистка",
+    "nav.tune": "⚡ Ускорение",
+    "nav.pc": "🖥️ Этот ПК",
     "common.moreActions": "Другие действия",
     "nav.impact": "📈 Итоги",
     "intro.more": "Как это работает",

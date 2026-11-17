@@ -1,4 +1,8 @@
 I18N["he"] = {
+    "nav.overview": "סקירה",
+    "nav.clean": "🧹 ניקוי",
+    "nav.tune": "⚡ האצה",
+    "nav.pc": "🖥️ מחשב זה",
     "common.moreActions": "פעולות נוספות",
     "nav.impact": "📈 השפעה",
     "intro.more": "איך זה עובד",
