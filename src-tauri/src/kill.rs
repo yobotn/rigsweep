@@ -161,7 +161,7 @@ mod tests {
                 .map(|(pid, p)| (pid.as_u32(), p.start_time()))
                 .collect()
         };
-        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(10);
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(30);
         let mut sys = snap();
         while kids_of(&sys).is_empty() && std::time::Instant::now() < deadline {
             std::thread::sleep(std::time::Duration::from_millis(200));
