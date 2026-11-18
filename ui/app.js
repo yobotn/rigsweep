@@ -786,10 +786,25 @@ async function scanDisk() {
   renderDisk();
 }
 
+// All / Active / Excluded: excluded = caches set to "Never clean" plus folders taken out of the scan
+let diskView = "all";
+function renderDiskView() {
+  const n = (disk?.caches.filter((c) => c.disabled).length || 0) + (state.settings?.disk_excludes?.length || 0);
+  if (n === 0 && diskView === "excluded") diskView = "all";
+  $("#disk-view").innerHTML = [["all", "disk.view.all"], ["active", "disk.view.active"], ["excluded", "disk.view.excluded"]]
+    .map(([v, k]) => `<button role="radio" aria-checked="${diskView === v}" data-disk-view="${v}">${esc(t(k))}${v === "excluded" ? ` <span class="count">${n}</span>` : ""}</button>`).join("");
+}
+$("#disk-view").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-disk-view]");
+  if (b) { diskView = b.dataset.diskView; renderDisk(); }
+});
+
 function renderDisk() {
   renderDiskAuto();
   renderDiskJob();
+  renderDiskView();
   if (!disk) return;
+  if (diskView === "excluded") return renderDiskExcluded();
   const picked = diskRows().filter((r) => diskSel.has(r.k)).reduce((a, r) => a + r.bytes, 0);
   $("#disk-summary").textContent = t("disk.summary", {
     caches: fmtBytes(disk.cache_total), projects: fmtBytes(disk.project_total), n: disk.projects.length,
@@ -802,7 +817,7 @@ function renderDisk() {
   const cacheGroup = (c) => c.eco === "gpu" || c.eco === "ml" ? "gpu" : c.eco === "ai" ? "ai" : "pkg";
   const cacheOrder = sorter("disk", (c, k) => k === "what" ? t("disk.cache." + c.id) : k === "type" ? c.tier : k === "idle" ? (c.disabled ? -1 : c.busy ? 1 : 0) : c.bytes);
   for (const [g, title] of [["pkg", "disk.caches"], ["gpu", "disk.caches.gpu"], ["ai", "disk.caches.ai"]]) {
-    const list = disk.caches.filter((c) => cacheGroup(c) === g);
+    const list = disk.caches.filter((c) => cacheGroup(c) === g && !(diskView === "active" && c.disabled));
     if (!list.length) continue;
     const freeable = list.filter((c) => !c.disabled && !c.show_only).reduce((a, c) => a + c.bytes, 0);
     html += `<tr class="group"><td colspan="6"><b>${esc(t(title))}</b> <span class="sub">${fmtBytes(freeable)}</span></td></tr>`;
@@ -874,14 +889,40 @@ function renderDisk() {
   $("#disk-body").innerHTML = html;
 }
 
+// the Excluded view: what RigSweep leaves alone, each with a way back
+function renderDiskExcluded() {
+  const caches = disk.caches.filter((c) => c.disabled);
+  const folders = state.settings?.disk_excludes || [];
+  let html = "";
+  if (caches.length) {
+    html += `<tr class="group"><td colspan="6"><b>${esc(t("disk.ex.caches", { x: t("disk.disable") }))}</b></td></tr>`;
+    html += caches.map((c) => `<tr title="${esc(c.paths.join("\n"))}"><td>🚫</td><td>${esc(t("disk.cache." + c.id))}</td>
+      <td><span class="badge">${esc(t("disk.disabled"))}</span></td><td class="num">${fmtBytes(c.bytes)}</td><td></td>
+      <td><button class="small ghost" data-disk-toggle="${esc(c.id)}" data-on="1">${esc(t("disk.enable"))}</button></td></tr>`).join("");
+  }
+  if (folders.length) {
+    html += `<tr class="group"><td colspan="6"><b>${esc(t("disk.ex.folders"))}</b> <span class="sub">${esc(t("disk.ex.foldersHint"))}</span></td></tr>`;
+    html += folders.map((f) => `<tr><td>🚫</td><td colspan="2"><b title="${esc(f)}"><bdi dir="ltr">${esc(shortPath(f))}</bdi></b></td>
+      <td class="num sub">—</td><td><span class="badge">${esc(t("disk.ex.notScanned"))}</span></td>
+      <td><button class="small ghost" data-disk-include="${esc(f)}">${esc(t("disk.ex.include"))}</button></td></tr>`).join("");
+  }
+  if (!html) html = `<tr><td colspan="6" class="loading">${esc(t("disk.ex.none"))}</td></tr>`;
+  $("#disk-body").innerHTML = html;
+}
+
 wireSort("#tab-disk", "disk", renderDisk);
 $("#disk-body").addEventListener("change", (e) => {
   const k = e.target.dataset.disk;
   if (k) { e.target.checked ? diskSel.add(k) : diskSel.delete(k); renderDisk(); }
 });
 $("#disk-body").addEventListener("click", async (e) => {
-  const tg = e.target.closest("[data-disk-toggle]"), ex = e.target.closest("[data-disk-exclude]");
-  if (tg) {
+  const tg = e.target.closest("[data-disk-toggle]"), ex = e.target.closest("[data-disk-exclude]"), inc = e.target.closest("[data-disk-include]");
+  if (inc) {
+    state.settings = await call("remove_disk_exclude", { path: inc.dataset.diskInclude });
+    toast(t("disk.ex.included", { p: shortPath(inc.dataset.diskInclude) }), "ok");
+    renderDisk();
+    loadDisk(true);
+  } else if (tg) {
     const id = tg.dataset.diskToggle, enabled = tg.dataset.on === "1";
     state.settings = await call("set_disk_cache_enabled", { id, enabled });
     const c = disk.caches.find((x) => x.id === id);

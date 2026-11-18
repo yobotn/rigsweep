@@ -162,7 +162,7 @@
     proj("C:\\Users\\dev\\code\\old-landing", 120, [art("node_modules", "node", "deps", 612 * 1048576), art(".next", "node", "build", 284 * 1048576)]),
     proj("C:\\Users\\dev\\code\\shop-web", 2, [art("node_modules", "node", "deps", 890 * 1048576)]),
   ];
-  const caches = [cache("npm", "node", "safe", 2.4 * GB), cache("pnpm", "node", "safe", 3.1 * GB), cache("cargo", "rust", "safe", 1.7 * GB), cache("pip", "python", "safe", 640 * 1048576)];
+  const caches = [cache("npm", "node", "safe", 2.4 * GB), cache("pnpm", "node", "safe", 3.1 * GB), cache("cargo", "rust", "safe", 1.7 * GB), cache("pip", "python", "safe", 640 * 1048576), { ...cache("nugetpkgs", "dotnet", "safe", 1.1 * GB), disabled: true }];
   const diskReport = { caches, projects, worktrees: [], roots: ["C:\\Users\\dev\\code"], home: "C:\\Users\\dev",
     cache_total: caches.reduce((a, c) => a + c.bytes, 0), project_total: projects.reduce((a, x) => a + x.items.reduce((b, i) => b + i.bytes, 0), 0),
     stale_total: 0, worktree_total: 0, scan_ms: 4200 };
@@ -179,7 +179,7 @@
     get_report_preview: { report, consent_default: share.consent_default },
     get_state: { elevated: true, categories: cat.categories, tweaks, paused: false, startup_registered: true, backup_count: 41, data_dir: "",
       settings: { start_with_windows: true, stay_in_tray: true, watchdog_minutes: 30, dev_folders: [], idle_minutes: 120,
-        auto_kill_stale: false, badge_enabled: true, badge_warn_gb: 1, badge_alert_gb: 2 } },
+        auto_kill_stale: false, badge_enabled: true, badge_warn_gb: 1, badge_alert_gb: 2, disk_excludes: ["C:\\Users\\dev\\code\\client-archive"] } },
     get_dev_processes: dev,
     get_processes: snapshot,
     get_startup: startup,

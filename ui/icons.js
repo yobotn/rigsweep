@@ -47,6 +47,8 @@ const ICON_PATHS = {
   gamepad: "M6.5 8h11a4 4 0 0 1 3.9 4.9l-.9 3.9a2.5 2.5 0 0 1-4.3 1.1L14.7 16H9.3l-1.5 1.9a2.5 2.5 0 0 1-4.3-1.1l-.9-3.9A4 4 0 0 1 6.5 8zM7 12h3M8.5 10.5v3M15.5 12h.01M17.5 12h.01",
   branch: "M6 4a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM6 16a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM18 6a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM6 8v8M18 10c0 4-4 5.5-10 7",
   box: "M12 3l8 4.5v9L12 21l-8-4.5v-9zM4 7.5l8 4.5 8-4.5M12 12v9",
+  ban: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM5.6 5.6l12.8 12.8",
+  eye: "M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z",
 };
 const ICON_FOR = {
   "🏠": "home", "🧹": "broom", "⚡": "zap", "🖥": "monitor", "🗂": "folder", "🛠": "sliders", "⚙": "toggle",
@@ -55,7 +57,7 @@ const ICON_FOR = {
   "✅": "check", "🛑": "stop", "🔒": "lock", "🤖": "bot", "💤": "moon", "🔌": "plug", "🧟": "ghost", "🐚": "terminal",
   "🐧": "server", "👯": "copy", "🎉": "sparkle", "🏆": "trophy", "▶": "play", "⏹": "square", "⏸": "pause",
   "📸": "camera", "📋": "clipboard", "🧠": "chip", "🆓": "chip", "🔢": "list", "🧩": "layers", "🎯": "target",
-  "⬆": "up", "☁": "cloud", "🎮": "gamepad", "🌿": "branch", "📦": "box",
+  "⬆": "up", "☁": "cloud", "🎮": "gamepad", "🌿": "branch", "📦": "box", "🚫": "ban", "👁": "eye",
 };
 const ICON_LEAD = /^(\s*)(\p{Extended_Pictographic})️?\s?/u;
 const ICON_SKIP = new Set(["OPTION", "SELECT", "TEXTAREA", "SCRIPT", "STYLE", "TITLE", "PRE", "CODE"]);

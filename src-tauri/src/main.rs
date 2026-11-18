@@ -147,6 +147,7 @@ fn run_app(start_hidden: bool) {
             commands::dismiss_disk_job,
             commands::set_disk_cache_enabled,
             commands::add_disk_exclude,
+            commands::remove_disk_exclude,
             commands::set_disk_auto,
             commands::get_hardware,
             commands::disk_speed_test,

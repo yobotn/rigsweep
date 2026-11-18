@@ -591,3 +591,8 @@ button.linkish:hover { color: var(--accent); text-decoration: underline; }
 nav button .ico, .tabs button .ico { opacity: 0.85; }
 nav button.active .ico { opacity: 1; color: var(--accent); }
 .ready-ico .ico { width: 22px; height: 22px; margin: 0; vertical-align: middle; }
+
+/* summary on the start, view filter on the end of the same line */
+.list-filter { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s2) var(--s4); margin-bottom: var(--s3); }
+.list-filter .summary { margin: 0; }
+.seg .count { display: inline-block; min-width: 1.6em; padding: 0 var(--s0); margin-inline-start: var(--s0); border-radius: var(--r-pill); background: var(--border); color: var(--text); font-size: var(--fs-xs); text-align: center; }

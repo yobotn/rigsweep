@@ -11,3 +11,6 @@ setTimeout(() => { scanOnce("disk", scanDisk).then(renderReady); scanOnce("brows
 
 // ?why=<pid> opens the "Why is this busy?" panel (for screenshots)
 if (new URLSearchParams(location.search).get("why")) setTimeout(() => processWhy(Number(new URLSearchParams(location.search).get("why")), document.querySelector("[data-why]")), 900);
+
+// ?view=excluded opens a list filter (for screenshots)
+if (new URLSearchParams(location.search).get("view")) setTimeout(() => document.querySelector(`[data-disk-view="${new URLSearchParams(location.search).get("view")}"]`)?.click(), 1200);

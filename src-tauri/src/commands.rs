@@ -637,6 +637,17 @@ pub async fn add_disk_exclude(state: State<'_, AppState>, path: String) -> R<Set
     Ok(Settings::load(&db))
 }
 
+/// Take a folder off the Dev Disk exclusions (the next scan sees it again).
+#[tauri::command]
+pub async fn remove_disk_exclude(state: State<'_, AppState>, path: String) -> R<Settings> {
+    let db = lock(&state)?;
+    let mut s = Settings::load(&db);
+    s.disk_excludes.retain(|x| !x.eq_ignore_ascii_case(path.trim()));
+    s.save(&db).map_err(err)?;
+    db.log("gui", None, "disk_include", true, &path);
+    Ok(Settings::load(&db))
+}
+
 // ---------- boost report ----------
 
 fn measure(state: &State<'_, AppState>) -> R<Metrics> {

@@ -167,7 +167,10 @@
         <label><input type="checkbox" id="da-caches" /> <span data-i18n="disk.auto.caches"></span></label>
         <label><span data-i18n="disk.auto.min"></span> <select id="da-min"></select></label>
       </div>
-      <div id="disk-summary" class="summary"></div>
+      <div class="list-filter">
+        <div id="disk-summary" class="summary"></div>
+        <div class="seg" id="disk-view" role="radiogroup" data-i18n-aria="disk.view"></div>
+      </div>
       <div id="disk-job" class="jobbar hidden">
         <div class="job-head">
           <b id="dj-title" role="status" aria-live="polite"></b>
