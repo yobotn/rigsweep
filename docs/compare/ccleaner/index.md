@@ -6,32 +6,32 @@
 
 ## Who each is for
 
-- **CCleaner**: home users who want one app for temporary files, browser data, startup items and, in paid plans, driver and software updates. It also has a Mac version.
+- **CCleaner**: home users who want one app for temporary files, browser data, startup items and, in paid plans, driver and software updates. It also has Mac and Android versions.
 - **RigSweep**: developers on Windows, especially those running AI coding agents, dev servers and many package managers.
 
 ## Facts side by side
 
 |   | RigSweep | CCleaner |
 | --- | --- | --- |
-| Price and license | Free, MIT license | Free edition for home use, plus paid yearly plans (Professional, Professional Plus, Premium bundle) |
+| Price and license | Free, MIT license | Free edition for home use, plus paid yearly plans (Pro, Pro Plus, Premium Bundle) |
 | Open source | Yes | No |
-| Platforms | Windows 10 and 11 | Windows and Mac |
+| Platforms | Windows 10 and 11 | Windows 7 to 11, Mac and Android |
 | Ends leftover dev processes | Yes: dev servers, build daemons, MCP servers, agent CLIs, headless browsers, with their process trees | Not a listed feature |
 | node_modules and build output | Yes: Node, Rust, .NET, Java, Python projects, only next to their project file | Not a listed feature |
 | Package caches | Yes: npm, pnpm, Yarn, Bun, pip, uv, Cargo, Go, NuGet, Gradle, Maven, Playwright, Puppeteer, Hugging Face | Not a listed feature |
 | Browser cleanup | Empties caches of Chrome, Edge, Brave, Vivaldi, Opera and Firefox. Sign-ins, cookies, passwords and history are never touched | Cleans browser history, cache and cookies. You can set rules to keep cookies for chosen sites |
 | Registry cleaner | No | Yes |
-| Driver updater | No | Yes, in the paid plans (checking for driver updates is free, installing them is paid) |
-| Ads, upsell, telemetry | No ads, no account, no paid tier. Anonymous usage stats only if you agree at first run | Paid upgrades offered in the app |
-| Interface languages | 12 | – |
+| Driver updater | No | Yes, in the paid plans only |
+| Ads, upsell, telemetry | No ads, no account, no paid tier. Anonymous usage stats only if you agree at first run | Paid plans sold alongside the free edition |
+| Interface languages | 12 | 40+ |
 
-Checked November 2026 on ccleaner.com (the [plans page](https://www.ccleaner.com/ccleaner/plans), [CCleaner Professional](https://www.ccleaner.com/ccleaner/professional) and [Driver Updater](https://www.ccleaner.com/ccleaner/driver-updater) pages). RigSweep facts are from its [README](https://github.com/yobotn/rigsweep#readme) and [homepage](https://rigsweep.com/). A dash means we couldn't verify it on an official source. Spotted something out of date? [Open an issue](https://github.com/yobotn/rigsweep/issues).
+Checked November 2026 on ccleaner.com (the [plans page](https://www.ccleaner.com/ccleaner/plans), [CCleaner Professional](https://www.ccleaner.com/ccleaner/professional) and [Driver Updater](https://www.ccleaner.com/ccleaner/driver-updater) and [CCleaner for PC](https://www.ccleaner.com/ccleaner) pages). RigSweep facts are from its [README](https://github.com/yobotn/rigsweep#readme) and [homepage](https://rigsweep.com/). A dash means we couldn't verify it on an official source. Spotted something out of date? [Open an issue](https://github.com/yobotn/rigsweep/issues).
 
 ## Where CCleaner is the better choice
 
 - You want broad cleanup of Windows and everyday apps, not developer tools.
 - You want driver and software updates handled by the same app.
-- You also use a Mac and want the same tool there.
+- You also use a Mac or Android phone and want the same brand there.
 - You prefer a long-established product.
 
 ## Where RigSweep is the better choice
