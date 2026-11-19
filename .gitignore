@@ -9,3 +9,4 @@ server/target/
 !*.env.example
 !.env.example
 *.crt
+.release/
