@@ -36,6 +36,9 @@ jobs:
 
       - name: Test (real Postgres, no Docker)
         working-directory: server
+        env:
+          # postgresql_embedded downloads Postgres from GitHub releases; anonymous calls get rate limited
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: cargo test --locked
 
       - name: Build
