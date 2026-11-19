@@ -191,6 +191,38 @@
       start_time: Math.floor(Date.now() / 1000) - 33000, cpu: 7.2, mem: 612 * 1048576, disk_read: 1.2 * 1048576, disk_write: 300 * 1024, threads: 14,
       parents: [{ pid: 15032, name: "pwsh.exe", cpu: 0, mem: 80 * 1048576 }, { pid: 9876, name: "Code.exe", cpu: 9.7, mem: 1.2 * GB }],
       children: [{ pid: 18301, name: "esbuild.exe", cpu: 2.1, mem: 96 * 1048576 }], company: "Node.js", description: "Node.js JavaScript Runtime" },
+    get_gpu: { npu: false, adapters: [
+      { luid: "0x0_0x1", name: "NVIDIA GeForce RTX 4070 Laptop GPU", util: 63, npu: false, dedicated: 9.4 * GB, shared: 410 * 1048576,
+        engines: [{ kind: "3D", util: 12 }, { kind: "Compute", util: 61 }, { kind: "Copy", util: 3 }, { kind: "VideoDecode", util: 0 }] },
+      { luid: "0x0_0x2", name: "Intel(R) Arc(TM) Graphics", util: 4, npu: false, dedicated: 0, shared: 1.1 * GB, engines: [{ kind: "3D", util: 4 }] }],
+      procs: [
+        { pid: 14220, name: "ollama_llama_server.exe", util: 58, engine: "Compute", adapter: "0x0_0x1", npu_util: 0, dedicated: 7.9 * GB, shared: 120 * 1048576 },
+        { pid: 20410, name: "python.exe", util: 3, engine: "Compute", adapter: "0x0_0x1", npu_util: 0, dedicated: 1.2 * GB, shared: 64 * 1048576 },
+        { pid: 9876, name: "Code.exe", util: 2.1, engine: "3D", adapter: "0x0_0x2", npu_util: 0, dedicated: 0, shared: 210 * 1048576 },
+        { pid: 3120, name: "dwm.exe", util: 4.4, engine: "3D", adapter: "0x0_0x2", npu_util: 0, dedicated: 0, shared: 380 * 1048576 }] },
+    get_ai_workload: [
+      { pid: 13990, name: "ollama.exe", label: "Ollama", models: [{ name: "qwen3-coder:14b", vram: 7.8 * GB, size: 9.1 * GB }], vram: 7.9 * GB, util: 58, npu_util: 0 },
+      { pid: 20410, name: "python.exe", label: "ComfyUI (Python)", models: [], vram: 1.2 * GB, util: 3, npu_util: 0 }],
+    get_net_totals: { in_per_sec: 2.4 * 1048576, out_per_sec: 310 * 1024, ifaces: [
+      { name: "Wi-Fi", description: "Intel(R) Wi-Fi 7 BE200 320MHz", kind: "wifi", hardware: true, link_speed: 2.4e9, in_per_sec: 2.4 * 1048576, out_per_sec: 310 * 1024, in_total: 18.2 * GB, out_total: 2.1 * GB }] },
+    get_connections: { conns: [], procs: [
+      { pid: 18244, name: "node.exe", listening: [5173], udp: [], established: 2, tcp: 3, remotes: [{ host: "127.0.0.1", count: 2 }] },
+      { pid: 9876, name: "Code.exe", listening: [], udp: [], established: 14, tcp: 14, remotes: [{ host: "140.82.112.21", count: 6 }, { host: "13.107.42.18", count: 4 }] },
+      { pid: 13990, name: "ollama.exe", listening: [11434], udp: [], established: 0, tcp: 1, remotes: [] },
+      { pid: 19876, name: "python.exe", listening: [8000], udp: [], established: 1, tcp: 2, remotes: [] }] },
+    get_port_owner: [{ pid: 11408, name: "node.exe", cmd: "node C:\\Users\\dev\\code\\dashboard\\node_modules\\next\\dist\\bin\\next dev", proto: "tcp", states: ["LISTEN"] }],
+    finders_orphan_programs: [
+      { kind: "dead_entry", name: "OldVPN Client 3.2", publisher: "OldVPN Inc.", version: "3.2", reg_key: "HKLM\\SOFTWARE\\...\\OldVPN", missing_file: "C:\\Program Files\\OldVPN\\uninst.exe", estimated_kb: 0, path: "", bytes: 0, modified: 0, has_exe: false },
+      { kind: "leftover_folder", name: "PhotoTool", publisher: "", reg_key: "", missing_file: "", path: "C:\\Program Files\\PhotoTool", bytes: 412 * 1048576, modified: 1690000000, has_exe: false },
+      { kind: "leftover_folder", name: "IP Scanner Portable", publisher: "", reg_key: "", missing_file: "", path: "C:\\Program Files (x86)\\IP Scanner Portable", bytes: 38 * 1048576, modified: 1700000000, has_exe: true }],
+    finders_old_files: { folders: [], truncated: false, total_found: 3, total_bytes: 6.9 * GB, files: [
+      { path: "C:\\Users\\dev\\Downloads\\ubuntu-22.04-desktop-amd64.iso", bytes: 4.7 * GB, modified: 1672000000, accessed: 0, category: "big_old", onedrive: false },
+      { path: "C:\\Users\\dev\\Documents\\old-recordings\\meeting.mp4", bytes: 1.9 * GB, modified: 1660000000, accessed: 0, category: "big_old", onedrive: true },
+      { path: "C:\\Users\\dev\\Downloads\\SomeApp-Setup-1.2.exe", bytes: 310 * 1048576, modified: 1720000000, accessed: 0, category: "old_installer", onedrive: false }] },
+    finders_worth_a_look: [
+      { path: "C:\\Users\\dev\\AppData\\Roaming\\updater\\upd.exe", reason: "unsigned_autostart", signature: "unsigned", signer: "", autostart: "HKCU\\...\\Run : Updater", running: true, sha256: "9f2c4e1a7b3d5e6f8a9b0c1d2e3f4a5b", bytes: 1.2 * 1048576, modified: 1730000000 },
+      { path: "C:\\Users\\dev\\Downloads\\invoice.pdf.exe", reason: "double_extension", signature: "unsigned", signer: "", autostart: "", running: false, sha256: "", bytes: 640 * 1024, modified: 1731000000 }],
+    finders_defender_scan: { verdict: "clean", detail: "", exit_code: 0 },
     get_browser_caches: browsers,
   };
   window.__TAURI__ = {

@@ -618,3 +618,49 @@ nav button.active .ico { opacity: 1; color: var(--accent); }
 .free-card.ram { border-color: color-mix(in srgb, var(--c-mem) 45%, transparent); background: color-mix(in srgb, var(--c-mem) 10%, var(--bg)); }
 .free-card.ram .big { color: var(--c-mem); }
 .free-card.cpu .big { color: var(--c-cpu, var(--accent)); }
+
+/* ---------- Style: "clean" (flat, Lucide icons) or "ai" (emoji, gradients, glow) ---------- */
+/* icons.js keeps each emoji in a .emo span next to its .ico twin; the style picks which one shows */
+html:not([data-style="ai"]) .emo { display: none; }
+html[data-style="ai"] .ico:not(.solo):not([data-ico]) { display: none; }
+html[data-style="ai"] .emo { margin-inline-end: 0.3em; }
+.ico.solo { color: inherit; }
+html[data-style="ai"] {
+  --glow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent), 0 8px 28px -12px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+html[data-style="ai"] .brand { background: linear-gradient(90deg, #8ab4ff, #c79bff 55%, #ff9bd2); -webkit-background-clip: text; background-clip: text; color: transparent; }
+html[data-style="ai"] .brand .bolt, html[data-style="ai"] .brand .tagline { -webkit-text-fill-color: initial; }
+html[data-style="ai"] .tile, html[data-style="ai"] .card {
+  background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 7%, var(--panel)), var(--panel) 60%);
+  box-shadow: var(--glow);
+}
+html[data-style="ai"] button.primary { background: linear-gradient(90deg, var(--accent-solid), #7b5cff); border-color: transparent; }
+html[data-style="ai"] nav button.active { box-shadow: inset 3px 0 0 #a07bff, 0 0 18px -8px #a07bff; }
+
+/* ---------- Mode: Simple hides the expert detail; Pro shows everything ---------- */
+html[data-mode="simple"] .pro-only { display: none !important; }
+
+/* Settings → Appearance & features */
+.choice-row { display: flex; flex-wrap: wrap; gap: var(--s2); }
+.choice { display: flex; gap: var(--s2); align-items: flex-start; border: 1px solid var(--border); border-radius: var(--radius); padding: var(--s3); cursor: pointer; flex: 1 1 200px; background: var(--bg); }
+.choice:has(input:checked) { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--bg)); }
+.choice input { margin-top: 3px; }
+.choice .sub { display: block; margin-top: var(--s-1); }
+.mon-list { display: grid; gap: var(--s2); }
+.mon-list .chk .sub { display: block; }
+html.no-heat #t-heat-tile, html.no-heat #live-heat-row { display: none !important; }
+[data-icon]::before { content: ""; display: inline-block; width: 1.1em; height: 1.1em; vertical-align: -0.18em; margin-inline-end: 0.4em;
+  background: currentColor; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-size: contain; mask-size: contain; }
+html[data-style="ai"] [data-icon]::before { display: none; }
+html[data-mode="pro"] .simple-only { display: none; }
+.feat code { display: inline-block; margin: 0 2px 2px 0; }
+.who-row { display: flex; gap: var(--s2); align-items: flex-end; flex-wrap: wrap; margin-bottom: var(--s2); }
+.who-row .grow { flex: 1 1 320px; }
+.who-row .grow input { width: 100%; }
+.ai-row { display: flex; justify-content: space-between; gap: var(--s3); padding: var(--s2) 0; border-top: 1px solid var(--border); }
+.ai-row:first-child { border-top: 0; }
+.eng { display: grid; grid-template-columns: 90px 1fr 48px; gap: var(--s2); align-items: center; font-size: var(--fs-xs); }
+.fd-head { margin-bottom: var(--s1); }
+.fd-head h2 { margin: 0; }
+.fd-out .tbl td { vertical-align: top; }
+.fd-actions { display: flex; gap: var(--s2); justify-content: flex-end; margin-top: var(--s3); align-items: center; }

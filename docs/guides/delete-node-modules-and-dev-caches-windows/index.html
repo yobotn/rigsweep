@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Delete node_modules and dev caches on Windows safely · RigSweep</title>
+  <meta name="description" content="How to reclaim disk space from node_modules, .next, target, bin/obj, .venv and the npm, pnpm, Yarn, pip, uv, Cargo, Go, NuGet, Gradle, Maven, Playwright and Hugging Face caches on Windows, with each tool's own command and the caveats." />
+  <link rel="canonical" href="https://rigsweep.com/guides/delete-node-modules-and-dev-caches-windows/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="RigSweep" />
+  <meta property="og:title" content="Delete node_modules and dev caches on Windows safely · RigSweep" />
+  <meta property="og:description" content="How to reclaim disk space from node_modules, .next, target, bin/obj, .venv and the npm, pnpm, Yarn, pip, uv, Cargo, Go, NuGet, Gradle, Maven, Playwright and Hugging Face caches on Windows, with each tool's own command and the caveats." />
+  <meta property="og:url" content="https://rigsweep.com/guides/delete-node-modules-and-dev-caches-windows/" />
+  <meta property="og:image" content="https://rigsweep.com/social.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="theme-color" content="#0b0e13" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="alternate" type="text/plain" href="https://rigsweep.com/llms.txt" title="llms.txt" />
+  <style>
+    :root { --bg: #0b0e13; --panel: #141922; --border: #262e3f; --text: #e8ebf1; --muted: #a3abbd; --accent: #4f8cff; color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.7 "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif; }
+    a { color: var(--accent); }
+    code { font-family: Consolas, ui-monospace, monospace; font-size: .9em; background: var(--panel); border-radius: 5px; padding: 1px 6px; overflow-wrap: anywhere; }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+    nav { border-bottom: 1px solid var(--border); }
+    nav .wrap { display: flex; justify-content: space-between; align-items: center; gap: 16px; min-height: 60px; font-size: 14px; flex-wrap: wrap; }
+    nav .logo { font-weight: 700; font-size: 18px; color: var(--text); text-decoration: none; }
+    nav .links { display: flex; gap: 16px; flex-wrap: wrap; }
+    nav .links a { color: var(--muted); text-decoration: none; }
+    main { padding: 32px 16px 24px; }
+    .crumbs { font-size: 14px; color: var(--muted); margin-bottom: 16px; }
+    .crumbs a { color: var(--muted); }
+    h1 { font-size: clamp(30px, 5vw, 42px); line-height: 1.15; margin: 0 0 16px; letter-spacing: -0.015em; }
+    h2 { font-size: 22px; margin: 36px 0 8px; }
+    h3 { font-size: 17px; margin: 24px 0 6px; }
+    p, li { color: var(--muted); }
+    strong { color: var(--text); }
+    pre { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; overflow-x: auto; }
+    pre code { background: none; padding: 0; overflow-wrap: normal; }
+    .tw { overflow-x: auto; margin: 16px 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 15px; line-height: 1.5; }
+    th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+    thead th { color: var(--text); border-bottom-color: var(--muted); }
+    tbody th { color: var(--text); font-weight: 600; }
+    td { color: var(--muted); }
+    .note { font-size: 14px; }
+    footer { margin-top: 48px; padding: 24px 16px 40px; border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; }
+  </style>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "headline": "Delete node_modules, build output and package caches on Windows",
+      "description": "How to reclaim disk space from node_modules, .next, target, bin/obj, .venv and the npm, pnpm, Yarn, pip, uv, Cargo, Go, NuGet, Gradle, Maven, Playwright and Hugging Face caches on Windows, with each tool's own command and the caveats.",
+      "url": "https://rigsweep.com/guides/delete-node-modules-and-dev-caches-windows/",
+      "mainEntityOfPage": "https://rigsweep.com/guides/delete-node-modules-and-dev-caches-windows/",
+      "inLanguage": "en",
+      "datePublished": "2026-11-19",
+      "dateModified": "2026-11-19",
+      "author": {
+        "@type": "Person",
+        "name": "yobotn",
+        "url": "https://github.com/yobotn"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "@id": "https://rigsweep.com/#org",
+        "name": "RigSweep",
+        "url": "https://rigsweep.com/",
+        "logo": "https://rigsweep.com/icon.png"
+      },
+      "about": {
+        "@type": "SoftwareApplication",
+        "@id": "https://rigsweep.com/#app",
+        "name": "RigSweep",
+        "operatingSystem": "Windows 10, Windows 11",
+        "applicationCategory": "DeveloperApplication"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://rigsweep.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Guides",
+          "item": "https://rigsweep.com/guides/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Delete node_modules and dev caches",
+          "item": "https://rigsweep.com/guides/delete-node-modules-and-dev-caches-windows/"
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is it safe to delete node_modules?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, if the project has a package.json and a lockfile. The next npm install (or pnpm, Yarn or Bun install) restores it. Close dev servers and editors using the project first so no files are locked."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is it safe to clear the npm cache?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. npm cache clean --force empties it and npm downloads packages again when needed. The only cost is time and bandwidth on the next install."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I clean the pnpm store?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Run pnpm store prune. It removes packages that no project references and doesn't affect your projects."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I delete the .m2 repository folder?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "You can, but artifacts you built with mvn install live only there and come back only when you build those projects again. Everything downloaded from a remote repository is downloaded again."
+          }
+        }
+      ]
+    }
+  ]
+}
+  </script>
+</head>
+<body>
+  <nav><div class="wrap"><a class="logo" href="/">🧹 RigSweep</a><div class="links"><a href="/guides/">Guides</a><a href="/compare/">Compare</a><a href="/developers/">API</a><a href="/about/">About</a><a href="https://github.com/yobotn/rigsweep">GitHub</a></div></div></nav>
+  <main class="wrap">
+    <div class="crumbs"><a href="/">Home</a> › <a href="/guides/">Guides</a> › Delete node_modules and dev caches</div>
+    <h1>Delete node_modules, build output and package caches on Windows</h1>
+    <p><strong>Dependency folders, build output and package caches are safe to delete when you can rebuild or re-download them.</strong> Delete project folders like <code>node_modules</code>, <code>target</code> or <code>bin/obj</code> for projects you aren't working on, and clean package caches with each tool's own command (<code>npm cache clean --force</code>, <code>pnpm store prune</code>, <code>uv cache prune</code>, <code>go clean -cache</code>). The next install or build brings back what it needs, at the cost of time and bandwidth.</p>
+
+    <h2>Project folders</h2>
+    <div class="tw"><table>
+    <thead><tr><th>Folder</th><th>Made by</th><th>How it comes back</th></tr></thead>
+    <tbody>
+    <tr><th scope="row"><code>node_modules</code></th><td>npm, pnpm, Yarn, Bun</td><td><code>npm install</code> (or your package manager's install)</td></tr>
+    <tr><th scope="row"><code>.next</code>, <code>.nuxt</code>, <code>dist</code></th><td>Next.js, Nuxt, bundlers</td><td>The next build or dev run</td></tr>
+    <tr><th scope="row"><code>target</code></th><td>Cargo (Rust), Maven (Java)</td><td><code>cargo build</code>, <code>mvn package</code>. In a Rust project, <code>cargo clean</code> removes it</td></tr>
+    <tr><th scope="row"><code>bin</code>, <code>obj</code></th><td>.NET</td><td><code>dotnet build</code></td></tr>
+    <tr><th scope="row"><code>build</code>, <code>.gradle</code></th><td>Gradle</td><td>The next Gradle build</td></tr>
+    <tr><th scope="row"><code>.venv</code>, <code>venv</code></th><td>Python</td><td>Recreate it, for example <code>uv sync</code> or <code>python -m venv .venv</code> plus <code>pip install -r requirements.txt</code></td></tr>
+    </tbody>
+    </table></div>
+    <p>Only delete a folder when the project file that produced it sits next to it (<code>package.json</code>, <code>Cargo.toml</code>, <code>*.csproj</code>, <code>pyvenv.cfg</code>). A folder called <code>build</code> or <code>bin</code> elsewhere may hold something you can't rebuild. On Windows, <code>rd</code> often handles deep <code>node_modules</code> trees better than Explorer:</p>
+<pre><code>cmd /c rd /s /q node_modules</code></pre>
+
+    <h2>Package caches, with each tool's own command</h2>
+    <div class="tw"><table>
+    <thead><tr><th>Tool</th><th>Clean command</th><th>Note</th></tr></thead>
+    <tbody>
+    <tr><th scope="row">npm</th><td><code>npm cache clean --force</code></td><td><code>npm cache verify</code> checks and trims the cache without emptying it</td></tr>
+    <tr><th scope="row">pnpm</th><td><code>pnpm store prune</code></td><td>Removes only packages no project references. <code>pnpm store path</code> shows where the store is</td></tr>
+    <tr><th scope="row">Yarn</th><td><code>yarn cache clean</code></td><td><code>yarn cache dir</code> shows the folder</td></tr>
+    <tr><th scope="row">pip</th><td><code>pip cache purge</code></td><td><code>pip cache dir</code> shows the folder</td></tr>
+    <tr><th scope="row">uv</th><td><code>uv cache prune</code></td><td>Removes unused entries. <code>uv cache clean</code> empties the whole cache in <code>%LOCALAPPDATA%\uv\cache</code></td></tr>
+    <tr><th scope="row">Go</th><td><code>go clean -cache</code>, <code>go clean -modcache</code></td><td>The build cache rebuilds itself. The module cache means re-downloading every module</td></tr>
+    <tr><th scope="row">Cargo</th><td><code>cargo clean</code> (per project)</td><td>Recent Cargo versions clean old downloads in the Cargo home cache on their own. Most of the space is usually in each project's <code>target</code></td></tr>
+    <tr><th scope="row">NuGet</th><td><code>dotnet nuget locals all --clear</code></td><td><code>dotnet nuget locals all --list</code> shows the folders first</td></tr>
+    <tr><th scope="row">Gradle</th><td><code>gradle --stop</code>, then delete <code>%USERPROFILE%\.gradle\caches</code></td><td>Stop the daemons first or files stay locked. Everything is downloaded again</td></tr>
+    <tr><th scope="row">Maven</th><td>Delete folders in <code>%USERPROFILE%\.m2\repository</code></td><td>See the caveat below about <code>mvn install</code></td></tr>
+    <tr><th scope="row">Playwright</th><td><code>npx playwright uninstall</code></td><td>Add <code>--all</code> to also remove browsers from other Playwright installs. Default folder: <code>%USERPROFILE%\AppData\Local\ms-playwright</code></td></tr>
+    <tr><th scope="row">Hugging Face</th><td><code>hf cache ls</code>, <code>hf cache rm &lt;repo&gt;</code>, <code>hf cache prune</code></td><td>Models can be many GB to download again. <code>--dry-run</code> previews</td></tr>
+    </tbody>
+    </table></div>
+
+    <h2>Caveats</h2>
+    <ul>
+    <li><strong>Maven local installs can't be re-downloaded.</strong> Artifacts you built yourself with <code>mvn install</code> exist only in <code>.m2\repository</code>. Deleting the whole folder removes them until you build those projects again.</li>
+    <li><strong>pnpm uses hard links.</strong> Files in a project's <code>node_modules</code> and in the pnpm store are the same bytes on disk, so Explorer counts them twice. Deleting one project's <code>node_modules</code> frees less than its size suggests, and <code>pnpm store prune</code> is the way to free store space.</li>
+    <li><strong>Locked files.</strong> A running dev server, watcher, test runner or editor can hold files open (native <code>.node</code> modules, <code>esbuild.exe</code>). Deletion then fails part way. Stop the process first; the <a href="/guides/claude-code-leftover-processes-windows/">leftover processes guide</a> shows how to find it.</li>
+    <li><strong>Long paths.</strong> Deep <code>node_modules</code> trees can exceed the classic 260-character path limit. <code>rd /s /q</code> or a package-manager command usually works where Explorer stops.</li>
+    <li><strong>Big re-downloads.</strong> Playwright browsers, Hugging Face models, Gradle, Maven, NuGet and Go module caches take time and bandwidth to fill again. Clean them when you need the space, not by habit.</li>
+    </ul>
+
+    <h2>How RigSweep's Dev Disk does it</h2>
+    <p><a href="/">RigSweep</a> is a free, open-source Windows app. Its Dev Disk tab scans your user profile and lists project folders, package caches, GPU and ML caches, AI tool caches and leftover git worktrees with their size.</p>
+    <ul>
+    <li>A project folder only counts if its project file sits next to it, so a random <code>build</code> folder is never touched.</li>
+    <li>Only projects nobody has edited for 30 days (adjustable) are pre-selected. Projects a running process is using are locked.</li>
+    <li>uv and Go caches are cleaned with their own commands. For Playwright and Puppeteer, only older browser versions go and the newest stays.</li>
+    <li>Caches that mean a big re-download (Playwright, Puppeteer, Hugging Face, Gradle, Maven, NuGet packages, Go modules) start switched off.</li>
+    <li>Maven artifacts built with <code>mvn install</code> are never deleted.</li>
+    <li>Nothing is deleted until you confirm, and every folder is checked again right before deletion. A long cleanup can be paused, resumed or stopped.</li>
+    </ul>
+    <p>Prefer a terminal tool for <code>node_modules</code> only? See <a href="/compare/npkill/">RigSweep vs npkill</a>. <a href="https://github.com/yobotn/rigsweep/releases/latest">Download RigSweep</a> (Windows 10 and 11, MIT).</p>
+    <h2 id="faq">FAQ</h2>
+    <h3>Is it safe to delete node_modules?</h3>
+    <p>Yes, if the project has a <code>package.json</code> and a lockfile. The next <code>npm install</code> (or pnpm, Yarn or Bun install) restores it. Close dev servers and editors using the project first so no files are locked.</p>
+    <h3>Is it safe to clear the npm cache?</h3>
+    <p>Yes. <code>npm cache clean --force</code> empties it and npm downloads packages again when needed. The only cost is time and bandwidth on the next install.</p>
+    <h3>How do I clean the pnpm store?</h3>
+    <p>Run <code>pnpm store prune</code>. It removes packages that no project references and doesn't affect your projects.</p>
+    <h3>Can I delete the .m2 repository folder?</h3>
+    <p>You can, but artifacts you built with <code>mvn install</code> live only there and come back only when you build those projects again. Everything downloaded from a remote repository is downloaded again.</p>
+  </main>
+  <footer class="wrap">🧹 RigSweep · free forever under the <a href="https://github.com/yobotn/rigsweep/blob/main/LICENSE">MIT license</a> · <a href="/">Home</a> · <a href="/guides/">Guides</a> · <a href="/compare/">Compare</a> · <a href="/developers/">API</a> · <a href="/llms.txt">llms.txt</a></footer>
+</body>
+</html>

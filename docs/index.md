@@ -88,6 +88,6 @@ RigSweep changes Windows services, scheduled tasks, registry policies and Micros
 
 ## Links
 
-- [API and developer docs](https://rigsweep.com/developers/) · [CLI reference](https://rigsweep.com/cli/) · [About](https://rigsweep.com/about/) · [Privacy](https://rigsweep.com/privacy/) · [Contact](https://rigsweep.com/contact/)
+- [Guides](https://rigsweep.com/guides/) · [Compare](https://rigsweep.com/compare/) · [API and developer docs](https://rigsweep.com/developers/) · [CLI reference](https://rigsweep.com/cli/) · [About](https://rigsweep.com/about/) · [Privacy](https://rigsweep.com/privacy/) · [Contact](https://rigsweep.com/contact/)
 - [Vote on upcoming features](https://github.com/yobotn/rigsweep/issues/12)
 - [Report an issue](https://github.com/yobotn/rigsweep/issues)

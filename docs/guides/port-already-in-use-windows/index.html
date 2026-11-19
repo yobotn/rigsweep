@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Port 3000 is already in use on Windows: find and end the owner · RigSweep</title>
+  <meta name="description" content="How to find which process holds port 3000 (or any port) on Windows with netstat, Get-NetTCPConnection and tasklist, end it safely, and handle Docker, WSL and Hyper-V reserved port ranges." />
+  <link rel="canonical" href="https://rigsweep.com/guides/port-already-in-use-windows/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="RigSweep" />
+  <meta property="og:title" content="Port 3000 is already in use on Windows: find and end the owner · RigSweep" />
+  <meta property="og:description" content="How to find which process holds port 3000 (or any port) on Windows with netstat, Get-NetTCPConnection and tasklist, end it safely, and handle Docker, WSL and Hyper-V reserved port ranges." />
+  <meta property="og:url" content="https://rigsweep.com/guides/port-already-in-use-windows/" />
+  <meta property="og:image" content="https://rigsweep.com/social.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="theme-color" content="#0b0e13" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="alternate" type="text/plain" href="https://rigsweep.com/llms.txt" title="llms.txt" />
+  <style>
+    :root { --bg: #0b0e13; --panel: #141922; --border: #262e3f; --text: #e8ebf1; --muted: #a3abbd; --accent: #4f8cff; color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.7 "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif; }
+    a { color: var(--accent); }
+    code { font-family: Consolas, ui-monospace, monospace; font-size: .9em; background: var(--panel); border-radius: 5px; padding: 1px 6px; overflow-wrap: anywhere; }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+    nav { border-bottom: 1px solid var(--border); }
+    nav .wrap { display: flex; justify-content: space-between; align-items: center; gap: 16px; min-height: 60px; font-size: 14px; flex-wrap: wrap; }
+    nav .logo { font-weight: 700; font-size: 18px; color: var(--text); text-decoration: none; }
+    nav .links { display: flex; gap: 16px; flex-wrap: wrap; }
+    nav .links a { color: var(--muted); text-decoration: none; }
+    main { padding: 32px 16px 24px; }
+    .crumbs { font-size: 14px; color: var(--muted); margin-bottom: 16px; }
+    .crumbs a { color: var(--muted); }
+    h1 { font-size: clamp(30px, 5vw, 42px); line-height: 1.15; margin: 0 0 16px; letter-spacing: -0.015em; }
+    h2 { font-size: 22px; margin: 36px 0 8px; }
+    h3 { font-size: 17px; margin: 24px 0 6px; }
+    p, li { color: var(--muted); }
+    strong { color: var(--text); }
+    pre { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; overflow-x: auto; }
+    pre code { background: none; padding: 0; overflow-wrap: normal; }
+    .tw { overflow-x: auto; margin: 16px 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 15px; line-height: 1.5; }
+    th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+    thead th { color: var(--text); border-bottom-color: var(--muted); }
+    tbody th { color: var(--text); font-weight: 600; }
+    td { color: var(--muted); }
+    .note { font-size: 14px; }
+    footer { margin-top: 48px; padding: 24px 16px 40px; border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; }
+  </style>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "headline": "Port 3000 is already in use on Windows",
+      "description": "How to find which process holds port 3000 (or any port) on Windows with netstat, Get-NetTCPConnection and tasklist, end it safely, and handle Docker, WSL and Hyper-V reserved port ranges.",
+      "url": "https://rigsweep.com/guides/port-already-in-use-windows/",
+      "mainEntityOfPage": "https://rigsweep.com/guides/port-already-in-use-windows/",
+      "inLanguage": "en",
+      "datePublished": "2026-11-19",
+      "dateModified": "2026-11-19",
+      "author": {
+        "@type": "Person",
+        "name": "yobotn",
+        "url": "https://github.com/yobotn"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "@id": "https://rigsweep.com/#org",
+        "name": "RigSweep",
+        "url": "https://rigsweep.com/",
+        "logo": "https://rigsweep.com/icon.png"
+      },
+      "about": {
+        "@type": "SoftwareApplication",
+        "@id": "https://rigsweep.com/#app",
+        "name": "RigSweep",
+        "operatingSystem": "Windows 10, Windows 11",
+        "applicationCategory": "DeveloperApplication"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://rigsweep.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Guides",
+          "item": "https://rigsweep.com/guides/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Port already in use",
+          "item": "https://rigsweep.com/guides/port-already-in-use-windows/"
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How do I find what is using port 3000 on Windows?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Run netstat -ano | findstr :3000 and read the PID in the last column of the LISTENING line, or in PowerShell run Get-NetTCPConnection -LocalPort 3000 -State Listen. Then tasklist /FI \"PID eq <pid>\" shows the program."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I kill the process on port 3000?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "After checking what it is, run taskkill /PID <pid> /T /F. /T also ends its child processes, which matters for npm and npx wrappers."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Why does the port show as used by wslrelay.exe?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "A server inside WSL 2 is listening on that port, and Windows forwards localhost traffic to it through wslrelay.exe. Stop the server inside WSL, or run wsl --shutdown."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Why do I get EACCES on a port nothing is using?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "The port is probably in a range Windows reserved. Check with netsh interface ipv4 show excludedportrange protocol=tcp and pick a port outside those ranges."
+          }
+        }
+      ]
+    }
+  ]
+}
+  </script>
+</head>
+<body>
+  <nav><div class="wrap"><a class="logo" href="/">🧹 RigSweep</a><div class="links"><a href="/guides/">Guides</a><a href="/compare/">Compare</a><a href="/developers/">API</a><a href="/about/">About</a><a href="https://github.com/yobotn/rigsweep">GitHub</a></div></div></nav>
+  <main class="wrap">
+    <div class="crumbs"><a href="/">Home</a> › <a href="/guides/">Guides</a> › Port already in use</div>
+    <h1>Port 3000 is already in use on Windows</h1>
+    <p><strong>"Port 3000 is already in use" (<code>EADDRINUSE</code>) means another process is listening on that port.</strong> On a dev machine it is usually a dev server that kept running after its terminal closed. Find the owner with <code>netstat -ano | findstr :3000</code>, check it with <code>tasklist</code>, and end it if it is a leftover.</p>
+
+    <h2>1. Find the process that owns the port</h2>
+    <h3>Command Prompt</h3>
+<pre><code>netstat -ano | findstr :3000</code></pre>
+    <p>Look for a line in the <code>LISTENING</code> state. The last number is the process ID (PID).</p>
+    <h3>PowerShell</h3>
+<pre><code>Get-NetTCPConnection -LocalPort 3000 -State Listen | Select-Object LocalAddress, LocalPort, OwningProcess</code></pre>
+    <h3>What is that PID?</h3>
+<pre><code>tasklist /FI "PID eq 12345"
+Get-CimInstance Win32_Process -Filter "ProcessId = 12345" | Select-Object Name, ParentProcessId, CommandLine</code></pre>
+    <p>The command line tells you which project and tool it is, for example <code>node ... next dev</code> or <code>python -m uvicorn ...</code>.</p>
+
+    <h2>2. End it safely</h2>
+    <p>If it is a dev server you no longer need, end it and its child processes:</p>
+<pre><code>taskkill /PID 12345 /T /F</code></pre>
+    <p>Or in PowerShell, for a single process:</p>
+<pre><code>Stop-Process -Id 12345</code></pre>
+    <p>Don't end a process you can't identify. If the owner is <code>svchost.exe</code>, <code>System</code> or a database you run on purpose, pick another port for your app instead.</p>
+
+    <h2>Common causes</h2>
+    <div class="tw"><table>
+    <thead><tr><th>Owner you see</th><th>Likely cause</th><th>What to do</th></tr></thead>
+    <tbody>
+    <tr><th scope="row"><code>node.exe</code>, <code>python.exe</code>, <code>bun.exe</code>, <code>dotnet.exe</code></th><td>A dev server left running after its terminal closed, or after Ctrl+C stopped only the npm or cmd wrapper</td><td>Check the command line, then end the tree with <code>taskkill /T /F</code></td></tr>
+    <tr><th scope="row"><code>wslrelay.exe</code></th><td>A server running inside WSL 2. Windows forwards its localhost port through this relay</td><td>Stop the server inside WSL. <code>wsl -e ss -ltnp</code> shows Linux listeners. <code>wsl --shutdown</code> stops everything in WSL</td></tr>
+    <tr><th scope="row">A Docker Desktop process</th><td>A container publishes the port</td><td><code>docker ps --filter "publish=3000"</code>, then stop that container</td></tr>
+    <tr><th scope="row">Nothing listens, yet the bind fails with <code>EACCES</code> or a permissions error</th><td>The port is inside a range Windows reserved, often for Hyper-V, WSL 2 or Docker</td><td>See the next section</td></tr>
+    </tbody>
+    </table></div>
+
+    <h2>Reserved port ranges (Hyper-V, WSL 2, Docker)</h2>
+    <p>Windows can reserve blocks of ports for Hyper-V and related features. A port inside a reserved block can't be used even though no process owns it. Node reports this as <code>listen EACCES: permission denied</code> instead of <code>EADDRINUSE</code>. List the reserved ranges:</p>
+<pre><code>netsh interface ipv4 show excludedportrange protocol=tcp</code></pre>
+    <p>If your port falls inside a listed range, the simplest fix is to use a port outside it. Restarting the WinNAT service (<code>net stop winnat</code>, then <code>net start winnat</code>, as administrator) often releases the reservation until the next restart. It briefly interrupts networking for WSL and containers.</p>
+
+    <h2>How RigSweep helps</h2>
+    <p><a href="/">RigSweep</a>'s Dev Cleanup tab lists every dev server, build daemon, MCP server and agent CLI with its project folder, age, RAM and listening ports, so the process holding <code>localhost:3000</code> is visible by name and project. A dev server whose terminal is gone is pre-selected, even when it still holds a port. Processes owned by your editor are locked, the WSL 2 / Docker VM is never pre-selected, and nothing is ended until you click. RigSweep doesn't change reserved port ranges.</p>
+    <p>See also: <a href="/guides/claude-code-leftover-processes-windows/">Claude Code and MCP servers left running on Windows</a>. <a href="https://github.com/yobotn/rigsweep/releases/latest">Download RigSweep</a> (free, MIT).</p>
+    <h2 id="faq">FAQ</h2>
+    <h3>How do I find what is using port 3000 on Windows?</h3>
+    <p>Run <code>netstat -ano | findstr :3000</code> and read the PID in the last column of the LISTENING line, or in PowerShell run <code>Get-NetTCPConnection -LocalPort 3000 -State Listen</code>. Then <code>tasklist /FI "PID eq &lt;pid&gt;"</code> shows the program.</p>
+    <h3>How do I kill the process on port 3000?</h3>
+    <p>After checking what it is, run <code>taskkill /PID &lt;pid&gt; /T /F</code>. <code>/T</code> also ends its child processes, which matters for npm and npx wrappers.</p>
+    <h3>Why does the port show as used by wslrelay.exe?</h3>
+    <p>A server inside WSL 2 is listening on that port, and Windows forwards localhost traffic to it through wslrelay.exe. Stop the server inside WSL, or run <code>wsl --shutdown</code>.</p>
+    <h3>Why do I get EACCES on a port nothing is using?</h3>
+    <p>The port is probably in a range Windows reserved. Check with <code>netsh interface ipv4 show excludedportrange protocol=tcp</code> and pick a port outside those ranges.</p>
+  </main>
+  <footer class="wrap">🧹 RigSweep · free forever under the <a href="https://github.com/yobotn/rigsweep/blob/main/LICENSE">MIT license</a> · <a href="/">Home</a> · <a href="/guides/">Guides</a> · <a href="/compare/">Compare</a> · <a href="/developers/">API</a> · <a href="/llms.txt">llms.txt</a></footer>
+</body>
+</html>

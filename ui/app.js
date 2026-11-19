@@ -56,6 +56,23 @@ let avState = null;
 function safeGet(k) { try { return localStorage.getItem(k); } catch { return null; } }
 function safeSet(k, v) { try { localStorage.setItem(k, v); } catch {} }
 
+// ---------- appearance & features (Settings → Appearance & features) ----------
+// Mode: Simple hides expert pages and columns (.pro-only). Style: Lucide icons, flat ("clean") or
+// emoji, gradients ("ai"). Monitors: a switched-off monitor is never polled, so it costs nothing.
+const PREF_DEFAULTS = { style: "clean", mode: "", mon_gpu: true, mon_ai: true, mon_net: true, mon_heat: true, mon_disk_alerts: true };
+const prefs = (() => { try { return { ...PREF_DEFAULTS, ...JSON.parse(safeGet("prefs") || "{}") }; } catch { return { ...PREF_DEFAULTS }; } })();
+if (!prefs.mode) {
+  // new installs start in Simple; someone who already used RigSweep keeps the full app
+  prefs.mode = safeGet("lastInGroup") || safeGet("sort") ? "pro" : "simple";
+  safeSet("prefs", JSON.stringify(prefs));
+}
+function applyPrefs() {
+  document.documentElement.dataset.style = prefs.style;
+  document.documentElement.dataset.mode = prefs.mode;
+  document.documentElement.classList.toggle("no-heat", !prefs.mon_heat);
+}
+applyPrefs();
+
 // ---------- sortable tables ----------
 // Every table with th[data-sort] gets one-click sorting: click a header to sort by it, click again
 // to flip. Numbers start biggest first, text A→Z (data-sort-first="-1" flips that). The last choice
@@ -296,7 +313,12 @@ setupIntros();
 
 // ---------- pages and their in-page tabs ----------
 // The sidebar has one entry per group; the pages of a group are tabs at the top of the content.
-const GROUPS = { home: ["dashboard", "impact"], clean: ["cleanup", "disk", "browser"], tune: ["tweaks", "processes", "startup"], pc: ["hardware", "report"] };
+const ALL_GROUPS = { home: ["dashboard", "impact"], clean: ["cleanup", "disk", "browser", "finders"], tune: ["tweaks", "processes", "startup"], pc: ["hardware", "gpu", "network", "report"] };
+// pages only Pro shows, and pages that belong to a monitor someone switched off
+const PRO_PAGES = new Set(["processes", "network"]);
+const pageOn = (p) => !(prefs.mode === "simple" && PRO_PAGES.has(p)) && !(p === "gpu" && !prefs.mon_gpu && !prefs.mon_ai) && !(p === "network" && !prefs.mon_net);
+const visibleGroups = () => Object.fromEntries(Object.entries(ALL_GROUPS).map(([g, ps]) => [g, ps.filter(pageOn)]));
+let GROUPS = visibleGroups();
 const groupOf = (name) => Object.keys(GROUPS).find((g) => GROUPS[g].includes(name));
 const lastInGroup = JSON.parse(safeGet("lastInGroup") || "{}");
 const noIcon = (s) => s.replace(/^\P{L}+/u, ""); // drops the leading icon: "Dev Cleanup" from the sidebar label
@@ -336,6 +358,7 @@ document.querySelectorAll("nav button").forEach((b) =>
 
 function showTab(name) {
   if (!document.getElementById(`tab-${name}`)) name = "dashboard";
+  if (!pageOn(name)) name = Object.entries(ALL_GROUPS).find(([, ps]) => ps.includes(name))?.[1].find(pageOn) || "dashboard";
   currentTab = name;
   const group = groupOf(name);
   if (group) { lastInGroup[group] = name; safeSet("lastInGroup", JSON.stringify(lastInGroup)); }
@@ -356,6 +379,9 @@ function showTab(name) {
   if (name === "report") loadSnapshots();
   if (name === "impact") loadImpact();
   if (name === "hardware") loadHardware();
+  if (name === "gpu") openGpu();
+  if (name === "network") openNetwork();
+  if (name === "finders") openFinders();
   if (name === "history") loadHistory();
   if (name === "settings") renderSettings();
 }
@@ -1723,11 +1749,20 @@ function renderHardware() {
   }).join("") : `<div class="card sub">${esc(t("hw.none"))}</div>`;
 
   const cards = [];
-  for (const c of hw.cpu || []) cards.push(`<div class="card"><h2>🧮 ${esc(t("hw.cpu"))}</h2>${kv([
+  const cd = hw.cpu_detail || {};
+  // CPU-Z style detail (cpuid): only on the first CPU card
+  const cacheLine = (cd.caches || []).map((k) => `L${k.level}${k.kind === "data" ? "d" : k.kind === "instruction" ? "i" : ""} ${k.count > 1 ? `${k.count}× ` : ""}${fmtBytes(k.size_kb * 1024)}${k.ways ? ` · ${k.ways}-way` : ""}`).join("<br>");
+  for (const [i, c] of (hw.cpu || []).entries()) cards.push(`<div class="card"><h2>🧮 ${esc(t("hw.cpu"))}</h2>${kv([
     ["hw.model", esc(c.name)],
+    ["hw.codename", i === 0 && cd.codename ? esc([cd.codename, cd.uarch].filter(Boolean).join(" · ")) : null],
+    ["hw.cpuid", i === 0 && cd.family != null ? esc(`${cd.vendor || ""} · family ${cd.family}, model ${cd.model}, stepping ${cd.stepping}`) : null],
+    ["hw.hybrid", i === 0 && cd.hybrid ? esc(t("hw.hybridVal", { p: cd.p_cores ?? "?", e: cd.e_cores ?? "?" })) : null],
+    ["hw.curClock", i === 0 && nz(cd.cur_mhz) ? `${(cd.cur_mhz / 1000).toFixed(2)} GHz` : null],
     ["hw.cores", esc(t("hw.coresVal", { c: c.cores, t: c.threads }))],
     ["hw.clock", nz(c.max_mhz) ? `${(c.max_mhz / 1000).toFixed(2)} GHz` : null],
-    ["hw.cache", [nz(c.l2_kb) && `L2 ${fmtBytes(c.l2_kb * 1024)}`, nz(c.l3_kb) && `L3 ${fmtBytes(c.l3_kb * 1024)}`].filter(Boolean).join(" · ")],
+    ["hw.cache", i === 0 && cacheLine ? `<span class="pro-only">${cacheLine}</span><span class="simple-only">${[nz(c.l2_kb) && `L2 ${fmtBytes(c.l2_kb * 1024)}`, nz(c.l3_kb) && `L3 ${fmtBytes(c.l3_kb * 1024)}`].filter(Boolean).join(" · ")}</span>`
+      : [nz(c.l2_kb) && `L2 ${fmtBytes(c.l2_kb * 1024)}`, nz(c.l3_kb) && `L3 ${fmtBytes(c.l3_kb * 1024)}`].filter(Boolean).join(" · ")],
+    ["hw.features", i === 0 && prefs.mode === "pro" && cd.features?.length ? `<span class="feat">${cd.features.map((f) => `<code>${esc(f)}</code>`).join(" ")}</span>` : null],
     ["hw.socket", esc(c.socket)],
     ["hw.virt", c.virt == null ? null : esc(t(c.virt ? "hw.on" : "hw.virtOff"))],
     ["heat.title", last?.cpu_temp != null ? `${fmtTemp(last.cpu_temp)} <span class="sub">${esc(t("heat.acpi"))}</span>` : null],
@@ -1744,7 +1779,8 @@ function renderHardware() {
     const total = ram.reduce((a, m) => a + (m.bytes || 0), 0), m0 = ram[0];
     cards.push(`<div class="card"><h2>🧠 ${esc(t("hw.ram"))}</h2>${kv([
       ["hw.installed", fmtBytes(total)],
-      ["hw.type", esc(RAM_TYPES[m0.type] || "")],
+      ["hw.type", esc([m0.type_name || RAM_TYPES[m0.type] || "", m0.form].filter(Boolean).join(" · "))],
+      ["hw.channels", hw.ram_channels ? esc(t("hw.channelsVal", { n: hw.ram_channels })) : null],
       ["hw.ramSpeed", nz(m0.mhz || m0.rated) ? `${Number(m0.mhz || m0.rated)} MT/s` : null],
       ["hw.slots", hw.ram_slots ? esc(t("hw.slotsVal", { u: ram.length, n: hw.ram_slots })) : null],
       ["hw.modules", groupModules(ram)],
@@ -1767,6 +1803,8 @@ function renderHardware() {
       ["hw.batt.health", pct != null ? `${pct}% <div class="meter ${cls}"><i style="width:${pct}%"></i></div>` : null],
       ["hw.batt.full", `${(b.full / 1000).toFixed(1)} Wh`],
       ["hw.batt.design", nz(b.design) ? `${(b.design / 1000).toFixed(1)} Wh` : null],
+      ["hw.batt.cycles", nz(b.cycles) ? String(b.cycles) : null],
+      ["hw.batt.chem", esc(b.chemistry || "")],
     ])}</div>`);
   }
   $("#hw-parts").innerHTML = cards.join("");
@@ -1831,8 +1869,31 @@ $("#file-import").addEventListener("change", async (e) => {
 });
 
 // ---------- settings ----------
+// Settings → Appearance & features: everything applies at once, no restart
+function renderLook() {
+  document.querySelectorAll('[name="p-mode"]').forEach((r) => { r.checked = r.value === prefs.mode; });
+  document.querySelectorAll('[name="p-style"]').forEach((r) => { r.checked = r.value === prefs.style; });
+  document.querySelectorAll("[data-mon]").forEach((c) => { c.checked = !!prefs[c.dataset.mon]; });
+}
+$("[data-stab-panel=look]").addEventListener("change", async (e) => {
+  const el = e.target;
+  if (el.name === "p-mode") prefs.mode = el.value;
+  else if (el.name === "p-style") prefs.style = el.value;
+  else if (el.dataset.mon) prefs[el.dataset.mon] = el.checked;
+  else return;
+  safeSet("prefs", JSON.stringify(prefs));
+  applyPrefs();
+  GROUPS = visibleGroups();
+  renderPageTabs();
+  if (el.dataset.mon === "mon_heat" || el.dataset.mon === "mon_disk_alerts") {
+    try { await call("set_monitors", { heat: prefs.mon_heat, diskAlerts: prefs.mon_disk_alerts }); } catch (err) { toast(String(err), "error"); }
+  }
+  flashSaved();
+});
+
 function renderSettings() {
   if (!state) return;
+  renderLook();
   const s = state.settings;
   $("#s-startup").checked = s.start_with_windows;
   $("#s-tray").checked = s.stay_in_tray;
@@ -2299,6 +2360,11 @@ listen("dev-autocleaned", (e) => {
   toast(t("clean.auto.done", { n: r.ended.length, mem: fmtBytes(r.freed_mem) }) + "\n• " + r.ended.join("\n• "), "ok", 8000);
   if (currentTab === "cleanup") loadDev(null, true); else delete scannedAt.cleanup;
 });
+// background disk health check: a drive got worse (health, wear, errors, temperature)
+listen("disk-alerts", (e) => {
+  const lines = (e.payload || []).map((a) => `${a.model}: ${t("hw.alert." + a.kind, { from: a.from, to: a.to })}`);
+  if (lines.length) toast(t("hw.alert.title") + "\n• " + lines.join("\n• "), e.payload.some((a) => a.severity === "bad") ? "error" : "info", 15000);
+});
 listen("request-restore-all", () => { showTab("history"); restoreAll(); });
 
 // ---------- disclaimer ----------
@@ -2386,3 +2452,208 @@ async function ensureShareNotice() {
   // the heat tile waits for the first live sample; never let a skeleton spin forever
   setTimeout(() => document.querySelectorAll(".skel").forEach((el) => el.classList.remove("skel")), 8000);
 })();
+
+// ---------- GPU & AI (polled only while the page is open and the monitor is on) ----------
+const pct = (v) => (v >= 0.1 ? `${v.toFixed(v < 10 ? 1 : 0)}%` : "—");
+async function openGpu() {
+  const tick = async () => {
+    if (document.visibilityState !== "visible" || currentTab !== "gpu") return;
+    const [g, ai] = await Promise.all([
+      prefs.mon_gpu ? call("get_gpu").catch(() => null) : null,
+      prefs.mon_ai ? call("get_ai_workload").catch(() => null) : null,
+    ]);
+    renderGpu(g, ai);
+  };
+  await tick();
+  procTimer = setInterval(tick, Math.max(2000, liveMs()));
+}
+function renderGpu(g, ai) {
+  $("#gpu-adapters").classList.toggle("hidden", !prefs.mon_gpu);
+  $("#gpu-procs-card").classList.toggle("hidden", !prefs.mon_gpu);
+  $("#ai-card").classList.toggle("hidden", !prefs.mon_ai);
+  if (g) {
+    $("#gpu-adapters").innerHTML = g.adapters.length ? g.adapters.map((a) => `<div class="card">
+      <h2><span>${a.npu ? "🧠" : "🎮"} ${esc(a.name || a.luid)}</span><span class="big-num">${pct(a.util)}</span></h2>
+      ${kv([["gpu.dedicated", nz(a.dedicated) ? fmtBytes(a.dedicated) : null], ["gpu.shared", nz(a.shared) ? fmtBytes(a.shared) : null]])}
+      <div class="pro-only">${(a.engines || []).filter((e) => e.util >= 0.1).map((e) => `<div class="eng"><span>${esc(e.kind)}</span><div class="meter"><i style="width:${Math.min(100, e.util)}%"></i></div><span class="num">${pct(e.util)}</span></div>`).join("")}</div>
+    </div>`).join("") : `<div class="card sub">${esc(t("gpu.none"))}</div>`;
+    const procs = [...g.procs].filter((p) => p.util >= 0.1 || p.dedicated > 64 * 1048576 || p.npu_util >= 0.1).sort((a, b) => b.util - a.util || b.dedicated - a.dedicated).slice(0, 40);
+    $("#gpu-body").innerHTML = procs.length ? procs.map((p) => `<tr>
+      <td><b>${esc(p.name || "?")}</b></td><td class="num">${p.pid}</td>
+      <td class="num ${p.util > 50 ? "vhot" : p.util > 15 ? "hot" : ""}">${pct(p.util)}${p.npu_util >= 0.1 ? ` <span class="sub">NPU ${pct(p.npu_util)}</span>` : ""}</td>
+      <td class="pro-only">${esc(p.engine || "")}</td><td class="num">${nz(p.dedicated) ? fmtBytes(p.dedicated) : "—"}</td>
+      <td class="num pro-only">${nz(p.shared) ? fmtBytes(p.shared) : "—"}</td></tr>`).join("")
+      : `<tr><td colspan="6" class="loading">${esc(t("gpu.idle"))}</td></tr>`;
+  }
+  if (ai) {
+    $("#ai-list").innerHTML = ai.length ? ai.map((r) => `<div class="ai-row">
+      <div><b>🤖 ${esc(r.label)}</b> <span class="sub">PID ${r.pid}</span>
+        ${r.models?.length ? `<div class="sub">${r.models.map((m) => `${esc(m.name)}${nz(m.vram) ? ` · ${fmtBytes(m.vram)} VRAM` : ""}`).join("<br>")}</div>` : ""}</div>
+      <div class="num">${nz(r.vram) ? `${fmtBytes(r.vram)} VRAM` : ""}<div class="sub">${r.util >= 0.1 ? `GPU ${pct(r.util)}` : ""}${r.npu_util >= 0.1 ? ` · NPU ${pct(r.npu_util)}` : ""}</div></div>
+    </div>`).join("") : `<p class="sub">${esc(t("ai.none"))}</p>`;
+  }
+}
+
+// ---------- Network ----------
+const fmtRate = (b) => ltr(`${fmtBytes(b)}/s`);
+async function openNetwork() {
+  let n = 0;
+  const tick = async () => {
+    if (document.visibilityState !== "visible" || currentTab !== "network" || !prefs.mon_net) return;
+    const tot = await call("get_net_totals").catch(() => null);
+    if (tot) renderIfaces(tot);
+    // connections change slower and cost more: every third tick
+    if (n++ % 3 === 0) { const c = await call("get_connections").catch(() => null); if (c) renderConns(c); }
+  };
+  await tick();
+  procTimer = setInterval(tick, Math.max(2000, liveMs()));
+}
+function renderIfaces(tot) {
+  $("#net-ifaces").innerHTML = tot.ifaces.length ? tot.ifaces.map((i) => `<div class="card">
+    <h2><span>${i.kind === "wifi" ? "📡" : "🌐"} ${esc(i.name)}</span></h2>
+    ${kv([["net.down", fmtRate(i.in_per_sec)], ["net.up", fmtRate(i.out_per_sec)],
+      ["net.speed", nz(i.link_speed) ? ltr(i.link_speed >= 1e9 ? `${(i.link_speed / 1e9).toFixed(1)} Gb/s` : `${Math.round(i.link_speed / 1e6)} Mb/s`) : null],
+      ["net.total", ltr(`↓ ${fmtBytes(i.in_total)} · ↑ ${fmtBytes(i.out_total)}`)], ["net.adapter", esc(i.description)]])}
+  </div>`).join("") : `<div class="card sub">${esc(t("net.none"))}</div>`;
+}
+function renderConns(c) {
+  const rows = [...c.procs].sort((a, b) => b.established - a.established || b.listening.length - a.listening.length).slice(0, 60);
+  $("#net-body").innerHTML = rows.length ? rows.map((p) => `<tr>
+    <td><b>${esc(p.name || "?")}</b></td><td class="num">${p.pid}</td>
+    <td>${[...p.listening.map((x) => `<code>${x}</code>`), ...p.udp.slice(0, 3).map((x) => `<code>udp ${x}</code>`)].slice(0, 6).join(" ") || "–"}</td>
+    <td class="num">${p.established || "–"}</td>
+    <td class="sub"><bdi dir="ltr">${p.remotes.map((r) => `${esc(r.host)}${r.count > 1 ? ` ×${r.count}` : ""}`).join(", ")}</bdi></td></tr>`).join("")
+    : `<tr><td colspan="5" class="loading">${esc(t("net.none"))}</td></tr>`;
+}
+// "What holds port N" / "Who has this file open": read-only, nothing is ended from here
+$("#btn-who-port").onclick = async (e) => {
+  const port = Number($("#who-port").value);
+  if (!(port > 0 && port < 65536)) return;
+  busy(e.target, true);
+  try {
+    const r = await call("get_port_owner", { port });
+    $("#who-out").innerHTML = r.length ? `<ul class="scroll-list">${r.map((o) => `<li><b>${esc(o.name)}</b> <span class="sub">PID ${o.pid} · ${esc(o.proto)} ${esc(o.states.join(", "))}</span><div class="sub mono-cut" title="${esc(o.cmd)}"><bdi dir="ltr">${esc(o.cmd)}</bdi></div></li>`).join("")}</ul>`
+      : `<p class="sub">${esc(t("net.who.free", { p: port }))}</p>`;
+  } catch (err) { toast(String(err), "error"); } finally { busy(e.target, false); }
+};
+$("#btn-who-path").onclick = async (e) => {
+  const path = $("#who-path").value.trim();
+  if (!path) return;
+  busy(e.target, true);
+  try {
+    const r = await call("who_has_open", { path });
+    $("#who-out").innerHTML = r.length ? `<ul class="scroll-list">${r.map((l) => `<li><b>${esc(l.name)}</b> <span class="sub">PID ${l.pid} · ${esc(t("net.who.kind." + l.kind))}${l.service_name ? ` · ${esc(l.service_name)}` : ""}</span></li>`).join("")}</ul>`
+      : `<p class="sub">${esc(t("net.who.nobody"))}</p>`;
+  } catch (err) { toast(String(err), "error"); } finally { busy(e.target, false); }
+};
+
+// ---------- Find: programs without an uninstaller, old files, files worth a look ----------
+// Review lists only: nothing is removed without a click, files go to the Recycle Bin, and a
+// registry entry is backed up first. "Worth a look" never says "threat": Defender gives verdicts.
+const fd = { progs: null, old: null, look: null };
+const fdSel = new Set();
+const fmtDate = (s) => (s ? new Date(s * 1000).toLocaleDateString(LANG) : "—");
+function openFinders() { for (const k of Object.keys(fd)) renderFinder(k); }
+async function scanFinder(k, btn) {
+  busy(btn, true);
+  $(`#fd-${k}-out`).innerHTML = `<p class="scanning"><i class="scan-dot"></i>${esc(t("ready.scanning"))}</p>`;
+  try {
+    fd[k] = k === "progs" ? await call("finders_orphan_programs")
+      : k === "old" ? await call("finders_old_files", { folders: null, minDays: null, minBytes: null })
+      : await call("finders_worth_a_look");
+  } catch (err) { toast(String(err), "error"); fd[k] = null; }
+  finally { busy(btn, false); }
+  [...fdSel].filter((x) => x.startsWith(k + "|")).forEach((x) => fdSel.delete(x));
+  renderFinder(k);
+}
+const fdChk = (key, label) => `<input type="checkbox" data-fd="${esc(key)}" ${fdSel.has(key) ? "checked" : ""} aria-label="${esc(label)}" />`;
+function renderFinder(k) {
+  const out = $(`#fd-${k}-out`), d = fd[k];
+  if (!d) { out.innerHTML = ""; return; }
+  if (k === "progs") {
+    if (!d.length) { out.innerHTML = `<p class="sub">✅ ${esc(t("fd.progs.none"))}</p>`; return; }
+    out.innerHTML = `<table class="tbl"><thead><tr><th></th><th>${esc(t("fd.col.name"))}</th><th>${esc(t("fd.col.what"))}</th><th class="num">${esc(t("fd.col.size"))}</th></tr></thead><tbody>${d.map((p) => {
+      const key = p.kind === "dead_entry" ? `progs|e|${p.reg_key}` : `progs|f|${p.path}`;
+      const what = p.kind === "dead_entry"
+        ? `${esc(t("fd.progs.dead"))}<div class="sub"><bdi dir="ltr">${esc(p.missing_file)}</bdi></div>`
+        : `${esc(t(p.has_exe ? "fd.progs.portable" : "fd.progs.leftover"))}<div class="sub"><bdi dir="ltr">${esc(shortPath(p.path))}</bdi> · ${esc(t("fd.changed", { d: fmtDate(p.modified) }))}</div>`;
+      return `<tr><td>${fdChk(key, p.name)}</td><td><b>${esc(p.name)}</b>${p.publisher ? `<div class="sub">${esc(p.publisher)}</div>` : ""}</td><td>${what}</td>
+        <td class="num">${p.kind === "dead_entry" ? "—" : fmtBytes(p.bytes)}</td></tr>`;
+    }).join("")}</tbody></table>
+    <div class="fd-actions"><button class="danger" data-fd-act="progs" data-icon="trash-2">${esc(t("fd.progs.act"))}</button></div>`;
+  } else if (k === "old") {
+    if (!d.files.length) { out.innerHTML = `<p class="sub">✅ ${esc(t("fd.old.none"))}</p>`; return; }
+    out.innerHTML = `<p class="summary">${esc(t("fd.old.summary", { n: d.total_found, size: fmtBytes(d.total_bytes) }))}</p>
+    <table class="tbl"><thead><tr><th></th><th>${esc(t("fd.col.name"))}</th><th>${esc(t("fd.col.changed"))}</th><th class="num">${esc(t("fd.col.size"))}</th></tr></thead><tbody>${d.files.map((f) => {
+      const key = `old|${f.path}`;
+      return `<tr><td>${fdChk(key, f.path)}</td><td><bdi dir="ltr">${esc(shortPath(f.path))}</bdi>
+        ${f.category === "old_installer" ? ` <span class="badge idle">${esc(t("fd.old.installer"))}</span>` : ""}${f.onedrive ? ` <span class="badge orphan" title="${esc(t("fd.old.onedriveTip"))}">OneDrive</span>` : ""}</td>
+        <td>${esc(fmtDate(f.modified))}</td><td class="num">${fmtBytes(f.bytes)}</td></tr>`;
+    }).join("")}</tbody></table>
+    <div class="fd-actions"><button class="danger" data-fd-act="old" data-icon="trash-2">${esc(t("fd.old.act"))}</button></div>`;
+  } else {
+    if (!d.length) { out.innerHTML = `<p class="sub">✅ ${esc(t("fd.look.none"))}</p>`; return; }
+    out.innerHTML = `<table class="tbl"><thead><tr><th>${esc(t("fd.col.name"))}</th><th>${esc(t("fd.col.why"))}</th><th></th></tr></thead><tbody>${d.map((i) => `<tr>
+      <td><bdi dir="ltr">${esc(shortPath(i.path))}</bdi>${i.running ? ` <span class="badge serving">${esc(t("fd.look.running"))}</span>` : ""}
+        <div class="sub">${esc(fmtBytes(i.bytes))} · ${esc(fmtDate(i.modified))}${i.sha256 ? `<span class="pro-only" title="SHA-256"> · ${esc(i.sha256.slice(0, 16))}…</span>` : ""}</div></td>
+      <td>${esc(t("fd.look." + i.reason))}${i.autostart ? `<div class="sub"><bdi dir="ltr">${esc(i.autostart)}</bdi></div>` : ""}${i.signer ? `<div class="sub">${esc(t("fd.look.signer", { s: i.signer }))}</div>` : ""}</td>
+      <td class="row-acts"><button class="small ghost" data-fd-scan-file="${esc(i.path)}" data-icon="shield-check">${esc(t("fd.look.defender"))}</button><div class="sub" data-fd-verdict="${esc(i.path)}"></div></td></tr>`).join("")}</tbody></table>`;
+  }
+}
+$("#tab-finders").addEventListener("click", async (e) => {
+  const scan = e.target.closest("[data-fd-scan]");
+  if (scan) return scanFinder(scan.dataset.fdScan, scan);
+  const df = e.target.closest("[data-fd-scan-file]");
+  if (df) {
+    const path = df.dataset.fdScanFile, out = [...document.querySelectorAll("[data-fd-verdict]")].find((x) => x.dataset.fdVerdict === path);
+    busy(df, true);
+    try {
+      const r = await call("finders_defender_scan", { path });
+      out.textContent = t("fd.look.v." + r.verdict);
+      out.className = r.verdict === "threat" ? "warn-text" : "sub";
+      if (r.verdict === "error") out.title = r.detail;
+    } catch (err) { toast(String(err), "error"); } finally { busy(df, false); }
+    return;
+  }
+  const act = e.target.closest("[data-fd-act]");
+  if (!act) return;
+  const k = act.dataset.fdAct, picked = [...fdSel].filter((x) => x.startsWith(k + "|"));
+  if (!picked.length) return toast(t("fd.pickFirst"));
+  if (k === "old") {
+    const paths = picked.map((x) => x.slice(4));
+    const size = fd.old.files.filter((f) => paths.includes(f.path)).reduce((a, f) => a + f.bytes, 0);
+    const od = fd.old.files.some((f) => f.onedrive && paths.includes(f.path));
+    const body = `<p>${esc(t("fd.recycleNote"))}</p>${od ? `<p class="warn-text">${esc(t("fd.old.onedriveTip"))}</p>` : ""}`;
+    if (!(await modal(t("fd.old.confirm", { n: paths.length, size: fmtBytes(size) }), body, { okText: t("fd.old.act"), danger: true }))) return;
+    busy(act, true);
+    try {
+      const r = await call("finders_recycle_files", { paths });
+      const ok = r.filter((x) => x.ok).map((x) => x.path), bad = r.filter((x) => !x.ok);
+      fd.old.files = fd.old.files.filter((f) => !ok.includes(f.path));
+      ok.forEach((p) => fdSel.delete(`old|${p}`));
+      toast(t("fd.done", { n: ok.length }) + (bad.length ? "\n" + bad.map((b) => `${b.path}: ${b.error}`).join("\n") : ""), bad.length ? "error" : "ok");
+    } catch (err) { toast(String(err), "error"); } finally { busy(act, false); }
+    return renderFinder("old");
+  }
+  // programs: dead uninstall entries (registry, backed up first) and leftover folders (Recycle Bin)
+  const items = picked.map((x) => ({ kind: x[6], id: x.slice(8) }));
+  if (!(await modal(t("fd.progs.confirm", { n: items.length }), `<p>${esc(t("fd.progs.confirmBody"))}</p>`, { okText: t("fd.progs.act"), danger: true }))) return;
+  busy(act, true);
+  const fails = [];
+  for (const it of items) {
+    try {
+      if (it.kind === "e") await call("finders_remove_dead_entry", { regKey: it.id });
+      else await call("finders_recycle_leftover", { path: it.id });
+      fd.progs = fd.progs.filter((p) => (p.kind === "dead_entry" ? p.reg_key : p.path) !== it.id);
+      fdSel.delete(`progs|${it.kind}|${it.id}`);
+    } catch (err) { fails.push(String(err)); }
+  }
+  busy(act, false);
+  toast(t("fd.done", { n: items.length - fails.length }) + (fails.length ? "\n" + fails.join("\n") : ""), fails.length ? "error" : "ok");
+  renderFinder("progs");
+});
+$("#tab-finders").addEventListener("change", (e) => {
+  const k = e.target.dataset.fd;
+  if (!k) return;
+  if (e.target.checked) fdSel.add(k); else fdSel.delete(k);
+});

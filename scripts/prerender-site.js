@@ -1,7 +1,7 @@
 // Bakes the English homepage text into docs/index.html so search engines and AI agents that don't
 // run JavaScript see the full page (the language switcher still swaps it at runtime). Also keeps the
 // JSON-LD (version + FAQ) in sync with docs/locales/en.js and writes docs/index.md, the Markdown
-// version of the homepage for agents, plus docs/<page>/index.md for every inner page.
+// version of the homepage for agents, plus docs/<page>/index.md for every inner page (nested ones too).
 // Usage: node scripts/prerender-site.js          rewrite the files
 //        node scripts/prerender-site.js --check  exit 1 if they are out of date (CI)
 const fs = require("fs"), path = require("path");
@@ -93,7 +93,7 @@ ${en["disc.p"]}
 
 ## Links
 
-- [API and developer docs](https://rigsweep.com/developers/) · [CLI reference](https://rigsweep.com/cli/) · [About](https://rigsweep.com/about/) · [Privacy](https://rigsweep.com/privacy/) · [Contact](https://rigsweep.com/contact/)
+- [Guides](https://rigsweep.com/guides/) · [Compare](https://rigsweep.com/compare/) · [API and developer docs](https://rigsweep.com/developers/) · [CLI reference](https://rigsweep.com/cli/) · [About](https://rigsweep.com/about/) · [Privacy](https://rigsweep.com/privacy/) · [Contact](https://rigsweep.com/contact/)
 - [Vote on upcoming features](https://github.com/yobotn/rigsweep/issues/12)
 - [Report an issue](https://github.com/yobotn/rigsweep/issues)
 `;
@@ -114,9 +114,15 @@ const pageMd = (page) => {
   const desc = page.match(/<meta name="description" content="([^"]+)"/);
   const blocks = [];
   // pre blocks keep their text verbatim; everything else is one block element per match
-  const re = /<pre><code>([\s\S]*?)<\/code><\/pre>|<h([1-6])[^>]*>([\s\S]*?)<\/h\2>|<p[^>]*>([\s\S]*?)<\/p>|<ul[^>]*>([\s\S]*?)<\/ul>/g;
+  const re = /<pre><code>([\s\S]*?)<\/code><\/pre>|<h([1-6])[^>]*>([\s\S]*?)<\/h\2>|<p[^>]*>([\s\S]*?)<\/p>|<ul[^>]*>([\s\S]*?)<\/ul>|<table[^>]*>([\s\S]*?)<\/table>/g;
   for (const m of main.matchAll(re)) {
     if (m[1] !== undefined) blocks.push("```\n" + decode(m[1]) + "\n```");
+    else if (m[6] !== undefined) {
+      // a table becomes a pipe table: one row per <tr>, th and td cells alike
+      const rows = [...m[6].matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/g)].map((tr) =>
+        [...tr[1].matchAll(/<t[hd][^>]*>([\s\S]*?)<\/t[hd]>/g)].map((c) => inline(c[1]).replace(/\|/g, "\\|") || " "));
+      if (rows.length) blocks.push([rows[0], rows[0].map(() => "---"), ...rows.slice(1)].map((r) => `| ${r.join(" | ")} |`).join("\n"));
+    }
     else if (m[2]) {
       blocks.push(`${"#".repeat(+m[2])} ${inline(m[3])}`);
       if (m[2] === "1" && desc) blocks.push(`> ${decode(desc[1])}`);
@@ -126,8 +132,11 @@ const pageMd = (page) => {
   return blocks.join("\n\n") + "\n";
 };
 const out = { "docs/index.html": html, "docs/index.md": index };
-for (const d of fs.readdirSync(p("docs")).sort()) {
-  if (fs.existsSync(p(`docs/${d}/index.html`))) out[`docs/${d}/index.md`] = pageMd(read(`docs/${d}/index.html`));
+// inner pages can be nested (docs/guides/<slug>/index.html), so walk the folders
+const walk = (dir) => fs.readdirSync(p(dir), { withFileTypes: true }).filter((e) => e.isDirectory()).sort((a, b) => a.name.localeCompare(b.name))
+  .flatMap((e) => [`${dir}/${e.name}`, ...walk(`${dir}/${e.name}`)]);
+for (const d of walk("docs")) {
+  if (fs.existsSync(p(`${d}/index.html`))) out[`${d}/index.md`] = pageMd(read(`${d}/index.html`));
 }
 let stale = 0;
 for (const [f, s] of Object.entries(out)) {

@@ -76,7 +76,7 @@
         </div>
         <div class="tile live-tile">
           <div class="label live-sub"><i class="pulse"></i><span data-i18n="live.now"></span></div>
-          <button id="btn-refresh-dash" class="ghost" data-i18n="common.refresh"></button>
+          <button id="btn-refresh-dash" data-icon="refresh-cw" class="ghost" data-i18n="common.refresh"></button>
         </div>
       </div>
       <div class="grid2">
@@ -124,9 +124,9 @@
       <header>
         <h1 data-i18n="clean.title"></h1>
         <div class="actions">
-          <button id="btn-clean-scan" class="ghost" data-i18n="clean.scan"></button>
-          <button id="btn-clean-stale" class="ghost" data-i18n="clean.selectStale"></button>
-          <button id="btn-clean-end" class="danger" data-i18n="clean.end"></button>
+          <button id="btn-clean-scan" data-icon="scan-search" class="ghost" data-i18n="clean.scan"></button>
+          <button id="btn-clean-stale" data-icon="list-checks" class="ghost" data-i18n="clean.selectStale"></button>
+          <button id="btn-clean-end" data-icon="octagon-x" class="danger" data-i18n="clean.end"></button>
         </div>
       </header>
       <div class="intro"><p class="hint" data-i18n="clean.hint"></p><p class="hint" data-i18n="clean.hint.leftovers"></p></div>
@@ -156,9 +156,9 @@
       <header>
         <h1 data-i18n="disk.title"></h1>
         <div class="actions">
-          <button id="btn-disk-scan" class="ghost" data-i18n="disk.scan"></button>
-          <button id="btn-disk-suggest" class="ghost" data-i18n="disk.selectSuggested"></button>
-          <button id="btn-disk-clean" class="danger" data-i18n="disk.clean"></button>
+          <button id="btn-disk-scan" data-icon="scan-search" class="ghost" data-i18n="disk.scan"></button>
+          <button id="btn-disk-suggest" data-icon="list-checks" class="ghost" data-i18n="disk.selectSuggested"></button>
+          <button id="btn-disk-clean" data-icon="trash-2" class="danger" data-i18n="disk.clean"></button>
         </div>
       </header>
       <div class="intro"><p class="hint" data-i18n="disk.hint"></p></div>
@@ -179,8 +179,8 @@
           <b id="dj-title" role="status" aria-live="polite"></b>
           <span class="job-actions">
             <button id="dj-pause" class="small ghost"></button>
-            <button id="dj-stop" class="small danger" data-i18n="disk.job.stop"></button>
-            <button id="dj-continue" class="small primary" data-i18n="disk.job.continue"></button>
+            <button id="dj-stop" data-icon="square" class="small danger" data-i18n="disk.job.stop"></button>
+            <button id="dj-continue" data-icon="play" class="small primary" data-i18n="disk.job.continue"></button>
             <button id="dj-dismiss" class="small ghost" data-i18n="disk.job.dismiss"></button>
           </span>
         </div>
@@ -199,7 +199,7 @@
 
     <!-- HARDWARE -->
     <section id="tab-hardware" class="tab">
-      <header><h1 data-i18n="hw.title"></h1><button id="btn-hw-refresh" class="ghost" data-i18n="common.refresh"></button></header>
+      <header><h1 data-i18n="hw.title"></h1><button id="btn-hw-refresh" data-icon="refresh-cw" class="ghost" data-i18n="common.refresh"></button></header>
       <div class="intro"><p class="hint" data-i18n="hw.hint"></p></div>
       <h2 class="hw-h" data-i18n="hw.disks"></h2>
       <div id="hw-disks" class="hw-grid"><div class="card"><span class="skel-bar"></span><span class="skel-bar"></span><span class="skel-bar"></span><span class="skel-bar"></span></div></div>
@@ -207,13 +207,72 @@
     </section>
 
     <!-- BROWSER CLEANUP -->
+    <section id="tab-gpu" class="tab">
+      <header><h1 data-i18n="gpu.title"></h1><div class="label live-sub"><i class="pulse"></i><span data-i18n="live.now"></span></div></header>
+      <div class="intro"><p class="hint" data-i18n="gpu.hint"></p></div>
+      <div id="gpu-adapters" class="hw-grid"><div class="card"><span class="skel-bar"></span><span class="skel-bar"></span></div></div>
+      <div id="ai-card" class="card">
+        <h2 data-i18n="ai.title"></h2>
+        <p class="hint" data-i18n="ai.hint"></p>
+        <div id="ai-list"></div>
+      </div>
+      <div id="gpu-procs-card" class="card flush"><table class="tbl">
+        <thead><tr><th data-i18n="col.process"></th><th class="num" data-i18n="col.pid"></th><th class="num" data-i18n="gpu.col.util"></th>
+          <th class="pro-only" data-i18n="gpu.col.engine"></th><th class="num" data-i18n="gpu.col.dedicated"></th><th class="num pro-only" data-i18n="gpu.col.shared"></th></tr></thead>
+        <tbody id="gpu-body"><tr><td colspan="6" class="loading"><span class="spinner"></span></td></tr></tbody>
+      </table></div>
+    </section>
+
+    <section id="tab-network" class="tab">
+      <header><h1 data-i18n="net.title"></h1><div class="label live-sub"><i class="pulse"></i><span data-i18n="live.now"></span></div></header>
+      <div class="intro"><p class="hint" data-i18n="net.hint"></p></div>
+      <div id="net-ifaces" class="hw-grid"><div class="card"><span class="skel-bar"></span><span class="skel-bar"></span></div></div>
+      <div class="card form">
+        <h2 data-i18n="net.who.title"></h2>
+        <div class="who-row">
+          <label><span data-i18n="net.who.port"></span> <input id="who-port" type="number" min="1" max="65535" placeholder="3000" /></label>
+          <button id="btn-who-port" class="ghost" data-icon="search" data-i18n="net.who.find"></button>
+        </div>
+        <div class="who-row">
+          <label class="grow"><span data-i18n="net.who.path"></span> <input id="who-path" type="text" spellcheck="false" placeholder="C:\work\app\node_modules" /></label>
+          <button id="btn-who-path" class="ghost" data-icon="file-search" data-i18n="net.who.find"></button>
+        </div>
+        <div id="who-out"></div>
+      </div>
+      <div class="card flush"><table class="tbl">
+        <thead><tr><th data-i18n="col.process"></th><th class="num" data-i18n="col.pid"></th><th data-i18n="net.col.listen"></th>
+          <th class="num" data-i18n="net.col.est"></th><th data-i18n="net.col.remotes"></th></tr></thead>
+        <tbody id="net-body"><tr><td colspan="5" class="loading"><span class="spinner"></span></td></tr></tbody>
+      </table></div>
+    </section>
+
+    <section id="tab-finders" class="tab">
+      <header><h1 data-i18n="fd.title"></h1></header>
+      <div class="intro"><p class="hint" data-i18n="fd.hint"></p></div>
+      <div class="card" id="fd-progs">
+        <header class="fd-head"><h2 data-i18n="fd.progs.title"></h2><button class="ghost" data-fd-scan="progs" data-icon="scan-search" data-i18n="fd.scan"></button></header>
+        <p class="hint" data-i18n="fd.progs.hint"></p>
+        <div class="fd-out" id="fd-progs-out"></div>
+      </div>
+      <div class="card" id="fd-old">
+        <header class="fd-head"><h2 data-i18n="fd.old.title"></h2><button class="ghost" data-fd-scan="old" data-icon="scan-search" data-i18n="fd.scan"></button></header>
+        <p class="hint" data-i18n="fd.old.hint"></p>
+        <div class="fd-out" id="fd-old-out"></div>
+      </div>
+      <div class="card" id="fd-look">
+        <header class="fd-head"><h2 data-i18n="fd.look.title"></h2><button class="ghost" data-fd-scan="look" data-icon="scan-search" data-i18n="fd.scan"></button></header>
+        <p class="hint" data-i18n="fd.look.hint"></p>
+        <div class="fd-out" id="fd-look-out"></div>
+      </div>
+    </section>
+
     <section id="tab-browser" class="tab">
       <header>
         <h1 data-i18n="bc.title"></h1>
         <div class="actions">
-          <button id="btn-bc-scan" class="ghost" data-i18n="bc.scan"></button>
-          <button id="btn-bc-safe" class="ghost" data-i18n="bc.selectSafe"></button>
-          <button id="btn-bc-clean" class="danger" data-i18n="bc.clean"></button>
+          <button id="btn-bc-scan" data-icon="scan-search" class="ghost" data-i18n="bc.scan"></button>
+          <button id="btn-bc-safe" data-icon="list-checks" class="ghost" data-i18n="bc.selectSafe"></button>
+          <button id="btn-bc-clean" data-icon="trash-2" class="danger" data-i18n="bc.clean"></button>
         </div>
       </header>
       <div class="intro"><p class="hint" data-i18n="bc.hint"></p></div>
@@ -232,8 +291,8 @@
       <header>
         <h1 data-i18n="report.title"></h1>
         <div class="actions">
-          <button id="btn-measure" class="primary" data-i18n="report.measure"></button>
-          <button id="btn-copy-md" class="ghost" data-i18n="report.copy"></button>
+          <button id="btn-measure" data-icon="gauge" class="primary" data-i18n="report.measure"></button>
+          <button id="btn-copy-md" data-icon="copy" class="ghost" data-i18n="report.copy"></button>
           <div class="menu">
             <button class="ghost menu-btn" type="button" aria-haspopup="menu" aria-expanded="false" data-i18n-aria="common.moreActions">⋯</button>
             <div class="menu-list" role="menu" hidden>
@@ -257,9 +316,9 @@
       <header>
         <h1 data-i18n="tw.title"></h1>
         <div class="actions">
-          <button id="btn-select-safe" class="ghost" data-i18n="tw.selectSafe"></button>
-          <button id="btn-apply-selected" class="primary" data-i18n="tw.applySel"></button>
-          <button id="btn-reapply" class="ghost" data-i18n="tw.verify"></button>
+          <button id="btn-select-safe" data-icon="list-checks" class="ghost" data-i18n="tw.selectSafe"></button>
+          <button id="btn-apply-selected" data-icon="zap" class="primary" data-i18n="tw.applySel"></button>
+          <button id="btn-reapply" data-icon="shield-check" class="ghost" data-i18n="tw.verify"></button>
         </div>
       </header>
       <p class="hint" id="tw-hint"></p>
@@ -272,7 +331,7 @@
         <h1 data-i18n="st.title"></h1>
         <div class="actions">
           <input id="st-filter" type="search" data-i18n-ph="st.filter" />
-          <button id="btn-st-scan" class="ghost" data-i18n="common.refresh"></button>
+          <button id="btn-st-scan" data-icon="refresh-cw" class="ghost" data-i18n="common.refresh"></button>
         </div>
       </header>
       <div class="intro"><p class="hint" data-i18n="st.hint"></p></div>
@@ -294,7 +353,7 @@
         <div class="actions">
           <input id="proc-filter" type="search" data-i18n-ph="proc.filter" />
           <label class="chk"><input type="checkbox" id="proc-auto" checked /> <span data-i18n="proc.auto"></span></label>
-          <button id="btn-refresh-proc" class="ghost" data-i18n="common.refresh"></button>
+          <button id="btn-refresh-proc" data-icon="refresh-cw" class="ghost" data-i18n="common.refresh"></button>
         </div>
       </header>
       <div class="card flush"><table class="tbl sticky">
@@ -312,7 +371,7 @@
       <header>
         <h1 data-i18n="hist.title"></h1>
         <div class="actions">
-          <button id="btn-export" class="ghost" data-i18n="hist.export"></button>
+          <button id="btn-export" data-icon="save" class="ghost" data-i18n="hist.export"></button>
           <div class="menu">
             <button class="ghost menu-btn" type="button" aria-haspopup="menu" aria-expanded="false" data-i18n-aria="common.moreActions">⋯</button>
             <div class="menu-list" role="menu" hidden>
@@ -334,6 +393,7 @@
       <header><h1 data-i18n="set.title"></h1><div id="set-saved" class="sub save-state" aria-live="polite"></div></header>
       <div class="subtabs" role="tablist" aria-label="Settings">
         <button role="tab" data-stab="general" data-i18n="set.tab.general"></button>
+        <button role="tab" data-stab="look" data-i18n="set.tab.look"></button>
         <button role="tab" data-stab="cleanup" data-i18n="set.tab.cleanup"></button>
         <button role="tab" data-stab="disk" data-i18n="set.tab.disk"></button>
         <button role="tab" data-stab="defender" data-i18n="set.tab.defender"></button>
@@ -357,12 +417,39 @@
           <div id="upd-status" class="sub"></div>
           <div id="upd-notes" class="upd-notes hidden"></div>
           <div class="actions">
-            <button id="btn-upd-check" class="ghost" data-i18n="upd.check"></button>
-            <button id="btn-upd-install" class="primary hidden" data-i18n="upd.install"></button>
+            <button id="btn-upd-check" data-icon="refresh-cw" class="ghost" data-i18n="upd.check"></button>
+            <button id="btn-upd-install" data-icon="arrow-up" class="primary hidden" data-i18n="upd.install"></button>
           </div>
         </div>
       </div>
 
+      <div class="stab" role="tabpanel" data-stab-panel="look" hidden>
+        <div class="card form">
+          <h2 data-i18n="look.mode"></h2>
+          <div class="choice-row">
+        <label class="choice"><input type="radio" name="p-mode" value="simple" /><span><b data-i18n="look.simple"></b><span class="sub" data-i18n="look.simpleHint"></span></span></label>
+        <label class="choice"><input type="radio" name="p-mode" value="pro" /><span><b data-i18n="look.pro"></b><span class="sub" data-i18n="look.proHint"></span></span></label>
+          </div>
+        </div>
+        <div class="card form">
+          <h2 data-i18n="look.style"></h2>
+          <div class="choice-row">
+        <label class="choice"><input type="radio" name="p-style" value="clean" /><span><b data-i18n="look.clean"></b><span class="sub" data-i18n="look.cleanHint"></span></span></label>
+        <label class="choice"><input type="radio" name="p-style" value="ai" /><span><b data-i18n="look.ai"></b><span class="sub" data-i18n="look.aiHint"></span></span></label>
+          </div>
+        </div>
+        <div class="card form">
+          <h2 data-i18n="look.monitors"></h2>
+          <p class="hint" data-i18n="look.monHint"></p>
+          <div class="mon-list">
+          <label class="chk"><input type="checkbox" data-mon="mon_gpu" /> <span><span data-i18n="mon.gpu"></span><span class="sub" data-i18n="mon.gpuHint"></span></span></label>
+          <label class="chk"><input type="checkbox" data-mon="mon_ai" /> <span><span data-i18n="mon.ai"></span><span class="sub" data-i18n="mon.aiHint"></span></span></label>
+          <label class="chk"><input type="checkbox" data-mon="mon_net" /> <span><span data-i18n="mon.net"></span><span class="sub" data-i18n="mon.netHint"></span></span></label>
+          <label class="chk"><input type="checkbox" data-mon="mon_heat" /> <span><span data-i18n="mon.heat"></span><span class="sub" data-i18n="mon.heatHint"></span></span></label>
+          <label class="chk"><input type="checkbox" data-mon="mon_disk_alerts" /> <span><span data-i18n="mon.disk_alerts"></span><span class="sub" data-i18n="mon.disk_alertsHint"></span></span></label>
+          </div>
+        </div>
+      </div>
       <div class="stab" role="tabpanel" data-stab-panel="cleanup" hidden>
         <div class="card form autosave">
           <label><span data-i18n="set.idle"></span> <input type="number" id="s-idle" min="1" max="10080" /></label>
@@ -406,7 +493,7 @@
           <label class="chk"><input type="checkbox" id="s-share" /> <span data-i18n="share.toggle"></span></label>
           <div id="share-status" class="sub"></div>
           <div class="actions">
-            <button id="btn-share-preview" class="ghost" data-i18n="share.preview"></button>
+            <button id="btn-share-preview" data-icon="eye" class="ghost" data-i18n="share.preview"></button>
             <button id="btn-share-reset" class="ghost" data-i18n="share.reset"></button>
           </div>
         </div>
@@ -416,12 +503,13 @@
         <div class="card form">
           <h2 data-i18n="chrome.title"></h2>
           <p class="hint" data-i18n="chrome.hint"></p>
-          <div class="actions"><button id="btn-chrome" class="ghost" data-i18n="chrome.open"></button></div>
+          <div class="actions"><button id="btn-chrome" data-icon="globe" class="ghost" data-i18n="chrome.open"></button></div>
         </div>
         <div class="card form">
           <h2 data-i18n="disc.title"></h2>
           <p class="hint" data-i18n="disc.body"></p>
           <p class="hint" id="s-info"></p>
+          <p class="hint" data-i18n="set.lucide"></p>
         </div>
       </div>
     </section>
@@ -451,6 +539,7 @@
   <script src="locales/zh-CN.js"></script>
   <script src="locales/he.js"></script>
   <script src="locales/ar.js"></script>
+  <script src="icons.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

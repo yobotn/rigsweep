@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Guides for Windows developer machines · RigSweep</title>
+  <meta name="description" content="Short, tested guides for Windows developer machines: leftover Claude Code and MCP server processes, ports already in use, and reclaiming disk from node_modules and package caches." />
+  <link rel="canonical" href="https://rigsweep.com/guides/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="RigSweep" />
+  <meta property="og:title" content="Guides for Windows developer machines · RigSweep" />
+  <meta property="og:description" content="Short, tested guides for Windows developer machines: leftover Claude Code and MCP server processes, ports already in use, and reclaiming disk from node_modules and package caches." />
+  <meta property="og:url" content="https://rigsweep.com/guides/" />
+  <meta property="og:image" content="https://rigsweep.com/social.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="theme-color" content="#0b0e13" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="alternate" type="text/plain" href="https://rigsweep.com/llms.txt" title="llms.txt" />
+  <style>
+    :root { --bg: #0b0e13; --panel: #141922; --border: #262e3f; --text: #e8ebf1; --muted: #a3abbd; --accent: #4f8cff; color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.7 "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif; }
+    a { color: var(--accent); }
+    code { font-family: Consolas, ui-monospace, monospace; font-size: .9em; background: var(--panel); border-radius: 5px; padding: 1px 6px; overflow-wrap: anywhere; }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+    nav { border-bottom: 1px solid var(--border); }
+    nav .wrap { display: flex; justify-content: space-between; align-items: center; gap: 16px; min-height: 60px; font-size: 14px; flex-wrap: wrap; }
+    nav .logo { font-weight: 700; font-size: 18px; color: var(--text); text-decoration: none; }
+    nav .links { display: flex; gap: 16px; flex-wrap: wrap; }
+    nav .links a { color: var(--muted); text-decoration: none; }
+    main { padding: 32px 16px 24px; }
+    .crumbs { font-size: 14px; color: var(--muted); margin-bottom: 16px; }
+    .crumbs a { color: var(--muted); }
+    h1 { font-size: clamp(30px, 5vw, 42px); line-height: 1.15; margin: 0 0 16px; letter-spacing: -0.015em; }
+    h2 { font-size: 22px; margin: 36px 0 8px; }
+    h3 { font-size: 17px; margin: 24px 0 6px; }
+    p, li { color: var(--muted); }
+    strong { color: var(--text); }
+    pre { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; overflow-x: auto; }
+    pre code { background: none; padding: 0; overflow-wrap: normal; }
+    .tw { overflow-x: auto; margin: 16px 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 15px; line-height: 1.5; }
+    th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+    thead th { color: var(--text); border-bottom-color: var(--muted); }
+    tbody th { color: var(--text); font-weight: 600; }
+    td { color: var(--muted); }
+    .note { font-size: 14px; }
+    footer { margin-top: 48px; padding: 24px 16px 40px; border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; }
+  </style>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "CollectionPage",
+      "name": "Guides",
+      "description": "Short, tested guides for Windows developer machines: leftover Claude Code and MCP server processes, ports already in use, and reclaiming disk from node_modules and package caches.",
+      "url": "https://rigsweep.com/guides/",
+      "inLanguage": "en",
+      "publisher": {
+        "@type": "Organization",
+        "@id": "https://rigsweep.com/#org",
+        "name": "RigSweep",
+        "url": "https://rigsweep.com/",
+        "logo": "https://rigsweep.com/icon.png"
+      },
+      "mainEntity": {
+        "@type": "ItemList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Claude Code and MCP servers left running on Windows",
+            "url": "https://rigsweep.com/guides/claude-code-leftover-processes-windows/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": "Port 3000 is already in use on Windows",
+            "url": "https://rigsweep.com/guides/port-already-in-use-windows/"
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": "Delete node_modules, build output and package caches on Windows",
+            "url": "https://rigsweep.com/guides/delete-node-modules-and-dev-caches-windows/"
+          }
+        ]
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://rigsweep.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Guides",
+          "item": "https://rigsweep.com/guides/"
+        }
+      ]
+    }
+  ]
+}
+  </script>
+</head>
+<body>
+  <nav><div class="wrap"><a class="logo" href="/">🧹 RigSweep</a><div class="links"><a href="/guides/">Guides</a><a href="/compare/">Compare</a><a href="/developers/">API</a><a href="/about/">About</a><a href="https://github.com/yobotn/rigsweep">GitHub</a></div></div></nav>
+  <main class="wrap">
+    <div class="crumbs"><a href="/">Home</a> › Guides</div>
+    <h1>Guides</h1>
+    <p><strong>These guides solve common problems on Windows developer machines with built-in commands first.</strong> Each one shows how to do it by hand, what to check before you delete or end anything, and then how <a href="/">RigSweep</a> handles it.</p>
+    <ul>
+    <li><a href="/guides/claude-code-leftover-processes-windows/">Claude Code and MCP servers left running on Windows</a>: why agent CLIs, MCP servers and dev servers outlive their terminal, and how to find and end them.</li>
+    <li><a href="/guides/port-already-in-use-windows/">Port 3000 is already in use on Windows</a>: find the process that holds a port, end it safely, and deal with WSL, Docker and reserved port ranges.</li>
+    <li><a href="/guides/delete-node-modules-and-dev-caches-windows/">Delete node_modules, build output and package caches</a>: what is safe to delete, each tool's own clean command, and the caveats.</li>
+    </ul>
+    <p>Comparing tools? See <a href="/compare/">RigSweep compared with CCleaner, BleachBit, npkill and PrivaZer</a>.</p>
+  </main>
+  <footer class="wrap">🧹 RigSweep · free forever under the <a href="https://github.com/yobotn/rigsweep/blob/main/LICENSE">MIT license</a> · <a href="/">Home</a> · <a href="/guides/">Guides</a> · <a href="/compare/">Compare</a> · <a href="/developers/">API</a> · <a href="/llms.txt">llms.txt</a></footer>
+</body>
+</html>

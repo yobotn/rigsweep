@@ -12,12 +12,16 @@ mod devdisk;
 mod discovery;
 mod elevation;
 mod engine;
+mod finders;
+mod gpu;
 mod hardware;
 mod icons;
 mod heat;
 mod impact;
 mod kill;
 mod live;
+mod locks;
+mod netmon;
 mod update;
 mod persistence;
 mod report;
@@ -150,6 +154,21 @@ fn run_app(start_hidden: bool) {
             commands::remove_disk_exclude,
             commands::set_disk_auto,
             commands::set_dev_keep,
+            commands::set_monitors,
+            gpu::get_gpu,
+            gpu::gpu_reset,
+            gpu::get_ai_workload,
+            netmon::get_net_totals,
+            netmon::get_connections,
+            netmon::get_port_owner,
+            locks::who_has_open,
+            finders::finders_orphan_programs,
+            finders::finders_remove_dead_entry,
+            finders::finders_recycle_leftover,
+            finders::finders_old_files,
+            finders::finders_recycle_files,
+            finders::finders_worth_a_look,
+            finders::finders_defender_scan,
             commands::get_hardware,
             commands::disk_speed_test,
             commands::take_snapshot,
@@ -167,6 +186,10 @@ fn run_app(start_hidden: bool) {
             build_tray(app.handle())?;
             spawn_watchdog(app.handle().clone());
             spawn_dev_monitor(app.handle().clone());
+            spawn_disk_watch(app.handle().clone());
+            if let Ok(db) = app.state::<AppState>().db.lock() {
+                live::load_switches(&db);
+            }
             live::spawn(app.handle().clone());
             share::spawn(app.handle().clone());
             let h = app.handle().clone();
@@ -248,6 +271,29 @@ fn build_tray(app: &AppHandle) -> tauri::Result<()> {
 /// Every minute: scan dev processes (that's also what measures "quiet for N minutes"), end the
 /// stale trees that stayed CPU-silent for the whole idle period if auto-cleanup is on, and update
 /// the tray / taskbar dot showing how much memory stale processes still hold.
+/// Disk health alerts (Settings → Appearance & features): one PowerShell disk read every 6 hours,
+/// compared with the last one. A worse disk is logged to History and shown in the app.
+fn spawn_disk_watch(app: AppHandle) {
+    std::thread::spawn(move || {
+        std::thread::sleep(Duration::from_secs(120));
+        loop {
+            if live::DISK_ALERTS_ON.load(Ordering::Relaxed) {
+                if let Ok((_, alerts)) = hardware::check_disks() {
+                    if !alerts.is_empty() {
+                        if let Ok(db) = app.state::<AppState>().db.lock() {
+                            for a in &alerts {
+                                db.log("auto", None, "disk_health", a.severity != "bad", &format!("{} ({}): {} {} -> {}", a.model, a.disk_id, a.kind, a.from, a.to));
+                            }
+                        }
+                        let _ = app.emit("disk-alerts", &alerts);
+                    }
+                }
+            }
+            std::thread::sleep(Duration::from_secs(6 * 3600));
+        }
+    });
+}
+
 fn spawn_dev_monitor(app: AppHandle) {
     std::thread::spawn(move || {
         let mut first = true;

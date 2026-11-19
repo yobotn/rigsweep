@@ -16,7 +16,10 @@ const fileFor = (urlPath) => {
 };
 const exists = (urlPath) => fs.existsSync(fileFor(urlPath));
 
-const pages = ["index.html", "404.html", ...fs.readdirSync(docs).filter((d) => fs.existsSync(path.join(docs, d, "index.html"))).map((d) => `${d}/index.html`)];
+// inner pages, nested ones included (guides/<slug>/index.html)
+const dirs = (rel) => fs.readdirSync(path.join(docs, rel), { withFileTypes: true }).filter((e) => e.isDirectory())
+  .flatMap((e) => { const r = rel ? `${rel}/${e.name}` : e.name; return [r, ...dirs(r)]; });
+const pages = ["index.html", "404.html", ...dirs("").filter((d) => fs.existsSync(path.join(docs, d, "index.html"))).map((d) => `${d}/index.html`)];
 
 // ---- every page: internal links, canonical, Open Graph ----
 for (const f of pages) {
@@ -33,6 +36,17 @@ for (const f of pages) {
     if (!html.includes(`property="${prop}"`)) fail(f, `missing ${prop}`);
   }
   if ((html.match(/<h1[\s>]/g) || []).length !== 1) fail(f, "needs exactly one <h1>");
+  if (f !== "index.html") {
+    for (const [, json] of html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) {
+      try {
+        const nodes = JSON.parse(json)["@graph"] || [];
+        // FAQPage questions must match the FAQ shown on the page
+        for (const n of nodes) if (n["@type"] === "FAQPage") for (const q of n.mainEntity || []) {
+          if (!html.includes(`<h3>${q.name.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")}</h3>`)) fail(f, `FAQ JSON-LD question not on the page: ${q.name}`);
+        }
+      } catch (e) { fail(f, `JSON-LD doesn't parse: ${e.message}`); }
+    }
+  }
 }
 
 // ---- JSON-LD ----

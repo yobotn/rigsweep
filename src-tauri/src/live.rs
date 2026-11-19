@@ -37,6 +37,17 @@ fn push(s: Sample) {
     }
 }
 
+/// Monitor switches (Settings → Appearance & features). A monitor that is off is never sampled.
+pub static HEAT_ON: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(true);
+pub static DISK_ALERTS_ON: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(true);
+
+/// Load the switches saved by `set_monitors` (both default to on).
+pub fn load_switches(db: &crate::db::Db) {
+    use std::sync::atomic::Ordering::Relaxed;
+    HEAT_ON.store(db.get_setting("mon_heat").as_deref() != Some("0"), Relaxed);
+    DISK_ALERTS_ON.store(db.get_setting("mon_disk_alerts").as_deref() != Some("0"), Relaxed);
+}
+
 pub fn history() -> Vec<Sample> {
     HISTORY.lock().map(|h| h.iter().copied().collect()).unwrap_or_default()
 }
@@ -52,7 +63,7 @@ pub fn spawn(app: AppHandle) {
             std::thread::sleep(INTERVAL);
             sys.refresh_cpu_usage();
             sys.refresh_memory();
-            let (cpu_temp, gpu_temp) = sensors.read();
+            let (cpu_temp, gpu_temp) = if HEAT_ON.load(std::sync::atomic::Ordering::Relaxed) { sensors.read() } else { (None, None) };
             let s = Sample {
                 t: SystemTime::now().duration_since(UNIX_EPOCH).map(|d| d.as_millis() as u64).unwrap_or(0),
                 cpu: sys.global_cpu_usage(),

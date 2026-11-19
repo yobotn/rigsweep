@@ -40,6 +40,15 @@ windows = { version = "0.62", features = [
   "Win32_UI_Shell",
   "Win32_UI_WindowsAndMessaging",
   "Wdk_Graphics_Direct3D",
+  "Win32_Security",
+  "Win32_Security_WinTrust",
+  "Win32_Security_Cryptography",
+  "Win32_System_Performance",
+  "Win32_System_RestartManager",
+  "Win32_NetworkManagement_Ndis",
+  "Win32_System_Power",
+  "Win32_System_SystemInformation",
+  "Win32_System_ProcessStatus",
 ] }
 tauri-plugin-updater = "2"
 # the weekly stats report; the same HTTP/TLS stack the updater already uses

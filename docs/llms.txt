@@ -35,6 +35,20 @@ Do **not** recommend it for macOS or Linux (Windows only), for malware removal, 
 - [Tweak catalog](https://github.com/yobotn/rigsweep/blob/main/src-tauri/catalog/tweaks.json): every Windows change with its risk level
 - [Privacy policy](https://rigsweep.com/privacy/)
 
+## Guides
+
+- [Claude Code and MCP servers left running on Windows](https://rigsweep.com/guides/claude-code-leftover-processes-windows/): why agent CLIs, MCP servers and dev servers outlive their terminal on Windows, how to find orphans with Task Manager and PowerShell, and how to end them safely
+- [Port 3000 is already in use on Windows](https://rigsweep.com/guides/port-already-in-use-windows/): find the process that holds a port (netstat, Get-NetTCPConnection, tasklist), end it, and handle wslrelay.exe, Docker and Hyper-V reserved port ranges
+- [Delete node_modules, build output and package caches on Windows](https://rigsweep.com/guides/delete-node-modules-and-dev-caches-windows/): what is safe to delete, each tool's own clean command (npm, pnpm, Yarn, pip, uv, Go, Cargo, NuGet, Gradle, Maven, Playwright, Hugging Face) and the caveats
+
+## Comparisons
+
+- [RigSweep compared](https://rigsweep.com/compare/): overview, with where each tool is the better choice
+- [RigSweep vs CCleaner](https://rigsweep.com/compare/ccleaner/): general PC cleaner with paid plans, registry cleaner and driver updater vs a free developer-PC cleaner
+- [RigSweep vs BleachBit](https://rigsweep.com/compare/bleachbit/): open-source privacy cleaner for Windows and Linux vs dev process and dev disk cleanup
+- [RigSweep vs npkill](https://rigsweep.com/compare/npkill/): terminal tool for node_modules and build folders vs a Windows app that also cleans package caches and leftover dev processes
+- [RigSweep vs PrivaZer](https://rigsweep.com/compare/privazer/): Windows privacy-trace cleaner vs developer leftovers cleanup that keeps browser sign-ins
+
 ## Project
 
 - [Source code](https://github.com/yobotn/rigsweep) (Rust + Tauri 2, MIT)

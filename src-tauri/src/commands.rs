@@ -243,6 +243,10 @@ pub async fn save_settings(app: AppHandle, state: State<'_, AppState>, settings:
     let old = Settings::load(&db);
     let mut notes = vec![];
     let mut s = settings;
+    // the "Keep this" list is only changed by set_dev_keep, never by the Settings form
+    s.dev_keep = old.dev_keep.clone();
+    // the Dev Disk auto-select rules are set from the Dev Disk tab (set_disk_auto), not this form
+    (s.disk_auto_build, s.disk_auto_deps, s.disk_auto_caches, s.disk_auto_min_mb) = (old.disk_auto_build, old.disk_auto_deps, old.disk_auto_caches, old.disk_auto_min_mb);
     s.dev_folders = s.dev_folders.into_iter().map(|f| f.trim().to_string()).filter(|f| !f.is_empty()).collect();
     s.save(&db).map_err(err)?;
     let s_saved = Settings::load(&db);
@@ -612,6 +616,18 @@ pub async fn set_dev_keep(state: State<'_, AppState>, cmd: String, keep: bool) -
     }
     s.save(&db).map_err(err)?;
     Ok(Settings::load(&db))
+}
+
+/// Monitor switches that the backend samples on its own (temperatures in the live meter, the
+/// background disk health check). The UI-polled monitors (GPU, network) need no switch here:
+/// when they are off, the UI simply never asks.
+#[tauri::command]
+pub async fn set_monitors(state: State<'_, AppState>, heat: bool, disk_alerts: bool) -> R<()> {
+    let db = lock(&state)?;
+    db.set_setting("mon_heat", if heat { "1" } else { "0" }).map_err(err)?;
+    db.set_setting("mon_disk_alerts", if disk_alerts { "1" } else { "0" }).map_err(err)?;
+    crate::live::load_switches(&db);
+    Ok(())
 }
 
 /// Dev Disk auto-select rules, set from the Dev Disk tab itself.
