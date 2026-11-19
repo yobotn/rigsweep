@@ -25,7 +25,7 @@
 | Ads, upsell, telemetry | No ads, no account, no paid tier. Anonymous usage stats only if you agree at first run | Paid plans sold alongside the free edition |
 | Interface languages | 12 | 40+ |
 
-Checked November 2026 on ccleaner.com (the [plans page](https://www.ccleaner.com/ccleaner/plans), [CCleaner Professional](https://www.ccleaner.com/ccleaner/professional) and [Driver Updater](https://www.ccleaner.com/ccleaner/driver-updater) and [CCleaner for PC](https://www.ccleaner.com/ccleaner) pages). RigSweep facts are from its [README](https://github.com/yobotn/rigsweep#readme) and [homepage](https://rigsweep.com/). A dash means we couldn't verify it on an official source. Spotted something out of date? [Open an issue](https://github.com/yobotn/rigsweep/issues).
+Checked November 2026 on ccleaner.com (the [plans page](https://www.ccleaner.com/ccleaner/plans), [CCleaner Professional](https://www.ccleaner.com/ccleaner/professional), [Driver Updater](https://www.ccleaner.com/ccleaner/driver-updater) and [CCleaner for PC](https://www.ccleaner.com/ccleaner) pages). RigSweep facts are from its [README](https://github.com/yobotn/rigsweep#readme) and [homepage](https://rigsweep.com/). A dash means we couldn't verify it on an official source. Spotted something out of date? [Open an issue](https://github.com/yobotn/rigsweep/issues).
 
 ## Where CCleaner is the better choice
 
