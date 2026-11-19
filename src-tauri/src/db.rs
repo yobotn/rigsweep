@@ -123,6 +123,14 @@ impl Db {
         if !has_cpu {
             conn.execute("ALTER TABLE impact ADD COLUMN cpu REAL NOT NULL DEFAULT 0", [])?;
         }
+        // 0.8.3: and the CPU time it had used and how long it had been running
+        let has_time: bool = conn.prepare("SELECT 1 FROM pragma_table_info('impact') WHERE name = 'cpu_secs'")?.exists([])?;
+        if !has_time {
+            conn.execute_batch(
+                "ALTER TABLE impact ADD COLUMN cpu_secs INTEGER NOT NULL DEFAULT 0;
+                 ALTER TABLE impact ADD COLUMN run_secs INTEGER NOT NULL DEFAULT 0;",
+            )?;
+        }
         Ok(Db { conn })
     }
 
@@ -318,8 +326,8 @@ impl Db {
         let ts = now();
         for f in items {
             let _ = self.conn.execute(
-                "INSERT INTO impact(run, ts, source, area, kind, bytes, count, cpu) VALUES(?1,?2,?3,?4,?5,?6,?7,?8)",
-                params![run, ts, source, f.area, f.kind, f.bytes as i64, f.count as i64, f.cpu as f64],
+                "INSERT INTO impact(run, ts, source, area, kind, bytes, count, cpu, cpu_secs, run_secs) VALUES(?1,?2,?3,?4,?5,?6,?7,?8,?9,?10)",
+                params![run, ts, source, f.area, f.kind, f.bytes as i64, f.count as i64, f.cpu as f64, f.cpu_secs as i64, f.run_secs as i64],
             );
         }
     }
@@ -327,13 +335,17 @@ impl Db {
     /// (run, row) for every record at or after `since` ("YYYY-MM-DD HH:MM:SS"), or all of them.
     pub fn impact_rows(&self, since: Option<&str>) -> Result<Vec<(i64, Freed)>> {
         let mut st = self.conn.prepare(
-            "SELECT run, area, kind, bytes, count, cpu FROM impact WHERE ?1 IS NULL OR ts >= ?1 ORDER BY id",
+            "SELECT run, area, kind, bytes, count, cpu, cpu_secs, run_secs FROM impact WHERE ?1 IS NULL OR ts >= ?1 ORDER BY id",
         )?;
         let rows = st
             .query_map(params![since], |r| {
                 let (b, c): (i64, i64) = (r.get(3)?, r.get(4)?);
                 let cpu: f64 = r.get(5)?;
-                Ok((r.get(0)?, Freed { area: r.get(1)?, kind: r.get(2)?, bytes: b.max(0) as u64, count: c.max(0) as u64, cpu: cpu.max(0.0) as f32 }))
+                let (cs, rs): (i64, i64) = (r.get(6)?, r.get(7)?);
+                Ok((r.get(0)?, Freed {
+                    area: r.get(1)?, kind: r.get(2)?, bytes: b.max(0) as u64, count: c.max(0) as u64, cpu: cpu.max(0.0) as f32,
+                    cpu_secs: cs.max(0) as u64, run_secs: rs.max(0) as u64,
+                }))
             })?
             .collect::<std::result::Result<Vec<_>, _>>()?;
         Ok(rows)

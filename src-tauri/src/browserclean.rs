@@ -1,10 +1,12 @@
 //! Browser Cleanup: measure and empty browser caches (Chrome, Edge, Brave, Vivaldi, Opera, Firefox),
-//! per profile, without touching sign-ins. Cookies, passwords, Local/Session Storage, history and
-//! settings are never on the list. Two tiers:
+//! per profile, without touching sign-ins. Cookies, passwords, Local/Session Storage, IndexedDB,
+//! the File System API folder, history and settings are never on the list: web apps such as
+//! WhatsApp Web, Teams, Outlook and Telegram keep their sign-in in IndexedDB, so emptying it
+//! signs people out. Two tiers:
 //! - "safe": pure caches the browser rebuilds on its own (pages, images, compiled scripts, GPU
-//!   shaders, service-worker caches). No sign-outs, ever.
-//! - "site": data sites stored on purpose (legacy File System API, IndexedDB). Can be huge, but a
-//!   site may lose offline files, and a few web apps keep their session in IndexedDB.
+//!   shaders). No sign-outs, ever.
+//! - "site": service-worker caches. Chrome counts them as site data: no sign-out, but an
+//!   offline-capable web app loses its offline copy until it next goes online.
 //!
 //! Only folder sizes are read, never site names. The UI sends (browser, profile, key) identifiers
 //! and the paths are re-derived here, so nothing outside the known folders can be deleted. A browser
@@ -56,9 +58,7 @@ type ItemDef = (&'static str, &'static str, &'static [&'static str]);
 
 const CHROMIUM_ITEMS: &[ItemDef] = &[
     ("cache", "safe", &["Cache", "Media Cache", "Code Cache", "GPUCache", "DawnGraphiteCache", "DawnWebGPUCache", r"Shared Dictionary\cache"]),
-    ("sw", "safe", &[r"Service Worker\CacheStorage", r"Service Worker\ScriptCache"]),
-    ("filesystem", "site", &["File System"]),
-    ("indexeddb", "site", &["IndexedDB"]),
+    ("sw", "site", &[r"Service Worker\CacheStorage", r"Service Worker\ScriptCache"]),
 ];
 /// Browser-wide GPU shader caches next to Local State.
 const CHROMIUM_SHARED: &[ItemDef] = &[("gpu", "safe", &["ShaderCache", "GrShaderCache", "GraphiteDawnCache"])];

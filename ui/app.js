@@ -12,6 +12,8 @@ const fmtBytes = (b) => {
   do { b /= 1024; i++; } while (b >= 1024 && i < u.length - 1);
   return ltr(`${neg ? "-" : ""}${b.toFixed(b < 10 ? 1 : 0)} ${u[i]}`);
 };
+// CPU time and run time: seconds stay seconds, longer reads like an age
+const fmtDur = (s) => ltr(s < 60 ? `${Math.round(s)}s` : fmtAge(s));
 const fmtAge = (s) => s < 3600 ? `${Math.max(1, Math.round(s / 60))}m` : s < 86400 ? `${(s / 3600).toFixed(1)}h` : `${(s / 86400).toFixed(1)}d`;
 // Backend timestamps are local "YYYY-MM-DD HH:MM:SS". timeAgo → "5 minutes ago" / "yesterday" in the UI
 // language; fullDate → the exact date and time, for tooltips. Anything unparseable is shown as is.
@@ -569,7 +571,11 @@ function renderDev() {
   $("#clean-body").innerHTML = [...dev.items].sort(sorter("dev", devVal)).map((p) => {
     const k = devKey(p);
     const reasons = p.reasons.length ? p.reasons : ["active"];
-    const badges = reasons.map((r) => `<span class="badge ${r}">${esc(t("reason." + r, { o: p.owner, p: p.dup_of }))}</span>`).join(" ");
+    const tip = (r) => r === "orphan" ? ` title="${esc(t("reason.orphanTip"))}"` : r === "managed" ? ` title="${esc(t("reason.managedTip", { m: p.manager }))}"` : "";
+    const badges = reasons.map((r) => `<span class="badge ${r}"${tip(r)}>${esc(t("reason." + r, { o: p.owner, p: p.dup_of, m: p.manager }))}</span>`).join(" ");
+    // a deliberately detached job (start /b, Start-Process, nohup) can be remembered by its command line
+    const keep = !p.protected && p.cmd && (p.kept || p.reasons.includes("orphan") || p.stale)
+      ? ` <button class="small ghost" data-keep="${p.kept ? 0 : 1}" data-cmd="${esc(p.cmd)}" title="${esc(t("clean.keepTip"))}">${esc(t(p.kept ? "clean.unkeep" : "clean.keep"))}</button>` : "";
     return `<tr class="${p.stale ? "stale" : ""} ${p.protected ? "locked" : ""}">
       <td>${p.protected ? "🔒" : `<input type="checkbox" data-dev="${esc(k)}" aria-label="${esc(`${p.label} · ${devWhere(p) || p.pid}`)}" ${devSel.has(k) ? "checked" : ""} />`}</td>
       <td><b>${esc(p.label)}</b> <span class="eco ${esc(p.eco)}">${esc(ecoLabel(p))}</span>
@@ -579,7 +585,7 @@ function renderDev() {
       <td class="num">${p.tree_mem ? fmtBytes(p.tree_mem) : "—"}</td>
       <td class="num ${p.cpu > 25 ? "vhot" : p.cpu > 5 ? "hot" : ""}">${p.cpu >= 0.1 ? `${p.cpu.toFixed(1)}%` : "—"}</td>
       <td>${p.ports.length ? p.ports.slice(0, 4).map((x) => `<code>${x}</code>`).join(" ") + (p.ports.length > 4 ? " …" : "") : "–"}</td>
-      <td>${badges}</td>
+      <td>${badges}${keep}</td>
     </tr>`;
   }).join("");
 }
@@ -591,7 +597,20 @@ $("#clean-body").addEventListener("change", (e) => {
   if (e.target.checked) { devSel.add(k); devUnticked.delete(k); } else { devSel.delete(k); devUnticked.add(k); }
 });
 $("#btn-clean-scan").onclick = (e) => loadDev(e.target);
-$("#clean-body").addEventListener("click", (e) => { if (e.target.closest("[data-retry]")) loadDev(e.target.closest("button")); });
+$("#clean-body").addEventListener("click", async (e) => {
+  if (e.target.closest("[data-retry]")) return loadDev(e.target.closest("button"));
+  const b = e.target.closest("[data-keep]");
+  if (!b) return;
+  const on = b.dataset.keep === "1";
+  b.disabled = true;
+  try {
+    const s = await call("set_dev_keep", { cmd: b.dataset.cmd, keep: on });
+    if (state) state.settings = s;
+    // a kept row is never pre-selected: drop it from the selection right away
+    if (on) devSel.forEach((k) => { if (dev?.items.find((p) => devKey(p) === k)?.cmd === b.dataset.cmd) devSel.delete(k); });
+    await loadDev(null, true);
+  } catch (err) { toast(String(err), "error"); b.disabled = false; }
+});
 $("#btn-clean-stale").onclick = async (e) => {
   await loadDev(e.target); // fresh scan, so rows that just went stale are included
   if (!dev) return;
@@ -605,7 +624,15 @@ $("#btn-clean-end").onclick = async (e) => {
   if (!picked.length) return toast(t("bc.nothing"));
   const serving = picked.filter((p) => p.ports.length).length;
   const agents = picked.filter((p) => p.kind === "agent").length;
-  const html = `<p>${esc(t("clean.confirm.body"))}</p><ul>${picked.map((p) =>
+  // what ending them gives back, as big numbers above the list
+  const sum = (f) => picked.reduce((n, p) => n + f(p), 0);
+  const ports = new Set(picked.flatMap((p) => p.ports)).size, cpu = sum((p) => p.cpu);
+  const cpuSecs = sum((p) => p.cpu_secs || 0), runSecs = sum((p) => p.age_secs || 0);
+  const stat = (k, v, cls = "") => `<div class="free-card ${cls}"><div class="big">${v}</div><div class="label">${esc(t(k))}</div></div>`;
+  const cards = `<div class="free-cards">${stat("clean.free.ram", esc(fmtBytes(sum((p) => p.tree_mem))), "ram")}${stat("clean.free.procs", ltr(String(sum((p) => p.tree_count))))}${
+    cpu >= 0.5 ? stat("clean.free.cpu", `${cpu.toFixed(0)}%`, "cpu") : ""}${ports ? stat("clean.free.ports", ltr(String(ports))) : ""}${
+    cpuSecs >= 1 ? stat("clean.free.cpuTime", fmtDur(cpuSecs), "cpu") : ""}${runSecs >= 60 ? stat("clean.free.runTime", fmtDur(runSecs)) : ""}</div>`;
+  const html = `${cards}<p>${esc(t("clean.confirm.body"))}</p><ul>${picked.map((p) =>
     `<li><b>${esc(p.label)}</b> <span class="sub"><bdi dir="ltr">${esc(p.project_path || devWhere(p) || "—")}</bdi>${p.ports.length ? " · :" + p.ports.slice(0, 3).join(", :") : ""} · ${fmtBytes(p.tree_mem)} · PID ${p.pid} (+${p.tree_count - 1})</span></li>`).join("")}</ul>
     ${serving ? `<p class="warn-text">${esc(t("clean.serving.warn", { n: serving }))}</p>` : ""}
     ${picked.some((p) => p.kind === "vm") ? `<p class="warn-text">${esc(t("clean.vm.warn"))}</p>` : ""}
@@ -619,6 +646,7 @@ $("#btn-clean-end").onclick = async (e) => {
     const r = await call("kill_dev_processes", { targets: picked.map((p) => ({ pid: p.pid, start_time: p.start_time, label: p.label, project: p.project, project_path: p.project_path, ports: p.ports })) });
     let msg = t("clean.done", { n: r.result.ended.length, mem: fmtBytes(r.result.freed_mem) });
     if (r.result.freed_cpu >= 0.5) msg += " · " + t("ready.cpu", { c: r.result.freed_cpu.toFixed(0) });
+    if (r.result.cpu_secs >= 1) msg += "\n" + t("clean.done.cpu", { d: fmtDur(r.result.cpu_secs) });
     if (r.result.failed.length) msg += `\n\n${t("clean.failed")}\n• ` + r.result.failed.join("\n• ");
     toast(msg + `\n${t("clean.seeReport")}`, r.result.failed.length ? "warn" : "ok", 10000);
     reportPick = { before: r.before.id, after: r.after.id };
@@ -723,8 +751,9 @@ const diskSeen = new Set();
 const cKey = (c) => `c|${c.id}`;
 const aKey = (p, a) => `p|${p.path}|${a.name}`;
 const wKey = (w) => `w|${w.path}`;
-// git won't remove a worktree with changes or without its repo, so neither can be picked
-const wLocked = (w) => w.busy || w.dirty || w.orphan;
+// git won't remove a worktree with changes, so it can't be picked; one whose repo is gone can
+// only go to the Recycle Bin (picked by hand, after a warning)
+const wLocked = (w) => w.busy || (w.dirty && !w.orphan);
 const diskRows = () => [
   ...(disk?.caches || []).filter((c) => !c.disabled && !c.busy && !c.show_only && c.bytes > 0).map((c) => ({ k: cKey(c), bytes: c.bytes, c })),
   ...(disk?.projects || []).filter((p) => !p.busy).flatMap((p) => p.items.map((a) => ({ k: aKey(p, a), bytes: a.bytes, p, a }))),
@@ -841,11 +870,11 @@ function renderDisk() {
   if (disk.worktrees?.length) {
     html += `<tr class="group"><td colspan="6"><b>${esc(t("disk.worktrees"))}</b> <span class="sub">${fmtBytes(disk.worktree_total)}</span></td></tr>`;
     const wtOrder = sorter("disk", (w, k) => k === "what" ? shortPath(w.path) : k === "idle" ? w.idle_days : k === "type" ? w.tool : w.bytes);
-    const TOOL = { claude: "Claude Code", cursor: "Cursor", codex: "Codex", windsurf: "Windsurf", git: "Git" };
+    const TOOL = { claude: "Claude Code", cursor: "Cursor", codex: "Codex", windsurf: "Windsurf", git: "Git", temp: "%TEMP%" };
     html += [...disk.worktrees].sort(wtOrder).map((w) => {
       const badges = [
         w.busy ? `<span class="badge serving">${esc(t("disk.inUse"))}</span>` : "",
-        w.orphan ? `<span class="badge orphan">${esc(t("disk.wt.orphan"))}</span>` : "",
+        w.orphan ? `<span class="badge orphan" title="${esc(t("disk.wt.orphanTip"))}">${esc(t("disk.wt.orphan"))}</span>` : "",
         w.dirty && !w.orphan ? `<span class="badge orphan">${esc(t("disk.wt.dirty"))}</span>` : "",
         w.idle_days >= diskAuto().days ? `<span class="badge idle">${esc(t("disk.untouched", { d: w.idle_days }))}</span>`
           : `<span class="badge active">${esc(w.idle_days === 0 ? t("disk.today") : t("disk.recent", { d: w.idle_days }))}</span>`,
@@ -961,13 +990,14 @@ $("#btn-disk-clean").onclick = async (e) => {
     ${deps ? `<p class="warn-text">${esc(t("disk.deps.warn"))}</p>` : ""}
     ${redl ? `<p class="warn-text">${esc(t("disk.redl.warn"))}</p>` : ""}
     ${hist ? `<p class="warn-text">${esc(t("disk.hist.warn"))}</p>` : ""}
-    ${wts.length ? `<p class="warn-text">${esc(t("disk.wt.warn"))}</p>` : ""}
+    ${wts.some((r) => !r.w.orphan) ? `<p class="warn-text">${esc(t("disk.wt.warn"))}</p>` : ""}
+    ${wts.some((r) => r.w.orphan) ? `<p class="warn-text">${esc(t("disk.wt.orphanWarn"))}</p>` : ""}
     ${ign.length ? `<p class="warn-text">${esc(t("disk.wt.ignored", { list: ign.join(", ") }))}</p>` : ""}
     ${od ? `<p class="warn-text">${esc(t("disk.od.warn"))}</p>` : ""}`;
   if (!(await modal(t("disk.confirm.title", { size: fmtBytes(size) }), html, { okText: t("disk.clean"), danger: true }))) return;
   const targets = picked.map((r) => r.c
     ? { kind: "cache", id: r.c.id, name: "", bytes: r.bytes }
-    : r.w ? { kind: "worktree", id: r.w.path, name: "", bytes: r.bytes }
+    : r.w ? { kind: "worktree", id: r.w.path, name: r.w.orphan ? "recycle" : "", bytes: r.bytes }
     : { kind: "project", id: r.p.path, name: r.a.name, bytes: r.bytes });
   // the job runs in the backend; a reload or tab switch just picks it up again
   try { applyDiskJob(await call("start_disk_clean", { targets })); } catch { pollDiskJob(); return; }
@@ -1445,6 +1475,9 @@ function renderImpact() {
   $("#im-disk").textContent = fmtBytes(p.disk + p.browser);
   $("#im-ram").textContent = fmtBytes(p.memory);
   $("#im-procs").textContent = ltr(String(p.processes));
+  $("#im-ran").textContent = p.run_secs >= 60 ? t("impact.ranFor", { d: fmtDur(p.run_secs) }) : "";
+  $("#im-cpu").textContent = p.cpu_peak >= 0.5 ? `${p.cpu_peak.toFixed(0)}%` : "–";
+  $("#im-cputime").textContent = p.cpu_secs >= 1 ? fmtDur(p.cpu_secs) : "–";
   $("#im-runs").textContent = ltr(String(p.cleanups));
   const top = p.kinds.filter((k) => k.bytes > 0).slice(0, 10);
   const max = top[0]?.bytes || 1;
@@ -1480,27 +1513,41 @@ async function renderDashboard() {
     invoke("get_history", { limit: 60 }).catch(() => []),
     invoke("get_dev_processes").catch(() => null),
   ]);
-  const callouts = [];
   if (snap) {
     snapshot = snap;
     $("#t-procs").textContent = ltr(`${snap.process_count} / ${snap.service_running}`);
-    const top = [...snap.processes].sort((a, b) => (b.cpu + diskOf(b) / 5e6) - (a.cpu + diskOf(a) / 5e6)).slice(0, 8);
-    $("#dash-top").innerHTML = top.map((p) => `<tr><td><div class="named">${ico(p.exe)}<div><button class="linkish" data-why="${p.pid}" title="${esc(t("why.btn"))}"><b>${esc(p.name)}</b></button>${p.services.length ? `<div class="sub">${esc(p.services.map((s) => s.name).join(", "))}</div>` : ""}</div></div></td>
-      <td class="num ${p.cpu > 25 ? "vhot" : p.cpu > 5 ? "hot" : ""}">${p.cpu.toFixed(1)}%</td><td class="num">${fmtBytes(p.mem)}</td><td class="num">${diskOf(p) ? fmtBytes(diskOf(p)) : "–"}</td></tr>`).join("");
+    // Chrome runs as many processes; when together they hold a lot of RAM, show them as one row
+    // (with the tab-helper link) instead of a callout above the page
     const chrome = snap.processes.filter((p) => p.name.toLowerCase() === "chrome.exe");
     const cmem = chrome.reduce((n, p) => n + p.mem, 0);
-    // Defender busy: offer to record what it is scanning
-    const mp = snap.processes.find((p) => p.name.toLowerCase() === "msmpeng.exe");
-    if (mp && mp.cpu > 5) callouts.push(`<div class="callout">${esc(t("mp.callout", { c: mp.cpu.toFixed(0) }))} <button class="small" data-why="${mp.pid}">${esc(t("mp.why"))}</button></div>`);
-    if (cmem > 1.5 * 1024 ** 3) callouts.push(`<div class="callout">${esc(t("dash.chrome", { n: chrome.length, mem: fmtBytes(cmem) }))} <button class="small ghost" data-go="settings">${esc(t("dash.chrome.go"))}</button></div>`);
+    const groupChrome = cmem > 1.5 * 1024 ** 3;
+    const rank = (p) => p.cpu + diskOf(p) / 5e6;
+    const group = groupChrome && { ...chrome.reduce((x, y) => (y.mem > x.mem ? y : x)), group: chrome.length, services: [], mem: cmem,
+      cpu: chrome.reduce((n, p) => n + p.cpu, 0), disk_read: chrome.reduce((n, p) => n + (p.disk_read || 0), 0), disk_write: chrome.reduce((n, p) => n + (p.disk_write || 0), 0) };
+    const top = snap.processes.filter((p) => !groupChrome || p.name.toLowerCase() !== "chrome.exe")
+      .sort((x, y) => rank(y) - rank(x)).slice(0, 8);
+    // the Chrome row is there for its RAM, so it always shows, in its CPU place or last
+    if (group) { const i = top.findIndex((p) => rank(p) < rank(group)); i < 0 ? top.splice(7, 1, group) : (top.splice(i, 0, group), top.length = Math.min(top.length, 8)); }
+    // a busy process gets its "See why" right next to its CPU; Defender is worth asking about sooner
+    const whyBtn = (p) => {
+      const defender = p.name.toLowerCase() === "msmpeng.exe";
+      return !p.group && (p.cpu > 25 || (defender && p.cpu > 5))
+        ? ` <button class="small ghost" data-why="${p.pid}">${esc(t("mp.why"))}</button>` : "";
+    };
+    const row = (p) => `<tr><td><div class="named">${ico(p.exe)}<div>${p.group
+        ? `<b>${esc(p.name)}</b><div class="sub">${esc(t("dash.chrome", { n: p.group, mem: fmtBytes(p.mem) }))}</div>`
+        : `<button class="linkish" data-why="${p.pid}" title="${esc(t("why.btn"))}"><b>${esc(p.name)}</b></button>${p.services.length ? `<div class="sub">${esc(p.services.map((s) => s.name).join(", "))}</div>` : ""}`}</div></div></td>
+      <td class="num ${p.cpu > 25 ? "vhot" : p.cpu > 5 ? "hot" : ""}"><span class="cell-act">${whyBtn(p)}<span>${p.cpu.toFixed(1)}%</span></span></td>
+      <td class="num"><span class="cell-act">${p.group ? `<button class="small ghost" data-go="settings">${esc(t("dash.chrome.go"))}</button>` : ""}<span>${fmtBytes(p.mem)}</span></span></td>
+      <td class="num">${diskOf(p) ? fmtBytes(diskOf(p)) : "–"}</td></tr>`;
+    $("#dash-top").innerHTML = top.map(row).join("");
   } else {
     $("#dash-top").innerHTML = `<tr><td colspan="4" class="loading">${esc(t("err.noData"))}</td></tr>`;
   }
   if (devr) dev = devr;
-  $("#dash-callouts").innerHTML = callouts.join("");
   renderReady(); // stale processes now; disk and browser caches from the background scans
   // drop the loading skeletons even if a call failed; "–" then stands for "no data"
-  ["#t-procs", "#t-tweaks", "#t-drift"].forEach((id) => $(id).classList.remove("skel"));
+  ["#t-procs", "#t-tweaks"].forEach((id) => $(id).classList.remove("skel"));
   renderDashCharts();
   renderHeat();
   hardwareCallout();
@@ -1510,7 +1557,9 @@ async function renderDashboard() {
     const applied = here.filter((x) => x.status.overall === "applied").length;
     $("#t-tweaks").textContent = ltr(`${applied} / ${here.length}`);
     $("#t-tweaks-bar").style.width = `${here.length ? (applied / here.length) * 100 : 0}%`;
-    $("#t-drift").textContent = state.tweaks.reduce((n, x) => n + x.drift_count, 0);
+    // how often Windows undid a tweak (and RigSweep put it back): a footnote under the tweak count
+    const drift = state.tweaks.reduce((n, x) => n + x.drift_count, 0);
+    $("#t-drift").textContent = drift ? `${t("dash.drift")}: ${drift}` : "";
   }
   const rows = hist.filter((h) => !quietRow(h)).slice(0, 8);
   $("#dash-history").innerHTML = rows.length ? rows.map(feedItem).join("")
@@ -1602,7 +1651,7 @@ $("#btn-refresh-dash").onclick = async (e) => {
   busy(e.target, true);
   try { await loadState(); await loadDashboard(); } finally { busy(e.target, false); }
 };
-$("#dash-callouts").addEventListener("click", (e) => { if (e.target.dataset.go) showTab(e.target.dataset.go); });
+$("#dash-top").addEventListener("click", (e) => { if (e.target.dataset.go) showTab(e.target.dataset.go); });
 $("#hw-callout").addEventListener("click", (e) => { if (e.target.dataset.go) showTab(e.target.dataset.go); });
 
 // ---------- hardware ----------
@@ -2088,10 +2137,10 @@ function renderReady() {
   // always the same three tiles: checking, nothing to free, or the amount, so nothing jumps around
   const SLOTS = [["dev", "🧹", "cleanup", () => dev], ["disk", "💾", "disk", () => disk], ["bc", "🌐", "browser", () => bc]];
   const rows = SLOTS.map(([key, icon, go, data]) => have.find((r) => r.key === key)
-    || { key, icon, go, state: data() ? "none" : "checking", big: data() ? "✓" : "", cap: t(data() ? `ready.none.${key}` : "ready.checking"), text: t(data() ? `ready.none.${key}` : "ready.checking") });
+    || { key, icon, go, state: data() ? "none" : "checking", big: data() ? "✓" : "", cap: t(data() ? `ready.none.${key}` : "ready.scanHint"), text: t(data() ? `ready.none.${key}` : "ready.scanning") });
   // one tile per kind: the amount big, what it is underneath, the actions at the bottom
   $("#ready-list").innerHTML = rows.map((r) => `<li class="ready-tile ${r.key} ${r.state || "has"}" aria-label="${esc(r.text)}" ${r.state === "checking" ? 'aria-busy="true"' : ""}>
-    <div class="ready-top"><span class="ready-ico" aria-hidden="true">${r.icon}</span><span class="ready-big">${r.state === "checking" ? '<span class="skel-bar"></span>' : esc(r.big)}</span></div>
+    <div class="ready-top"><span class="ready-ico" aria-hidden="true">${r.icon}</span><span class="ready-big">${r.state === "checking" ? `<span class="scanning"><i class="scan-dot"></i>${esc(t("ready.scanning"))}</span>` : esc(r.big)}</span></div>
     <div class="ready-cap">${esc(r.cap)}</div>
     <div class="ready-acts"><button class="small ghost" data-go="${r.go}">${esc(t("ready.review"))}</button>${r.state ? "" : `<button class="small primary" data-ready="${r.key}">${esc(r.act)}</button>`}</div></li>`).join("");
 }

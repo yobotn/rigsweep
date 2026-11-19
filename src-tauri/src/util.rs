@@ -149,3 +149,26 @@ mod tests {
         assert_eq!(expand_env("%AIB_TEST%\\a%NOPE_XYZ%"), "X\\a%NOPE_XYZ%");
     }
 }
+
+/// Move a file or folder to the Recycle Bin (never a permanent delete), with no dialogs.
+pub fn recycle(path: &std::path::Path) -> Result<()> {
+    use windows::core::PCWSTR;
+    use windows::Win32::UI::Shell::{SHFileOperationW, FOF_ALLOWUNDO, FOF_NOCONFIRMATION, FOF_NOERRORUI, FOF_SILENT, FO_DELETE, SHFILEOPSTRUCTW};
+    use std::os::windows::ffi::OsStrExt;
+    if !path.is_absolute() || path.components().count() < 3 {
+        return Err(anyhow!("refusing to recycle {}", path.display()));
+    }
+    // pFrom is a list of paths ending in an extra NUL
+    let from: Vec<u16> = path.as_os_str().encode_wide().chain([0, 0]).collect();
+    let mut op = SHFILEOPSTRUCTW {
+        wFunc: FO_DELETE,
+        pFrom: PCWSTR(from.as_ptr()),
+        fFlags: (FOF_ALLOWUNDO.0 | FOF_NOCONFIRMATION.0 | FOF_NOERRORUI.0 | FOF_SILENT.0) as u16,
+        ..Default::default()
+    };
+    let rc = unsafe { SHFileOperationW(&mut op) };
+    if rc != 0 || op.fAnyOperationsAborted.as_bool() {
+        return Err(anyhow!("could not move it to the Recycle Bin (code {rc})"));
+    }
+    Ok(())
+}

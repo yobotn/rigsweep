@@ -96,6 +96,7 @@ textarea { width: 100%; font-family: Consolas, monospace; font-size: var(--fs-sm
 .impact-stats .big { font-size: var(--fs-3xl); font-weight: 700; margin-top: var(--s-1); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .impact-stats .big.disk { color: var(--safe); }
 .impact-stats .big.ram { color: var(--c-mem); }
+.impact-stats .big.cpu { color: var(--c-cpu); }
 #im-top { list-style: none; margin: var(--s1) 0 var(--s2); padding: 0; display: grid; gap: var(--s-1); }
 #im-top .empty-state { color: var(--muted); padding: var(--s1) 0; }
 .im-row { width: 100%; display: grid; grid-template-columns: minmax(110px, 1fr) 2fr minmax(64px, auto); gap: var(--s3); align-items: center;
@@ -195,6 +196,7 @@ th[aria-sort="ascending"] .th-sort::after { content: "↑"; opacity: 1; color: v
 .badge.idle { color: var(--moderate); background: color-mix(in srgb, var(--moderate) 12%, transparent); }
 .badge.serving { color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
 .badge.active { color: var(--safe); background: color-mix(in srgb, var(--safe) 12%, transparent); }
+.badge.managed, .badge.kept { color: var(--safe); background: color-mix(in srgb, var(--safe) 12%, transparent); }
 tr.stale td:first-child { box-shadow: inset 3px 0 0 var(--moderate); }
 [dir=rtl] tr.stale td:first-child { box-shadow: inset -3px 0 0 var(--moderate); }
 code { font-family: Consolas, monospace; font-size: var(--fs-xs); background: var(--panel2); border-radius: var(--r-sm); padding: 0 var(--s0); }
@@ -558,7 +560,11 @@ span.ico:not([data-ico]) { background: transparent; }
 /* Ready to free: calm states */
 .ready-tile.none .ready-big { color: var(--safe); }
 .ready-tile.none .ready-cap, .ready-tile.checking .ready-cap { color: var(--muted); }
-.ready-tile.checking .ready-big .skel-bar { display: inline-block; width: 90px; height: 22px; vertical-align: middle; }
+/* still scanning: a calm "Scanning…" with a slow breathing dot, not a shimmer that looks stuck */
+.ready-tile.checking .scanning { display: inline-flex; align-items: center; gap: var(--s2); font-size: var(--fs-lg); font-weight: 500; color: var(--muted); }
+.scan-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: scan-breathe 2.4s ease-in-out infinite; }
+@keyframes scan-breathe { 0%, 100% { opacity: .25; transform: scale(.8); } 50% { opacity: 1; transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .scan-dot { animation: none; opacity: .7; } }
 
 /* Dashboard attention items: compact chips in one row, not full-width bars */
 .attention { display: flex; flex-wrap: wrap; gap: var(--s2); margin: 0 0 var(--s4); }
@@ -596,3 +602,19 @@ nav button.active .ico { opacity: 1; color: var(--accent); }
 .list-filter { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s2) var(--s4); margin-bottom: var(--s3); }
 .list-filter .summary { margin: 0; }
 .seg .count { display: inline-block; min-width: 1.6em; padding: 0 var(--s0); margin-inline-start: var(--s0); border-radius: var(--r-pill); background: var(--border); color: var(--text); font-size: var(--fs-xs); text-align: center; }
+
+/* Dashboard: the "live" tile holds the refresh button; buttons inside table cells sit before the number */
+.tile.live-tile { justify-content: space-between; gap: var(--s2); }
+.tile.live-tile .live-sub { margin-top: 0; }
+.tile.live-tile button { align-self: flex-start; }
+.cell-act { display: inline-flex; align-items: center; justify-content: flex-end; gap: var(--s2); }
+.cell-act > button { white-space: nowrap; }
+
+/* End selected confirmation: what it frees, as cards */
+.free-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: var(--s2); margin: 0 0 var(--s4); }
+.free-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--s3); }
+.free-card .big { font-size: var(--fs-2xl); font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.free-card .label { color: var(--muted); font-size: var(--fs-xs); margin-top: var(--s-1); }
+.free-card.ram { border-color: color-mix(in srgb, var(--c-mem) 45%, transparent); background: color-mix(in srgb, var(--c-mem) 10%, var(--bg)); }
+.free-card.ram .big { color: var(--c-mem); }
+.free-card.cpu .big { color: var(--c-cpu, var(--accent)); }

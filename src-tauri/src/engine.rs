@@ -57,6 +57,9 @@ pub struct Settings {
     /// how often the Processes page and the Dashboard refresh while they are open (seconds)
     #[serde(default = "default_live_refresh")]
     pub live_refresh_secs: u32,
+    /// Dev Cleanup: command lines the user marked "Keep this" (deliberately detached jobs)
+    #[serde(default)]
+    pub dev_keep: Vec<String>,
 }
 
 fn default_live_refresh() -> u32 {
@@ -95,7 +98,7 @@ impl Settings {
                     .map(|s| s.to_string())
                     .collect()
             });
-        Settings {
+        let s = Settings {
             start_with_windows: db.get_setting("start_with_windows").as_deref() == Some("1"),
             stay_in_tray: db.get_setting("stay_in_tray").as_deref() != Some("0"),
             watchdog_minutes: db.get_setting("watchdog_minutes").and_then(|s| s.parse().ok()).unwrap_or(30),
@@ -123,7 +126,10 @@ impl Settings {
             disk_auto_caches: db.get_setting("disk_auto_caches").as_deref() != Some("0"),
             disk_auto_min_mb: db.get_setting("disk_auto_min_mb").and_then(|s| s.parse().ok()).unwrap_or(default_auto_min_mb()),
             live_refresh_secs: db.get_setting("live_refresh_secs").and_then(|s| s.parse().ok()).unwrap_or(default_live_refresh()).clamp(2, 60),
-        }
+            dev_keep: json_list(db, "dev_keep").unwrap_or_default(),
+        };
+        crate::devclean::set_keep(&s.dev_keep);
+        s
     }
 
     pub fn save(&self, db: &Db) -> Result<()> {
@@ -149,6 +155,8 @@ impl Settings {
         db.set_setting("disk_auto_caches", if self.disk_auto_caches { "1" } else { "0" })?;
         db.set_setting("disk_auto_min_mb", &self.disk_auto_min_mb.min(100_000).to_string())?;
         db.set_setting("live_refresh_secs", &self.live_refresh_secs.clamp(2, 60).to_string())?;
+        db.set_setting("dev_keep", &serde_json::to_string(&self.dev_keep)?)?;
+        crate::devclean::set_keep(&self.dev_keep);
         Ok(())
     }
 }

@@ -29,13 +29,11 @@
     <!-- DASHBOARD -->
     <section id="tab-dashboard" class="tab active">
       <header>
-        <div><h1 data-i18n="dash.title"></h1><div class="sub live-sub"><i class="pulse"></i><span data-i18n="live.now"></span></div></div>
-        <button id="btn-refresh-dash" class="ghost" data-i18n="common.refresh"></button>
+        <h1 data-i18n="dash.title"></h1>
       </header>
       <div class="attention">
         <div id="heat-callout" class="callouts"></div>
         <div id="hw-callout" class="callouts"></div>
-        <div id="dash-callouts" class="callouts"></div>
       </div>
       <div class="card ready" id="ready">
         <h2 data-i18n="ready.title"></h2>
@@ -69,13 +67,16 @@
       </div>
       <div class="tiles">
         <div class="tile link" data-go="processes" role="button" tabindex="0"><div class="label" data-i18n="dash.procs"></div><div class="value skel" id="t-procs">–</div></div>
-        <div class="tile link" data-go="tweaks" role="button" tabindex="0"><div class="label" data-i18n="dash.tweaks"></div><div class="value skel" id="t-tweaks">–</div><div class="meter"><i id="t-tweaks-bar" style="width:0"></i></div></div>
-        <div class="tile link" data-go="history" role="button" tabindex="0"><div class="label" data-i18n="dash.drift"></div><div class="value skel" id="t-drift">–</div></div>
+        <div class="tile link" data-go="tweaks" role="button" tabindex="0"><div class="label" data-i18n="dash.tweaks"></div><div class="value skel" id="t-tweaks">–</div><div class="meter"><i id="t-tweaks-bar" style="width:0"></i></div><div class="sub" id="t-drift"></div></div>
         <div class="tile heat" id="t-heat-tile" role="button" tabindex="0" data-i18n-title="heat.unitHint">
           <div class="label" data-i18n="heat.title"></div>
           <div class="value skel" id="t-heat">–</div>
           <svg id="heat-spark" class="spark heat-spark" viewBox="0 0 300 28" preserveAspectRatio="none" aria-hidden="true"></svg>
           <div class="sub" id="t-heat-sub"></div>
+        </div>
+        <div class="tile live-tile">
+          <div class="label live-sub"><i class="pulse"></i><span data-i18n="live.now"></span></div>
+          <button id="btn-refresh-dash" class="ghost" data-i18n="common.refresh"></button>
         </div>
       </div>
       <div class="grid2">
@@ -104,7 +105,9 @@
         <div class="impact-stats">
           <div><div class="label" data-i18n="impact.disk"></div><div class="big disk" id="im-disk">–</div></div>
           <div><div class="label" data-i18n="impact.ram"></div><div class="big ram" id="im-ram">–</div></div>
-          <div><div class="label" data-i18n="impact.procs"></div><div class="big" id="im-procs">–</div></div>
+          <div><div class="label" data-i18n="impact.procs"></div><div class="big" id="im-procs">–</div><div class="sub" id="im-ran"></div></div>
+          <div><div class="label" data-i18n="impact.cpuPeak"></div><div class="big cpu" id="im-cpu">–</div><div class="sub" data-i18n="impact.cpuPeakSub"></div></div>
+          <div><div class="label" data-i18n="impact.cpuTime"></div><div class="big cpu" id="im-cputime">–</div><div class="sub" data-i18n="impact.cpuTimeSub"></div></div>
           <div><div class="label" data-i18n="impact.runs"></div><div class="big" id="im-runs">–</div></div>
         </div>
       </div>

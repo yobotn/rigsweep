@@ -599,6 +599,21 @@ pub async fn set_disk_cache_enabled(state: State<'_, AppState>, id: String, enab
     Ok(Settings::load(&db))
 }
 
+/// Dev Cleanup "Keep this": remember (or forget) a command line so it is never pre-selected or
+/// auto-ended.
+#[tauri::command]
+pub async fn set_dev_keep(state: State<'_, AppState>, cmd: String, keep: bool) -> R<Settings> {
+    let db = lock(&state)?;
+    let mut s = Settings::load(&db);
+    let k = crate::devclean::keep_key(&cmd);
+    s.dev_keep.retain(|c| crate::devclean::keep_key(c) != k);
+    if keep && !k.is_empty() {
+        s.dev_keep.push(cmd.trim().chars().take(400).collect());
+    }
+    s.save(&db).map_err(err)?;
+    Ok(Settings::load(&db))
+}
+
 /// Dev Disk auto-select rules, set from the Dev Disk tab itself.
 #[tauri::command]
 pub async fn set_disk_auto(

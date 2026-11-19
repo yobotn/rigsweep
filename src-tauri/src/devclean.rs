@@ -87,6 +87,45 @@ const OWNER_APPS: &[&str] = &[
 /// but never sooner than this (a single quiet CPU sample means little).
 const IDLE_AGE_FLOOR_SECS: u64 = 2 * 3600;
 
+/// Process managers run their daemon with no parent on purpose (pm2's "God Daemon", forever's
+/// monitor). Their daemon and the apps they run are intentional background services: listed,
+/// never pre-selected, never auto-ended. Matched on the lowercased command line.
+const MANAGERS: &[(&str, &str)] = &[
+    (r"pm2\lib\daemon.js", "pm2"),
+    ("pm2/lib/daemon.js", "pm2"),
+    (r"pm2\lib\processcontainer", "pm2"),
+    ("pm2/lib/processcontainer", "pm2"),
+    ("god daemon", "pm2"),
+    ("pm2-windows-service", "pm2"),
+    ("pm2-installer", "pm2"),
+    (r"forever\bin\monitor", "forever"),
+    ("forever/bin/monitor", "forever"),
+    (r"forever\lib\forever\worker", "forever"),
+];
+
+fn manager_of(cmd_lower: &str) -> Option<&'static str> {
+    MANAGERS.iter().find(|(m, _)| cmd_lower.contains(m)).map(|(_, n)| *n)
+}
+
+/// Command lines the user marked "Keep this" (a deliberately detached job), lowercased.
+static KEEP: std::sync::RwLock<Vec<String>> = std::sync::RwLock::new(Vec::new());
+
+pub fn set_keep(v: &[String]) {
+    if let Ok(mut k) = KEEP.write() {
+        *k = v.iter().map(|s| keep_key(s)).filter(|s| !s.is_empty()).collect();
+    }
+}
+
+/// How a kept command line is remembered: trimmed and lowercased.
+pub fn keep_key(cmd: &str) -> String {
+    cmd.trim().chars().take(400).collect::<String>().to_lowercase()
+}
+
+fn is_kept(cmd: &str) -> bool {
+    let k = keep_key(cmd);
+    !k.is_empty() && KEEP.read().is_ok_and(|v| v.contains(&k))
+}
+
 /// An orphaned Git Bash / MSYS tool younger than this may be a command still finishing.
 const POSIX_LEFTOVER_MIN_SECS: u64 = 10 * 60;
 
@@ -113,12 +152,18 @@ pub struct DevProc {
     /// how long RigSweep has watched this tree use no CPU
     pub quiet_secs: u64,
     pub cpu: f32,
+    /// CPU time the whole tree has used since it started (seconds)
+    pub cpu_secs: u64,
     /// own memory + all descendants
     pub tree_mem: u64,
     pub tree_count: usize,
     pub ports: Vec<u16>,
-    /// reason codes for the UI: mcp | duplicate | orphan | idle | serving | owned | daemon
+    /// reason codes for the UI: mcp | duplicate | orphan | idle | serving | owned | daemon | managed | kept
     pub reasons: Vec<&'static str>,
+    /// run by a process manager (pm2, forever): an intentional background service
+    pub manager: &'static str,
+    /// the user marked this command line "Keep this"
+    pub kept: bool,
     pub stale: bool,
     /// owned by an editor / desktop app (language server, MCP server…): never killable here
     pub protected: bool,
@@ -182,6 +227,10 @@ pub struct KillResult {
     /// CPU the ended trees were using (% of the whole CPU, as last measured)
     #[serde(default)]
     pub freed_cpu: f32,
+    /// CPU time the ended trees had used while they ran (seconds)
+    pub cpu_secs: u64,
+    /// how long the ended trees had been running, added up (seconds)
+    pub run_secs: u64,
 }
 
 /// Remembers when each process tree last used CPU, so "idle" is measured, not guessed.
@@ -739,6 +788,18 @@ pub fn scan(sys: &System, tracker: &mut IdleTracker, idle_minutes: u32) -> DevRe
             && !wsl
             && (quiet >= idle_after || (age >= idle_after.max(IDLE_AGE_FLOOR_SECS) && cpu < 0.2));
         let protected = !owner.is_empty() || pid == me;
+        // the process itself or one of its living ancestors is a pm2 / forever daemon
+        let manager = {
+            let (mut m, mut cur, mut hops) = (manager_of(&cmd.to_lowercase()), parent, 0);
+            while let (None, Some(a), true) = (m, cur, hops < 12) {
+                let Some(ap) = get(a) else { break };
+                m = manager_of(&cmdline(ap).to_lowercase());
+                cur = live_parent(ap);
+                hops += 1;
+            }
+            m.unwrap_or("")
+        };
+        let kept = is_kept(&cmd);
 
         let mut reasons = vec![];
         if mcp {
@@ -747,8 +808,13 @@ pub fn scan(sys: &System, tracker: &mut IdleTracker, idle_minutes: u32) -> DevRe
         if dup_of != 0 {
             reasons.push("duplicate");
         }
-        if orphan {
+        if !manager.is_empty() {
+            reasons.push("managed");
+        } else if orphan {
             reasons.push("orphan");
+        }
+        if kept {
+            reasons.push("kept");
         }
         if idle {
             reasons.push("idle");
@@ -766,7 +832,13 @@ pub fn scan(sys: &System, tracker: &mut IdleTracker, idle_minutes: u32) -> DevRe
         // An idle agent CLI in an open terminal is just waiting for you, so it's never pre-selected.
         // The WSL / Docker VM is never pre-selected: shutting it down stops every distro and container.
         // An orphaned interactive WSL shell may still have its own console window open: listed, not pre-selected.
-        let stale = !protected && kind != "vm" && !wsl_shell && (orphan || (kind == "runtime" && idle && tree_ports.is_empty()));
+        // A pm2 / forever service or a job the user chose to keep is meant to run on its own.
+        let stale = !protected
+            && manager.is_empty()
+            && !kept
+            && kind != "vm"
+            && !wsl_shell
+            && (orphan || (kind == "runtime" && idle && tree_ports.is_empty()));
 
         items.push(DevProc {
             pid,
@@ -783,10 +855,13 @@ pub fn scan(sys: &System, tracker: &mut IdleTracker, idle_minutes: u32) -> DevRe
             age_secs: age,
             quiet_secs: quiet,
             cpu,
+            cpu_secs: cpu_ms / 1000,
             tree_mem: mem,
             tree_count: members.len(),
             ports: tree_ports,
             reasons,
+            manager,
+            kept,
             stale,
             protected,
             owner,
@@ -927,6 +1002,7 @@ fn posix_leftovers(sys: &System, dev: &HashMap<u32, Class>, tracker: &mut IdleTr
         let Some(p) = get(pid) else { continue };
         alive.insert(pid);
         let quiet = tracker.idle_secs(pid, start, cpu_ms).unwrap_or(0);
+        let kept = is_kept(&cmds.join(" · "));
         out.push(DevProc {
             pid,
             start_time: start,
@@ -942,11 +1018,14 @@ fn posix_leftovers(sys: &System, dev: &HashMap<u32, Class>, tracker: &mut IdleTr
             age_secs: age,
             quiet_secs: quiet,
             cpu,
+            cpu_secs: cpu_ms / 1000,
             tree_mem: mem,
             tree_count: members.len(),
             ports: vec![],
-            reasons: vec!["orphan"],
-            stale: true,
+            reasons: if kept { vec!["orphan", "kept"] } else { vec!["orphan"] },
+            manager: "",
+            kept,
+            stale: !kept,
             protected: false,
             owner: String::new(),
             dup_of: 0,
@@ -965,7 +1044,7 @@ pub fn auto_targets(r: &DevReport, idle_minutes: u32) -> Vec<KillTarget> {
         .iter()
         // an orphaned wsl.exe may front a Linux job that is still working, and a quiet orphaned
         // shell tool may be someone's `nohup` job: both stay a manual choice
-        .filter(|i| i.stale && !i.protected && i.kind == "runtime" && i.eco != "wsl" && i.eco != "shell" && i.quiet_secs >= idle_after)
+        .filter(|i| i.stale && !i.protected && i.manager.is_empty() && !i.kept && i.kind == "runtime" && i.eco != "wsl" && i.eco != "shell" && i.quiet_secs >= idle_after)
         .map(|i| KillTarget { pid: i.pid, start_time: i.start_time, label: i.label.clone(), project: i.project.clone(), project_path: i.project_path.clone(), ports: i.ports.clone() })
         .collect()
 }
@@ -1005,8 +1084,12 @@ pub fn kill(fresh: &DevReport, targets: &[KillTarget]) -> KillResult {
             Ok(n) => {
                 r.freed_mem += item.tree_mem;
                 r.freed_cpu += item.cpu;
+                r.cpu_secs += item.cpu_secs;
+                r.run_secs += item.age_secs;
                 let kind = crate::impact::mem_kind(item.kind, item.eco, &item.reasons);
-                r.impact.push(crate::impact::Freed::new("memory", kind, item.tree_mem, n as u64).with_cpu(item.cpu));
+                r.impact.push(
+                    crate::impact::Freed::new("memory", kind, item.tree_mem, n as u64).with_cpu(item.cpu).with_time(item.cpu_secs, item.age_secs),
+                );
                 r.ended.push(format!("{} (PID {}, {} process(es))", item.label, item.pid, n));
             }
             Err(e) => r.failed.push(format!("{} (PID {}): {e}", item.label, item.pid)),
@@ -1027,7 +1110,7 @@ mod tests {
         assert_eq!(project_label("", &mut root_at), "");
     }
 
-    use super::{auto_targets, describe, verify_target, DevProc, DevReport, KillTarget};
+    use super::{auto_targets, describe, is_kept, manager_of, set_keep, verify_target, DevProc, DevReport, KillTarget};
 
     #[test]
     fn auto_cleanup_only_takes_long_watched_quiet_stale_runtimes() {
@@ -1068,7 +1151,7 @@ mod tests {
         DevProc {
             pid, start_time: 100, name: "node.exe".into(), kind: "runtime", eco: "node", label: "astro".into(),
             project: project.into(), cmd: String::new(), parent_pid: 0, parent_name: String::new(), age_secs: 0,
-            quiet_secs: 0, cpu: 0.0, tree_mem: 0, tree_count: 1, ports, reasons: vec![], stale: false, protected: false, owner: String::new(), dup_of: 0, members: vec![(pid, 0)],
+            quiet_secs: 0, cpu: 0.0, cpu_secs: 0, tree_mem: 0, tree_count: 1, ports, reasons: vec![], manager: "", kept: false, stale: false, protected: false, owner: String::new(), dup_of: 0, members: vec![(pid, 0)],
             project_path: String::new(),
         }
     }
@@ -1167,6 +1250,21 @@ mod tests {
         assert_eq!(k("msedge.exe", r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe", "msedge.exe"), None);
         let (l, p) = describe("chrome.exe", &format!("{pw} --headless --remote-debugging-pipe"), r"C:\Users\me\AppData\Local\ms-playwright\chromium-1140\chrome-win");
         assert_eq!((l.as_str(), p.as_str()), ("Playwright Chromium (headless)", ""));
+    }
+
+    #[test]
+    fn process_managers_and_keep() {
+        let pm2 = r#""C:\Program Files\nodejs\node.exe" C:\Users\me\AppData\Roaming\npm\node_modules\pm2\lib\Daemon.js"#;
+        assert_eq!(manager_of(&pm2.to_lowercase()), Some("pm2"));
+        let child = r#"node C:\Users\me\AppData\Roaming\npm\node_modules\pm2\lib\ProcessContainerFork.js"#;
+        assert_eq!(manager_of(&child.to_lowercase()), Some("pm2"));
+        let fv = "node C:/Users/me/AppData/Roaming/npm/node_modules/forever/bin/monitor app.js";
+        assert_eq!(manager_of(&fv.to_lowercase()), Some("forever"));
+        assert_eq!(manager_of("node server.js"), None);
+        set_keep(&["  Node Worker.JS --loop ".into()]);
+        assert!(is_kept("node worker.js --loop"));
+        assert!(!is_kept("node worker.js"));
+        set_keep(&[]);
     }
 
     #[test]

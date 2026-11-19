@@ -645,7 +645,7 @@ pub struct Worktree {
     pub busy: bool,
     /// uncommitted or untracked files: git won't remove it
     pub dirty: bool,
-    /// its repo is gone or moved: git can't remove it
+    /// its repo is gone or moved: git can't remove it, so it can only go to the Recycle Bin
     pub orphan: bool,
     pub stale: bool,
     /// top-level files and folders git ignores that aren't build output (`.env`…): deleted with it
@@ -660,7 +660,15 @@ fn tool_worktree_roots() -> Vec<PathBuf> {
     if let Some(c) = env_dir("CODEX_HOME") {
         v.push(c.join("worktrees"));
     }
+    // agents and scripts also put throwaway worktrees in %TEMP%
+    if let Some(t) = temp_dir() {
+        v.push(t);
+    }
     v.into_iter().filter(|p| p.is_dir()).collect()
+}
+
+fn temp_dir() -> Option<PathBuf> {
+    env_dir("TEMP").or_else(|| env_dir("TMP")).filter(|p| p.is_absolute() && p.components().count() > 3)
 }
 
 /// Folders with a `.git` file a few levels below `dir`.
@@ -736,12 +744,25 @@ fn worktree_status(wt: &Path) -> Option<(bool, Vec<String>)> {
     Some((dirty, ignored))
 }
 
+/// A worktree on a detached HEAD can hold commits no branch points to; removing it would drop the
+/// only reference to them. True when HEAD is on a branch, or its commit is in a branch or tag.
+fn head_on_a_branch(wt: &Path) -> bool {
+    if git_out(wt, &["symbolic-ref", "-q", "HEAD"]).is_some() {
+        return true;
+    }
+    git_out(wt, &["for-each-ref", "--count=1", "--contains", "HEAD", "refs/heads", "refs/remotes", "refs/tags"])
+        .is_some_and(|s| !s.trim().is_empty())
+}
+
 fn worktree_tool(p: &Path) -> &'static str {
     let l = lower(p);
     for (m, t) in [("\\.claude\\worktrees\\", "claude"), ("\\.cursor\\worktrees\\", "cursor"), ("\\.codex\\worktrees\\", "codex"), ("\\.windsurf\\worktrees\\", "windsurf")] {
         if l.contains(m) {
             return t;
         }
+    }
+    if temp_dir().is_some_and(|t| within(&l, &lower(&t))) {
+        return "temp";
     }
     "git"
 }
@@ -800,8 +821,14 @@ fn scan_worktrees(cfg: &Config, hay: &[String], mut dirs: Vec<PathBuf>) -> Vec<W
     v
 }
 
-/// Re-check a worktree target from scratch; returns (main repo, worktree folder).
-fn verify_worktree(cfg: &Config, hay: &[String], t: &DiskTarget) -> Result<(PathBuf, PathBuf), String> {
+/// How a worktree is removed: by git from its repo, or (repo gone) moved to the Recycle Bin.
+enum WtRemove {
+    Git(PathBuf, PathBuf),
+    Recycle(PathBuf),
+}
+
+/// Re-check a worktree target from scratch.
+fn verify_worktree(cfg: &Config, hay: &[String], t: &DiskTarget) -> Result<WtRemove, String> {
     let dir = PathBuf::from(&t.id);
     if !dir.is_absolute() || dir.components().any(|c| matches!(c, Component::ParentDir | Component::CurDir)) {
         return Err("not a plain absolute path".into());
@@ -816,15 +843,20 @@ fn verify_worktree(cfg: &Config, hay: &[String], t: &DiskTarget) -> Result<(Path
         return Err("is a link or not a folder".into());
     }
     let gitdir = worktree_gitdir(&dir).ok_or("no longer a git worktree")?;
-    if !gitdir.is_dir() {
-        return Err("its repository is gone".into());
-    }
-    let repo = main_repo(&gitdir).filter(|r| r.is_dir()).ok_or("its repository is gone")?;
     if path_in_use(hay, &dir) {
         return Err("in use by a running process".into());
     }
+    if !gitdir.is_dir() {
+        // git can't remove it or tell what is uncommitted: only to the Recycle Bin, and only
+        // when the user picked it knowing that (the UI sends name "recycle" after a warning)
+        return if t.name == "recycle" { Ok(WtRemove::Recycle(dir)) } else { Err("its repository is gone".into()) };
+    }
+    let repo = main_repo(&gitdir).filter(|r| r.is_dir()).ok_or("its repository is gone")?;
+    if !head_on_a_branch(&dir) {
+        return Err("its commits are not on any branch".into());
+    }
     match worktree_status(&dir) {
-        Some((false, _)) => Ok((repo, dir)),
+        Some((false, _)) => Ok(WtRemove::Git(repo, dir)),
         Some((true, _)) => Err("has uncommitted or untracked files".into()),
         None => Err("git could not read it".into()),
     }
@@ -846,6 +878,9 @@ enum How {
     Conda,
     /// only shown with its size (models, chat history): removed in the app that owns it, never here
     Show,
+    /// empty the folders, but keep artifacts the user built and installed locally (`mvn install`
+    /// writes `maven-metadata-local.xml` next to them): those can't be downloaded again
+    KeepLocal,
 }
 
 struct CacheDef {
@@ -879,7 +914,7 @@ const CACHES: &[CacheDef] = &[
     CacheDef { id: "nugethttp", eco: "dotnet", tier: "safe", how: How::Empty, busy: &[] },
     CacheDef { id: "nugetpkgs", eco: "dotnet", tier: "redownload", how: How::Empty, busy: &["\\msbuild.exe", "\\devenv.exe"] },
     CacheDef { id: "gradle", eco: "java", tier: "redownload", how: How::Empty, busy: &["gradle"] },
-    CacheDef { id: "maven", eco: "java", tier: "redownload", how: How::Empty, busy: &["plexus-classworlds", "\\maven"] },
+    CacheDef { id: "maven", eco: "java", tier: "redownload", how: How::KeepLocal, busy: &["plexus-classworlds", "\\maven"] },
     // GPU: shader caches the driver rebuilds (games stutter for a few minutes while it does)
     CacheDef { id: "nvshader", eco: "gpu", tier: "safe", how: How::Empty, busy: &[] },
     CacheDef { id: "amdshader", eco: "gpu", tier: "safe", how: How::Empty, busy: &[] },
@@ -896,13 +931,15 @@ const CACHES: &[CacheDef] = &[
     // AI tools and editors: app caches (Electron), plus what they keep that only they should delete
     CacheDef { id: "cursor", eco: "ai", tier: "safe", how: How::Empty, busy: &["\\cursor.exe"] },
     CacheDef { id: "cursorbak", eco: "ai", tier: "backup", how: How::Empty, busy: &["\\cursor.exe"] },
-    CacheDef { id: "cursorsnap", eco: "ai", tier: "history", how: How::Empty, busy: &["\\cursor.exe"] },
+    // Cursor's agent checkpoints are project state ("restore to this point"): only shown
+    CacheDef { id: "cursorsnap", eco: "ai", tier: "history", how: How::Show, busy: &[] },
     CacheDef { id: "cursordb", eco: "ai", tier: "history", how: How::Show, busy: &[] },
     CacheDef { id: "vscode", eco: "ai", tier: "safe", how: How::Empty, busy: &["\\code.exe", "\\code - insiders.exe"] },
     CacheDef { id: "windsurf", eco: "ai", tier: "safe", how: How::Empty, busy: &["\\windsurf.exe"] },
     CacheDef { id: "claude", eco: "ai", tier: "safe", how: How::Empty, busy: &["\\anthropicclaude\\", "\\windowsapps\\claude_"] },
     CacheDef { id: "claudehist", eco: "ai", tier: "history", how: How::Show, busy: &[] },
-    CacheDef { id: "codex", eco: "ai", tier: "safe", how: How::Empty, busy: &["\\codex.exe"] },
+    // the Codex CLI also runs as node.exe …\@openai\codex\bin\codex.js
+    CacheDef { id: "codex", eco: "ai", tier: "safe", how: How::Empty, busy: &["\\codex.exe", "@openai\\codex"] },
     CacheDef { id: "codexhist", eco: "ai", tier: "history", how: How::Show, busy: &[] },
     CacheDef { id: "chatgpt", eco: "ai", tier: "safe", how: How::Empty, busy: &["\\chatgpt.exe"] },
 ];
@@ -1076,11 +1113,44 @@ fn old_versions(id: &str, root: &Path) -> Vec<PathBuf> {
     old
 }
 
+/// Marks an artifact folder `mvn install` wrote from the user's own build.
+const LOCAL_MARKER: &str = "maven-metadata-local.xml";
+
+/// Split a Maven repository into what can go (files and folders with nothing locally built in
+/// them) and whether anything locally built was found. A folder holding the marker is kept whole.
+fn local_split(d: &Path) -> (Vec<PathBuf>, bool) {
+    if d.join(LOCAL_MARKER).exists() {
+        return (vec![], true);
+    }
+    let Ok(rd) = fs::read_dir(d) else { return (vec![], false) };
+    let (mut out, mut any) = (vec![], false);
+    for e in rd.flatten() {
+        let Ok(m) = e.metadata() else { continue };
+        if is_reparse(&m) {
+            continue;
+        }
+        if m.is_dir() {
+            let (sub, has) = local_split(&e.path());
+            if has {
+                any = true;
+                out.extend(sub);
+            } else {
+                out.push(e.path());
+            }
+        } else {
+            out.push(e.path());
+        }
+    }
+    (out, any)
+}
+
 /// The folders whose content a cleanup would remove (for KeepNewest: the old version folders).
 fn targets_of(def: &CacheDef) -> Vec<PathBuf> {
     let paths = cache_paths(def.id);
     if def.how == How::KeepNewest {
         paths.iter().flat_map(|p| old_versions(def.id, p)).collect()
+    } else if def.how == How::KeepLocal {
+        paths.iter().flat_map(|p| local_split(p).0).collect()
     } else {
         paths
     }
@@ -1142,6 +1212,8 @@ fn scan_caches(cfg: &Config, hay: &[String]) -> Vec<CacheView> {
         let total: u64 = paths.iter().map(|p| path_size(p)).sum();
         let bytes = if def.how == How::KeepNewest {
             targets_of(def).iter().map(|p| local_size(p)).sum()
+        } else if def.how == How::KeepLocal {
+            targets_of(def).iter().map(|p| path_size(p)).sum()
         } else if def.id == "pnpm" || def.how == How::Conda {
             // packages still linked into a node_modules (or a conda env) stay on disk after the store goes
             paths.iter().map(|p| unshared_size(p)).sum()
@@ -1467,6 +1539,11 @@ fn clean_cache(def: &CacheDef) -> Result<(u64, bool), String> {
     match def.how {
         How::Empty => Ok(empty(&paths, false)),
         How::KeepNewest => Ok(empty(&targets_of(def), true)),
+        How::KeepLocal => {
+            let left = AtomicU64::new(0);
+            let stopped = par_map(&targets_of(def), |p| hold() || wipe_entry(p, &left)).into_iter().any(|s| s);
+            Ok((left.into_inner(), stopped))
+        }
         How::Tool(exe, args) => {
             by_tool(exe, args).map_err(|e| format!("{} failed: {e}", tool_label(def.how)))?;
             Ok((0, false))
@@ -1528,7 +1605,22 @@ fn run(cfg: &Config, targets: Vec<DiskTarget>, save: &dyn Fn(&[DiskTarget])) -> 
             }
         } else if t.kind == "worktree" {
             match verify_worktree(cfg, &hay, &t) {
-                Ok((repo, dir)) => {
+                Ok(WtRemove::Recycle(dir)) => {
+                    if let Ok(mut c) = CURRENT.lock() {
+                        *c = format!("Recycle Bin: {}", dir.display());
+                    }
+                    let size = local_size(&dir);
+                    match crate::util::recycle(&dir) {
+                        Ok(()) => {
+                            // it still takes space in the Recycle Bin until that is emptied
+                            FREED.fetch_add(size, Ordering::Relaxed);
+                            r.cleaned.push(format!("worktree {} to the Recycle Bin ({:.1} MB)", t.id, size as f64 / 1048576.0));
+                            r.done.push(format!("w|{}", t.id));
+                        }
+                        Err(e) => r.skipped.push(format!("worktree {}: {e}", t.id)),
+                    }
+                }
+                Ok(WtRemove::Git(repo, dir)) => {
                     if let Ok(mut c) = CURRENT.lock() {
                         *c = format!("git worktree remove {}", dir.display());
                     }
@@ -1767,6 +1859,27 @@ mod tests {
     }
 
     #[test]
+    fn maven_keeps_locally_installed() {
+        let root = tmp("m2");
+        let mine = root.join(r"com\me\app\1.0-SNAPSHOT");
+        let theirs = root.join(r"org\lib\core\2.1");
+        fs::create_dir_all(&mine).unwrap();
+        fs::create_dir_all(&theirs).unwrap();
+        fs::write(root.join(r"com\me\app").join(LOCAL_MARKER), "x").unwrap();
+        fs::write(mine.join("app.jar"), "x").unwrap();
+        fs::write(theirs.join("core.jar"), "x").unwrap();
+        fs::create_dir_all(root.join(r"com\other")).unwrap();
+        let (go, any) = local_split(&root);
+        assert!(any);
+        let go: Vec<String> = go.iter().map(|p| lower(p)).collect();
+        // the org tree goes whole; com\me\app stays; its sibling com\other goes
+        assert!(go.contains(&lower(&root.join("org"))));
+        assert!(go.contains(&lower(&root.join(r"com\other"))));
+        assert!(!go.iter().any(|p| p.contains(r"\me")));
+        let _ = fs::remove_dir_all(&root);
+    }
+
+    #[test]
     fn worktree_gitdir_and_repo() {
         let root = tmp("wtparse");
         let wt = root.join("wt");
@@ -1804,7 +1917,9 @@ mod tests {
 
         let cfg = Config { roots: vec![root.to_string_lossy().into_owned()], excludes: vec![], disabled: vec![], stale_days: 30 };
         let (_, dirs) = scan_projects(&cfg, &[]);
-        let wts = scan_worktrees(&cfg, &[], dirs);
+        // the tool folders and %TEMP% on this machine may hold real worktrees: only look at ours
+        let mine = lower(&root);
+        let wts: Vec<Worktree> = scan_worktrees(&cfg, &[], dirs).into_iter().filter(|w| within(&lower(Path::new(&w.path)), &mine)).collect();
         assert_eq!(wts.len(), 1, "{wts:?}");
         let w = &wts[0];
         assert_eq!(w.branch, "feature");

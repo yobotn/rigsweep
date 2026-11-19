@@ -16,15 +16,27 @@ pub struct Freed {
     /// memory rows: the share of the whole CPU those processes were using when ended (%)
     #[serde(default)]
     pub cpu: f32,
+    /// memory rows: CPU time those processes had used while they ran (seconds)
+    #[serde(default)]
+    pub cpu_secs: u64,
+    /// memory rows: how long they had been running, added up (seconds)
+    #[serde(default)]
+    pub run_secs: u64,
 }
 
 impl Freed {
     pub fn new(area: &str, kind: impl Into<String>, bytes: u64, count: u64) -> Freed {
-        Freed { area: area.into(), kind: kind.into(), bytes, count, cpu: 0.0 }
+        Freed { area: area.into(), kind: kind.into(), bytes, count, cpu: 0.0, cpu_secs: 0, run_secs: 0 }
     }
 
     pub fn with_cpu(mut self, cpu: f32) -> Freed {
         self.cpu = (cpu.max(0.0) * 10.0).round() / 10.0;
+        self
+    }
+
+    pub fn with_time(mut self, cpu_secs: u64, run_secs: u64) -> Freed {
+        self.cpu_secs = cpu_secs;
+        self.run_secs = run_secs;
         self
     }
 }
@@ -76,6 +88,14 @@ pub struct Totals {
     pub browser: u64,
     pub processes: u64,
     pub cleanups: u64,
+    /// CPU the ended processes were using when ended, added up over every cleanup (% of the whole CPU)
+    pub cpu: f32,
+    /// the most CPU one cleanup released (%)
+    pub cpu_peak: f32,
+    /// CPU time the ended processes had used while they ran (seconds)
+    pub cpu_secs: u64,
+    /// how long the ended processes had been running, added up (seconds)
+    pub run_secs: u64,
     /// per (area, kind), biggest first
     pub kinds: Vec<Freed>,
 }
@@ -93,6 +113,7 @@ pub struct Summary {
 pub fn total(rows: &[(i64, Freed)]) -> Totals {
     let mut t = Totals::default();
     let mut runs: Vec<i64> = vec![];
+    let mut run_cpu: Vec<(i64, f32)> = vec![];
     for (run, f) in rows {
         if !runs.contains(run) {
             runs.push(*run);
@@ -101,6 +122,13 @@ pub fn total(rows: &[(i64, Freed)]) -> Totals {
             "memory" => {
                 t.memory += f.bytes;
                 t.processes += f.count;
+                t.cpu += f.cpu;
+                t.cpu_secs += f.cpu_secs;
+                t.run_secs += f.run_secs;
+                match run_cpu.iter_mut().find(|(r, _)| r == run) {
+                    Some((_, c)) => *c += f.cpu,
+                    None => run_cpu.push((*run, f.cpu)),
+                }
             }
             "disk" => t.disk += f.bytes,
             "browser" => t.browser += f.bytes,
@@ -110,11 +138,16 @@ pub fn total(rows: &[(i64, Freed)]) -> Totals {
             Some(k) => {
                 k.bytes += f.bytes;
                 k.count += f.count;
+                k.cpu += f.cpu;
+                k.cpu_secs += f.cpu_secs;
+                k.run_secs += f.run_secs;
             }
             None => t.kinds.push(f.clone()),
         }
     }
     t.cleanups = runs.len() as u64;
+    t.cpu = (t.cpu * 10.0).round() / 10.0;
+    t.cpu_peak = run_cpu.iter().map(|(_, c)| (c * 10.0).round() / 10.0).fold(0.0, f32::max);
     t.kinds.sort_by(|a, b| b.bytes.cmp(&a.bytes).then(b.count.cmp(&a.count)));
     t
 }
@@ -159,6 +192,12 @@ mod tests {
         ];
         let t = total(&rows);
         assert_eq!((t.memory, t.processes, t.disk, t.browser, t.cleanups), (150, 3, 1000, 10, 2));
+        let cpu = total(&[
+            (1, Freed::new("memory", "mcp", 1, 1).with_cpu(10.0).with_time(60, 3600)),
+            (1, Freed::new("memory", "server", 1, 1).with_cpu(5.0).with_time(30, 600)),
+            (2, Freed::new("memory", "mcp", 1, 1).with_cpu(12.0).with_time(10, 100)),
+        ]);
+        assert_eq!((cpu.cpu, cpu.cpu_peak, cpu.cpu_secs, cpu.run_secs), (27.0, 15.0, 100, 4300));
         assert_eq!(t.kinds[0], Freed::new("disk", "dir:target", 1000, 1));
         assert_eq!(t.kinds.iter().find(|k| k.kind == "mcp").unwrap().count, 3);
     }
