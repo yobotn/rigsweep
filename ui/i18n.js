@@ -34,7 +34,7 @@ const I18N = {
     "clean.hint": "Dev servers, build daemons and AI-agent CLIs left behind by closed terminals and old sessions: Node, Python, Java/Gradle, .NET, Ruby, PHP, Rust, Go, Claude Code, Codex, Aider…, the MCP servers and automation browsers (Playwright, Puppeteer) they leave behind, plus the WSL 2 / Docker VM. Each row is a whole process tree. Nothing is ended until you confirm. Processes owned by your editor (language servers) or a desktop app are locked 🔒.",
     "clean.scan": "Rescan", "clean.end": "End selected", "clean.selectStale": "Select stale",
     "clean.summary": "{n} dev process tree(s) using {mem} · {s} stale holding {sm}",
-    "clean.none": "No Node / agent CLI processes running. Your rig is clean ✨",
+    "clean.none": "No dev servers, build daemons or agent CLIs running. Your rig is clean ✨",
     "clean.noStale": "Nothing is stale right now.", "clean.auto.done": "🧹 Auto-cleanup ended {n} stale tree(s), freed ≈ {mem}.",
     "clean.col.what": "What", "clean.col.project": "Project", "clean.col.age": "Age", "clean.col.mem": "RAM (tree)",
     "clean.col.ports": "Ports", "clean.col.status": "Status",

@@ -257,7 +257,7 @@ I18N["ja"] = {
     "clean.hint": "閉じたターミナルや古いセッションが残した開発サーバー、ビルド デーモン、AI エージェント CLI (Node、Python、Java/Gradle、.NET、Ruby、PHP、Rust、Go、Claude Code、Codex、Aider など)、それらが残す MCP サーバーや自動化ブラウザー (Playwright、Puppeteer)、さらに WSL 2 / Docker の VM を検出します。各行はプロセス ツリー全体です。確認するまで何も終了しません。エディター (言語サーバー) やデスクトップ アプリが所有するプロセスはロック 🔒 されています。",
     "clean.scan": "再スキャン", "clean.end": "選択項目を終了", "clean.selectStale": "放置分を選択",
     "clean.summary": "開発プロセス ツリー {n} 個が {mem} を使用 · うち放置 {s} 個が {sm}",
-    "clean.none": "Node / エージェント CLI のプロセスは実行されていません。マシンはクリーンです ✨",
+    "clean.none": "開発サーバー、ビルドデーモン、エージェント CLI は動いていません。PC はクリーンです ✨",
     "clean.noStale": "現在、放置されたプロセスはありません。", "clean.auto.done": "🧹 自動クリーンアップで放置ツリー {n} 個を終了し、約 {mem} を解放しました。",
     "clean.col.what": "対象", "clean.col.project": "プロジェクト", "clean.col.age": "経過時間", "clean.col.mem": "RAM (ツリー)",
     "clean.col.ports": "ポート", "clean.col.status": "状態",

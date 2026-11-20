@@ -7,6 +7,8 @@
     localStorage.setItem("lang", lang);
     localStorage.setItem("tab", q.get("tab") || "cleanup");
     localStorage.setItem("disclaimer_v1", "1");
+    // ?prefs={"mode":"pro","style":"ai"} sets Settings → Appearance for the shot
+    if (q.get("prefs")) localStorage.setItem("prefs", q.get("prefs"));
   } catch {}
 
   const MB = 1048576, GB = 1024 * MB, H = 3600;
@@ -224,6 +226,20 @@
       { path: "C:\\Users\\dev\\Downloads\\invoice.pdf.exe", reason: "double_extension", signature: "unsigned", signer: "", autostart: "", running: false, sha256: "", bytes: 640 * 1024, modified: 1731000000 }],
     finders_defender_scan: { verdict: "clean", detail: "", exit_code: 0 },
     get_browser_caches: browsers,
+    get_hardware: {
+      disks: [{ id: 0, model: "Samsung SSD 990 PRO 2TB", media: "SSD", bus: "NVMe", bytes: 2000 * GB, letters: ["C:"], health: "Healthy", wear: 4, temp: 41, temp_max: 70, hours: 3120, read_err: 0, write_err: 0, firmware: "4B2QJXD7" },
+        { id: 1, model: "WD Blue SN580 1TB", media: "SSD", bus: "NVMe", bytes: 1000 * GB, letters: ["D:"], health: "Healthy", wear: 1, temp: 38, hours: 880, read_err: 0, write_err: 0, firmware: "281010WD" }],
+      cpu: [{ name: "Intel(R) Core(TM) Ultra 9 185H", cores: 16, threads: 22, max_mhz: 2300, l2_kb: 18432, l3_kb: 24576, socket: "BGA2049", virt: true }],
+      cpu_detail: { vendor: "GenuineIntel", family: 6, model: 170, stepping: 4, codename: "Meteor Lake", uarch: "Redwood Cove", hybrid: true, p_cores: 6, e_cores: 10, cur_mhz: 3100,
+        caches: [{ level: 1, kind: "data", count: 16, size_kb: 48, ways: 12 }, { level: 2, kind: "unified", count: 8, size_kb: 2048, ways: 16 }, { level: 3, kind: "unified", count: 1, size_kb: 24576, ways: 12 }],
+        features: ["SSE4.2", "AVX2", "AVX-VNNI", "AES", "SHA"] },
+      gpu: [{ name: "NVIDIA GeForce RTX 4070 Laptop GPU", vram: 8 * GB, driver: "32.0.15.6614", driver_date: "2026-09-12", width: 2560, height: 1600, hz: 240 }],
+      ram: [{ bytes: 16 * GB, maker: "Micron", part: "MTC8C1084S1SC56BG1", type_name: "DDR5", form: "SODIMM", mhz: 5600, slot: "Controller0-ChannelA" },
+        { bytes: 16 * GB, maker: "Micron", part: "MTC8C1084S1SC56BG1", type_name: "DDR5", form: "SODIMM", mhz: 5600, slot: "Controller1-ChannelA" }],
+      ram_channels: 2, ram_slots: 2,
+      system: { maker: "Contoso", model: "Laptop 16", os: "Windows 11 Pro", build: "26100", boot: new Date(Date.now() - 2.4 * 86400000).toISOString() },
+      board: { maker: "Contoso", model: "MB-16", bios: "1.12.0", bios_date: "2026-06-01" },
+      battery: [{ full: 82000, design: 90000, cycles: 214, chemistry: "Li-ion" }] },
   };
   window.__TAURI__ = {
     core: {

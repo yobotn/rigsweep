@@ -257,7 +257,7 @@ I18N["ko"] = {
     "clean.hint": "닫힌 터미널과 이전 세션이 남긴 개발 서버, 빌드 데몬, AI 에이전트 CLI(Node, Python, Java/Gradle, .NET, Ruby, PHP, Rust, Go, Claude Code, Codex, Aider 등), 이들이 남긴 MCP 서버와 자동화 브라우저(Playwright, Puppeteer), 그리고 WSL 2 / Docker VM을 표시합니다. 각 행은 하나의 프로세스 트리 전체입니다. 확인하기 전에는 아무것도 종료되지 않습니다. 편집기(언어 서버)나 데스크톱 앱이 소유한 프로세스는 잠겨 있습니다 🔒.",
     "clean.scan": "다시 검색", "clean.end": "선택 항목 종료", "clean.selectStale": "방치된 항목 선택",
     "clean.summary": "개발 프로세스 트리 {n}개가 {mem} 사용 · 방치된 {s}개가 {sm} 사용",
-    "clean.none": "실행 중인 Node / 에이전트 CLI 프로세스가 없습니다. 시스템이 깨끗합니다 ✨",
+    "clean.none": "실행 중인 개발 서버, 빌드 데몬, 에이전트 CLI가 없습니다. PC가 깨끗합니다 ✨",
     "clean.noStale": "현재 방치된 항목이 없습니다.", "clean.auto.done": "🧹 자동 정리로 방치된 트리 {n}개를 종료하고 약 {mem}를 확보했습니다.",
     "clean.col.what": "항목", "clean.col.project": "프로젝트", "clean.col.age": "실행 시간", "clean.col.mem": "RAM(트리)",
     "clean.col.ports": "포트", "clean.col.status": "상태",

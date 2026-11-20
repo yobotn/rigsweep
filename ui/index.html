@@ -30,6 +30,10 @@
     <section id="tab-dashboard" class="tab active">
       <header>
         <h1 data-i18n="dash.title"></h1>
+        <div class="actions">
+          <div class="label live-sub"><i class="pulse"></i><span data-i18n="live.now"></span></div>
+          <button id="btn-refresh-dash" data-icon="refresh-cw" class="ghost" data-i18n="common.refresh"></button>
+        </div>
       </header>
       <div class="attention">
         <div id="heat-callout" class="callouts"></div>
@@ -73,10 +77,6 @@
           <div class="value skel" id="t-heat">–</div>
           <svg id="heat-spark" class="spark heat-spark" viewBox="0 0 300 28" preserveAspectRatio="none" aria-hidden="true"></svg>
           <div class="sub" id="t-heat-sub"></div>
-        </div>
-        <div class="tile live-tile">
-          <div class="label live-sub"><i class="pulse"></i><span data-i18n="live.now"></span></div>
-          <button id="btn-refresh-dash" data-icon="refresh-cw" class="ghost" data-i18n="common.refresh"></button>
         </div>
       </div>
       <div class="grid2">

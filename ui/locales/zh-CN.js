@@ -257,7 +257,7 @@ I18N["zh-CN"] = {
     "clean.hint": "已关闭的终端和旧会话遗留下来的开发服务器、构建守护进程和 AI 智能体 CLI：Node、Python、Java/Gradle、.NET、Ruby、PHP、Rust、Go、Claude Code、Codex、Aider 等，以及它们遗留的 MCP 服务器和自动化浏览器（Playwright、Puppeteer），还有 WSL 2 / Docker 虚拟机。每一行是一整个进程树。在你确认之前，不会结束任何进程。编辑器所属的进程（语言服务器）或桌面应用所属的进程会被锁定 🔒。",
     "clean.scan": "重新扫描", "clean.end": "结束所选项", "clean.selectStale": "选择闲置项",
     "clean.summary": "{n} 个开发进程树占用 {mem} · 其中 {s} 个闲置，占用 {sm}",
-    "clean.none": "没有正在运行的 Node / 智能体 CLI 进程。你的电脑很干净 ✨",
+    "clean.none": "没有正在运行的开发服务器、构建守护进程或智能体 CLI。你的电脑很干净 ✨",
     "clean.noStale": "目前没有闲置项。", "clean.auto.done": "🧹 自动清理已结束 {n} 个闲置进程树，释放了约 {mem}。",
     "clean.col.what": "名称", "clean.col.project": "项目", "clean.col.age": "运行时长", "clean.col.mem": "内存（进程树）",
     "clean.col.ports": "端口", "clean.col.status": "状态",

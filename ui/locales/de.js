@@ -257,7 +257,7 @@ I18N["de"] = {
     "clean.hint": "Dev-Server, Build-Daemons und KI-Agent-CLIs, die geschlossene Terminals und alte Sitzungen hinterlassen haben: Node, Python, Java/Gradle, .NET, Ruby, PHP, Rust, Go, Claude Code, Codex, Aider…, dazu die MCP-Server und Automatisierungsbrowser (Playwright, Puppeteer), die sie zurücklassen, sowie die WSL 2-/Docker-VM. Jede Zeile ist ein ganzer Prozessbaum. Nichts wird beendet, bevor Sie bestätigen. Prozesse, die zu Ihrem Editor (Language Server) oder einer Desktop-App gehören, sind gesperrt 🔒.",
     "clean.scan": "Neu scannen", "clean.end": "Auswahl beenden", "clean.selectStale": "Liegengebliebene wählen",
     "clean.summary": "{n} Dev-Prozessbäume belegen {mem} · {s} liegen gebliebene belegen {sm}",
-    "clean.none": "Keine Node- oder Agent-CLI-Prozesse aktiv. Ihr Rechner ist sauber ✨",
+    "clean.none": "Keine Dev-Server, Build-Daemons oder Agent-CLIs aktiv. Ihr Rechner ist sauber ✨",
     "clean.noStale": "Derzeit ist nichts liegen geblieben.", "clean.auto.done": "🧹 Auto-Bereinigung hat {n} liegen gebliebene Prozessbäume beendet und ≈ {mem} freigegeben.",
     "clean.col.what": "Was", "clean.col.project": "Projekt", "clean.col.age": "Alter", "clean.col.mem": "RAM (Baum)",
     "clean.col.ports": "Ports", "clean.col.status": "Status",

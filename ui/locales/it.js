@@ -257,7 +257,7 @@ I18N["it"] = {
     "clean.hint": "Dev server, daemon di build e CLI di agenti AI rimasti attivi dopo la chiusura di terminali e vecchie sessioni: Node, Python, Java/Gradle, .NET, Ruby, PHP, Rust, Go, Claude Code, Codex, Aider…, i server MCP e i browser di automazione (Playwright, Puppeteer) che lasciano in giro, più la VM di WSL 2 / Docker. Ogni riga è un intero albero di processi. Nulla viene terminato senza la tua conferma. I processi gestiti dall'editor (language server) o da un'app desktop sono bloccati 🔒.",
     "clean.scan": "Ripeti analisi", "clean.end": "Termina selezionati", "clean.selectStale": "Seleziona inutilizzati",
     "clean.summary": "{n} alberi di processi dev usano {mem} · {s} inutilizzati occupano {sm}",
-    "clean.none": "Nessun processo Node o CLI di agenti in esecuzione. Il tuo PC è pulito ✨",
+    "clean.none": "Nessun server di sviluppo, daemon di build o CLI di agenti in esecuzione. Il tuo PC è pulito ✨",
     "clean.noStale": "Al momento non c'è nulla di inutilizzato.", "clean.auto.done": "🧹 La pulizia automatica ha terminato {n} alberi inutilizzati e liberato ≈ {mem}.",
     "clean.col.what": "Cosa", "clean.col.project": "Progetto", "clean.col.age": "Durata", "clean.col.mem": "RAM (albero)",
     "clean.col.ports": "Porte", "clean.col.status": "Stato",

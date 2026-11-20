@@ -118,7 +118,7 @@ function wireSort(tableSel, id, render) {
 // The first line reads as the title. Toasts stack, pause while hovered, and close on ×.
 const TOAST_ICON = { ok: "✓", info: "i", warn: "!", err: "!" };
 function toast(msg, kind = "info", ms) {
-  kind = kind === true ? "err" : kind || "info";
+  kind = kind === true || kind === "error" ? "err" : kind || "info";
   ms ??= kind === "warn" ? 8000 : 4500;
   const box = $("#toasts");
   // the same message again (a refresh that keeps failing) replaces the old toast instead of piling up
@@ -127,7 +127,7 @@ function toast(msg, kind = "info", ms) {
   const el = document.createElement("div");
   el.className = `toast ${kind}`;
   el._msg = msg;
-  if (kind === "ok") msg = msg.replace(/^✅s*/u, ""); // the icon already says it
+  if (kind === "ok") msg = msg.replace(/^✅\s*/u, ""); // the icon already says it
   if (kind === "err") el.setAttribute("role", "alert");
   el.innerHTML = `<span class="t-icon" aria-hidden="true">${TOAST_ICON[kind]}</span><div class="t-msg"></div><button class="t-close" aria-label="${esc(t("common.close"))}">×</button><i class="t-bar"></i>`;
   el.querySelector(".t-msg").textContent = msg;
@@ -146,10 +146,12 @@ function toast(msg, kind = "info", ms) {
   box.appendChild(el);
 }
 
+let modalDone = null; // the open dialog's close function: a dialog opened from inside another replaces it cleanly
 function modal(title, html, { okText = t("common.ok"), cancelText = t("common.cancel"), danger = false, cancel = true } = {}) {
+  const outer = modalDone && modalDone(false, true);
   return new Promise((resolve) => {
     const box = $("#modal"), ok = $("#modal-ok"), cn = $("#modal-cancel");
-    const prev = document.activeElement;
+    const prev = outer || document.activeElement;
     $("#modal-title").textContent = title;
     $("#modal-body").innerHTML = html;
     ok.textContent = okText;
@@ -157,15 +159,23 @@ function modal(title, html, { okText = t("common.ok"), cancelText = t("common.ca
     ok.className = danger ? "danger" : "primary";
     cn.style.display = cancel ? "" : "none";
     box.classList.remove("hidden");
+    // the page behind is inert while the dialog is open: Tab stays in the dialog, screen readers read only it
+    const behind = [document.querySelector(".sidebar"), document.querySelector("main")];
+    behind.forEach((el) => { if (el) el.inert = true; });
     // Esc and a click outside cancel; a destructive dialog starts on Cancel, not on the red button
     const onKey = (e) => { if (e.key === "Escape" && cancel) { e.preventDefault(); done(false); } };
-    const done = (v) => {
-      box.classList.add("hidden");
-      ok.onclick = cn.onclick = box.onclick = null;
+    const done = (v, replaced) => {
+      modalDone = null;
       document.removeEventListener("keydown", onKey, true);
-      prev?.focus?.();
       resolve(v);
+      if (replaced) return prev; // the next dialog takes over the box; focus goes back where this one came from
+      box.classList.add("hidden");
+      behind.forEach((el) => { if (el) el.inert = false; });
+      ok.onclick = cn.onclick = box.onclick = null;
+      // the button that opened the dialog may be gone (its table was redrawn): fall back to the page's tab or nav item
+      (prev?.isConnected ? prev : document.querySelector(".tab.active .pagetabs .active, nav button.active"))?.focus?.();
     };
+    modalDone = done;
     ok.onclick = () => done(true);
     cn.onclick = () => done(false);
     box.onclick = (e) => { if (e.target === box && cancel) done(false); };
@@ -181,8 +191,9 @@ async function call(cmd, args) {
 
 function busy(btn, on, label) {
   if (!btn) return;
-  if (on) { btn._t = btn.textContent; btn.disabled = true; btn.classList.add("is-busy"); btn.setAttribute("aria-busy", "true"); btn.textContent = label || t("common.working"); }
-  else { btn.disabled = false; btn.classList.remove("is-busy"); btn.removeAttribute("aria-busy"); if (btn._t) btn.textContent = btn._t; }
+  // the button keeps its width while it says "Working…", so the toolbar around it doesn't jump
+  if (on) { btn._t = btn.textContent; btn.style.minWidth = `${btn.offsetWidth}px`; btn.disabled = true; btn.classList.add("is-busy"); btn.setAttribute("aria-busy", "true"); btn.textContent = label || t("common.working"); }
+  else { btn.disabled = false; btn.classList.remove("is-busy"); btn.removeAttribute("aria-busy"); btn.style.minWidth = ""; if (btn._t) btn.textContent = btn._t; }
 }
 
 // ---------- keeping scanned lists current ----------
@@ -238,6 +249,21 @@ langSel.innerHTML = Object.entries(LANGS).filter(([k]) => I18N[k]).map(([k, v]) 
 langSel.value = LANG;
 langSel.onchange = () => { setLang(langSel.value); rerender(); };
 
+// open Tweaks on one tweak: its category stays open even when the list is redrawn by the rescan the tab switch starts
+async function jumpToTweak(id) {
+  showTab("tweaks");
+  const cat = state?.tweaks?.find((x) => x.id === id)?.category
+    || document.querySelector(`.tw[data-id="${CSS.escape(id)}"]`)?.closest(".cat")?.dataset.cat;
+  if (cat && collapsed.delete(cat)) { safeSet("collapsed", JSON.stringify([...collapsed])); renderTweaks(); }
+  await scans.tweaks?.p?.catch(() => {});
+  const node = document.querySelector(`.tw[data-id="${CSS.escape(id)}"]`);
+  if (!node) return;
+  node.closest(".cat")?.classList.remove("collapsed");
+  node.scrollIntoView({ block: "center" });
+  node.style.outline = "2px solid var(--accent)";
+  setTimeout(() => (node.style.outline = ""), 2500);
+}
+
 function rerender() {
   applyI18n();
   $("#tw-hint").innerHTML = t("tw.hint", {
@@ -250,6 +276,10 @@ function rerender() {
   renderPageTabs();
   queueMicrotask(renderReady); // after the script has loaded (it reads later bindings)
   renderImpact();
+  $("#tab-settings .subtabs")?.setAttribute("aria-label", noIcon(t("nav.settings")));
+  if (dev) renderDev();
+  if (disk) renderDisk();
+  if (bc) renderBrowsers();
   showTab(currentTab);
 }
 
@@ -368,6 +398,9 @@ function showTab(name) {
     if (on) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
   });
   document.querySelectorAll(".tab").forEach((s) => s.classList.toggle("active", s.id === `tab-${name}`));
+  // the window title names the page (taskbar, Alt+Tab, screen readers)
+  const pageName = noIcon(t("nav." + name));
+  document.title = pageName && !pageName.startsWith("nav.") ? `${pageName} · RigSweep` : "RigSweep";
   safeSet("tab", name);
   clearInterval(procTimer);
   if (name === "startup" && startup) renderStartup();
@@ -543,11 +576,11 @@ $("#btn-select-safe").onclick = () => {
   renderTweaks();
 };
 $("#btn-reapply").onclick = async (e) => {
-  busy(e.target, true, t("tw.verifying"));
+  busy(e.target.closest("button"), true, t("tw.verifying"));
   try {
     const s = await call("reapply_now");
     toast(t("tw.checked", { c: s.checked, d: s.drifted, f: s.fixed }) + (s.errors.length ? `\n${s.errors.join("\n")}` : ""), s.errors.length ? "warn" : "ok");
-  } finally { busy(e.target, false); }
+  } finally { busy(e.target.closest("button"), false); }
   loadState();
 };
 
@@ -559,6 +592,20 @@ const ECO = { node: "⬢ Node", python: "🐍 Python", java: "☕ Java", dotnet:
 const ecoLabel = (p) => p.kind === "agent" ? t("kind.agent") : p.kind === "vm" ? t("kind.vm")
   : p.eco === "browser" ? t("kind.browser") : p.eco === "wsl" ? t("kind.wsl") : p.eco === "shell" ? t("kind.shell")
   : (ECO[p.eco] || p.eco);
+// a first scan that fails says so in place of the spinner, with a button to try again
+const scanFailed = {};
+function failRow(sel, cols, key, e) {
+  scanFailed[key] = true;
+  $(sel).innerHTML = `<tr><td colspan="${cols}" class="loading"><p>${esc(t("err.failed"))}: ${esc(e)}</p><button class="ghost" data-rescan="${key}">${esc(t("clean.scan"))}</button></td></tr>`;
+  if (typeof renderReady === "function") renderReady();
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-rescan]");
+  if (!b) return;
+  const key = b.dataset.rescan;
+  ({ browser: () => loadBrowsers(b), disk: () => loadDisk(true), startup: () => loadStartup(b) })[key]?.().catch(() => {});
+});
+
 // a shell-leftovers row has no folder: show which commands are stuck instead
 const devWhere = (p) => p.eco === "shell" ? p.cmd : p.project;
 
@@ -665,7 +712,7 @@ $("#btn-clean-end").onclick = async (e) => {
     ${picked.some((p) => p.eco === "wsl" && p.kind !== "vm") ? `<p class="warn-text">${esc(t("clean.wsl.warn"))}</p>` : ""}
     ${agents ? `<p class="sub">💡 <code>claude --resume</code> / <code>codex resume</code></p>` : ""}`;
   if (!(await modal(t("clean.confirm.title", { n: picked.length }), html, { okText: t("clean.end"), danger: true }))) return;
-  busy(e.target, true);
+  busy(e.target.closest("button"), true);
   const estimate = picked.reduce((n, p) => n + p.tree_mem, 0);
   startRecovery(live.at(-1)?.mem_used ?? 0, Date.now(), estimate, false);
   try {
@@ -678,7 +725,7 @@ $("#btn-clean-end").onclick = async (e) => {
     reportPick = { before: r.before.id, after: r.after.id };
     if (r.result.mem_before && recovery) { recovery.before = r.result.mem_before; recovery.estimate = r.result.freed_mem; renderLive(); }
     picked.forEach((p) => devSel.delete(devKey(p)));
-  } finally { busy(e.target, false); }
+  } finally { busy(e.target.closest("button"), false); }
   loadDev(null, true);
 };
 
@@ -696,7 +743,8 @@ async function loadBrowsers(btn, fresh = !!btn) {
 }
 async function scanBrowsers() {
   if (!bc) $("#bc-body").innerHTML = `<tr><td colspan="5" class="loading"><span class="spinner"></span> ${esc(t("bc.scanning"))}</td></tr>`;
-  bc = await call("get_browser_caches");
+  try { bc = await call("get_browser_caches"); delete scanFailed.browser; }
+  catch (e) { if (!bc) failRow("#bc-body", 5, "browser", e); throw e; }
   const rows = bcRows(), keys = new Set(rows.map((r) => r.k));
   bcSel = new Set([...bcSel].filter((k) => keys.has(k)));
   rows.forEach((r) => {
@@ -757,14 +805,14 @@ $("#btn-bc-clean").onclick = async (e) => {
     `<li><b>${esc(r.b.name)}</b> · ${esc(r.p.dir === "" ? t("bc.shared") : r.p.name)} · ${esc(t("bc.item." + r.i.key))} <span class="sub">${fmtBytes(r.i.bytes)}</span></li>`).join("")}</ul>
     ${site.length ? `<p class="warn-text">${esc(t("bc.site.warn"))}</p>` : ""}`;
   if (!(await modal(t("bc.confirm.title", { size: fmtBytes(size) }), html, { okText: t("bc.clean"), danger: site.length > 0 }))) return;
-  busy(e.target, true);
+  busy(e.target.closest("button"), true);
   try {
     const r = await call("clean_browser_caches", { targets: picked.map((x) => ({ browser: x.b.id, profile: x.p.dir, key: x.i.key })) });
     let msg = t("bc.done", { mem: fmtBytes(r.freed) });
     if (r.locked_files) msg += "\n" + t("bc.locked", { n: r.locked_files });
     if (r.skipped_running.length) msg += "\n" + t("bc.skipped", { b: r.skipped_running.join(", ") });
     toast(msg, r.skipped_running.length ? "warn" : "ok", 9000);
-  } finally { busy(e.target, false); }
+  } finally { busy(e.target.closest("button"), false); }
   loadBrowsers(null, true);
 };
 
@@ -834,7 +882,9 @@ async function scanDisk() {
   const btn = $("#btn-disk-scan");
   busy(btn, true, t("bc.scanning"));
   if (!disk) $("#disk-body").innerHTML = `<tr><td colspan="6" class="loading"><span class="spinner"></span> ${esc(t("disk.scanning"))}</td></tr>`;
-  try { disk = await call("get_dev_disk"); } finally { busy(btn, false); }
+  try { disk = await call("get_dev_disk"); delete scanFailed.disk; }
+  catch (e) { if (!disk) failRow("#disk-body", 6, "disk", e); throw e; }
+  finally { busy(btn, false); }
   const rows = diskRows(), keys = new Set(rows.map((r) => r.k));
   diskSel = new Set([...diskSel].filter((k) => keys.has(k)));
   rows.forEach((r) => { if (!diskSeen.has(r.k) && diskSuggested(r)) diskSel.add(r.k); diskSeen.add(r.k); });
@@ -844,7 +894,7 @@ async function scanDisk() {
 // All / Active / Excluded: excluded = caches set to "Never clean" plus folders taken out of the scan
 let diskView = "all";
 function renderDiskView() {
-  const n = (disk?.caches.filter((c) => c.disabled).length || 0) + (state.settings?.disk_excludes?.length || 0);
+  const n = (disk?.caches.filter((c) => c.disabled).length || 0) + (state?.settings?.disk_excludes?.length || 0);
   if (n === 0 && diskView === "excluded") diskView = "all";
   $("#disk-view").innerHTML = [["all", "disk.view.all"], ["active", "disk.view.active"], ["excluded", "disk.view.excluded"]]
     .map(([v, k]) => `<button role="radio" aria-checked="${diskView === v}" data-disk-view="${v}">${esc(t(k))}${v === "excluded" ? ` <span class="count">${n}</span>` : ""}</button>`).join("");
@@ -947,7 +997,7 @@ function renderDisk() {
 // the Excluded view: what RigSweep leaves alone, each with a way back
 function renderDiskExcluded() {
   const caches = disk.caches.filter((c) => c.disabled);
-  const folders = state.settings?.disk_excludes || [];
+  const folders = state?.settings?.disk_excludes || [];
   let html = "";
   if (caches.length) {
     html += `<tr class="group"><td colspan="6"><b>${esc(t("disk.ex.caches", { x: t("disk.disable") }))}</b></td></tr>`;
@@ -1221,12 +1271,12 @@ $("#snap-before").onchange = $("#snap-after").onchange = () => {
   renderReport();
 };
 $("#btn-measure").onclick = async (e) => {
-  busy(e.target, true);
+  busy(e.target.closest("button"), true);
   try {
     const s = await call("take_snapshot", { label: snaps.length ? "manual" : "baseline" });
     const base = reportPick?.before ?? (snaps.find((x) => x.label === "baseline") || snaps[0] || s).id;
     reportPick = { before: base, after: s.id };
-  } finally { busy(e.target, false); }
+  } finally { busy(e.target.closest("button"), false); }
   loadSnapshots();
 };
 $("#btn-copy-md").onclick = async () => {
@@ -1276,7 +1326,7 @@ function renderProcesses() {
       <td class="num">${fmtBytes(p.mem)}</td>
       <td class="num">${diskOf(p) ? fmtBytes(diskOf(p)) : "–"}</td>
       <td>${svcs}</td>
-      <td><div class="row-acts"><button class="small ghost" data-why="${p.pid}">${esc(t("why.btn"))}</button>${p.protected ? `<span class="sub lock">🔒</span>` : `<button class="small ghost" data-kill="${p.pid}" data-start="${p.start_time}" data-name="${esc(p.name)}">${esc(t("proc.end"))}</button>`}</div></td>
+      <td><div class="row-acts"><button class="small ghost" data-why="${p.pid}">${esc(t("why.btn"))}</button>${p.protected ? `<span class="sub lock" title="${esc(t("proc.protected"))}">🔒</span>` : `<button class="small ghost" data-kill="${p.pid}" data-start="${p.start_time}" data-name="${esc(p.name)}">${esc(t("proc.end"))}</button>`}</div></td>
     </tr>`;
   }).join("");
 }
@@ -1293,9 +1343,7 @@ $("#proc-body").addEventListener("click", async (e) => {
     toast(t("proc.ended", { name }), "ok");
     loadProcesses();
   } else if (el.dataset.goto) {
-    showTab("tweaks");
-    const node = document.querySelector(`.tw[data-id="${CSS.escape(el.dataset.goto)}"]`);
-    if (node) { node.closest(".cat").classList.remove("collapsed"); node.scrollIntoView({ block: "center" }); node.style.outline = "2px solid var(--accent)"; setTimeout(() => (node.style.outline = ""), 2500); }
+    jumpToTweak(el.dataset.goto);
   } else if (el.dataset.disable) {
     const html = `<p>${t("proc.disableBody", { d: esc(el.dataset.display), n: esc(el.dataset.disable) })}</p>
       <p class="warn-text">${esc(t("proc.disableWarn"))}</p>`;
@@ -1357,7 +1405,8 @@ async function loadStartup(btn, fresh = !!btn) {
 }
 async function scanStartup() {
   if (!startup) $("#st-body").innerHTML = `<tr><td colspan="3" class="loading"><span class="spinner"></span> ${esc(t("st.scanning"))}</td></tr>`;
-  try { startup = await call("get_startup"); } catch { startup = startup || []; }
+  try { startup = await call("get_startup"); }
+  catch (e) { if (!startup) return failRow("#st-body", 3, "startup", e); }
   renderStartup();
 }
 
@@ -1414,9 +1463,7 @@ $("#st-body").addEventListener("click", async (e) => {
   const el = e.target.closest("button");
   if (!el) return;
   if (el.dataset.goto) {
-    showTab("tweaks");
-    const node = document.querySelector(`.tw[data-id="${CSS.escape(el.dataset.goto)}"]`);
-    if (node) { node.closest(".cat").classList.remove("collapsed"); node.scrollIntoView({ block: "center" }); node.style.outline = "2px solid var(--accent)"; setTimeout(() => (node.style.outline = ""), 2500); }
+    jumpToTweak(el.dataset.goto);
     return;
   }
   // two attributes: a separator character inside one attribute can be rewritten by the HTML parser
@@ -1564,7 +1611,7 @@ async function renderDashboard() {
         ? `<b>${esc(p.name)}</b><div class="sub">${esc(t("dash.chrome", { n: p.group, mem: fmtBytes(p.mem) }))}</div>`
         : `<button class="linkish" data-why="${p.pid}" title="${esc(t("why.btn"))}"><b>${esc(p.name)}</b></button>${p.services.length ? `<div class="sub">${esc(p.services.map((s) => s.name).join(", "))}</div>` : ""}`}</div></div></td>
       <td class="num ${p.cpu > 25 ? "vhot" : p.cpu > 5 ? "hot" : ""}"><span class="cell-act">${whyBtn(p)}<span>${p.cpu.toFixed(1)}%</span></span></td>
-      <td class="num"><span class="cell-act">${p.group ? `<button class="small ghost" data-go="settings">${esc(t("dash.chrome.go"))}</button>` : ""}<span>${fmtBytes(p.mem)}</span></span></td>
+      <td class="num"><span class="cell-act">${p.group ? `<button class="small ghost" data-go="settings" data-stab-go="about">${esc(t("dash.chrome.go"))}</button>` : ""}<span>${fmtBytes(p.mem)}</span></span></td>
       <td class="num">${diskOf(p) ? fmtBytes(diskOf(p)) : "–"}</td></tr>`;
     $("#dash-top").innerHTML = top.map(row).join("");
   } else {
@@ -1674,10 +1721,15 @@ document.querySelectorAll(".tile.link").forEach((el) => {
 });
 
 $("#btn-refresh-dash").onclick = async (e) => {
-  busy(e.target, true);
-  try { await loadState(); await loadDashboard(); } finally { busy(e.target, false); }
+  busy(e.target.closest("button"), true);
+  try { await loadState(); await loadDashboard(); } finally { busy(e.target.closest("button"), false); }
 };
-$("#dash-top").addEventListener("click", (e) => { if (e.target.dataset.go) showTab(e.target.dataset.go); });
+$("#dash-top").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-go]");
+  if (!b) return;
+  showTab(b.dataset.go);
+  if (b.dataset.stabGo) showSettingsTab(b.dataset.stabGo);
+});
 $("#hw-callout").addEventListener("click", (e) => { if (e.target.dataset.go) showTab(e.target.dataset.go); });
 
 // ---------- hardware ----------
@@ -1752,13 +1804,13 @@ function renderHardware() {
   const cd = hw.cpu_detail || {};
   // CPU-Z style detail (cpuid): only on the first CPU card
   const cacheLine = (cd.caches || []).map((k) => `L${k.level}${k.kind === "data" ? "d" : k.kind === "instruction" ? "i" : ""} ${k.count > 1 ? `${k.count}× ` : ""}${fmtBytes(k.size_kb * 1024)}${k.ways ? ` · ${k.ways}-way` : ""}`).join("<br>");
-  for (const [i, c] of (hw.cpu || []).entries()) cards.push(`<div class="card"><h2>🧮 ${esc(t("hw.cpu"))}</h2>${kv([
+  for (const [i, c] of (hw.cpu || []).entries()) cards.push(`<div class="card"><h2><span>🧮 ${esc(t("hw.cpu"))}</span></h2>${kv([
     ["hw.model", esc(c.name)],
     ["hw.codename", i === 0 && cd.codename ? esc([cd.codename, cd.uarch].filter(Boolean).join(" · ")) : null],
     ["hw.cpuid", i === 0 && cd.family != null ? esc(`${cd.vendor || ""} · family ${cd.family}, model ${cd.model}, stepping ${cd.stepping}`) : null],
     ["hw.hybrid", i === 0 && cd.hybrid ? esc(t("hw.hybridVal", { p: cd.p_cores ?? "?", e: cd.e_cores ?? "?" })) : null],
     ["hw.curClock", i === 0 && nz(cd.cur_mhz) ? `${(cd.cur_mhz / 1000).toFixed(2)} GHz` : null],
-    ["hw.cores", esc(t("hw.coresVal", { c: c.cores, t: c.threads }))],
+    ["hw.cores", nz(c.cores) ? esc(t("hw.coresVal", { c: c.cores, t: c.threads ?? c.cores })) : null],
     ["hw.clock", nz(c.max_mhz) ? `${(c.max_mhz / 1000).toFixed(2)} GHz` : null],
     ["hw.cache", i === 0 && cacheLine ? `<span class="pro-only">${cacheLine}</span><span class="simple-only">${[nz(c.l2_kb) && `L2 ${fmtBytes(c.l2_kb * 1024)}`, nz(c.l3_kb) && `L3 ${fmtBytes(c.l3_kb * 1024)}`].filter(Boolean).join(" · ")}</span>`
       : [nz(c.l2_kb) && `L2 ${fmtBytes(c.l2_kb * 1024)}`, nz(c.l3_kb) && `L3 ${fmtBytes(c.l3_kb * 1024)}`].filter(Boolean).join(" · ")],
@@ -1767,7 +1819,7 @@ function renderHardware() {
     ["hw.virt", c.virt == null ? null : esc(t(c.virt ? "hw.on" : "hw.virtOff"))],
     ["heat.title", last?.cpu_temp != null ? `${fmtTemp(last.cpu_temp)} <span class="sub">${esc(t("heat.acpi"))}</span>` : null],
   ])}</div>`);
-  for (const g of hw.gpu || []) cards.push(`<div class="card"><h2>🎮 ${esc(t("hw.gpu"))}</h2>${kv([
+  for (const g of hw.gpu || []) cards.push(`<div class="card"><h2><span>🎮 ${esc(t("hw.gpu"))}</span></h2>${kv([
     ["hw.model", esc(g.name)],
     ["hw.vram", nz(g.vram) ? fmtBytes(g.vram) : null],
     ["hw.driver", esc([g.driver, g.driver_date && `(${g.driver_date})`].filter(Boolean).join(" "))],
@@ -1777,7 +1829,7 @@ function renderHardware() {
   const ram = hw.ram || [];
   if (ram.length) {
     const total = ram.reduce((a, m) => a + (m.bytes || 0), 0), m0 = ram[0];
-    cards.push(`<div class="card"><h2>🧠 ${esc(t("hw.ram"))}</h2>${kv([
+    cards.push(`<div class="card"><h2><span>🧠 ${esc(t("hw.ram"))}</span></h2>${kv([
       ["hw.installed", fmtBytes(total)],
       ["hw.type", esc([m0.type_name || RAM_TYPES[m0.type] || "", m0.form].filter(Boolean).join(" · "))],
       ["hw.channels", hw.ram_channels ? esc(t("hw.channelsVal", { n: hw.ram_channels })) : null],
@@ -1788,7 +1840,7 @@ function renderHardware() {
   }
   const sys = hw.system || {}, bd = hw.board || {};
   const up = sys.boot ? (Date.now() - Date.parse(sys.boot)) / 1000 : null;
-  cards.push(`<div class="card"><h2>💻 ${esc(t("hw.system"))}</h2>${kv([
+  cards.push(`<div class="card"><h2><span>💻 ${esc(t("hw.system"))}</span></h2>${kv([
     ["hw.model", esc([sys.maker, sys.model].filter(Boolean).join(" "))],
     ["hw.board", esc([bd.maker, bd.model].filter(Boolean).join(" "))],
     ["hw.bios", esc([bd.bios, bd.bios_date && `(${bd.bios_date})`].filter(Boolean).join(" "))],
@@ -1799,7 +1851,7 @@ function renderHardware() {
     if (!nz(b.full)) continue;
     const pct = nz(b.design) ? Math.min(100, Math.round((b.full / b.design) * 100)) : null;
     const cls = pct == null || pct >= 80 ? "" : pct >= 60 ? "warn" : "bad";
-    cards.push(`<div class="card"><h2>🔋 ${esc(t("hw.battery"))}</h2>${kv([
+    cards.push(`<div class="card"><h2><span>🔋 ${esc(t("hw.battery"))}</span></h2>${kv([
       ["hw.batt.health", pct != null ? `${pct}% <div class="meter ${cls}"><i style="width:${pct}%"></i></div>` : null],
       ["hw.batt.full", `${(b.full / 1000).toFixed(1)} Wh`],
       ["hw.batt.design", nz(b.design) ? `${(b.design / 1000).toFixed(1)} Wh` : null],
@@ -1928,8 +1980,8 @@ async function loadAv() {
 $("#btn-av").onclick = async (e) => {
   const allow = !avState?.excluded;
   if (allow && !(await modal(t("av.title"), t("av.confirm", { f: esc(avState.folder) }), { okText: t("av.allow") }))) return;
-  busy(e.target, true);
-  try { avState = await call("defender_self_allow", { allow }); } finally { busy(e.target, false); }
+  busy(e.target.closest("button"), true);
+  try { avState = await call("defender_self_allow", { allow }); } finally { busy(e.target.closest("button"), false); }
   loadAv();
 };
 
@@ -1956,7 +2008,7 @@ function showSettingsTab(name) {
   safeSet("settingsTab", name);
 }
 document.querySelectorAll("[data-stab]").forEach((b) => b.addEventListener("click", () => showSettingsTab(b.dataset.stab)));
-$(".subtabs").addEventListener("keydown", (e) => {
+$("#tab-settings .subtabs").addEventListener("keydown", (e) => {
   if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) return;
   const tabs = [...document.querySelectorAll("[data-stab]")];
   const i = tabs.findIndex((b) => b.dataset.stab === settingsTab);
@@ -2029,22 +2081,22 @@ function renderUpdate(status) {
 }
 
 $("#btn-upd-check").onclick = async (e) => {
-  busy(e.target, true, t("upd.checking"));
+  busy(e.target.closest("button"), true, t("upd.checking"));
   try {
     update = await invoke("check_update");
     renderUpdate(update ? null : t("upd.latest", { v: appVersion }));
   } catch (err) {
     renderUpdate(t("upd.error", { m: String(err) }));
-  } finally { busy(e.target, false); }
+  } finally { busy(e.target.closest("button"), false); }
 };
 
 $("#btn-upd-install").onclick = async (e) => {
   if (!update) return;
   if (!(await modal(t("upd.confirm.title", { v: update.version }), `<p>${esc(t("upd.confirm.body"))}</p><p class="sub">${esc(t("upd.noReboot"))}</p>`, { okText: t("upd.install") }))) return;
-  busy(e.target, true, t("upd.downloading", { p: "" }));
+  busy(e.target.closest("button"), true, t("upd.downloading", { p: "" }));
   $("#btn-upd-check").disabled = true;
   try { await invoke("install_update"); }  // on success RigSweep exits while the installer runs
-  catch (err) { renderUpdate(t("upd.error", { m: String(err) })); busy(e.target, false); $("#btn-upd-check").disabled = false; }
+  catch (err) { renderUpdate(t("upd.error", { m: String(err) })); busy(e.target.closest("button"), false); $("#btn-upd-check").disabled = false; }
 };
 
 $("#update-pill").onclick = () => showTab("settings");
@@ -2196,8 +2248,9 @@ function readyRows() {
 function renderReady() {
   const have = readyRows();
   // always the same three tiles: checking, nothing to free, or the amount, so nothing jumps around
-  const SLOTS = [["dev", "🧹", "cleanup", () => dev], ["disk", "💾", "disk", () => disk], ["bc", "🌐", "browser", () => bc]];
-  const rows = SLOTS.map(([key, icon, go, data]) => have.find((r) => r.key === key)
+  const SLOTS = [["dev", "🧹", "cleanup", () => dev, "cleanup"], ["disk", "💾", "disk", () => disk, "disk"], ["bc", "🌐", "browser", () => bc, "browser"]];
+  const rows = SLOTS.map(([key, icon, go, data, scan]) => have.find((r) => r.key === key)
+    || (!data() && scanFailed[scan] ? { key, icon, go, state: "failed", big: "!", cap: t("err.failed"), text: t("err.failed") } : null)
     || { key, icon, go, state: data() ? "none" : "checking", big: data() ? "✓" : "", cap: t(data() ? `ready.none.${key}` : "ready.scanHint"), text: t(data() ? `ready.none.${key}` : "ready.scanning") });
   // one tile per kind: the amount big, what it is underneath, the actions at the bottom
   $("#ready-list").innerHTML = rows.map((r) => `<li class="ready-tile ${r.key} ${r.state || "has"}" aria-label="${esc(r.text)}" ${r.state === "checking" ? 'aria-busy="true"' : ""}>
@@ -2410,15 +2463,15 @@ $("#s-share").onchange = async (e) => {
 };
 
 $("#btn-share-preview").onclick = async (e) => {
-  busy(e.target, true);
+  busy(e.target.closest("button"), true);
   let html;
-  try { html = await previewHtml(); } finally { busy(e.target, false); }
+  try { html = await previewHtml(); } finally { busy(e.target.closest("button"), false); }
   await modal(t("share.previewTitle"), html, { cancel: false });
 };
 
 $("#btn-share-reset").onclick = async (e) => {
-  busy(e.target, true);
-  try { shareState = await call("reset_install_id"); toast(t("share.resetDone"), "ok"); } finally { busy(e.target, false); }
+  busy(e.target.closest("button"), true);
+  try { shareState = await call("reset_install_id"); toast(t("share.resetDone"), "ok"); } finally { busy(e.target.closest("button"), false); }
   renderShare();
 };
 
@@ -2465,6 +2518,7 @@ async function openGpu() {
     renderGpu(g, ai);
   };
   await tick();
+  if (currentTab !== "gpu") return; // left during the first read: showTab already owns procTimer
   procTimer = setInterval(tick, Math.max(2000, liveMs()));
 }
 function renderGpu(g, ai) {
@@ -2506,6 +2560,7 @@ async function openNetwork() {
     if (n++ % 3 === 0) { const c = await call("get_connections").catch(() => null); if (c) renderConns(c); }
   };
   await tick();
+  if (currentTab !== "network") return;
   procTimer = setInterval(tick, Math.max(2000, liveMs()));
 }
 function renderIfaces(tot) {
@@ -2529,22 +2584,22 @@ function renderConns(c) {
 $("#btn-who-port").onclick = async (e) => {
   const port = Number($("#who-port").value);
   if (!(port > 0 && port < 65536)) return;
-  busy(e.target, true);
+  busy(e.target.closest("button"), true);
   try {
     const r = await call("get_port_owner", { port });
     $("#who-out").innerHTML = r.length ? `<ul class="scroll-list">${r.map((o) => `<li><b>${esc(o.name)}</b> <span class="sub">PID ${o.pid} · ${esc(o.proto)} ${esc(o.states.join(", "))}</span><div class="sub mono-cut" title="${esc(o.cmd)}"><bdi dir="ltr">${esc(o.cmd)}</bdi></div></li>`).join("")}</ul>`
       : `<p class="sub">${esc(t("net.who.free", { p: port }))}</p>`;
-  } catch (err) { toast(String(err), "error"); } finally { busy(e.target, false); }
+  } catch (err) { toast(String(err), "error"); } finally { busy(e.target.closest("button"), false); }
 };
 $("#btn-who-path").onclick = async (e) => {
   const path = $("#who-path").value.trim();
   if (!path) return;
-  busy(e.target, true);
+  busy(e.target.closest("button"), true);
   try {
     const r = await call("who_has_open", { path });
     $("#who-out").innerHTML = r.length ? `<ul class="scroll-list">${r.map((l) => `<li><b>${esc(l.name)}</b> <span class="sub">PID ${l.pid} · ${esc(t("net.who.kind." + l.kind))}${l.service_name ? ` · ${esc(l.service_name)}` : ""}</span></li>`).join("")}</ul>`
       : `<p class="sub">${esc(t("net.who.nobody"))}</p>`;
-  } catch (err) { toast(String(err), "error"); } finally { busy(e.target, false); }
+  } catch (err) { toast(String(err), "error"); } finally { busy(e.target.closest("button"), false); }
 };
 
 // ---------- Find: programs without an uninstaller, old files, files worth a look ----------

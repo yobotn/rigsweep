@@ -257,7 +257,7 @@ I18N["he"] = {
     "clean.hint": "שרתי פיתוח, תהליכי רקע של בנייה וכלי CLI של סוכני AI שנשארו מאחור אחרי סגירת מסופים וסשנים ישנים: Node, Python, Java/Gradle, .NET, Ruby, PHP, Rust, Go, Claude Code, Codex, Aider…, שרתי ה-MCP ודפדפני האוטומציה (Playwright, Puppeteer) שהם משאירים אחריהם, וגם ה-VM של WSL 2 / Docker. כל שורה היא עץ תהליכים שלם. שום דבר לא מסתיים לפני אישור. תהליכים השייכים לעורך הקוד (שרתי שפה) או לאפליקציית שולחן עבודה נעולים 🔒.",
     "clean.scan": "סרוק מחדש", "clean.end": "סיים את הנבחרים", "clean.selectStale": "בחר נטושים",
     "clean.summary": "עצי תהליכי פיתוח: {n}, תופסים {mem} · נטושים: {s}, תופסים {sm}",
-    "clean.none": "אין תהליכי Node או CLI של סוכנים פועלים. המחשב נקי ✨",
+    "clean.none": "אין שרתי פיתוח, דמוני בנייה או CLI של סוכנים שרצים. המחשב שלך נקי ✨",
     "clean.noStale": "אין כרגע שום דבר נטוש.", "clean.auto.done": "🧹 הניקוי האוטומטי סיים {n} עצים נטושים ופינה ≈ {mem}.",
     "clean.col.what": "מה", "clean.col.project": "פרויקט", "clean.col.age": "גיל", "clean.col.mem": "RAM (עץ)",
     "clean.col.ports": "יציאות", "clean.col.status": "מצב",
