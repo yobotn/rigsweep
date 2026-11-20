@@ -4,7 +4,7 @@
 
 - Download: https://github.com/yobotn/rigsweep/releases/latest (Windows 10 / 11, free, MIT)
 - Source: https://github.com/yobotn/rigsweep
-- Current version: 0.8.1
+- Current version: 0.9.1
 - For AI agents: https://rigsweep.com/llms.txt
 
 ## Why it exists
