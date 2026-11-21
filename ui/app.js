@@ -46,7 +46,7 @@ let collapsed = new Set(JSON.parse(safeGet("collapsed") || "[]"));
 const LIVE_TABS = new Set(["dashboard", "cleanup"]); // pages that draw the live CPU / memory samples
 let snapshot = null;
 let procTimer = null;
-let currentTab = "dashboard";
+let currentTab = "dashboard", tabGen = 0; // tabGen counts page switches: a slow first read checks it is still current
 let dev = null;            // DevReport
 let devSel = new Set();    // "pid:start_time"
 const devUnticked = new Set(); // stale rows the user un-ticked on purpose: never re-tick those
@@ -184,9 +184,19 @@ function modal(title, html, { okText = t("common.ok"), cancelText = t("common.ca
   });
 }
 
-async function call(cmd, args) {
+// call() shows a failure as a toast; { quiet: true } leaves it to the caller (an error row in place, say)
+async function call(cmd, args, { quiet = false } = {}) {
   try { return await invoke(cmd, args); }
-  catch (e) { console.error(cmd, e); toast(`${t("err.failed")}\n${e}`, "err"); throw e; }
+  catch (e) { console.error(cmd, e); if (!quiet) toast(`${t("err.failed")}\n${e}`, "err"); throw e; }
+}
+
+// redraw a live table without dropping keyboard focus: the focused button is found again by its first data-* value
+function keepFocus(box, draw) {
+  const a = document.activeElement, d = a && box.contains(a) && Object.entries(a.dataset || {})[0];
+  draw();
+  if (!d || box.contains(document.activeElement)) return;
+  const attr = "data-" + d[0].replace(/[A-Z]/g, (c) => "-" + c.toLowerCase());
+  box.querySelector(`[${attr}="${CSS.escape(d[1])}"]`)?.focus();
 }
 
 function busy(btn, on, label) {
@@ -280,6 +290,7 @@ function rerender() {
   if (dev) renderDev();
   if (disk) renderDisk();
   if (bc) renderBrowsers();
+  renderUpdate();
   showTab(currentTab);
 }
 
@@ -314,6 +325,34 @@ document.querySelectorAll(".menu").forEach((m) => {
 });
 document.addEventListener("click", (e) => { if (!e.target.closest(".menu")) closeMenus(); });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeMenus(); });
+
+// Desktop-app keys. The window is a web view, so F5 / Ctrl+R would reload the whole UI and lose
+// selections and running jobs: here they rescan the page instead, like Task Manager or Explorer.
+// Ctrl+F goes to the page's filter box; print / save-page / view-source do nothing in an app.
+document.addEventListener("keydown", (e) => {
+  const ctrl = e.ctrlKey || e.metaKey, k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  if (k === "F5" || (ctrl && k === "r")) {
+    e.preventDefault();
+    if (e.repeat || !$("#modal").classList.contains("hidden")) return;
+    const tab = document.getElementById(`tab-${currentTab}`);
+    const b = tab?.querySelector('header [id^="btn-"][id*="refresh"], header [id^="btn-"][id*="scan"]');
+    if (b) { if (!b.disabled) b.click(); }
+    else FRESH[currentTab]?.run();
+    return;
+  }
+  if (ctrl && k === "f") {
+    const f = document.querySelector(`#tab-${currentTab} input[type="search"]:not([hidden])`);
+    if (f) { e.preventDefault(); f.focus(); f.select(); }
+    return;
+  }
+  if (ctrl && ["p", "s", "u"].includes(k)) e.preventDefault();
+});
+// the browser's right-click menu (Back, Reload, Save as, Print…) means nothing here; text fields and
+// selected text keep it for copy and paste
+document.addEventListener("contextmenu", (e) => {
+  if (e.target.closest?.("input, textarea, [contenteditable]") || String(getSelection()).trim()) return;
+  e.preventDefault();
+});
 
 // ---------- page intros ----------
 // Each page's explanation shows one line; "How it works" opens the rest (remembered per page).
@@ -390,6 +429,7 @@ function showTab(name) {
   if (!document.getElementById(`tab-${name}`)) name = "dashboard";
   if (!pageOn(name)) name = Object.entries(ALL_GROUPS).find(([, ps]) => ps.includes(name))?.[1].find(pageOn) || "dashboard";
   currentTab = name;
+  tabGen++;
   const group = groupOf(name);
   if (group) { lastInGroup[group] = name; safeSet("lastInGroup", JSON.stringify(lastInGroup)); }
   document.querySelectorAll("nav button").forEach((b) => {
@@ -570,7 +610,7 @@ async function restoreIds(ids, btn) {
   await loadState();
 }
 
-$("#btn-apply-selected").onclick = (e) => applyIds([...selected], e.target);
+$("#btn-apply-selected").onclick = (e) => selected.size ? applyIds([...selected], e.target.closest("button")) : toast(t("disk.nothing"));
 $("#btn-select-safe").onclick = () => {
   state.tweaks.filter((x) => x.risk === "safe" && x.status.overall !== "not_present").forEach((x) => selected.add(x.id));
   renderTweaks();
@@ -615,7 +655,7 @@ async function loadDev(btn, fresh = !!btn) {
   try { await scanOnce("cleanup", scanDev, fresh); } catch {} finally { busy(btn, false); }
 }
 async function scanDev() {
-  try { dev = await call("get_dev_processes"); }
+  try { dev = await call("get_dev_processes", undefined, { quiet: !dev }); }
   catch (e) {
     // keep the last good list if there is one; otherwise say what failed in place of the spinner
     if (!dev) $("#clean-body").innerHTML = `<tr><td colspan="8" class="loading"><p>${esc(t("err.failed"))}: ${esc(e)}</p><button class="ghost" data-retry>${esc(t("clean.scan"))}</button></td></tr>`;
@@ -682,7 +722,7 @@ $("#clean-body").addEventListener("click", async (e) => {
     // a kept row is never pre-selected: drop it from the selection right away
     if (on) devSel.forEach((k) => { if (dev?.items.find((p) => devKey(p) === k)?.cmd === b.dataset.cmd) devSel.delete(k); });
     await loadDev(null, true);
-  } catch (err) { toast(String(err), "error"); b.disabled = false; }
+  } catch { b.disabled = false; }
 });
 $("#btn-clean-stale").onclick = async (e) => {
   await loadDev(e.target); // fresh scan, so rows that just went stale are included
@@ -743,7 +783,7 @@ async function loadBrowsers(btn, fresh = !!btn) {
 }
 async function scanBrowsers() {
   if (!bc) $("#bc-body").innerHTML = `<tr><td colspan="5" class="loading"><span class="spinner"></span> ${esc(t("bc.scanning"))}</td></tr>`;
-  try { bc = await call("get_browser_caches"); delete scanFailed.browser; }
+  try { bc = await call("get_browser_caches", undefined, { quiet: !bc }); delete scanFailed.browser; }
   catch (e) { if (!bc) failRow("#bc-body", 5, "browser", e); throw e; }
   const rows = bcRows(), keys = new Set(rows.map((r) => r.k));
   bcSel = new Set([...bcSel].filter((k) => keys.has(k)));
@@ -882,7 +922,7 @@ async function scanDisk() {
   const btn = $("#btn-disk-scan");
   busy(btn, true, t("bc.scanning"));
   if (!disk) $("#disk-body").innerHTML = `<tr><td colspan="6" class="loading"><span class="spinner"></span> ${esc(t("disk.scanning"))}</td></tr>`;
-  try { disk = await call("get_dev_disk"); delete scanFailed.disk; }
+  try { disk = await call("get_dev_disk", undefined, { quiet: !disk }); delete scanFailed.disk; }
   catch (e) { if (!disk) failRow("#disk-body", 6, "disk", e); throw e; }
   finally { busy(btn, false); }
   const rows = diskRows(), keys = new Set(rows.map((r) => r.k));
@@ -898,7 +938,25 @@ function renderDiskView() {
   if (n === 0 && diskView === "excluded") diskView = "all";
   $("#disk-view").innerHTML = [["all", "disk.view.all"], ["active", "disk.view.active"], ["excluded", "disk.view.excluded"]]
     .map(([v, k]) => `<button role="radio" aria-checked="${diskView === v}" data-disk-view="${v}">${esc(t(k))}${v === "excluded" ? ` <span class="count">${n}</span>` : ""}</button>`).join("");
+  syncRadios($("#disk-view"));
 }
+// segmented switchers are radio groups: one Tab stop (the checked option), arrows move the choice
+function syncRadios(group) {
+  const rs = [...group.querySelectorAll('[role="radio"]')];
+  const on = rs.find((r) => r.getAttribute("aria-checked") === "true") || rs[0];
+  rs.forEach((r) => { r.tabIndex = r === on ? 0 : -1; });
+}
+document.addEventListener("keydown", (e) => {
+  const r = e.target.closest?.('[role="radiogroup"] [role="radio"]');
+  if (!r || !["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(e.key)) return;
+  const group = r.closest('[role="radiogroup"]'), rs = [...group.querySelectorAll('[role="radio"]')], i = rs.indexOf(r);
+  const rtl = document.documentElement.dir === "rtl";
+  const step = { ArrowRight: rtl ? -1 : 1, ArrowLeft: rtl ? 1 : -1, ArrowDown: 1, ArrowUp: -1 }[e.key];
+  const n = e.key === "Home" ? 0 : e.key === "End" ? rs.length - 1 : (i + step + rs.length) % rs.length;
+  e.preventDefault();
+  rs[n].click(); // the group may redraw its buttons: focus the option now at that position
+  group.querySelectorAll('[role="radio"]')[n]?.focus();
+});
 $("#disk-view").addEventListener("click", (e) => {
   const b = e.target.closest("[data-disk-view]");
   if (b) { diskView = b.dataset.diskView; renderDisk(); }
@@ -1311,7 +1369,8 @@ function renderProcesses() {
     p.services.some((s) => s.name.toLowerCase().includes(q) || s.display.toLowerCase().includes(q)));
   rows.sort(sorter("proc", (p, k) => k === "disk" ? diskOf(p) : p[k]));
   rows = rows.slice(0, 300);
-  $("#proc-body").innerHTML = rows.map((p) => {
+  if (!rows.length) return keepFocus($("#proc-body"), () => { $("#proc-body").innerHTML = `<tr><td colspan="7" class="loading">${q ? esc(t("st.noMatch")) : ""}</td></tr>`; });
+  keepFocus($("#proc-body"), () => { $("#proc-body").innerHTML = rows.map((p) => {
     const cpuCls = p.cpu > 25 ? "vhot" : p.cpu > 5 ? "hot" : "";
     const svcs = p.services.map((s) => {
       const btn = s.protected ? `<span class="sub" title="${esc(t("proc.protected"))}">🔒</span>`
@@ -1328,7 +1387,7 @@ function renderProcesses() {
       <td>${svcs}</td>
       <td><div class="row-acts"><button class="small ghost" data-why="${p.pid}">${esc(t("why.btn"))}</button>${p.protected ? `<span class="sub lock" title="${esc(t("proc.protected"))}">🔒</span>` : `<button class="small ghost" data-kill="${p.pid}" data-start="${p.start_time}" data-name="${esc(p.name)}">${esc(t("proc.end"))}</button>`}</div></td>
     </tr>`;
-  }).join("");
+  }).join(""); });
 }
 
 $("#proc-filter").addEventListener("input", renderProcesses);
@@ -1405,7 +1464,7 @@ async function loadStartup(btn, fresh = !!btn) {
 }
 async function scanStartup() {
   if (!startup) $("#st-body").innerHTML = `<tr><td colspan="3" class="loading"><span class="spinner"></span> ${esc(t("st.scanning"))}</td></tr>`;
-  try { startup = await call("get_startup"); }
+  try { startup = await call("get_startup", undefined, { quiet: !startup }); }
   catch (e) { if (!startup) return failRow("#st-body", 3, "startup", e); }
   renderStartup();
 }
@@ -1543,6 +1602,7 @@ async function loadImpact() {
 function renderImpact() {
   document.querySelectorAll("#im-period button").forEach((b) => b.setAttribute("aria-checked", String(b.dataset.period === impactPeriod)));
   $("#im-period").setAttribute("aria-label", t("impact.title"));
+  syncRadios($("#im-period"));
   if (!impact) return;
   const p = impact[impactPeriod];
   $("#im-disk").textContent = fmtBytes(p.disk + p.browser);
@@ -1715,10 +1775,20 @@ Object.keys(CHARTS).forEach((id) => {
   plot.addEventListener("pointerleave", () => { plot._hover = null; chartHover(id); });
 });
 
-document.querySelectorAll(".tile.link").forEach((el) => {
-  el.onclick = () => showTab(el.dataset.go);
-  el.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); showTab(el.dataset.go); } };
+// a tile links to its page only while that page is shown (Simple mode hides Processes, for one)
+function syncTileLinks() {
+  document.querySelectorAll(".tile[data-go]").forEach((el) => {
+    const on = pageOn(el.dataset.go);
+    el.classList.toggle("link", on);
+    if (on) { el.setAttribute("role", "button"); el.tabIndex = 0; } else { el.removeAttribute("role"); el.removeAttribute("tabindex"); }
+  });
+}
+document.querySelectorAll(".tile[data-go]").forEach((el) => {
+  const go = () => { if (pageOn(el.dataset.go)) showTab(el.dataset.go); };
+  el.onclick = go;
+  el.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } };
 });
+syncTileLinks();
 
 $("#btn-refresh-dash").onclick = async (e) => {
   busy(e.target.closest("button"), true);
@@ -1912,12 +1982,12 @@ $("#file-import").addEventListener("change", async (e) => {
   const ids = await call("import_profile", { json: await f.text() });
   await loadState();
   if (!ids.length) return toast(t("hist.importNone"));
-  if (await modal(t("hist.importTitle"), `<p>${esc(t("hist.importBody", { n: ids.length }))}</p>`, { okText: t("hist.review") })) {
-    selected = new Set(ids);
-    showTab("tweaks");
-    renderTweaks();
-    applyIds(ids, $("#btn-apply-selected"));
-  }
+  // Apply goes ahead (risky tweaks still get their own confirm); Review ticks them on Tweaks and applies nothing
+  const now = await modal(t("hist.importTitle"), `<p>${esc(t("hist.importBody", { n: ids.length }))}</p>`, { okText: t("tw.apply"), cancelText: t("hist.reviewFirst") });
+  selected = new Set(ids);
+  showTab("tweaks");
+  renderTweaks();
+  if (now) applyIds(ids, $("#btn-apply-selected"));
 });
 
 // ---------- settings ----------
@@ -1936,31 +2006,37 @@ $("[data-stab-panel=look]").addEventListener("change", async (e) => {
   safeSet("prefs", JSON.stringify(prefs));
   applyPrefs();
   GROUPS = visibleGroups();
+  syncTileLinks();
   renderPageTabs();
   if (el.dataset.mon === "mon_heat" || el.dataset.mon === "mon_disk_alerts") {
-    try { await call("set_monitors", { heat: prefs.mon_heat, diskAlerts: prefs.mon_disk_alerts }); } catch (err) { toast(String(err), "error"); }
+    try { await call("set_monitors", { heat: prefs.mon_heat, diskAlerts: prefs.mon_disk_alerts }); } catch {} // call() already showed the error
   }
   flashSaved();
 });
 
+// a redraw after a save leaves alone the field the user is in: they may already be typing the next value
+function setField(sel, prop, v) {
+  const el = $(sel);
+  if (el && el !== document.activeElement) el[prop] = v;
+}
 function renderSettings() {
   if (!state) return;
   renderLook();
   const s = state.settings;
-  $("#s-startup").checked = s.start_with_windows;
-  $("#s-tray").checked = s.stay_in_tray;
-  $("#s-watchdog").value = s.watchdog_minutes;
-  $("#s-live").value = s.live_refresh_secs ?? 5;
-  $("#s-idle").value = s.idle_minutes ?? 120;
-  $("#s-autokill").checked = !!s.auto_kill_stale;
-  $("#s-badge").checked = s.badge_enabled ?? true;
-  $("#s-badge-warn").value = s.badge_warn_gb ?? 1;
-  $("#s-badge-alert").value = s.badge_alert_gb ?? 2;
-  $("#s-folders").value = s.dev_folders.join("\n");
-  $("#s-autoupdate").checked = !!s.auto_update;
-  $("#s-disk-roots").value = (s.disk_roots || []).join("\n");
-  $("#s-disk-excludes").value = (s.disk_excludes || []).join("\n");
-  $("#s-disk-stale").value = s.disk_stale_days ?? 30;
+  setField("#s-startup", "checked", s.start_with_windows);
+  setField("#s-tray", "checked", s.stay_in_tray);
+  setField("#s-watchdog", "value", s.watchdog_minutes);
+  setField("#s-live", "value", s.live_refresh_secs ?? 5);
+  setField("#s-idle", "value", s.idle_minutes ?? 120);
+  setField("#s-autokill", "checked", !!s.auto_kill_stale);
+  setField("#s-badge", "checked", s.badge_enabled ?? true);
+  setField("#s-badge-warn", "value", s.badge_warn_gb ?? 1);
+  setField("#s-badge-alert", "value", s.badge_alert_gb ?? 2);
+  setField("#s-folders", "value", s.dev_folders.join("\n"));
+  setField("#s-autoupdate", "checked", !!s.auto_update);
+  setField("#s-disk-roots", "value", (s.disk_roots || []).join("\n"));
+  setField("#s-disk-excludes", "value", (s.disk_excludes || []).join("\n"));
+  setField("#s-disk-stale", "value", s.disk_stale_days ?? 30);
   renderUpdate();
   $("#s-info").textContent = t("set.info", { s: state.startup_registered ? t("set.registered") : t("set.notRegistered"), d: state.data_dir });
   loadAv();
@@ -2024,21 +2100,32 @@ showSettingsTab(settingsTab);
 // Every field in an .autosave card saves itself shortly after it changes; no Save button.
 let saveTimer = null;
 document.querySelectorAll(".autosave input, .autosave textarea").forEach((el) => {
-  el.addEventListener("change", () => { clearTimeout(saveTimer); saveTimer = setTimeout(saveSettings, 300); });
+  el.addEventListener("change", () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => saveSettings().catch(() => {}), 300); });
 });
 
+// one save at a time: a change made while a save is in flight saves again right after it, with every field as it is then
+let saving = false, saveAgain = false;
 async function saveSettings() {
+  if (saving) { saveAgain = true; return; }
+  saving = true;
+  try { await saveSettingsNow(); }
+  finally {
+    saving = false;
+    if (saveAgain) { saveAgain = false; saveSettings().catch(() => {}); }
+  }
+}
+async function saveSettingsNow() {
   const settings = {
     ...state.settings,
     start_with_windows: $("#s-startup").checked,
     stay_in_tray: $("#s-tray").checked,
-    watchdog_minutes: Math.max(1, Number($("#s-watchdog").value) || 30),
+    watchdog_minutes: Math.min(1440, Math.max(1, Math.round(Number($("#s-watchdog").value)) || 30)),
     live_refresh_secs: Math.min(60, Math.max(2, Math.round(Number($("#s-live").value)) || 5)),
     idle_minutes: Math.min(10080, Math.max(1, Math.round(Number($("#s-idle").value)) || 120)),
     auto_kill_stale: $("#s-autokill").checked,
     badge_enabled: $("#s-badge").checked,
-    badge_warn_gb: Number($("#s-badge-warn").value) || 1,
-    badge_alert_gb: Number($("#s-badge-alert").value) || 2,
+    badge_warn_gb: Math.min(256, Math.max(0.5, Number($("#s-badge-warn").value) || 1)),
+    badge_alert_gb: Math.min(256, Math.max(0.5, Number($("#s-badge-alert").value) || 2)),
     auto_update: $("#s-autoupdate").checked,
     dev_folders: lines($("#s-folders").value),
     disk_roots: lines($("#s-disk-roots").value),
@@ -2057,7 +2144,7 @@ async function saveSettings() {
     throw err;
   }
   await loadState();
-  renderSettings();
+  if (!saveAgain) renderSettings(); // another save is queued: it redraws once with the newest values
 }
 
 // ---------- updates ----------
@@ -2268,6 +2355,8 @@ $("#ready-list").addEventListener("click", (e) => {
     (dev?.items || []).filter((p) => p.stale && !p.protected).forEach((p) => { devSel.add(devKey(p)); devUnticked.delete(devKey(p)); });
     $("#btn-clean-end").click();
   } else if (b.dataset.ready === "disk") {
+    // a clean-up already running: say so, and keep the selection the user made on Dev Disk
+    if (jobActive(diskJob)) return toast(t("disk.job.busy"), "warn");
     diskSel = new Set(diskRows().filter(diskSuggested).map((r) => r.k));
     $("#btn-disk-clean").click();
   } else if (b.dataset.ready === "bc") {
@@ -2313,12 +2402,18 @@ function mpList(title, rows) {
       <span class="num">${share.toFixed(0)}%${r.count ? ` · ${esc(t("mp.scans", { n: r.count }))}` : ""}</span></li>`;
   }).join("")}</ul>`;
 }
+// one recording at a time. The row button that started it is often redrawn away by the live table,
+// so the progress also shows as a toast whose bar runs for the length of the recording.
+let mpRunning = false;
 async function defenderWhy(btn) {
+  if (mpRunning) return; // its progress toast is already on screen
+  mpRunning = true;
   busy(btn, true, t("mp.recording", { s: MP_SECONDS }));
+  toast(t("mp.recording", { s: MP_SECONDS }), "info", MP_SECONDS * 1000);
   let r;
   try { r = await invoke("defender_why", { seconds: MP_SECONDS }); }
   catch (e) { return toast(t("mp.fail", { e: String(e) }), "err"); }
-  finally { busy(btn, false); }
+  finally { mpRunning = false; busy(btn, false); }
   const procs = mpRows(r?.processes), paths = mpRows(r?.paths), exts = mpRows(r?.extensions);
   const names = [...procs, ...paths].map((x) => x.name.split(/[\\/]/).pop() || x.name).concat(paths.map((x) => x.name));
   const dev = names.some((n) => DEV_HINT.test(n));
@@ -2517,8 +2612,9 @@ async function openGpu() {
     ]);
     renderGpu(g, ai);
   };
+  const gen = tabGen;
   await tick();
-  if (currentTab !== "gpu") return; // left during the first read: showTab already owns procTimer
+  if (gen !== tabGen) return; // the page changed (or was reopened) during the first read: showTab owns procTimer now
   procTimer = setInterval(tick, Math.max(2000, liveMs()));
 }
 function renderGpu(g, ai) {
@@ -2559,8 +2655,9 @@ async function openNetwork() {
     // connections change slower and cost more: every third tick
     if (n++ % 3 === 0) { const c = await call("get_connections").catch(() => null); if (c) renderConns(c); }
   };
+  const gen = tabGen;
   await tick();
-  if (currentTab !== "network") return;
+  if (gen !== tabGen) return;
   procTimer = setInterval(tick, Math.max(2000, liveMs()));
 }
 function renderIfaces(tot) {
@@ -2589,7 +2686,7 @@ $("#btn-who-port").onclick = async (e) => {
     const r = await call("get_port_owner", { port });
     $("#who-out").innerHTML = r.length ? `<ul class="scroll-list">${r.map((o) => `<li><b>${esc(o.name)}</b> <span class="sub">PID ${o.pid} · ${esc(o.proto)} ${esc(o.states.join(", "))}</span><div class="sub mono-cut" title="${esc(o.cmd)}"><bdi dir="ltr">${esc(o.cmd)}</bdi></div></li>`).join("")}</ul>`
       : `<p class="sub">${esc(t("net.who.free", { p: port }))}</p>`;
-  } catch (err) { toast(String(err), "error"); } finally { busy(e.target.closest("button"), false); }
+  } catch {} finally { busy(e.target.closest("button"), false); }
 };
 $("#btn-who-path").onclick = async (e) => {
   const path = $("#who-path").value.trim();
@@ -2599,7 +2696,7 @@ $("#btn-who-path").onclick = async (e) => {
     const r = await call("who_has_open", { path });
     $("#who-out").innerHTML = r.length ? `<ul class="scroll-list">${r.map((l) => `<li><b>${esc(l.name)}</b> <span class="sub">PID ${l.pid} · ${esc(t("net.who.kind." + l.kind))}${l.service_name ? ` · ${esc(l.service_name)}` : ""}</span></li>`).join("")}</ul>`
       : `<p class="sub">${esc(t("net.who.nobody"))}</p>`;
-  } catch (err) { toast(String(err), "error"); } finally { busy(e.target.closest("button"), false); }
+  } catch {} finally { busy(e.target.closest("button"), false); }
 };
 
 // ---------- Find: programs without an uninstaller, old files, files worth a look ----------
@@ -2616,7 +2713,7 @@ async function scanFinder(k, btn) {
     fd[k] = k === "progs" ? await call("finders_orphan_programs")
       : k === "old" ? await call("finders_old_files", { folders: null, minDays: null, minBytes: null })
       : await call("finders_worth_a_look");
-  } catch (err) { toast(String(err), "error"); fd[k] = null; }
+  } catch { fd[k] = null; }
   finally { busy(btn, false); }
   [...fdSel].filter((x) => x.startsWith(k + "|")).forEach((x) => fdSel.delete(x));
   renderFinder(k);
@@ -2667,7 +2764,7 @@ $("#tab-finders").addEventListener("click", async (e) => {
       out.textContent = t("fd.look.v." + r.verdict);
       out.className = r.verdict === "threat" ? "warn-text" : "sub";
       if (r.verdict === "error") out.title = r.detail;
-    } catch (err) { toast(String(err), "error"); } finally { busy(df, false); }
+    } catch {} finally { busy(df, false); }
     return;
   }
   const act = e.target.closest("[data-fd-act]");
@@ -2687,7 +2784,7 @@ $("#tab-finders").addEventListener("click", async (e) => {
       fd.old.files = fd.old.files.filter((f) => !ok.includes(f.path));
       ok.forEach((p) => fdSel.delete(`old|${p}`));
       toast(t("fd.done", { n: ok.length }) + (bad.length ? "\n" + bad.map((b) => `${b.path}: ${b.error}`).join("\n") : ""), bad.length ? "error" : "ok");
-    } catch (err) { toast(String(err), "error"); } finally { busy(act, false); }
+    } catch {} finally { busy(act, false); }
     return renderFinder("old");
   }
   // programs: dead uninstall entries (registry, backed up first) and leftover folders (Recycle Bin)

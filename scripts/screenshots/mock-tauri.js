@@ -9,6 +9,7 @@
     localStorage.setItem("disclaimer_v1", "1");
     // ?prefs={"mode":"pro","style":"ai"} sets Settings → Appearance for the shot
     if (q.get("prefs")) localStorage.setItem("prefs", q.get("prefs"));
+    if (q.get("stab")) localStorage.setItem("settingsTab", q.get("stab")); // ?stab=cleanup opens that Settings section
   } catch {}
 
   const MB = 1048576, GB = 1024 * MB, H = 3600;
@@ -244,6 +245,8 @@
   window.__TAURI__ = {
     core: {
       invoke: async (cmd, args) => {
+        // ?fail=get_dev_disk,save_settings makes those commands reject, to preview error states
+        if ((q.get("fail") || "").split(",").includes(cmd)) throw `demo: ${cmd} failed`;
         if (cmd === "get_icons") return Object.fromEntries(args.paths.map((p) => [p, icon(p)]));
         return cmd in replies ? structuredClone(replies[cmd]) : null;
       },
