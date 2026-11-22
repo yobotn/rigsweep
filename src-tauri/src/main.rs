@@ -179,6 +179,8 @@ fn run_app(start_hidden: bool) {
             commands::disk_speed_test,
             commands::get_volumes,
             commands::compact_vdisk,
+            commands::get_folder_sizes,
+            commands::show_in_explorer,
             commands::take_snapshot,
             commands::get_snapshots,
             commands::clear_snapshots,

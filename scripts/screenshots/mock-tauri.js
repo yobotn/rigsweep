@@ -194,6 +194,8 @@
     get_history: history,
     get_snapshots: [],
     get_dev_disk: diskReport,
+    get_folder_sizes: { path: "C:\\Users\\dev", total: 182 * GB, files: 0.4 * GB, more: 14, ms: 2100, items: [
+      ["AppData", 74], ["code", 51], ["Downloads", 23], [".cache", 12.5], ["Videos", 9.8], [".ollama", 7.1], ["Documents", 3.2]].map(([n, g]) => ({ name: n, path: "C:\\Users\\dev\\" + n, bytes: g * GB })) },
     compact_vdisk: { before: 31.2 * GB, after: 17.9 * GB, pruned: true },
     get_volumes: [{ drive: "C:", total: 476 * GB, free: 58 * GB, system: true }, { drive: "D:", total: 931 * GB, free: 412 * GB, system: false }],
     process_why: { pid: 18244, name: "node.exe", exe: "C:\\Program Files\\nodejs\\node.exe", cmd: "node C:\\Users\\dev\\code\\shop-web\\node_modules\\vite\\bin\\vite.js --port 5173",

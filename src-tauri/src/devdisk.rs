@@ -2420,3 +2420,76 @@ pub fn compact_vdisk(path: &str, prune: bool) -> Result<Compacted, String> {
     Ok(Compacted { before, after: size(), pruned })
 }
 
+
+// ---------- "what's taking space": folder sizes, one level at a time (Find page) ----------
+
+#[derive(Serialize, Clone, Debug)]
+pub struct FolderSize {
+    pub name: String,
+    pub path: String,
+    pub bytes: u64,
+}
+
+#[derive(Serialize, Clone, Debug)]
+pub struct FolderSizes {
+    pub path: String,
+    pub total: u64,
+    /// the biggest sub-folders, largest first
+    pub items: Vec<FolderSize>,
+    /// files directly in this folder, added up
+    pub files: u64,
+    /// sub-folders not listed (beyond the biggest 40, or empty)
+    pub more: usize,
+    pub ms: u64,
+}
+
+/// Results stay for 10 minutes, so going back up a level is instant.
+static SIZES: Mutex<Vec<(String, Instant, FolderSizes)>> = Mutex::new(Vec::new());
+
+/// Size of every sub-folder of `path` (on-disk bytes; links and online-only files count as zero).
+/// Read-only. `fresh` skips the 10-minute memory.
+pub fn folder_sizes(path: &str, fresh: bool) -> Result<FolderSizes, String> {
+    let p = PathBuf::from(path.trim());
+    if !p.is_absolute() || !p.is_dir() {
+        return Err(format!("not a folder: {path}"));
+    }
+    let key = lower(&p);
+    if !fresh {
+        if let Ok(c) = SIZES.lock() {
+            if let Some((_, _, v)) = c.iter().find(|(k, at, _)| *k == key && at.elapsed() < Duration::from_secs(600)) {
+                return Ok(v.clone());
+            }
+        }
+    }
+    let t0 = Instant::now();
+    let rd = fs::read_dir(&p).map_err(|e| format!("{path}: {e}"))?;
+    let (mut dirs, mut files) = (vec![], 0u64);
+    for e in rd.flatten() {
+        let Ok(m) = e.metadata() else { continue };
+        if is_reparse(&m) {
+            continue;
+        }
+        if m.is_dir() {
+            dirs.push(e.path());
+        } else if attrs(&m) & (ATTR_OFFLINE | ATTR_RECALL_ON_OPEN | ATTR_RECALL_ON_DATA_ACCESS) == 0 {
+            files += m.len();
+        }
+    }
+    let sizes = par_map(&dirs, |d| local_size(d));
+    let mut items: Vec<FolderSize> = dirs
+        .iter()
+        .zip(sizes)
+        .filter(|(_, b)| *b > 0)
+        .map(|(d, bytes)| FolderSize { name: d.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default(), path: d.to_string_lossy().into_owned(), bytes })
+        .collect();
+    items.sort_by(|a, b| b.bytes.cmp(&a.bytes));
+    let total = files + items.iter().map(|i| i.bytes).sum::<u64>();
+    let more = dirs.len().saturating_sub(items.len().min(40));
+    items.truncate(40);
+    let v = FolderSizes { path: p.to_string_lossy().into_owned(), total, items, files, more, ms: t0.elapsed().as_millis() as u64 };
+    if let Ok(mut c) = SIZES.lock() {
+        c.retain(|(k, at, _)| *k != key && at.elapsed() < Duration::from_secs(600));
+        c.push((key, Instant::now(), v.clone()));
+    }
+    Ok(v)
+}

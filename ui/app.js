@@ -2936,6 +2936,56 @@ function renderFinder(k) {
       <td class="row-acts"><button class="small ghost" data-fd-scan-file="${esc(i.path)}" data-icon="shield-check">${esc(t("fd.look.defender"))}</button><div class="sub" data-fd-verdict="${esc(i.path)}"></div></td></tr>`).join("")}</tbody></table>`;
   }
 }
+// ---------- Find > What's taking space: biggest folders, one level at a time ----------
+let fsNow = null;
+function fillSpaceDrives() {
+  const sel = $("#fd-space-drive");
+  if (!sel || !volumes) return;
+  const cur = sel.value;
+  sel.innerHTML = volumes.map((v) => `<option value="${esc(v.drive)}\\">⁦${esc(v.drive)}⁩ · ${esc(t("space.free", { size: fmtBytes(v.free) }))}</option>`).join("");
+  if (cur) sel.value = cur;
+}
+async function openSizes(path, fresh = false) {
+  const out = $("#fd-space-out"), btn = $("#fd-space-scan");
+  busy(btn, true, t("fd.space.scanning"));
+  if (!fsNow) out.innerHTML = `<p class="sub"><span class="spinner"></span> ${esc(t("fd.space.scanning"))}</p>`;
+  try { fsNow = await call("get_folder_sizes", { path, fresh }); } finally { busy(btn, false); }
+  renderSizes();
+}
+function renderSizes() {
+  const r = fsNow, out = $("#fd-space-out");
+  if (!r) return;
+  // breadcrumb: C:\ > Users > dev
+  const parts = r.path.replace(/\\+$/, "").split("\\");
+  const crumbs = parts.map((p, i) => {
+    const path = parts.slice(0, i + 1).join("\\") + (i === 0 ? "\\" : "");
+    return i === parts.length - 1 ? `<b dir="ltr">${esc(p || path)}</b>` : `<button class="link" data-fs-go="${esc(path)}" dir="ltr">${esc(p)}</button>`;
+  }).join(` <span class="sub">›</span> `);
+  const max = Math.max(1, ...r.items.map((i) => i.bytes), r.files);
+  const row = (name, bytes, path) => `<tr>
+      <td>${path ? `<button class="link" data-fs-go="${esc(path)}">📁 <bdi dir="ltr">${esc(name)}</bdi></button>` : `<span class="sub">${esc(name)}</span>`}</td>
+      <td class="fs-bar"><i style="width:${(bytes / max) * 100}%"></i></td>
+      <td class="num">${fmtBytes(bytes)}</td><td class="num sub">${r.total ? Math.round((bytes / r.total) * 100) : 0}%</td>
+      <td>${path ? `<button class="small ghost" data-fs-show="${esc(path)}" data-icon="folder-open">${esc(t("fd.space.show"))}</button>` : ""}</td></tr>`;
+  out.innerHTML = `<p class="fs-crumbs">${crumbs} <span class="sub">· ${esc(fmtBytes(r.total))}</span></p>
+    <table class="tbl"><tbody>${r.items.map((i) => row(i.name, i.bytes, i.path)).join("")}
+    ${r.files ? row(t("fd.space.files"), r.files, "") : ""}</tbody></table>
+    ${r.more ? `<p class="sub">${esc(t("fd.space.more", { n: r.more }))}</p>` : ""}`;
+}
+$("#fd-space-scan").onclick = async () => {
+  if (!volumes) await loadVolumes();
+  fillSpaceDrives();
+  const d = $("#fd-space-drive").value;
+  if (d) openSizes(fsNow && fsNow.path.toLowerCase().startsWith(d.toLowerCase()) ? fsNow.path : d, true);
+};
+$("#fd-space-drive").onchange = (e) => { fsNow = null; openSizes(e.target.value); };
+$("#fd-space-out").addEventListener("click", (e) => {
+  const go = e.target.closest("[data-fs-go]"), show = e.target.closest("[data-fs-show]");
+  if (go) openSizes(go.dataset.fsGo);
+  else if (show) call("show_in_explorer", { path: show.dataset.fsShow });
+});
+loadVolumes().then(fillSpaceDrives);
+
 $("#tab-finders").addEventListener("click", async (e) => {
   const scan = e.target.closest("[data-fd-scan]");
   if (scan) return scanFinder(scan.dataset.fdScan, scan);

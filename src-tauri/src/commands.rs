@@ -500,6 +500,23 @@ pub async fn get_dev_disk(state: State<'_, AppState>) -> R<DiskReport> {
     tauri::async_runtime::spawn_blocking(move || devdisk::report(&cfg)).await.map_err(err)
 }
 
+/// Sizes of the sub-folders of one folder (Find > What's taking space). Read-only.
+#[tauri::command]
+pub async fn get_folder_sizes(path: String, fresh: bool) -> R<devdisk::FolderSizes> {
+    tauri::async_runtime::spawn_blocking(move || devdisk::folder_sizes(&path, fresh)).await.map_err(err)?
+}
+
+/// Show a folder in Explorer.
+#[tauri::command]
+pub async fn show_in_explorer(path: String) -> R<()> {
+    let p = std::path::Path::new(&path);
+    if !p.is_absolute() || !p.exists() {
+        return Err(format!("not found: {path}"));
+    }
+    let _ = util::run("explorer.exe", &[&path]);
+    Ok(())
+}
+
 /// Compact a Docker Desktop / WSL virtual disk (quits Docker Desktop, shuts WSL down).
 #[tauri::command]
 pub async fn compact_vdisk(state: State<'_, AppState>, path: String, prune: bool) -> R<devdisk::Compacted> {
