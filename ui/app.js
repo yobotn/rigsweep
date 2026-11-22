@@ -2359,7 +2359,7 @@ function readyRows() {
 }
 // nothing left to free, but this tile cleaned something recently: say how much and when
 function freedTile(key, icon, go, f) {
-  const size = fmtBytes(f.bytes), MARK = "";
+  const size = fmtBytes(f.bytes), MARK = "\u0001";
   return { key, icon, go, state: "none", big: "✓", text: t("ready.freed", { size, ago: timeAgo(f.at, 60) }),
     capHtml: esc(t("ready.freed", { size, ago: MARK })).replace(MARK, agoHtml(f.at, 60)) };
 }
