@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>RigSweep Brand Studio</title>
+<link rel="icon" href="assets/broom-color.svg" />
+<style>
+  @font-face { font-family: "Cairo"; src: url("/docs/fonts/cairo-arabic.woff2") format("woff2"); font-weight: 200 1000; font-display: swap;
+    unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+FB50-FDFF, U+FE70-FEFF, U+200C-200F; }
+  :root {
+    /* the brand palette: same values as ui/style.css and docs/index.html */
+    --bg: #0b0e13; --bg2: #0f131a; --panel: #141922; --panel2: #1b2130; --border: #262e3f; --border2: #323c52;
+    --text: #e8ebf1; --muted: #8e97ab; --accent: #4f8cff; --accent-solid: #2f6ee0; --accent2: #34c38f;
+    --warn: #f1b44c; --caution: #f46a6a;
+    --font: "Cairo", "Segoe UI Variable Text", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+    --display: "Segoe UI Variable Display", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+    --mono: Consolas, ui-monospace, monospace;
+    --r-sm: 8px; --r: 14px; --r-lg: 18px;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 var(--font); }
+  a { color: var(--accent); }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 0 24px; }
+  header.top { position: sticky; top: 0; z-index: 5; background: rgba(11,14,19,.86); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+  header.top .wrap { display: flex; align-items: center; gap: 16px; height: 60px; }
+  .logo { display: flex; align-items: center; gap: 10px; font: 700 18px var(--display); }
+  .logo img { width: 28px; height: 28px; }
+  .logo small { font: 500 13px var(--font); color: var(--muted); }
+  header nav { display: flex; gap: 16px; margin-inline-start: auto; font-size: 14px; }
+  header nav a { color: var(--muted); text-decoration: none; }
+  header nav a:hover { color: var(--text); }
+  .btn { font: 600 14px var(--font); border-radius: var(--r-sm); padding: 9px 16px; cursor: pointer; border: 1px solid var(--border2); background: var(--panel2); color: var(--text); }
+  .btn:hover { border-color: var(--accent); }
+  .btn.primary { background: var(--accent-solid); border-color: var(--accent-solid); color: #fff; }
+  .btn.primary:hover { background: #3a7af0; }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .btn.sm { padding: 5px 10px; font-size: 13px; }
+  section { padding: 48px 0 8px; }
+  h1 { font: 800 44px/1.1 var(--display); margin: 40px 0 8px; letter-spacing: -.02em; }
+  h1 span, .grad { background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  h2 { font: 700 26px/1.2 var(--display); margin: 0 0 6px; }
+  h3 { font: 600 15px var(--font); margin: 0 0 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-size: 12px; }
+  .lead { color: var(--muted); max-width: 720px; margin: 0 0 24px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--r); padding: 20px; }
+  .grid2 { display: grid; grid-template-columns: 320px 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 900px) { .grid2 { grid-template-columns: 1fr; } header nav { display: none; } }
+  .ctl { display: grid; gap: 14px; }
+  .ctl label { display: grid; gap: 6px; font-size: 13px; color: var(--muted); }
+  .ctl .row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .seg { display: inline-flex; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 3px; gap: 2px; flex-wrap: wrap; }
+  .seg button { font: 500 13px var(--font); background: none; border: 0; color: var(--muted); padding: 5px 10px; border-radius: 6px; cursor: pointer; }
+  .seg button.on { background: var(--panel2); color: var(--text); box-shadow: inset 0 0 0 1px var(--border2); }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  input[type=text], textarea, select { width: 100%; font: 14px var(--font); color: var(--text); background: var(--bg2); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 8px 10px; }
+  textarea { resize: vertical; min-height: 64px; }
+  .check { display: flex !important; grid-template-columns: none; align-items: center; gap: 8px; color: var(--text) !important; }
+  .val { color: var(--text); font-variant-numeric: tabular-nums; float: inline-end; }
+  .hero-icon { display: grid; grid-template-columns: auto 1fr; gap: 24px; align-items: center; }
+  .checker { background-color: #1a1f2a; background-image: linear-gradient(45deg, #222838 25%, transparent 25%, transparent 75%, #222838 75%), linear-gradient(45deg, #222838 25%, transparent 25%, transparent 75%, #222838 75%);
+    background-size: 16px 16px; background-position: 0 0, 8px 8px; border-radius: var(--r); }
+  #bigIcon { width: 256px; height: 256px; display: block; padding: 16px; }
+  .sizes { display: flex; align-items: end; gap: 18px; flex-wrap: wrap; }
+  .sizes figure { margin: 0; display: grid; justify-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+  .contexts { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-top: 20px; }
+  .ctx { border-radius: var(--r-sm); border: 1px solid var(--border); overflow: hidden; font-size: 12px; }
+  .ctx .cap { padding: 6px 10px; color: var(--muted); background: var(--bg2); border-top: 1px solid var(--border); }
+  .taskbar { height: 56px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+  .taskbar.dark { background: #202020; } .taskbar.light { background: #f3f3f3; }
+  .taskbar .slot { width: 40px; height: 40px; border-radius: 4px; display: grid; place-items: center; }
+  .taskbar .slot.act { background: rgba(255,255,255,.08); } .taskbar.light .slot.act { background: rgba(0,0,0,.06); }
+  .taskbar .dim { width: 24px; height: 24px; border-radius: 6px; background: rgba(127,127,127,.35); }
+  .tabbar { height: 56px; background: #1f2023; display: flex; align-items: end; padding: 0 10px; }
+  .tab { display: flex; align-items: center; gap: 8px; background: #35363a; color: #e8eaed; height: 36px; padding: 0 14px; border-radius: 8px 8px 0 0; font: 12px "Segoe UI", sans-serif; }
+  .tab.off { background: none; color: #9aa0a6; }
+  .startmenu { height: 56px; background: #2b2b2b; display: flex; align-items: center; justify-content: center; gap: 14px; color: #fff; font: 12px "Segoe UI", sans-serif; }
+  .startmenu > div { display: grid; justify-items: center; gap: 2px; }
+  #og { width: 100%; height: auto; display: block; border-radius: var(--r-sm); border: 1px solid var(--border); }
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .sw { border: 1px solid var(--border); border-radius: var(--r-sm); overflow: hidden; background: var(--panel); cursor: pointer; text-align: start; padding: 0; color: inherit; font: inherit; }
+  .sw .chip { height: 64px; }
+  .sw .meta { padding: 8px 10px; font-size: 12px; display: grid; gap: 2px; }
+  .sw .meta b { font-size: 13px; }
+  .sw .meta code { color: var(--muted); font-family: var(--mono); }
+  .gradbar { height: 64px; border-radius: var(--r-sm); background: linear-gradient(90deg, var(--accent), var(--accent2)); margin-bottom: 12px; }
+  .type-row { display: grid; grid-template-columns: 180px 1fr; gap: 16px; align-items: baseline; padding: 14px 0; border-bottom: 1px solid var(--border); }
+  .type-row:last-child { border-bottom: 0; }
+  .type-row .spec { font-size: 12px; color: var(--muted); font-family: var(--mono); }
+  .type-row .sample { overflow-wrap: anywhere; }
+  .rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+  .rules ul { margin: 0; padding-inline-start: 18px; color: var(--muted); } .rules li { margin: 4px 0; } .rules li b { color: var(--text); font-weight: 600; }
+  table.exports { width: 100%; border-collapse: collapse; font-size: 14px; }
+  table.exports td, table.exports th { padding: 10px 8px; border-bottom: 1px solid var(--border); text-align: start; }
+  table.exports th { color: var(--muted); font-weight: 500; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+  table.exports code { font-family: var(--mono); font-size: 13px; color: var(--muted); }
+  table.exports canvas, table.exports img { display: block; max-height: 48px; width: auto; }
+  #status { font-size: 13px; color: var(--muted); max-width: 380px; }
+  #status.ok { color: var(--accent2); } #status.err { color: var(--caution); }
+  pre.log { white-space: pre-wrap; font: 12px var(--mono); color: var(--muted); background: var(--bg2); border-radius: var(--r-sm); padding: 12px; max-height: 240px; overflow: auto; display: none; }
+  .note { font-size: 13px; color: var(--muted); }
+  .warn { color: var(--warn); }
+  footer { padding: 48px 0; color: var(--muted); font-size: 13px; }
+  #offline { display: none; background: #3a2a10; color: #ffd99a; padding: 12px 24px; text-align: center; }
+</style>
+</head>
+<body>
+<div id="offline">Open this through the local server: run <code>npm run brand</code> and go to http://127.0.0.1:4747. Opened as a file, the canvas can't export.</div>
+<header class="top"><div class="wrap">
+  <div class="logo"><img src="assets/broom-color.svg" alt="" /> RigSweep <small>Brand Studio · local only</small></div>
+  <nav><a href="#mark">Mark</a><a href="#og-sec">Social card</a><a href="#color">Color</a><a href="#type">Type</a><a href="#voice">Voice</a><a href="#exports">Exports</a></nav>
+  <span id="status"></span>
+  <button class="btn primary" id="writeAll">Write all to repo</button>
+</div></header>
+
+<main class="wrap">
+  <h1>One mark: <img src="assets/broom-color.svg" alt="🧹" style="width:.9em;height:.9em;vertical-align:-.08em" /> <span>the sweep.</span></h1>
+  <p class="lead">Everything RigSweep ships with a face: the app and installer icon, the site favicon, the Chrome extension and the social card. Tune it here, check it at every size, and write it all into the repo in one click. The broom comes from Microsoft's Fluent Emoji (MIT), so it matches the emoji Windows already shows next to the name.</p>
+
+  <!-- ============ MARK ============ -->
+  <section id="mark">
+    <h2>App icon</h2>
+    <p class="lead">One source, every size. The 1024 px master feeds <code>tauri icon</code> (installer, .ico, taskbar); the small sizes are drawn natively so 16 and 32 px stay sharp.</p>
+    <div class="grid2">
+      <div class="card ctl" id="iconCtl">
+        <label>Broom style <div class="seg" data-k="glyph"><button data-v="color">Color</button><button data-v="flat">Flat</button><button data-v="3d">3D</button></div></label>
+        <label>Tile <div class="seg" data-k="bg"><button data-v="gradient">Gradient</button><button data-v="dark">Dark</button><button data-v="light">Light</button><button data-v="none">None</button></div></label>
+        <label>Gradient angle <span class="val" data-show="angle"></span><input type="range" min="0" max="360" step="5" data-k="angle" /></label>
+        <label>Corner radius <span class="val" data-show="radius"></span><input type="range" min="0" max="50" step="1" data-k="radius" /></label>
+        <label>Tile inset <span class="val" data-show="inset"></span><input type="range" min="0" max="16" step="1" data-k="inset" /></label>
+        <label>Broom size <span class="val" data-show="scale"></span><input type="range" min="40" max="100" step="1" data-k="scale" /></label>
+        <label class="check"><input type="checkbox" data-k="gloss" /> Soft top light</label>
+        <label class="check"><input type="checkbox" data-k="shadow" /> Shadow under the broom</label>
+        <label class="check"><input type="checkbox" data-k="flatSmall" /> Flat broom at 32 px and below</label>
+        <p class="note warn" id="w3d" hidden>3D art is 256 px; the 1024 master is upscaled and soft. Use Color for the master.</p>
+        <div class="row"><button class="btn sm" id="resetIcon">Reset</button><button class="btn sm" id="dlIcon">Download 1024 PNG</button></div>
+      </div>
+      <div class="card">
+        <div class="hero-icon">
+          <div class="checker"><canvas id="bigIcon" width="512" height="512"></canvas></div>
+          <div>
+            <h3>Sizes</h3>
+            <div class="sizes" id="sizes"></div>
+          </div>
+        </div>
+        <div class="contexts">
+          <div class="ctx"><div class="taskbar dark"><div class="slot"><div class="dim"></div></div><div class="slot act" id="tbDark"></div><div class="slot"><div class="dim"></div></div></div><div class="cap">Taskbar, dark</div></div>
+          <div class="ctx"><div class="taskbar light"><div class="slot"><div class="dim"></div></div><div class="slot act" id="tbLight"></div><div class="slot"><div class="dim"></div></div></div><div class="cap">Taskbar, light</div></div>
+          <div class="ctx"><div class="tabbar"><div class="tab" id="tabFav">RigSweep: room for your agents</div><div class="tab off">New tab</div></div><div class="cap">Browser tab favicon</div></div>
+          <div class="ctx"><div class="startmenu" id="start"></div><div class="cap">Start menu</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ OG ============ -->
+  <section id="og-sec">
+    <h2>Social card</h2>
+    <p class="lead">1280 × 640, used for Open Graph and Twitter on every page of rigsweep.com.</p>
+    <div class="grid2">
+      <div class="card ctl" id="ogCtl">
+        <label>Headline, line 1 <input type="text" data-k="h1" /></label>
+        <label>Headline, line 2 (gradient) <input type="text" data-k="h2" /></label>
+        <label>Subline <textarea data-k="sub"></textarea></label>
+        <label>Pills, one per line <textarea data-k="pills"></textarea></label>
+        <label>Screenshot <select data-k="shot"></select></label>
+        <div class="row"><button class="btn sm" id="resetOg">Reset</button><button class="btn sm" id="dlOg">Download PNG</button></div>
+      </div>
+      <div class="card"><canvas id="og" width="1280" height="640"></canvas></div>
+    </div>
+  </section>
+
+  <!-- ============ COLOR ============ -->
+  <section id="color">
+    <h2>Color</h2>
+    <p class="lead">Dark first. Blue does the work, green confirms it, and the blue-to-green sweep is the signature in both site looks. Click a swatch to copy its hex.</p>
+    <div class="gradbar"></div>
+    <div class="swatches" id="swatches"></div>
+  </section>
+
+  <!-- ============ TYPE ============ -->
+  <section id="type">
+    <h2>Typography</h2>
+    <p class="lead">Native Windows type: Segoe UI Variable, so RigSweep reads like part of the OS. Arabic uses bundled Cairo (OFL); CJK and Cyrillic use the Windows system fonts. Code and paths use Consolas.</p>
+    <div class="card" id="typeRows"></div>
+  </section>
+
+  <!-- ============ VOICE ============ -->
+  <section id="voice">
+    <h2>Name and voice</h2>
+    <p class="lead">RigSweep: one word, capital R and S. Tagline: <b>Room for your agents.</b></p>
+    <div class="rules">
+      <div class="card"><h3>Say it like this</h3><ul>
+        <li><b>Plain verbs:</b> free up, end, delete, undo.</li>
+        <li><b>Real numbers:</b> "Free 3.8 GB", measured before and after.</li>
+        <li><b>Safety up front:</b> every change is reversible; say so.</li>
+        <li><b>Windows' own words</b> in each language, never a literal translation.</li>
+      </ul></div>
+      <div class="card"><h3>Avoid</h3><ul>
+        <li><b>Hype:</b> "supercharge", "blazing", "ultimate".</li>
+        <li><b>Fear:</b> no fake warnings or scare counts.</li>
+        <li><b>Boost-era leftovers:</b> no ⚡, no "aiBoost".</li>
+        <li><b>Redrawing the broom:</b> use the Fluent art as is.</li>
+      </ul></div>
+      <div class="card"><h3>Mark usage</h3><ul>
+        <li><b>Clear space:</b> a quarter of the tile on every side.</li>
+        <li><b>Minimum:</b> 16 px (Flat broom).</li>
+        <li><b>Next to the name:</b> broom first, then "RigSweep" in 700 weight.</li>
+        <li><b>In text:</b> the 🧹 emoji is fine; Windows draws the same Fluent broom.</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <!-- ============ EXPORTS ============ -->
+  <section id="exports">
+    <h2>Exports</h2>
+    <p class="lead"><b>Write all to repo</b> saves every file below, then runs <code>tauri icon</code> on the master to rebuild <code>src-tauri/icons</code> (.ico, .icns and the PNG sizes). Review with <code>git diff --stat</code> before committing.</p>
+    <div class="card"><table class="exports"><thead><tr><th>Preview</th><th>Asset</th><th>Written to</th><th></th></tr></thead><tbody id="exportRows"></tbody></table></div>
+    <pre class="log" id="log"></pre>
+  </section>
+</main>
+<footer class="wrap">Broom art: <a href="https://github.com/microsoft/fluentui-emoji">Fluent Emoji</a> © Microsoft, MIT (assets/LICENSE-fluentui-emoji.txt). This page is not deployed.</footer>
+
+<script>
+"use strict";
+if (location.protocol === "file:") document.getElementById("offline").style.display = "block";
+
+const BRAND = { blue: "#4f8cff", green: "#34c38f" };
+const ICON_DEFAULTS = { glyph: "color", bg: "gradient", angle: 135, radius: 23, inset: 0, scale: 74, gloss: true, shadow: true, flatSmall: true };
+const OG_DEFAULTS = {
+  h1: "Room for your", h2: "agents.",
+  sub: "Free up RAM, CPU and disk on Windows dev machines cluttered by AI-agent sessions. Every change is reversible.",
+  pills: "🆓 Free · MIT\n🪟 Windows 10 / 11\n🌍 11 languages",
+  shot: "cleanup.png",
+};
+let icon = { ...ICON_DEFAULTS };
+let og = { ...OG_DEFAULTS };
+
+// ---------- glyph images ----------
+const glyphs = {};
+function loadImg(src) { return new Promise((ok, fail) => { const i = new Image(); i.onload = () => ok(i); i.onerror = fail; i.src = src; }); }
+// SVGs are re-rasterized per size: drawing the Image at the target size keeps edges sharp
+async function loadGlyphs() {
+  const [color, flat, d3] = await Promise.all([loadImg("assets/broom-color.svg"), loadImg("assets/broom-flat.svg"), loadImg("assets/broom-3d.png")]);
+  Object.assign(glyphs, { color, flat, "3d": d3 });
+}
+
+// ---------- icon renderer ----------
+function rr(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+function angleGrad(ctx, x, y, w, h, deg, stops) {
+  const a = (deg - 90) * Math.PI / 180, cx = x + w / 2, cy = y + h / 2;
+  const len = (Math.abs(w * Math.cos(a)) + Math.abs(h * Math.sin(a))) / 2;
+  const g = ctx.createLinearGradient(cx - Math.cos(a) * len, cy - Math.sin(a) * len, cx + Math.cos(a) * len, cy + Math.sin(a) * len);
+  stops.forEach(([o, c]) => g.addColorStop(o, c));
+  return g;
+}
+function drawIcon(ctx, S, o = icon) {
+  ctx.clearRect(0, 0, S, S);
+  const pad = S * o.inset / 100, w = S - pad * 2, r = w * o.radius / 100;
+  if (o.bg !== "none") {
+    ctx.save();
+    rr(ctx, pad, pad, w, w, r);
+    if (o.bg === "gradient") ctx.fillStyle = angleGrad(ctx, pad, pad, w, w, o.angle, [[0, BRAND.blue], [1, BRAND.green]]);
+    else if (o.bg === "dark") ctx.fillStyle = angleGrad(ctx, pad, pad, w, w, o.angle, [[0, "#1d2433"], [1, "#11151d"]]);
+    else ctx.fillStyle = angleGrad(ctx, pad, pad, w, w, o.angle, [[0, "#ffffff"], [1, "#e9eef7"]]);
+    ctx.fill();
+    ctx.clip();
+    if (o.gloss) {
+      const g = ctx.createLinearGradient(0, pad, 0, pad + w * .6);
+      g.addColorStop(0, o.bg === "light" ? "rgba(255,255,255,.6)" : "rgba(255,255,255,.22)"); g.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.fillStyle = g; ctx.fillRect(pad, pad, w, w);
+    }
+    if (o.bg === "dark") { // gradient hairline so the dark tile still carries the brand sweep
+      ctx.lineWidth = Math.max(1, S * .02);
+      ctx.strokeStyle = angleGrad(ctx, pad, pad, w, w, o.angle, [[0, BRAND.blue], [1, BRAND.green]]);
+      rr(ctx, pad, pad, w, w, r); ctx.stroke();
+    }
+    ctx.restore();
+  }
+  const kind = (o.flatSmall && S <= 32) ? "flat" : o.glyph;
+  const img = glyphs[kind];
+  if (!img) return;
+  const gs = (o.bg === "none" ? Math.min(100, o.scale + 18) : o.scale) / 100 * w;
+  ctx.save();
+  if (o.shadow && S > 32) {
+    ctx.shadowColor = "rgba(0,0,0,.28)"; ctx.shadowBlur = S * .035; ctx.shadowOffsetY = S * .02;
+  }
+  ctx.drawImage(img, (S - gs) / 2, (S - gs) / 2, gs, gs);
+  ctx.restore();
+}
+function iconCanvas(S, o) { const c = document.createElement("canvas"); c.width = c.height = S; drawIcon(c.getContext("2d"), S, o); return c; }
+
+const SIZES = [16, 24, 32, 48, 64, 128, 256];
+function renderIcons() {
+  drawIcon(document.getElementById("bigIcon").getContext("2d"), 512);
+  const sizes = document.getElementById("sizes"); sizes.textContent = "";
+  for (const s of SIZES) {
+    const f = document.createElement("figure"); const c = iconCanvas(s);
+    c.style.width = c.style.height = s + "px"; // 1:1 pixels, what Windows really shows
+    f.append(c, Object.assign(document.createElement("figcaption"), { textContent: s + " px" }));
+    sizes.append(f);
+  }
+  const put = (id, s, css) => { const el = document.getElementById(id); el.querySelectorAll("canvas").forEach((n) => n.remove());
+    const c = iconCanvas(s * 2); c.style.width = c.style.height = css + "px"; el.prepend(c); return c; };
+  put("tbDark", 24, 24); put("tbLight", 24, 24); put("tabFav", 16, 16);
+  const start = document.getElementById("start"); start.textContent = "";
+  for (const n of ["RigSweep"]) { const d = document.createElement("div"); const c = iconCanvas(64); c.style.width = c.style.height = "32px"; d.append(c, n); start.append(d); }
+  document.getElementById("w3d").hidden = icon.glyph !== "3d";
+  renderOg(); renderExports();
+}
+
+// ---------- social card ----------
+const ogShot = { img: null, name: "" };
+async function ensureShot() {
+  if (ogShot.name === og.shot && ogShot.img) return;
+  try { ogShot.img = await loadImg("/docs/screenshots/" + encodeURIComponent(og.shot)); ogShot.name = og.shot; } catch { ogShot.img = null; }
+}
+function wrap(ctx, text, maxW) {
+  const words = text.split(/\s+/), lines = []; let line = "";
+  for (const w of words) { const t = line ? line + " " + w : w; if (ctx.measureText(t).width > maxW && line) { lines.push(line); line = w; } else line = t; }
+  if (line) lines.push(line); return lines;
+}
+const FONT = "'Segoe UI Variable Display', 'Segoe UI', system-ui, sans-serif";
+const TFONT = "'Segoe UI Variable Text', 'Segoe UI', 'Segoe UI Emoji', system-ui, sans-serif";
+async function renderOg(target) {
+  await ensureShot();
+  const c = target || document.getElementById("og"), ctx = c.getContext("2d"), W = 1280, H = 640;
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = "#0b0e13"; ctx.fillRect(0, 0, W, H);
+  let g = ctx.createRadialGradient(140, 0, 0, 140, 0, 760); g.addColorStop(0, "rgba(79,140,255,.20)"); g.addColorStop(1, "rgba(79,140,255,0)");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  g = ctx.createRadialGradient(1100, 700, 0, 1100, 700, 620); g.addColorStop(0, "rgba(52,195,143,.13)"); g.addColorStop(1, "rgba(52,195,143,0)");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+  // logo
+  ctx.drawImage(iconCanvas(128), 72, 72, 64, 64);
+  ctx.fillStyle = "#e8ebf1"; ctx.font = `700 34px ${FONT}`; ctx.textBaseline = "middle"; ctx.fillText("RigSweep", 152, 106);
+
+  // headline
+  ctx.textBaseline = "alphabetic"; ctx.font = `700 76px ${FONT}`;
+  ctx.fillStyle = "#e8ebf1"; ctx.fillText(og.h1, 72, 250);
+  const h2 = og.h2, dot = /[.!?]$/.test(h2) ? h2.slice(-1) : "", word = dot ? h2.slice(0, -1) : h2;
+  const ww = ctx.measureText(word).width;
+  ctx.fillStyle = angleGrad(ctx, 72, 260, ww, 70, 90, [[0, BRAND.blue], [1, BRAND.green]]);
+  ctx.fillText(word, 72, 332);
+  ctx.fillStyle = "#e8ebf1"; ctx.fillText(dot, 72 + ww, 332);
+
+  // subline
+  ctx.font = `400 25px ${TFONT}`; ctx.fillStyle = "#a6aec0";
+  wrap(ctx, og.sub, 560).slice(0, 4).forEach((l, i) => ctx.fillText(l, 72, 392 + i * 36));
+
+  // pills
+  let x = 72; ctx.font = `500 20px ${TFONT}`;
+  for (const p of og.pills.split("\n").map((s) => s.trim()).filter(Boolean).slice(0, 4)) {
+    const pw = ctx.measureText(p).width + 40;
+    rr(ctx, x, 532, pw, 46, 23); ctx.fillStyle = "#141922"; ctx.fill(); ctx.strokeStyle = "#262e3f"; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = "#d6dbe6"; ctx.textBaseline = "middle"; ctx.fillText(p, x + 20, 556); ctx.textBaseline = "alphabetic";
+    x += pw + 12;
+  }
+
+  // screenshot in a window frame that runs off the right edge
+  const fx = 680, fy = 92, fw = 680, fh = 494, bar = 30;
+  ctx.save();
+  ctx.shadowColor = "rgba(0,0,0,.55)"; ctx.shadowBlur = 48; ctx.shadowOffsetY = 18;
+  rr(ctx, fx, fy, fw, fh, 14); ctx.fillStyle = "#0f1218"; ctx.fill();
+  ctx.restore();
+  ctx.save(); rr(ctx, fx, fy, fw, fh, 14); ctx.clip();
+  ctx.fillStyle = "#171b24"; ctx.fillRect(fx, fy, fw, bar);
+  ["#3a4256", "#3a4256", "#3a4256"].forEach((col, i) => { ctx.beginPath(); ctx.arc(fx + 20 + i * 18, fy + bar / 2, 5, 0, 7); ctx.fillStyle = col; ctx.fill(); });
+  if (ogShot.img) { const sw = 760, sh = ogShot.img.height * sw / ogShot.img.width; ctx.drawImage(ogShot.img, fx, fy + bar, sw, sh); }
+  ctx.restore();
+  rr(ctx, fx + .5, fy + .5, fw, fh, 14); ctx.strokeStyle = "#2a3142"; ctx.lineWidth = 1; ctx.stroke();
+  return c;
+}
+
+// ---------- color ----------
+const COLORS = [
+  ["Sweep blue", "--accent", "#4f8cff", "Accent, links, the gradient's start"],
+  ["Button blue", "--accent-solid", "#2f6ee0", "Filled buttons with white text"],
+  ["Sweep green", "--accent2 / --safe", "#34c38f", "Freed space, safe, the gradient's end"],
+  ["Amber", "--moderate", "#f1b44c", "Moderate risk, warnings"],
+  ["Coral", "--caution", "#f46a6a", "Caution, destructive"],
+  ["Ink", "--bg", "#0b0e13", "Site background"],
+  ["App ink", "--bg (app)", "#0f1218", "App background"],
+  ["Panel", "--panel", "#141922", "Cards"],
+  ["Raised", "--panel2", "#1b2130", "Hover, active rows"],
+  ["Line", "--border", "#262e3f", "Borders, dividers"],
+  ["Text", "--text", "#e8ebf1", "Body text"],
+  ["Muted", "--muted", "#8e97ab", "Secondary text"],
+];
+function lum(hex) { const v = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((c) => c <= .03928 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4); return .2126 * v[0] + .7152 * v[1] + .0722 * v[2]; }
+function contrast(a, b) { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + .05) / (y + .05); }
+function renderColors() {
+  const el = document.getElementById("swatches");
+  for (const [name, token, hex, use] of COLORS) {
+    const b = document.createElement("button"); b.className = "sw"; b.title = use;
+    const onInk = contrast(hex, "#0b0e13"), onWhite = contrast(hex, "#ffffff");
+    b.innerHTML = `<div class="chip" style="background:${hex}"></div><div class="meta"><b>${name}</b><code>${hex} · ${token}</code><span>${use}</span><code>${onInk.toFixed(1)}:1 on ink · ${onWhite.toFixed(1)}:1 on white</code></div>`;
+    b.onclick = () => { navigator.clipboard?.writeText(hex); status(`Copied ${hex}`, "ok"); };
+    el.append(b);
+  }
+}
+
+// ---------- type ----------
+const TYPE = [
+  ["Display · 800 · 64/1.05", `800 64px/1.05 ${FONT}`, "Room for your <span class='grad'>agents.</span>", "-.02em"],
+  ["Site H2 · 700 · 36", `700 36px/1.15 ${FONT}`, "Sweep stale sessions, safely", "-.01em"],
+  ["App title · 700 · 22", `700 22px/1.2 ${FONT}`, "Dev Cleanup"],
+  ["App large · 600 · 18", `600 18px/1.3 ${TFONT}`, "11 dev process trees using 7.9 GB"],
+  ["Body · 400 · 14/1.45", `400 14px/1.45 ${TFONT}`, "Dev servers, build daemons and AI agent CLIs left behind by closed terminals. Nothing is ended until you confirm."],
+  ["Small · 400 · 12", `400 12px/1.4 ${TFONT}`, "Watchdog: every 30 min · Administrator"],
+  ["Mono · Consolas · 13", "400 13px/1.4 Consolas, monospace", "C:\\dev\\shop-web\\node_modules  ·  PID 18244"],
+  ["Arabic · Cairo · 700 · 28", "700 28px/1.5 Cairo, sans-serif", "<span dir='rtl'>مساحة لوكلائك</span>"],
+  ["CJK · system · 700 · 24", `700 24px/1.5 ${FONT}, 'Yu Gothic UI', 'Microsoft YaHei UI', 'Malgun Gothic'`, "エージェントにもっと余裕を · 给你的 AI 智能体腾出空间"],
+];
+function renderType() {
+  const el = document.getElementById("typeRows");
+  el.innerHTML = TYPE.map(([spec, font, sample, ls]) => `<div class="type-row"><div class="spec">${spec}</div><div class="sample" style="font:${font};${ls ? "letter-spacing:" + ls : ""}">${sample}</div></div>`).join("")
+    + `<div class="type-row"><div class="spec">App scale (px)</div><div class="sample" style="font:400 13px ${TFONT};color:var(--muted)">12 · 13 · 14 · 16 · 18 · 22 · 28 &nbsp;(--fs-xs … --fs-3xl in ui/style.css)</div></div>`;
+}
+
+// ---------- exports ----------
+let TARGETS = {};
+const EXPORTS = [
+  ["app-master", "App icon master, 1024 (feeds tauri icon)", () => iconCanvas(1024)],
+  ["site-favicon", "Site favicon, 32", () => iconCanvas(32)],
+  ["site-icon", "Site icon and Apple touch, 128", () => iconCanvas(128)],
+  ["ext-16", "Chrome extension, 16", () => iconCanvas(16)],
+  ["ext-32", "Chrome extension, 32", () => iconCanvas(32)],
+  ["ext-48", "Chrome extension, 48", () => iconCanvas(48)],
+  ["ext-128", "Chrome extension, 128", () => iconCanvas(128)],
+  ["og", "Social card, 1280 × 640", () => { const c = document.createElement("canvas"); c.width = 1280; c.height = 640; return renderOg(c); }],
+];
+function download(canvas, name) { const a = document.createElement("a"); a.download = name; a.href = canvas.toDataURL("image/png"); a.click(); }
+async function renderExports() {
+  const tb = document.getElementById("exportRows"); tb.textContent = "";
+  for (const [key, label, make] of EXPORTS) {
+    const c = await make(), tr = document.createElement("tr");
+    const prev = document.createElement("td"); const pc = iconOrScaled(c); prev.append(pc);
+    const p = TARGETS[key]?.path || "";
+    tr.append(prev, Object.assign(document.createElement("td"), { textContent: label }));
+    const pt = document.createElement("td"); pt.innerHTML = `<code>${p}</code>`; tr.append(pt);
+    const bt = document.createElement("td"); const b = Object.assign(document.createElement("button"), { className: "btn sm", textContent: "Download" });
+    b.onclick = async () => download(await make(), p.split("/").pop() || key + ".png"); bt.append(b); tr.append(bt);
+    tb.append(tr);
+  }
+  const tr = document.createElement("tr");
+  tr.innerHTML = `<td></td><td>Installer and app icons (.ico, .icns, PNG sizes)</td><td><code>src-tauri/icons/*</code> via <code>tauri icon</code></td><td></td>`;
+  tb.append(tr);
+}
+function iconOrScaled(c) { const img = new Image(); img.src = c.toDataURL(); img.style.height = Math.min(48, c.height) + "px"; img.style.imageRendering = c.width <= 48 ? "pixelated" : "auto"; return img; }
+
+// ---------- write ----------
+function status(msg, cls = "") { const s = document.getElementById("status"); s.textContent = msg; s.className = cls; }
+async function writeAll() {
+  const btn = document.getElementById("writeAll"); btn.disabled = true; status("Rendering…");
+  const log = document.getElementById("log");
+  try {
+    const files = { "brand-config": { icon, og } };
+    for (const [key, , make] of EXPORTS) files[key] = (await make()).toDataURL("image/png");
+    status("Writing and running tauri icon…");
+    const r = await fetch("/api/save", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ files, tauri: true }) });
+    const j = await r.json();
+    log.style.display = "block"; log.textContent = (j.written || []).map((p) => "wrote " + p).join("\n") + (j.log ? "\n\n" + j.log : "") + (j.error ? "\n\nERROR: " + j.error : "");
+    if (!r.ok) throw new Error(j.error || r.status);
+    status(`Wrote ${j.written.length} targets. Check git diff.`, "ok");
+  } catch (e) { status("Failed: " + e.message, "err"); }
+  btn.disabled = false;
+}
+
+// ---------- controls ----------
+function bind(rootId, state, defaults, onChange) {
+  const root = document.getElementById(rootId);
+  const sync = () => {
+    root.querySelectorAll(".seg").forEach((s) => s.querySelectorAll("button").forEach((b) => b.classList.toggle("on", String(state[s.dataset.k]) === b.dataset.v)));
+    root.querySelectorAll("[data-k]:not(.seg)").forEach((i) => { if (i.type === "checkbox") i.checked = !!state[i.dataset.k]; else i.value = state[i.dataset.k]; });
+    root.querySelectorAll("[data-show]").forEach((s) => { const k = s.dataset.show; s.textContent = state[k] + (k === "angle" ? "°" : "%"); });
+  };
+  root.querySelectorAll(".seg").forEach((s) => s.addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; state[s.dataset.k] = b.dataset.v; sync(); onChange(); }));
+  root.querySelectorAll("[data-k]:not(.seg)").forEach((i) => i.addEventListener("input", () => {
+    state[i.dataset.k] = i.type === "checkbox" ? i.checked : i.type === "range" ? Number(i.value) : i.value; sync(); onChange();
+  }));
+  sync();
+  return () => { Object.assign(state, defaults); sync(); onChange(); };
+}
+
+(async function init() {
+  try { const r = await fetch("brand.json", { cache: "no-store" }); if (r.ok) { const j = await r.json(); Object.assign(icon, j.icon); Object.assign(og, j.og); } } catch {}
+  try { TARGETS = await (await fetch("/api/targets")).json(); } catch {}
+  try {
+    const shots = await (await fetch("/api/screenshots")).json();
+    document.querySelector("#ogCtl select").innerHTML = shots.map((s) => `<option>${s}</option>`).join("");
+  } catch {}
+  await loadGlyphs();
+  await document.fonts.ready;
+  let t; const later = (fn) => () => { clearTimeout(t); t = setTimeout(fn, 60); };
+  document.getElementById("resetIcon").onclick = bind("iconCtl", icon, ICON_DEFAULTS, later(renderIcons));
+  document.getElementById("resetOg").onclick = bind("ogCtl", og, OG_DEFAULTS, later(() => { renderOg(); renderExports(); }));
+  document.getElementById("dlIcon").onclick = () => download(iconCanvas(1024), "rigsweep-icon-1024.png");
+  document.getElementById("dlOg").onclick = async () => { const c = document.createElement("canvas"); c.width = 1280; c.height = 640; download(await renderOg(c), "social.png"); };
+  document.getElementById("writeAll").onclick = writeAll;
+  renderColors(); renderType(); renderIcons();
+})();
+</script>
+</body>
+</html>

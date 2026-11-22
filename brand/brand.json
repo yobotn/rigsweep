@@ -1,0 +1,20 @@
+{
+  "icon": {
+    "glyph": "color",
+    "bg": "gradient",
+    "angle": 135,
+    "radius": 23,
+    "inset": 0,
+    "scale": 74,
+    "gloss": true,
+    "shadow": true,
+    "flatSmall": true
+  },
+  "og": {
+    "h1": "Room for your",
+    "h2": "agents.",
+    "sub": "Free up RAM, CPU and disk on Windows dev machines cluttered by AI-agent sessions. Every change is reversible.",
+    "pills": "🆓 Free · MIT\n🪟 Windows 10 / 11\n🌍 11 languages",
+    "shot": "cleanup.png"
+  }
+}
