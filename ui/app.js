@@ -2986,6 +2986,44 @@ $("#fd-space-out").addEventListener("click", (e) => {
 });
 loadVolumes().then(fillSpaceDrives);
 
+// ---------- Find > Move caches off the system drive (Dev Drive helper) ----------
+let mv = null;
+async function loadMoves() {
+  const btn = $("#fd-move-scan");
+  busy(btn, true);
+  try { mv = await call("get_move_info"); } finally { busy(btn, false); }
+  renderMoves();
+}
+function renderMoves() {
+  const out = $("#fd-move-out");
+  if (!mv) return;
+  if (!mv.caches.length) { out.innerHTML = `<p class="sub">${esc(t("fd.move.none", { d: mv.system }))}</p>`; return; }
+  if (!mv.targets.length) { out.innerHTML = `<p class="sub">${esc(t("fd.move.noDrive", { d: mv.system }))}</p>`; return; }
+  const best = mv.targets.find((x) => x.dev_drive) || [...mv.targets].sort((a, b) => b.free - a.free)[0];
+  const opts = mv.targets.map((x) => `<option value="${esc(x.drive)}" ${x === best ? "selected" : ""}>${ltr(esc(x.drive))} · ${esc(t("space.free", { size: fmtBytes(x.free) }))}${x.dev_drive ? " · Dev Drive" : ""}</option>`).join("");
+  out.innerHTML = `<p class="fd-space-pick"><span>${esc(t("fd.move.to"))}</span> <select id="fd-move-drive">${opts}</select></p>
+    <table class="tbl"><tbody>${mv.caches.map((c) => `<tr class="${c.busy ? "locked" : ""}" title="${esc(c.from)}">
+      <td>${esc(t("disk.cache." + c.id))}<div class="sub"><code>${esc(c.env)}</code></div></td>
+      <td class="num">${fmtBytes(c.bytes)}</td>
+      <td>${c.busy ? `<span class="badge idle">${esc(t("disk.cacheBusy"))}</span>` : `<button class="small ghost" data-move="${esc(c.id)}">${esc(t("fd.move.act"))}</button>`}</td></tr>`).join("")}</tbody></table>`;
+}
+$("#fd-move-scan").onclick = loadMoves;
+$("#fd-move-out").addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-move]");
+  if (!b) return;
+  const c = mv.caches.find((x) => x.id === b.dataset.move), drive = $("#fd-move-drive").value;
+  const name = t("disk.cache." + c.id);
+  const body = `<p>${esc(t("fd.move.body", { env: c.env }))}</p><p class="sub" dir="ltr">${esc(c.from)} → ${esc(drive)}\\packages\\…</p><p class="warn-text">${esc(t("fd.move.restart"))}</p>`;
+  if (!(await modal(t("fd.move.confirm", { n: name, size: fmtBytes(c.bytes), d: drive }), body, { okText: t("fd.move.act") }))) return;
+  busy(b, true, t("fd.move.moving"));
+  try {
+    const to = await call("move_cache", { id: c.id, drive });
+    await loadVolumes();
+    toast(t("fd.move.done", { n: name, to }) + spaceNow(), "ok", 10000);
+  } finally { busy(b, false); }
+  loadMoves();
+});
+
 $("#tab-finders").addEventListener("click", async (e) => {
   const scan = e.target.closest("[data-fd-scan]");
   if (scan) return scanFinder(scan.dataset.fdScan, scan);

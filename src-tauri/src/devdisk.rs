@@ -2493,3 +2493,143 @@ pub fn folder_sizes(path: &str, fresh: bool) -> Result<FolderSizes, String> {
     }
     Ok(v)
 }
+
+// ---------- move caches off the system drive (Find > Move caches) ----------
+//
+// Each tool reads its cache folder from an environment variable (Microsoft's Dev Drive guide
+// lists the same ones). Moving = robocopy the folder to <drive>:\packages\<name>, then set the
+// variable for this user. Only caches: if anything goes wrong, the tool downloads again.
+// Not offered: Cargo (CARGO_HOME also holds installed tools on PATH) and the pnpm store (its hard
+// links only work on the drive where the projects are).
+
+/// (cache id, environment variable, folder name under <drive>:\packages)
+const MOVABLE: &[(&str, &str, &str)] = &[
+    ("npm", "npm_config_cache", "npm-cache"),
+    ("pip", "PIP_CACHE_DIR", "pip"),
+    ("uv", "UV_CACHE_DIR", "uv"),
+    ("yarn", "YARN_CACHE_FOLDER", "yarn"),
+    ("bun", "BUN_INSTALL_CACHE_DIR", "bun-cache"),
+    ("nugetpkgs", "NUGET_PACKAGES", "nuget-packages"),
+    ("gomod", "GOMODCACHE", "go-mod"),
+    ("gobuild", "GOCACHE", "go-build"),
+    ("gradle", "GRADLE_USER_HOME", "gradle"),
+    ("playwright", "PLAYWRIGHT_BROWSERS_PATH", "ms-playwright"),
+    ("hf", "HF_HUB_CACHE", "huggingface-hub"),
+    ("torch", "TORCH_HOME", "torch"),
+];
+
+#[derive(Serialize, Clone, Debug)]
+pub struct MovableCache {
+    pub id: &'static str,
+    pub env: &'static str,
+    pub from: String,
+    pub bytes: u64,
+    pub busy: bool,
+}
+
+#[derive(Serialize, Clone, Debug)]
+pub struct MoveTarget {
+    pub drive: String,
+    pub free: u64,
+    /// ReFS: a Dev Drive (or another ReFS volume)
+    pub dev_drive: bool,
+}
+
+#[derive(Serialize, Clone, Debug)]
+pub struct MoveInfo {
+    pub caches: Vec<MovableCache>,
+    pub targets: Vec<MoveTarget>,
+    pub system: String,
+}
+
+/// The folder a cache id lives in as a whole (npm: the folder holding _cacache; Gradle: .gradle).
+fn movable_dir(id: &str) -> Option<PathBuf> {
+    let p = cache_paths(id).into_iter().next()?;
+    match id {
+        "npm" | "gradle" => p.parent().map(Path::to_path_buf),
+        _ => Some(p),
+    }
+}
+
+fn user_env(name: &str) -> Option<String> {
+    winreg::RegKey::predef(winreg::enums::HKEY_CURRENT_USER)
+        .open_subkey("Environment")
+        .ok()
+        .and_then(|k| k.get_value::<String, _>(name).ok())
+        .filter(|v| !v.is_empty())
+}
+
+pub fn move_info() -> MoveInfo {
+    let sys = std::env::var("SystemDrive").unwrap_or_else(|_| "C:".into()).to_uppercase();
+    let hay = process_hay();
+    let caches = MOVABLE
+        .iter()
+        .filter(|(_, env, _)| user_env(env).is_none() && std::env::var_os(env).is_none())
+        .filter_map(|(id, env, _)| {
+            let dir = movable_dir(id)?;
+            if !dir.to_string_lossy().to_uppercase().starts_with(&sys) {
+                return None;
+            }
+            let bytes = local_size(&dir);
+            let def = CACHES.iter().find(|d| d.id == *id)?;
+            (bytes >= 100 << 20).then(|| MovableCache { id, env, from: dir.to_string_lossy().into_owned(), bytes, busy: cache_busy(def, &hay) })
+        })
+        .collect();
+    let refs: Vec<String> = sysinfo::Disks::new_with_refreshed_list()
+        .map(|d| {
+            d.iter()
+                .filter(|x| x.file_system().to_string_lossy().eq_ignore_ascii_case("refs"))
+                .map(|x| x.mount_point().to_string_lossy().to_uppercase().chars().take(2).collect())
+                .collect()
+        })
+        .unwrap_or_default();
+    let targets = crate::hardware::volumes()
+        .unwrap_or_default()
+        .into_iter()
+        .filter(|v| !v.system && v.free > 5 << 30)
+        .map(|v| MoveTarget { dev_drive: refs.contains(&v.drive), drive: v.drive, free: v.free })
+        .collect();
+    MoveInfo { caches, targets, system: sys }
+}
+
+/// Move one cache to `<drive>\packages\<name>` and point its tool there. Returns the new folder.
+pub fn move_cache(id: &str, drive: &str) -> Result<String, String> {
+    let info = move_info();
+    let c = info.caches.iter().find(|c| c.id == id).ok_or("this cache can't be moved (already moved, or not on the system drive)")?;
+    if c.busy {
+        return Err("in use by a running process; close it and try again".into());
+    }
+    let t = info.targets.iter().find(|t| t.drive.eq_ignore_ascii_case(drive)).ok_or("not a drive it can move to")?;
+    if t.free < c.bytes + (2 << 30) {
+        return Err(format!("{} doesn't have enough free space", t.drive));
+    }
+    let (_, env, name) = MOVABLE.iter().find(|m| m.0 == id).ok_or("unknown cache")?;
+    let dest = PathBuf::from(format!("{}\\packages\\{name}", t.drive));
+    fs::create_dir_all(&dest).map_err(|e| format!("{}: {e}", dest.display()))?;
+    let (src, dst) = (c.from.clone(), dest.to_string_lossy().into_owned());
+    // robocopy: exit codes below 8 mean success (1 = files copied)
+    use std::os::windows::process::CommandExt;
+    let out = std::process::Command::new("robocopy.exe")
+        .args([src.as_str(), dst.as_str(), "/E", "/MOVE", "/R:1", "/W:1", "/NFL", "/NDL", "/NJH", "/NJS", "/NP"])
+        .creation_flags(0x0800_0000)
+        .output()
+        .map_err(|e| format!("robocopy: {e}"))?;
+    if out.status.code().unwrap_or(16) >= 8 {
+        return Err(format!("robocopy couldn't move everything (code {}); nothing was changed for the tool", out.status.code().unwrap_or(-1)));
+    }
+    let k = winreg::RegKey::predef(winreg::enums::HKEY_CURRENT_USER).open_subkey_with_flags("Environment", winreg::enums::KEY_SET_VALUE).map_err(|e| e.to_string())?;
+    k.set_value(env, &dst).map_err(|e| e.to_string())?;
+    broadcast_env_change();
+    Ok(dst)
+}
+
+/// Tell Explorer (and apps started from it later) that the user environment changed.
+fn broadcast_env_change() {
+    use windows::Win32::Foundation::{LPARAM, WPARAM};
+    use windows::Win32::UI::WindowsAndMessaging::{SendMessageTimeoutW, HWND_BROADCAST, SMTO_ABORTIFHUNG, WM_SETTINGCHANGE};
+    let w: Vec<u16> = "Environment\0".encode_utf16().collect();
+    // SAFETY: `w` outlives the call; the result is ignored
+    unsafe {
+        let _ = SendMessageTimeoutW(HWND_BROADCAST, WM_SETTINGCHANGE, WPARAM(0), LPARAM(w.as_ptr() as isize), SMTO_ABORTIFHUNG, 3000, None);
+    }
+}

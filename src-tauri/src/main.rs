@@ -181,6 +181,8 @@ fn run_app(start_hidden: bool) {
             commands::compact_vdisk,
             commands::get_folder_sizes,
             commands::show_in_explorer,
+            commands::get_move_info,
+            commands::move_cache,
             commands::take_snapshot,
             commands::get_snapshots,
             commands::clear_snapshots,

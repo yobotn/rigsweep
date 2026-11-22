@@ -506,6 +506,25 @@ pub async fn get_folder_sizes(path: String, fresh: bool) -> R<devdisk::FolderSiz
     tauri::async_runtime::spawn_blocking(move || devdisk::folder_sizes(&path, fresh)).await.map_err(err)?
 }
 
+/// Package caches on the system drive that can be moved, and the drives they can go to.
+#[tauri::command]
+pub async fn get_move_info() -> R<devdisk::MoveInfo> {
+    tauri::async_runtime::spawn_blocking(devdisk::move_info).await.map_err(err)
+}
+
+/// Move a package cache to another drive and point its tool there (user environment variable).
+#[tauri::command]
+pub async fn move_cache(state: State<'_, AppState>, id: String, drive: String) -> R<String> {
+    let (i, d) = (id.clone(), drive.clone());
+    let r = tauri::async_runtime::spawn_blocking(move || devdisk::move_cache(&i, &d)).await.map_err(err)?;
+    let db = lock(&state)?;
+    match &r {
+        Ok(to) => db.log("gui", None, "cache_move", true, &format!("{id} -> {to}")),
+        Err(e) => db.log("gui", None, "cache_move", false, &format!("{id} -> {drive}: {e}")),
+    }
+    r
+}
+
 /// Show a folder in Explorer.
 #[tauri::command]
 pub async fn show_in_explorer(path: String) -> R<()> {
