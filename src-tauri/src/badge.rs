@@ -147,6 +147,8 @@ mod tests {
             disk_auto_deps: true,
             disk_auto_caches: true,
             disk_auto_min_mb: 50,
+            disk_auto_clean: false,
+            disk_auto_low_gb: 0,
             live_refresh_secs: 5,
             dev_keep: vec![],
         }
