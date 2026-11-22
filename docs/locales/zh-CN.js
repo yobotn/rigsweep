@@ -1,7 +1,7 @@
 window.T = window.T || {};
 T["zh-CN"] = {
     "gal.cleanup": "开发清理", "gal.dashboard": "仪表板", "gal.impact": "清理成果", "gal.disk": "开发磁盘", "gal.tweaks": "优化", "gal.settings": "设置", "gal.label": "截图",
-    "live.title": "RigSweep 用户迄今释放的资源", "live.procs": "已结束的开发进程", "cta.join": "⬇️ 一起加入：下载 Windows 版",
+    "live.title": "RigSweep 用户迄今释放的资源", "live.cpu": "单次释放的 CPU", "cta.join": "⬇️ 一起加入：下载 Windows 版",
     "nav.features": "功能", "nav.trust": "防病毒常见问题",
     "hero.badge": "🆓 免费开源 · MIT",
     "hero.title": "给你的<span>智能体</span>腾出空间。",
@@ -21,7 +21,7 @@ T["zh-CN"] = {
     "story.p3": "<strong>RigSweep 让你看清到底是什么在占用电脑，清理闲置的进程，并且每项更改都可以撤消。</strong>",
     "stat.chrome": "🌐 Chrome（37 个进程）", "stat.node": "⬢ Node + Claude（14 个进程）", "stat.services": "🧩 正在运行的 Windows 服务",
     "stat.cap": "在作者的 32 GB 笔记本电脑上于工作日中途测得。",
-    "feat.eyebrow": "功能", "feat.h": "✨ 它能做什么", "feat.lead": "专为整天和终端、AI 智能体打交道的开发者打造，而不是那些“电脑加速”的花招。",
+    "feat.eyebrow": "功能", "feat.h": "✨ 它能做什么", "feat.lead": "专为整天和终端、AI 智能体打交道的开发者打造，而不是那些“电脑加速”的花招。一个应用即可替代任务管理器、CPU-Z 这类硬件信息工具和清理软件。",
     "f1.h": "开发清理", "f1.p": "找出 Node、Python、Java、.NET 等技术栈中孤立和空闲的开发服务器、构建守护进程和智能体 CLI，并显示各自的进程树、项目、内存和端口。",
     "f2.h": "提速报告", "f2.p": "真实的前后对比测量值，而不是虚假的百分比。你可以将结果复制为 Markdown 并分享出去。",
     "f3.h": "Chrome 标签页助手", "f3.p": "一个小巧的扩展程序，可以让空闲标签页休眠、关闭重复的标签页，以及按 localhost:* 这样的模式关闭标签页。它没有网络访问权限。",
@@ -32,7 +32,7 @@ T["zh-CN"] = {
   "f8.h": "更新由你决定", "f8.p": "默认关闭。你可以随时手动检查，也可以开启每日自动检查。只有在你单击后才会安装更新，并且更新必须经过签名。",
   "f9.h": "浏览器清理", "f9.p": "清空 Chrome、Edge、Brave、Vivaldi、Opera 和 Firefox 的缓存。登录状态、Cookie、密码和历史记录绝不会受影响。",
   "f10.h": "开发磁盘", "f10.p": "删除不再碰的项目里的 node_modules、.next、target 和 .venv，清理包、GPU 着色器和 AI 工具缓存（npm、pip、Cargo、CUDA、Cursor、VS Code 等），并移除智能体留下的 Git 工作树。",
-  "f11.h": "硬件", "f11.p": "硬盘健康、测速，以及 CPU、显卡、内存和电池信息，一个页面全搞定，不用再开四个工具。无需安装驱动。",
+  "f11.h": "硬件", "f11.p": "硬盘健康、测速，以及 CPU、显卡、内存和电池信息，一个页面全搞定，不用再开四个工具。无需安装驱动。", "f12.h": "GPU 与 AI", "f12.p": "用任务管理器同款计数器显示每个应用在显卡和 NPU 上做什么，还能看到正在运行的 AI 运行时（Ollama、LM Studio、llama.cpp、ComfyUI、PyTorch）、已加载的模型及其占用的显存。", "f13.h": "网络", "f13.p": "按网卡显示流量，哪个应用占用了哪个连接或监听端口，还能搜索是谁在用 3000 端口或锁住了某个文件或文件夹。", "f14.h": "查找", "f14.p": "找出卸载程序已丢失的程序、Program Files 中残留的文件夹、“下载”里又大又旧的文件，以及值得一看的未签名启动程序，并可一键用 Microsoft Defender 扫描。删除的项目会进入回收站或备份。", "f15.h": "简单或专业", "f15.p": "简单模式用平实的话显示仪表板和清理。专业模式增加进程、网络、GPU 引擎和原始数据。可选“简洁”或“AI 风”风格，关闭不需要的监视器后就不占 CPU。", "gal.processes": "进程", "gal.gpu": "GPU 与 AI", "gal.network": "网络", "gal.hardware": "硬件",
     "clean.eyebrow": "开发清理", "clean.h": "🧹 安全清理闲置会话", "shot.cleanup": "开发清理", "shot.dashboard": "仪表板", "clean.l5": "<b>智能体遗留的 MCP 服务器和无头浏览器</b>也能被找出来；每次清理后几秒钟内，实时指示器就会显示你回收了多少内存。",
     "clean.l1": "<b>孤立进程</b>：终端已关闭，但进程仍在运行，比如经典的僵尸 localhost:3000。",
     "clean.l2": "<b>打开的终端中的空闲智能体绝不会被预先选中</b>，因为它们正在等你。",

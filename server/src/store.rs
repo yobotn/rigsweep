@@ -183,6 +183,9 @@ fn sums(ev_when: &str, rep_when: &str, ext_when: &str) -> String {
         "'disk_freed', (SELECT COALESCE(SUM(bytes), 0) FROM events WHERE area <> 'memory' AND {ev_when}),
          'ram_recovered', (SELECT COALESCE(SUM(bytes), 0) FROM events WHERE area = 'memory' AND {ev_when}),
          'processes_ended', (SELECT COALESCE(SUM(count), 0) FROM events WHERE area = 'memory' AND {ev_when}),
+         'cpu_freed', (SELECT ROUND(COALESCE(SUM(cpu), 0)::numeric, 1)::float8 FROM events WHERE area = 'memory' AND {ev_when}),
+         'cpu_peak', (SELECT ROUND(COALESCE(MAX(s), 0)::numeric, 1)::float8 FROM (SELECT SUM(cpu) AS s FROM events
+                      WHERE area = 'memory' AND run IS NOT NULL AND {ev_when} GROUP BY install_id, run) runs),
          'cleanups', (SELECT count(DISTINCT (install_id, run)) FROM events WHERE run IS NOT NULL AND {ev_when})
                    + (SELECT COALESCE(SUM(cleanups), 0) FROM reports WHERE v = 1 AND {rep_when}),
          'tabs_slept', (SELECT COALESCE(SUM(tabs_slept), 0) FROM ext_reports WHERE {ext_when}),

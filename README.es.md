@@ -71,6 +71,7 @@ Python y Java también ejecutan apps de escritorio normales, así que en esos ca
 - 🟠🔴 **Indicador en el área de notificación**: el icono del área de notificación (y el botón de la barra de tareas mientras la ventana está abierta) muestra un punto naranja cuando los procesos dev inactivos ocupan ≥ 1 GB y un punto rojo a partir de ≥ 2 GB. Pasa el puntero por el icono para ver cuánto. Los umbrales se definen en Configuración, donde también se puede desactivar el punto.
 - ♻️ **Daemon de compilación**: los servidores de Gradle, Kotlin y Roslyn están pensados para quedarse en segundo plano. Finalizarlos no hace daño; se reinician en la siguiente compilación.
 - 🔒 **Bloqueado**: los procesos que pertenecen a **VS Code, Cursor, JetBrains, Visual Studio…** (tus servidores de lenguaje) o a una app de escritorio nunca se pueden finalizar desde aquí.
+- 🎯 **Una fila o varias**: marca las filas y haz clic en **Finalizar seleccionados**, o usa el botón **Finalizar** de una sola fila. Las dos opciones muestran la misma confirmación, con lo que se va a liberar.
 - ✅ Nada se finaliza sin tu confirmación, y antes de cada cierre se comprueba que el PID no se haya reutilizado.
 
 ### 💾 Disco dev: node_modules, cachés y worktrees
@@ -94,6 +95,18 @@ Lo básico para lo que normalmente abrirías CPU-Z, GPU-Z, CrystalDiskInfo y Cry
 - ⚡ **Prueba de velocidad**: lectura y escritura secuenciales y lecturas aleatorias 4K, por unidad. Escribe un archivo temporal de 512 MB y luego lo elimina.
 - 🧮 **CPU, GPU, memoria**: modelo, núcleos e hilos, caché, virtualización (necesaria para WSL 2 y Docker), memoria de vídeo y controlador, tipo de RAM, velocidad y ranuras libres.
 - 🔋 **Sistema y batería**: placa base, BIOS, compilación de Windows, tiempo encendido y desgaste de la batería en portátiles.
+
+<img src="docs/screenshots/hardware.png" alt="Hardware" width="860">
+
+### 🎮 GPU e IA: qué se ejecuta en tu tarjeta gráfica y tu NPU
+Lo que hace cada aplicación en la GPU y la NPU, leído de los mismos contadores que usa el Administrador de tareas. No se instala nada, y mientras la página está cerrada no se consulta nada.
+
+- 🎮 **Por adaptador**: uso, memoria dedicada y compartida en uso y, en modo Pro, un medidor por cada motor activo (3D, Compute, Copy, Video…).
+- 📋 **Por aplicación**: uso de GPU, motor y memoria de vídeo dedicada de cada aplicación que usa la GPU, y en modo Pro también la memoria compartida.
+- 🧠 **NPU**: la unidad de procesamiento neuronal aparece junto a las GPU, y el uso de NPU de cada aplicación se muestra al lado de su uso de GPU.
+- 🤖 **Carga de IA**: los entornos de IA locales en ejecución (Ollama, LM Studio, llama.cpp, Jan, LocalAI, KoboldCpp, ComfyUI, vLLM, Python con PyTorch o Transformers…) y la memoria de vídeo que ocupan. En Ollama también se listan los modelos cargados y la VRAM que ocupa cada uno.
+
+<img src="docs/screenshots/gpu.png" alt="GPU e IA" width="860">
 
 ### 📊 Informe de mejora: antes y después reales
 Nada de cifras falsas como "tu PC es un 87 % más rápido". RigSweep **mide** tu equipo y compara dos capturas: RAM usada/libre, CPU media, número de procesos, servicios en ejecución, RAM de Chrome y RAM de Node/agentes.
@@ -129,6 +142,11 @@ Un catálogo seleccionado ([`catalog/tweaks.json`](src-tauri/catalog/tweaks.json
 ### 🔍 Analizador de procesos
 CPU / RAM / disco por proceso, y **qué servicios se ejecutan dentro de cada `svchost.exe`**. Deshabilita un servicio o finaliza un proceso directamente desde la lista (los elementos esenciales están bloqueados 🔒). Cada aplicación se muestra con su propio icono.
 
+- ❓ **¿Por qué?**: haz clic en un proceso para ver qué es: CPU, memoria, disco, subprocesos, fabricante, archivo y línea de comandos, qué programa lo inició y qué programas inició él. Los procesos conocidos de Windows (Defender, Windows Search, Windows Update, svchost, WMI…) vienen con una explicación clara de por qué se ponen a trabajar.
+- 🛡️ **Qué está analizando Defender**: el Panel muestra **Ver por qué** junto a un proceso que usa mucha CPU, y antes todavía junto a Microsoft Defender. Para Defender, **Registrar lo que analiza** lo observa durante 20 segundos y lista las carpetas, los tipos de archivo y los procesos que provocaron los análisis. Si casi todo viene de tu trabajo de desarrollo, te lleva al ajuste de exclusiones de Defender para carpetas dev.
+
+<img src="docs/screenshots/processes.png" alt="Procesos" width="860">
+
 ### 🚀 Inicio: lo que el Administrador de tareas no muestra
 La lista de aplicaciones de arranque del Administrador de tareas omite casi todo lo que se inicia con Windows. RigSweep lo muestra todo, salvo los componentes del propio Windows:
 
@@ -138,6 +156,29 @@ La lista de aplicaciones de arranque del Administrador de tareas omite casi todo
 - 💾 Cada cambio se respalda y puede restaurarse, y si una actualización vuelve a activar una aplicación, la supervisión la desactiva de nuevo.
 
 <img src="docs/screenshots/startup.png" alt="Inicio" width="860">
+
+### 📡 Red: qué aplicación ocupa cada puerto
+- 📶 **Por adaptador**: velocidad de descarga y de subida, velocidad del vínculo y tráfico desde el inicio. Windows solo da el recuento de bytes por aplicación a las herramientas que hacen un seguimiento como administrador, así que el tráfico se muestra por adaptador, no por aplicación.
+- 🔌 **Por aplicación**: puertos en escucha (TCP y UDP), el número de conexiones abiertas y las direcciones remotas con las que se comunica cada aplicación.
+- 🔍 **¿Quién lo está usando?**: escribe un puerto para ver qué proceso lo ocupa, con su línea de comandos, o un archivo o una carpeta para ver qué aplicaciones lo tienen abierto o trabajan dentro. Solo consulta: desde aquí no se finaliza nada.
+
+<img src="docs/screenshots/network.png" alt="Red" width="860">
+
+### 🔎 Buscar: restos y archivos que merecen una segunda mirada
+Tres listas para revisar. No se quita nada que no elijas.
+
+- 📦 **Programas sin desinstalador**: entradas de Aplicaciones instaladas cuyo desinstalador ya no existe, y carpetas de Program Files que no usa ningún programa instalado, servicio, acceso directo ni tarea. Cada entrada se guarda en un archivo de copia de seguridad antes de quitarla, y las carpetas van a la Papelera de reciclaje.
+- 🕒 **Archivos antiguos**: archivos de más de 50 MB en Descargas, Escritorio y Documentos que no han cambiado en un año, e instaladores en Descargas con más de 90 días. Van a la Papelera de reciclaje, y los archivos sincronizados con OneDrive se marcan, porque al borrarlos desaparecen en todos tus dispositivos.
+- 🛡️ **Vale la pena revisar**: programas sin firmar que se inician con Windows o se ejecutan desde AppData o Temp, nombres que ocultan su tipo real (`factura.pdf.exe`, un carácter oculto de derecha a izquierda) y descargas sin firmar. Aparecer en la lista no es un veredicto: **Analizar con Defender** le pregunta a Microsoft Defender por ese archivo concreto.
+
+<img src="docs/screenshots/finders.png" alt="Buscar" width="860">
+
+### 🎨 Sencillo o Pro, Limpio o Estilo IA
+En **🛠️ Configuración → Apariencia y funciones**:
+
+- 🧭 **Modo**: **Sencillo** muestra el Panel, las limpiezas y un lenguaje claro, y oculta las páginas para expertos (Procesos, Red). **Pro** lo muestra todo, incluidos los motores de la GPU, las conexiones y los datos sin procesar. Las instalaciones nuevas empiezan en Sencillo.
+- 🖌️ **Estilo**: **Limpio** es plano, con iconos de línea; **Estilo IA** añade emoji, degradados y un brillo suave.
+- 📡 **Monitores**: desactiva GPU y VRAM por proceso, Carga de IA, Red, Temperaturas o Alertas de estado del disco. Un monitor desactivado nunca se consulta, así que no gasta CPU.
 
 ### 🔄 Actualizaciones, tú decides
 **🛠️ Configuración → 🔄 Actualizaciones** tiene un botón **Buscar ahora** y la opción *Buscar actualizaciones automáticamente* (al iniciar y después una vez al día), que está **desactivada de forma predeterminada**. Cuando sale una versión nueva, aparece un botón en la barra lateral con las novedades. No se instala nada hasta que haces clic en **Instalar y reiniciar**, y solo si la descarga está firmada con la clave de RigSweep. Tus ajustes, copias de seguridad y configuración se conservan. Consulta la [política de privacidad](#-pol%C3%ADtica-de-privacidad) para saber exactamente qué hace una búsqueda.

@@ -111,6 +111,9 @@ async fn reports_totals_admin_and_optout() {
     assert_eq!(t["disk_freed"], 1000 + 3000 + 500); // b: only its v2 rows
     assert_eq!(t["ram_recovered"], 2 * 500 + 100);
     assert_eq!(t["processes_ended"], 2 * 2 + 4);
+    // CPU an ended tree was using (% of the whole CPU): all of it, and the most in one cleanup run
+    assert_eq!(t["cpu_freed"], 7.5);
+    assert_eq!(t["cpu_peak"], 7.5);
     assert_eq!(t["cleanups"], 2 * 2 + 1); // a's v1 counts + b's one v2 run
     assert_eq!(t["top"][0]["kind"], "dir:target");
 

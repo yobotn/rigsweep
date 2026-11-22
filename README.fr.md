@@ -71,6 +71,7 @@ Python et Java font aussi tourner des applications de bureau ordinaires : pour 
 - 🟠🔴 **Indicateur dans la zone de notification** : l'icône de la zone de notification (et le bouton de la barre des tâches tant que la fenêtre est ouverte) affiche un point orange quand les processus de dev inactifs occupent ≥ 1 Go et un point rouge à partir de ≥ 2 Go. Survolez l'icône pour voir combien. Les seuils se règlent dans les Paramètres, où le point peut aussi être désactivé.
 - ♻️ **Daemon de build** : les serveurs Gradle, Kotlin et Roslyn sont faits pour rester en arrière-plan. Les arrêter est sans danger ; ils redémarrent au prochain build.
 - 🔒 **Verrouillé** : les processus appartenant à **VS Code, Cursor, JetBrains, Visual Studio…** (vos serveurs de langage) ou à une app de bureau ne peuvent jamais être terminés d'ici.
+- 🎯 **Une ligne ou plusieurs** : cochez des lignes et cliquez sur **Terminer la sélection**, ou utilisez le bouton **Terminer** d'une seule ligne. Les deux affichent la même confirmation, avec ce qui sera libéré.
 - ✅ Rien n'est terminé sans votre confirmation, et la réutilisation de PID est vérifiée avant chaque arrêt.
 
 ### 💾 Disque dev : node_modules, caches et worktrees
@@ -94,6 +95,18 @@ L'essentiel de ce pour quoi vous ouvririez CPU-Z, GPU-Z, CrystalDiskInfo et Crys
 - ⚡ **Test de vitesse** : lecture et écriture séquentielles, plus lectures aléatoires 4K, pour chaque lecteur. Il écrit un fichier temporaire de 512 Mo puis le supprime.
 - 🧮 **Processeur, carte graphique, mémoire** : modèle, cœurs et threads, cache, virtualisation (requise par WSL 2 et Docker), mémoire vidéo et pilote, type de RAM, vitesse et emplacements libres.
 - 🔋 **Système et batterie** : carte mère, BIOS, build de Windows, durée depuis le démarrage et usure de la batterie sur les portables.
+
+<img src="docs/screenshots/hardware.png" alt="Matériel" width="860">
+
+### 🎮 GPU et IA : ce qui tourne sur votre carte graphique et votre NPU
+Ce que fait chaque application sur le GPU et le NPU, lu dans les mêmes compteurs que le Gestionnaire des tâches. Rien n'est installé, et rien n'est interrogé tant que la page est fermée.
+
+- 🎮 **Par carte** : utilisation, mémoire dédiée et partagée utilisée et, en mode Pro, une jauge pour chaque moteur actif (3D, Compute, Copy, Video…).
+- 📋 **Par application** : utilisation du GPU, moteur et mémoire vidéo dédiée de chaque application qui utilise le GPU, plus la mémoire partagée en mode Pro.
+- 🧠 **NPU** : le processeur neuronal apparaît à côté des GPU, et l'utilisation du NPU par chaque application s'affiche avec son utilisation du GPU.
+- 🤖 **Charge IA** : les environnements d'IA locaux en cours d'exécution (Ollama, LM Studio, llama.cpp, Jan, LocalAI, KoboldCpp, ComfyUI, vLLM, Python avec PyTorch ou Transformers…) et la mémoire vidéo qu'ils occupent. Pour Ollama, les modèles chargés et la VRAM de chacun sont aussi listés.
+
+<img src="docs/screenshots/gpu.png" alt="GPU et IA" width="860">
 
 ### 📊 Rapport de gains : un vrai avant/après
 Pas de faux chiffres du genre « votre PC est 87 % plus rapide ». RigSweep **mesure** votre machine et compare deux relevés : RAM utilisée/libre, CPU moyen, nombre de processus, services en cours d'exécution, RAM de Chrome et RAM Node/agents.
@@ -129,6 +142,11 @@ Un catalogue soigné ([`catalog/tweaks.json`](src-tauri/catalog/tweaks.json)) :
 ### 🔍 Analyseur de processus
 CPU / RAM / disque par processus, et **quels services tournent dans chaque `svchost.exe`**. Désactivez un service ou terminez un processus directement depuis la liste (les éléments essentiels sont verrouillés 🔒). Chaque application s'affiche avec sa propre icône.
 
+- ❓ **Pourquoi ?** : cliquez sur un processus pour voir de quoi il s'agit : CPU, mémoire, disque, threads, éditeur, fichier et ligne de commande, le programme qui l'a lancé et ceux qu'il a lancés. Les processus Windows connus (Defender, Windows Search, Windows Update, svchost, WMI…) sont accompagnés d'une explication simple de ce qui les occupe.
+- 🛡️ **Ce que Defender analyse** : le Tableau de bord affiche **Voir pourquoi** à côté d'un processus qui consomme beaucoup de CPU, et plus tôt encore pour Microsoft Defender. Pour Defender, **Enregistrer ce qu'il analyse** l'observe pendant 20 secondes et liste les dossiers, les types de fichiers et les processus qui ont déclenché les analyses. Si l'essentiel vient de votre travail de dev, il vous oriente vers le réglage d'exclusions Defender pour les dossiers de dev.
+
+<img src="docs/screenshots/processes.png" alt="Processus" width="860">
+
 ### 🚀 Démarrage : ce que le Gestionnaire des tâches ne montre pas
 La liste « Applications de démarrage » du Gestionnaire des tâches omet presque tout ce qui démarre avec Windows. RigSweep affiche tout, hors composants de Windows lui-même :
 
@@ -138,6 +156,29 @@ La liste « Applications de démarrage » du Gestionnaire des tâches omet presq
 - 💾 Chaque modification est sauvegardée et restaurable, et si une mise à jour réactive une application, la surveillance la désactive à nouveau.
 
 <img src="docs/screenshots/startup.png" alt="Démarrage" width="860">
+
+### 📡 Réseau : quelle application occupe quel port
+- 📶 **Par carte réseau** : débit descendant et montant, vitesse de liaison et trafic depuis le démarrage. Windows ne donne le nombre d'octets par application qu'aux outils qui lancent un suivi en tant qu'administrateur, le trafic est donc affiché par carte, pas par application.
+- 🔌 **Par application** : ports en écoute (TCP et UDP), nombre de connexions ouvertes et adresses distantes avec lesquelles chaque application communique.
+- 🔍 **Qui l'utilise ?** : saisissez un port pour voir quel processus l'occupe, avec sa ligne de commande, ou un fichier ou un dossier pour voir quelles applications l'ont ouvert ou travaillent dedans. Simple consultation : rien n'est terminé d'ici.
+
+<img src="docs/screenshots/network.png" alt="Réseau" width="860">
+
+### 🔎 Recherche : restes et fichiers qui méritent un second regard
+Trois listes à passer en revue. Rien n'est supprimé sans que vous le choisissiez.
+
+- 📦 **Programmes sans désinstalleur** : les entrées des Applications installées dont le programme de désinstallation a disparu, et les dossiers de Program Files qu'aucun programme installé, service, raccourci ou tâche n'utilise. Chaque entrée est enregistrée dans un fichier de sauvegarde avant d'être supprimée, et les dossiers vont à la Corbeille.
+- 🕒 **Fichiers anciens** : fichiers de plus de 50 Mo dans Téléchargements, Bureau et Documents qui n'ont pas changé depuis un an, et programmes d'installation de plus de 90 jours dans Téléchargements. Ils vont à la Corbeille, et un fichier synchronisé avec OneDrive est signalé, car le supprimer l'efface sur tous vos appareils.
+- 🛡️ **À examiner** : programmes non signés qui démarrent avec Windows ou s'exécutent depuis AppData ou Temp, noms qui cachent leur vrai type (`facture.pdf.exe`, un caractère de droite à gauche caché) et téléchargements non signés. Figurer dans la liste n'est pas un verdict : **Analyser avec Defender** interroge Microsoft Defender sur ce seul fichier.
+
+<img src="docs/screenshots/finders.png" alt="Recherche" width="860">
+
+### 🎨 Simple ou Pro, Épuré ou Style IA
+Dans **🛠️ Paramètres → Apparence et fonctions** :
+
+- 🧭 **Mode** : **Simple** affiche le Tableau de bord, les nettoyages et des mots simples, et masque les pages expertes (Processus, Réseau). **Pro** affiche tout, y compris les moteurs du GPU, les connexions et les valeurs brutes. Les nouvelles installations démarrent en mode Simple.
+- 🖌️ **Style** : **Épuré** est plat, avec des icônes au trait ; **Style IA** ajoute des emoji, des dégradés et une lueur douce.
+- 📡 **Surveillance** : désactivez GPU et VRAM par processus, Charge IA, Réseau, Températures ou Alertes d'état des disques. Une surveillance désactivée n'est jamais interrogée et ne coûte donc aucun CPU.
 
 ### 🔄 Mises à jour, à vous de choisir
 **🛠️ Paramètres → 🔄 Mises à jour** propose un bouton **Rechercher maintenant** et l'option *Rechercher automatiquement les mises à jour* (au démarrage, puis une fois par jour), **désactivée par défaut**. Quand une nouvelle version sort, un bouton apparaît dans la barre latérale avec les nouveautés. Rien n'est installé tant que vous n'avez pas cliqué sur **Installer et redémarrer**, et seulement si le téléchargement est signé avec la clé de RigSweep. Vos réglages, sauvegardes et paramètres sont conservés. Consultez la [politique de confidentialité](#-politique-de-confidentialit%C3%A9) pour savoir exactement ce que fait une recherche.

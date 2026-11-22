@@ -658,7 +658,7 @@ async function scanDev() {
   try { dev = await call("get_dev_processes", undefined, { quiet: !dev }); }
   catch (e) {
     // keep the last good list if there is one; otherwise say what failed in place of the spinner
-    if (!dev) $("#clean-body").innerHTML = `<tr><td colspan="8" class="loading"><p>${esc(t("err.failed"))}: ${esc(e)}</p><button class="ghost" data-retry>${esc(t("clean.scan"))}</button></td></tr>`;
+    if (!dev) $("#clean-body").innerHTML = `<tr><td colspan="9" class="loading"><p>${esc(t("err.failed"))}: ${esc(e)}</p><button class="ghost" data-retry>${esc(t("clean.scan"))}</button></td></tr>`;
     throw e;
   }
   // keep the user's ticks across rescans, and tick every stale row, including ones that only
@@ -675,7 +675,7 @@ function renderDev() {
   $("#clean-summary").textContent = dev.items.length
     ? t("clean.summary", { n: dev.items.length, mem: fmtBytes(dev.total_mem), s: dev.stale_count, sm: fmtBytes(dev.stale_mem) }) : "";
   if (!dev.items.length) {
-    $("#clean-body").innerHTML = `<tr><td colspan="8" class="loading">${esc(t("clean.none"))}</td></tr>`;
+    $("#clean-body").innerHTML = `<tr><td colspan="9" class="loading">${esc(t("clean.none"))}</td></tr>`;
     return;
   }
   const devRank = (p) => p.protected ? 0 : p.stale ? 2 + p.reasons.length : 1; // stale with most reasons first
@@ -699,6 +699,7 @@ function renderDev() {
       <td class="num ${p.cpu > 25 ? "vhot" : p.cpu > 5 ? "hot" : ""}">${p.cpu >= 0.1 ? `${p.cpu.toFixed(1)}%` : "—"}</td>
       <td>${p.ports.length ? p.ports.slice(0, 4).map((x) => `<code>${x}</code>`).join(" ") + (p.ports.length > 4 ? " …" : "") : "–"}</td>
       <td>${badges}${keep}</td>
+      <td class="num">${p.protected ? "" : `<button class="small ghost" data-end="${esc(k)}" aria-label="${esc(`${t("proc.end")} ${p.label} · PID ${p.pid}`)}">${esc(t("proc.end"))}</button>`}</td>
     </tr>`;
   }).join("");
 }
@@ -712,6 +713,12 @@ $("#clean-body").addEventListener("change", (e) => {
 $("#btn-clean-scan").onclick = (e) => loadDev(e.target);
 $("#clean-body").addEventListener("click", async (e) => {
   if (e.target.closest("[data-retry]")) return loadDev(e.target.closest("button"));
+  const one = e.target.closest("[data-end]");
+  if (one) {
+    // end just this row's tree, with the same confirm and report as "End selected"
+    const p = dev?.items.find((x) => devKey(x) === one.dataset.end && !x.protected);
+    return p ? endDev([p], one) : undefined;
+  }
   const b = e.target.closest("[data-keep]");
   if (!b) return;
   const on = b.dataset.keep === "1";
@@ -732,9 +739,12 @@ $("#btn-clean-stale").onclick = async (e) => {
   renderDev();
   if (!stale.length) toast(t("clean.noStale"));
 };
-$("#btn-clean-end").onclick = async (e) => {
+$("#btn-clean-end").onclick = (e) => {
   const picked = (dev?.items || []).filter((p) => devSel.has(devKey(p)) && !p.protected);
   if (!picked.length) return toast(t("bc.nothing"));
+  return endDev(picked, e.target.closest("button"));
+};
+async function endDev(picked, btn) {
   const serving = picked.filter((p) => p.ports.length).length;
   const agents = picked.filter((p) => p.kind === "agent").length;
   // what ending them gives back, as big numbers above the list
@@ -752,7 +762,7 @@ $("#btn-clean-end").onclick = async (e) => {
     ${picked.some((p) => p.eco === "wsl" && p.kind !== "vm") ? `<p class="warn-text">${esc(t("clean.wsl.warn"))}</p>` : ""}
     ${agents ? `<p class="sub">💡 <code>claude --resume</code> / <code>codex resume</code></p>` : ""}`;
   if (!(await modal(t("clean.confirm.title", { n: picked.length }), html, { okText: t("clean.end"), danger: true }))) return;
-  busy(e.target.closest("button"), true);
+  busy(btn, true);
   const estimate = picked.reduce((n, p) => n + p.tree_mem, 0);
   startRecovery(live.at(-1)?.mem_used ?? 0, Date.now(), estimate, false);
   try {
@@ -765,9 +775,9 @@ $("#btn-clean-end").onclick = async (e) => {
     reportPick = { before: r.before.id, after: r.after.id };
     if (r.result.mem_before && recovery) { recovery.before = r.result.mem_before; recovery.estimate = r.result.freed_mem; renderLive(); }
     picked.forEach((p) => devSel.delete(devKey(p)));
-  } finally { busy(e.target.closest("button"), false); }
+  } finally { if (btn.isConnected) busy(btn, false); }
   loadDev(null, true);
-};
+}
 
 // ---------- browser cleanup ----------
 let bc = null;            // BrowserReport

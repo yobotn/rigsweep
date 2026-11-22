@@ -59,7 +59,7 @@
     </ul>
     <h2>Endpoints</h2>
     <h3>GET /v1/totals</h3>
-    <p>Operation <code>getImpactTotals</code>. All-time totals across every install that shares anonymous stats: <code>disk_freed</code> and <code>ram_recovered</code> in bytes, <code>processes_ended</code>, <code>cleanups</code>, <code>tabs_slept</code>, <code>tabs_closed</code>, install counts and the ten biggest cleanup categories in <code>top</code>. Cached for five minutes.</p>
+    <p>Operation <code>getImpactTotals</code>. All-time totals across every install that shares anonymous stats: <code>disk_freed</code> and <code>ram_recovered</code> in bytes, <code>processes_ended</code>, <code>cpu_freed</code> and <code>cpu_peak</code> (the CPU the ended processes were using, in percent of each PC's whole CPU: summed, and the most in one cleanup), <code>cleanups</code>, <code>tabs_slept</code>, <code>tabs_closed</code>, install counts and the ten biggest cleanup categories in <code>top</code>. Cached for five minutes.</p>
     <pre><code>{"installs":1,"active_installs_30d":1,"disk_freed":141408233058,"ram_recovered":2537816064,"processes_ended":42,"cleanups":25,"top":[{"area":"memory","kind":"server","bytes":2532392960}],"updated_at":"2026-11-17T18:58:51Z", ...}</code></pre>
     <h3>POST /v1/report</h3>
     <p>Operation <code>sendAppReport</code>. The RigSweep app sends this about once an hour, only after the user agreed to share anonymous stats: each cleanup since the previous report (category, size, time), RAM size, core count, versions and a random install ID. Anything that isn't a category, a number or a known app name is refused, and so are unknown fields. Answers <code>204 No Content</code>.</p>

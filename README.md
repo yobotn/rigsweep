@@ -71,6 +71,7 @@ Python and Java also run ordinary desktop apps, so for those only processes with
 - 🟠🔴 **Tray indicator**: the tray icon (and the taskbar button while the window is open) gets an orange dot when stale dev processes hold ≥ 1 GB and a red dot at ≥ 2 GB. Hover the tray icon to see how much. Thresholds are set in Settings, where the dot can also be turned off.
 - ♻️ **Build daemon**: Gradle, Kotlin and Roslyn servers are meant to linger. Ending them is harmless; they restart on the next build.
 - 🔒 **Locked**: processes owned by **VS Code, Cursor, JetBrains, Visual Studio…** (your language servers) or by a desktop app are never killable from here.
+- 🎯 **One row or many**: tick rows and click **End selected**, or use the **End** button on a single row. Both show the same confirmation with what it will free.
 - ✅ Nothing is ended without your confirmation, and PID reuse is checked before every kill.
 
 ### 💾 Dev Disk: node_modules, caches and worktrees
@@ -94,6 +95,18 @@ The basics you'd otherwise open CPU-Z, GPU-Z, CrystalDiskInfo and CrystalDiskMar
 - ⚡ **Speed test**: sequential read and write plus 4K random reads, per drive. It writes a 512 MB temporary file and deletes it afterwards.
 - 🧮 **CPU, GPU, memory**: model, cores and threads, cache, virtualization (needed by WSL 2 and Docker), video memory and driver, RAM type, speed and free slots.
 - 🔋 **System and battery**: motherboard, BIOS, Windows build, uptime, and battery wear on laptops.
+
+<img src="docs/screenshots/hardware.png" alt="Hardware" width="860">
+
+### 🎮 GPU & AI: what runs on your graphics card and NPU
+What each app does on the GPU and NPU, read from the same counters Task Manager uses. Nothing is installed, and nothing is polled while the page is closed.
+
+- 🎮 **Per adapter**: load, dedicated and shared memory in use, and in Pro mode a meter for each busy engine (3D, Compute, Copy, Video…).
+- 📋 **Per app**: GPU usage, engine and dedicated video memory of every app using the GPU, plus shared memory in Pro mode.
+- 🧠 **NPU**: a neural processing unit shows up next to the GPUs, and each app's NPU usage is listed with its GPU usage.
+- 🤖 **AI workload**: local AI runtimes that are running (Ollama, LM Studio, llama.cpp, Jan, LocalAI, KoboldCpp, ComfyUI, vLLM, Python with PyTorch or Transformers…) and the video memory they hold. For Ollama, the loaded models and the VRAM each one takes are listed too.
+
+<img src="docs/screenshots/gpu.png" alt="GPU & AI" width="860">
 
 ### 📊 Boost Report: real before and after
 No fake "your PC is 87% faster" numbers. RigSweep **measures** your machine and compares two snapshots: RAM used/free, average CPU, process count, running services, Chrome RAM, Node/agent RAM.
@@ -129,6 +142,11 @@ A curated catalog ([`catalog/tweaks.json`](src-tauri/catalog/tweaks.json)) of te
 ### 🔍 Process analyzer
 CPU / RAM / disk per process, and **which services live inside each `svchost.exe`**. Disable a service or end a process right from the list (core items are locked 🔒). Every app is shown with its own icon.
 
+- ❓ **Why?**: click a process to see what it is: CPU, memory, disk, threads, maker, file and command line, which program started it and which programs it started. Well-known Windows processes (Defender, Windows Search, Windows Update, svchost, WMI…) come with a plain explanation of why they get busy.
+- 🛡️ **What Defender is scanning**: the Dashboard puts **See why** next to a process that uses a lot of CPU, and next to Microsoft Defender sooner. For Defender, **Record what it scans** watches it for 20 seconds and lists the folders, file types and processes that made it scan. When most of it is your dev work, it points you to the Defender exclusions tweak for dev folders.
+
+<img src="docs/screenshots/processes.png" alt="Processes" width="860">
+
 ### 🚀 Startup: what Task Manager doesn't show
 Task Manager's Startup apps list skips most of what starts with Windows. RigSweep lists all of it, minus the parts of Windows itself:
 
@@ -138,6 +156,29 @@ Task Manager's Startup apps list skips most of what starts with Windows. RigSwee
 - 💾 Every change is backed up and can be restored, and the watchdog turns an item off again if an app update switches it back on.
 
 <img src="docs/screenshots/startup.png" alt="Startup" width="860">
+
+### 📡 Network: which app holds which port
+- 📶 **Per adapter**: download and upload speed, link speed and traffic since start-up. Windows only gives per-app byte counts to tools that trace as administrator, so traffic is shown per adapter, not per app.
+- 🔌 **Per app**: listening ports (TCP and UDP), the number of open connections and the remote addresses each app talks to.
+- 🔍 **Who is using it?**: enter a port to see which process holds it, with its command line, or a file or folder to see which apps have it open or are working inside it. It only looks: nothing is ended from here.
+
+<img src="docs/screenshots/network.png" alt="Network" width="860">
+
+### 🔎 Find: leftovers and files worth a second look
+Three lists to review. Nothing is removed unless you pick it.
+
+- 📦 **Programs without an uninstaller**: entries in Installed apps whose uninstaller is gone, and folders in Program Files that no installed program, service, shortcut or task uses. Each entry is saved to a backup file before it's removed, and folders go to the Recycle Bin.
+- 🕒 **Old files**: files over 50 MB in Downloads, Desktop and Documents that haven't changed for a year, and installers in Downloads older than 90 days. They go to the Recycle Bin, and a file synced with OneDrive is flagged, because deleting it removes it on every device.
+- 🛡️ **Worth a look**: unsigned programs that start with Windows or run from AppData or Temp, names that hide their real type (`invoice.pdf.exe`, a hidden right-to-left character) and unsigned downloads. Being listed isn't a verdict: **Scan with Defender** asks Microsoft Defender about that one file.
+
+<img src="docs/screenshots/finders.png" alt="Find" width="860">
+
+### 🎨 Simple or Pro, Clean or AI-ish
+In **🛠️ Settings → Appearance & features**:
+
+- 🧭 **Mode**: **Simple** shows the Dashboard, the cleanups and plain words, and hides the expert pages (Processes, Network). **Pro** shows everything, including GPU engines, connections and the raw numbers. New installs start in Simple.
+- 🖌️ **Style**: **Clean** is flat with line icons; **AI-ish** adds emoji, gradients and a soft glow.
+- 📡 **Monitors**: turn off GPU and VRAM per process, AI workload, Network, Temperatures or Disk health alerts. A monitor that's off is never sampled, so it costs no CPU.
 
 ### 🔄 Updates, your choice
 **🛠️ Settings → 🔄 Updates** has a **Check now** button and an optional *Check for updates automatically* (at startup, then once a day), which is **off by default**. When a new version is out, a button appears in the sidebar with the release notes. Nothing is installed until you click **Install and restart**, and only if the download is signed with RigSweep's key. Your tweaks, backups and settings are kept. See the [privacy policy](#-privacy-policy) for exactly what a check does.

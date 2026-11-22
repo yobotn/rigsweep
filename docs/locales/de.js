@@ -1,7 +1,7 @@
 window.T = window.T || {};
 T["de"] = {
     "gal.cleanup": "Dev-Bereinigung", "gal.dashboard": "Übersicht", "gal.impact": "Bilanz", "gal.disk": "Dev-Speicher", "gal.tweaks": "Optimierungen", "gal.settings": "Einstellungen", "gal.label": "Screenshots",
-    "live.title": "Bisher von RigSweep-Nutzern freigegeben", "live.procs": "beendete Dev-Prozesse", "cta.join": "⬇️ Mach mit: für Windows herunterladen",
+    "live.title": "Bisher von RigSweep-Nutzern freigegeben", "live.cpu": "CPU auf einmal freigegeben", "cta.join": "⬇️ Mach mit: für Windows herunterladen",
     "nav.features": "Funktionen", "nav.trust": "Antivirus-FAQ",
     "hero.badge": "🆓 Kostenlos & Open Source · MIT",
     "hero.title": "Platz für Ihre <span>Agents</span>.",
@@ -21,7 +21,7 @@ T["de"] = {
     "story.p3": "<strong>RigSweep zeigt, was Ihren Rechner wirklich belastet, räumt Liegengebliebenes auf und hält jede Änderung umkehrbar.</strong>",
     "stat.chrome": "🌐 Chrome (37 Prozesse)", "stat.node": "⬢ Node + Claude (14 Prozesse)", "stat.services": "🧩 Laufende Windows-Dienste",
     "stat.cap": "Gemessen auf dem Laptop des Autors mit 32 GB mitten an einem Arbeitstag.",
-    "feat.eyebrow": "Funktionen", "feat.h": "✨ Was RigSweep kann", "feat.lead": "Entwickelt für Entwickler, die in Terminals und mit KI-Agents arbeiten, nicht für „PC-Booster“-Tricks.",
+    "feat.eyebrow": "Funktionen", "feat.h": "✨ Was RigSweep kann", "feat.lead": "Entwickelt für Entwickler, die in Terminals und mit KI-Agents arbeiten, nicht für „PC-Booster“-Tricks. Eine App statt Task-Manager, einem Hardware-Info-Tool wie CPU-Z und einem Cleaner.",
     "f1.h": "Dev-Bereinigung", "f1.p": "Verwaiste und inaktive Dev-Server, Build-Daemons und Agent-CLIs in Node, Python, Java, .NET und mehr, jeweils mit Prozessbaum, Projekt, RAM und Ports.",
     "f2.h": "Boost-Bericht", "f2.p": "Echte Vorher/Nachher-Messwerte statt erfundener Prozentangaben. Kopieren Sie sie als Markdown und teilen Sie Ihr Ergebnis.",
     "f3.h": "Chrome-Tab-Helfer", "f3.p": "Eine winzige Erweiterung, die inaktive Tabs in den Ruhezustand versetzt, Duplikate schließt und Tabs nach Muster wie localhost:* schließt. Ohne Netzwerkzugriff.",
@@ -32,7 +32,7 @@ T["de"] = {
   "f8.h": "Updates nach Ihrer Wahl", "f8.p": "Standardmäßig aus. Suchen Sie bei Bedarf oder aktivieren Sie eine tägliche Suche. Updates werden nur installiert, wenn Sie klicken, und nur, wenn sie signiert sind.",
   "f9.h": "Browser-Bereinigung", "f9.p": "Leert die Caches von Chrome, Edge, Brave, Vivaldi, Opera und Firefox. Anmeldungen, Cookies, Passwörter und Verlauf bleiben immer unberührt.",
   "f10.h": "Dev-Speicher", "f10.p": "Löscht node_modules, .next, target und .venv in Projekten, die Sie nicht mehr anfassen, bereinigt Paket-, GPU-Shader- und KI-Tool-Caches (npm, pip, Cargo, CUDA, Cursor, VS Code…) und entfernt Git-Worktrees, die Agenten zurückgelassen haben.",
-  "f11.h": "Hardware", "f11.p": "Laufwerkszustand, ein Geschwindigkeitstest und alle Details zu CPU, GPU, RAM und Akku in einem Tab statt in vier separaten Tools. Ohne Treiberinstallation.",
+  "f11.h": "Hardware", "f11.p": "Laufwerkszustand, ein Geschwindigkeitstest und alle Details zu CPU, GPU, RAM und Akku in einem Tab statt in vier separaten Tools. Ohne Treiberinstallation.", "f12.h": "GPU & KI", "f12.p": "Was jede App auf Grafikkarte und NPU tut, aus denselben Zählern wie der Task-Manager, dazu die laufenden KI-Runtimes (Ollama, LM Studio, llama.cpp, ComfyUI, PyTorch), ihre geladenen Modelle und der belegte Grafikspeicher.", "f13.h": "Netzwerk", "f13.p": "Datenverkehr pro Adapter, welche App welche Verbindung oder welchen lauschenden Port hält, und eine Suche, die zeigt, wer Port 3000 oder eine gesperrte Datei bzw. einen Ordner nutzt.", "f14.h": "Finden", "f14.p": "Programme ohne Deinstallationsprogramm, übrig gebliebene Ordner in „Programme“, große alte Dateien in „Downloads“ und unsignierte Autostart-Programme, die einen Blick wert sind, mit Microsoft Defender-Scan per Klick. Entferntes landet im Papierkorb oder in einer Sicherung.", "f15.h": "Einfach oder Profi", "f15.p": "„Einfach“ zeigt das Dashboard und die Bereinigungen in klaren Worten. „Profi“ ergänzt Prozesse, Netzwerk, GPU-Engines und die Rohwerte. Wähle den Stil „Klar“ oder „KI-Look“ und schalte Monitore ab, die du nicht brauchst. Dann kosten sie keine CPU.", "gal.processes": "Prozesse", "gal.gpu": "GPU & KI", "gal.network": "Netzwerk", "gal.hardware": "Hardware",
     "clean.eyebrow": "Dev-Bereinigung", "clean.h": "🧹 Liegen gebliebene Sitzungen sicher aufräumen", "shot.cleanup": "Dev-Bereinigung", "shot.dashboard": "Übersicht", "clean.l5": "<b>MCP-Server und Headless-Browser, die Ihre Agents zurückgelassen haben,</b> werden ebenfalls gefunden, und eine Live-Anzeige zeigt Sekunden nach jeder Bereinigung, wie viel RAM Sie zurückbekommen haben.",
     "clean.l1": "<b>Verwaiste Prozesse</b>: Ihr Terminal ist geschlossen, aber sie laufen weiter, wie der klassische Zombie localhost:3000.",
     "clean.l2": "<b>Inaktive Agents in offenen Terminals werden nie vorausgewählt</b>, denn sie warten auf Sie.",

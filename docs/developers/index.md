@@ -25,7 +25,7 @@ The full API is described by the OpenAPI 3.1 spec at [`https://rigsweep.com/open
 
 ### GET /v1/totals
 
-Operation `getImpactTotals`. All-time totals across every install that shares anonymous stats: `disk_freed` and `ram_recovered` in bytes, `processes_ended`, `cleanups`, `tabs_slept`, `tabs_closed`, install counts and the ten biggest cleanup categories in `top`. Cached for five minutes.
+Operation `getImpactTotals`. All-time totals across every install that shares anonymous stats: `disk_freed` and `ram_recovered` in bytes, `processes_ended`, `cpu_freed` and `cpu_peak` (the CPU the ended processes were using, in percent of each PC's whole CPU: summed, and the most in one cleanup), `cleanups`, `tabs_slept`, `tabs_closed`, install counts and the ten biggest cleanup categories in `top`. Cached for five minutes.
 
 ```
 {"installs":1,"active_installs_30d":1,"disk_freed":141408233058,"ram_recovered":2537816064,"processes_ended":42,"cleanups":25,"top":[{"area":"memory","kind":"server","bytes":2532392960}],"updated_at":"2026-11-17T18:58:51Z", ...}

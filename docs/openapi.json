@@ -404,6 +404,8 @@
           "disk_freed",
           "ram_recovered",
           "processes_ended",
+          "cpu_freed",
+          "cpu_peak",
           "cleanups",
           "tabs_slept",
           "tabs_closed",
@@ -434,6 +436,14 @@
           "processes_ended": {
             "type": "integer",
             "description": "Processes ended."
+          },
+          "cpu_freed": {
+            "type": "number",
+            "description": "Sum of the CPU the ended process trees were using, in percent of each PC's whole CPU."
+          },
+          "cpu_peak": {
+            "type": "number",
+            "description": "The most CPU freed in one cleanup run, in percent of that PC's whole CPU."
           },
           "cleanups": {
             "type": "integer",

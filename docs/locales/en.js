@@ -2,7 +2,7 @@
 window.T = window.T || {};
 T["en"] = {
     "gal.cleanup": "Dev Cleanup", "gal.dashboard": "Dashboard", "gal.impact": "Impact", "gal.disk": "Dev Disk", "gal.tweaks": "Tweaks", "gal.settings": "Settings", "gal.label": "Screenshots",
-    "live.title": "Freed by RigSweep users so far", "live.procs": "dev processes ended", "cta.join": "⬇️ Join the impact: download for Windows",
+    "live.title": "Freed by RigSweep users so far", "live.cpu": "CPU freed at once", "cta.join": "⬇️ Join the impact: download for Windows",
     "nav.features": "Features", "nav.trust": "Antivirus FAQ",
     "hero.badge": "🆓 Free & open source · MIT",
     "hero.title": "Room for your <span>agents</span>.",
@@ -22,7 +22,7 @@ T["en"] = {
     "story.p3": "<strong>RigSweep shows what's actually using your machine, sweeps what's stale, and keeps every change reversible.</strong>",
     "stat.chrome": "🌐 Chrome (37 processes)", "stat.node": "⬢ Node + Claude (14 processes)", "stat.services": "🧩 Windows services running",
     "stat.cap": "Measured on the author's 32 GB laptop in the middle of a working day.",
-    "feat.eyebrow": "Features", "feat.h": "✨ What it does", "feat.lead": "Built for developers who live in terminals and AI agents, not for 'PC booster' tricks.",
+    "feat.eyebrow": "Features", "feat.h": "✨ What it does", "feat.lead": "Built for developers who live in terminals and AI agents, not for 'PC booster' tricks. One app in place of Task Manager, a hardware info tool like CPU-Z and a cleaner.",
     "f1.h": "Dev Cleanup", "f1.p": "Orphaned and idle dev servers, build daemons and agent CLIs across Node, Python, Java, .NET and more, each with its process tree, project, RAM and ports.",
     "f2.h": "Boost Report", "f2.p": "Real before/after measurements instead of fake percentages. You can copy them as Markdown and share your result.",
     "f3.h": "Chrome tab helper", "f3.p": "A tiny extension to sleep idle tabs, close duplicates and close tabs by pattern like localhost:*. It has no network access.",
@@ -33,7 +33,7 @@ T["en"] = {
   "f8.h": "Updates, your choice", "f8.p": "Off by default. Check when you want, or turn on a daily check. Updates install only when you click, and only if they're signed.",
   "f9.h": "Browser Cleanup", "f9.p": "Empties caches for Chrome, Edge, Brave, Vivaldi, Opera and Firefox. Sign-ins, cookies, passwords and history are never touched.",
   "f10.h": "Dev Disk", "f10.p": "Deletes node_modules, .next, target and .venv in projects you stopped touching, cleans package, GPU shader and AI tool caches (npm, pip, Cargo, CUDA, Cursor, VS Code…) and removes git worktrees agents left behind.",
-  "f11.h": "Hardware", "f11.p": "Disk health, a disk speed test and your CPU, GPU, RAM and battery details in one tab, instead of four separate tools. No driver installed.",
+  "f11.h": "Hardware", "f11.p": "Disk health, a disk speed test and your CPU, GPU, RAM and battery details in one tab, instead of four separate tools. No driver installed.", "f12.h": "GPU & AI", "f12.p": "What each app does on your graphics card and NPU, from the counters Task Manager uses, plus the AI runtimes running now (Ollama, LM Studio, llama.cpp, ComfyUI, PyTorch), their loaded models and the video memory they hold.", "f13.h": "Network", "f13.p": "Traffic per adapter, which app holds which connection or listening port, and a search that tells you who is using port 3000 or a locked file or folder.", "f14.h": "Find", "f14.p": "Programs whose uninstaller is gone, leftover Program Files folders, big old files in Downloads, and unsigned startup programs worth a look, with a Microsoft Defender scan in one click. Removed items go to the Recycle Bin or a backup.", "f15.h": "Simple or Pro", "f15.p": "Simple shows the Dashboard and the cleanups in plain words. Pro adds Processes, Network, GPU engines and the raw numbers. Pick the Clean or AI-ish style, and turn off monitors you don't need so they cost no CPU.", "gal.processes": "Processes", "gal.gpu": "GPU & AI", "gal.network": "Network", "gal.hardware": "Hardware",
     "clean.eyebrow": "Dev Cleanup", "clean.h": "🧹 Sweep stale sessions, safely", "shot.cleanup": "Dev Cleanup", "shot.dashboard": "Dashboard", "clean.l5": "<b>MCP servers and headless browsers your agents left behind</b> are found too, and a live meter shows the RAM you got back seconds after each sweep.",
     "clean.l1": "<b>Orphans</b>: their terminal is closed but they're still running, like the classic zombie localhost:3000.",
     "clean.l2": "<b>Idle agents in open terminals are never pre-selected</b>, because they're waiting for you.",

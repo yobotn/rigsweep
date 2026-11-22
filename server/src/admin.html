@@ -205,7 +205,7 @@ function renderOverview() {
   $("#kpis").innerHTML = k.map(([l, v, c, a, b]) => `<div class="kpi"><div class="sub">${esc(l)}</div><div class="v ${c}">${esc(v)}</div>${delta(a, b)}</div>`).join("");
   const a = data.totals.all;
   $("#minis").innerHTML = [
-    ["Processes ended", num(n.processes_ended)], ["Cleanups", num(n.cleanups)], ["Reports", num(n.reports)],
+    ["Processes ended", num(n.processes_ended)], ["CPU freed (sum)", `${num(n.cpu_freed)}%`], ["CPU freed, best run", `${num(n.cpu_peak)}%`], ["Cleanups", num(n.cleanups)], ["Reports", num(n.reports)],
     ["Opt-outs", num(n.optouts)], ["Avg RAM in use", data.totals.ram_used_pct == null ? "–" : `${data.totals.ram_used_pct}%`],
     ["Installs, all time", num(a.installs)],
   ].map(([l, v]) => `<div class="mini"><div class="sub">${esc(l)}</div><div class="v">${esc(v)}</div></div>`).join("");

@@ -71,6 +71,7 @@ Mit Python und Java laufen auch gewöhnliche Desktop-Apps, daher werden dort nur
 - 🟠🔴 **Anzeige im Infobereich**: Das Symbol im Infobereich (und die Taskleistenschaltfläche, solange das Fenster geöffnet ist) erhält einen orangefarbenen Punkt, wenn liegen gebliebene Dev-Prozesse ≥ 1 GB belegen, und einen roten Punkt ab ≥ 2 GB. Zeigen Sie mit der Maus auf das Symbol im Infobereich, um die Menge zu sehen. Die Schwellenwerte legen Sie in den Einstellungen fest, wo sich der Punkt auch ausschalten lässt.
 - ♻️ **Build-Daemon**: Gradle-, Kotlin- und Roslyn-Server sollen im Hintergrund bleiben. Sie zu beenden ist unbedenklich; beim nächsten Build starten sie neu.
 - 🔒 **Gesperrt**: Prozesse, die zu **VS Code, Cursor, JetBrains, Visual Studio…** (Ihren Language Servern) oder zu einer Desktop-App gehören, können hier nie beendet werden.
+- 🎯 **Eine Zeile oder viele**: Zeilen anhaken und **Auswahl beenden** klicken, oder in einer einzelnen Zeile auf **Beenden**. Beides zeigt dieselbe Bestätigung, samt dem, was dabei frei wird.
 - ✅ Nichts wird ohne Ihre Bestätigung beendet, und vor jedem Beenden wird geprüft, ob die PID inzwischen wiederverwendet wurde.
 
 ### 💾 Dev-Speicher: node_modules, Caches und Worktrees
@@ -94,6 +95,18 @@ Das Wichtigste, wofür Sie sonst CPU-Z, GPU-Z, CrystalDiskInfo und CrystalDiskMa
 - ⚡ **Geschwindigkeitstest**: sequenzielles Lesen und Schreiben plus zufällige 4K-Lesezugriffe, pro Laufwerk. Dafür wird eine temporäre Datei mit 512 MB geschrieben und danach gelöscht.
 - 🧮 **CPU, GPU, Arbeitsspeicher**: Modell, Kerne und Threads, Cache, Virtualisierung (nötig für WSL 2 und Docker), Grafikspeicher und Treiber, RAM-Typ, Geschwindigkeit und freie Steckplätze.
 - 🔋 **System und Akku**: Mainboard, BIOS, Windows-Build, Betriebszeit und Akkuverschleiß bei Laptops.
+
+<img src="docs/screenshots/hardware.png" alt="Hardware" width="860">
+
+### 🎮 GPU & KI: was auf Grafikkarte und NPU läuft
+Was jede App auf GPU und NPU tut, gelesen aus denselben Leistungsindikatoren, die der Task-Manager nutzt. Es wird nichts installiert, und solange die Seite geschlossen ist, wird nichts abgefragt.
+
+- 🎮 **Pro Grafikkarte**: Auslastung, belegter dedizierter und gemeinsam genutzter Speicher, im Profi-Modus außerdem eine Anzeige für jede aktive Engine (3D, Compute, Copy, Video…).
+- 📋 **Pro App**: GPU-Auslastung, Engine und dedizierter Grafikspeicher jeder App, die die GPU nutzt, im Profi-Modus auch der gemeinsam genutzte Speicher.
+- 🧠 **NPU**: Eine Neural Processing Unit erscheint neben den GPUs, und die NPU-Auslastung jeder App steht direkt bei ihrer GPU-Auslastung.
+- 🤖 **KI-Auslastung**: laufende lokale KI-Runtimes (Ollama, LM Studio, llama.cpp, Jan, LocalAI, KoboldCpp, ComfyUI, vLLM, Python mit PyTorch oder Transformers…) und der Grafikspeicher, den sie belegen. Bei Ollama werden zusätzlich die geladenen Modelle mit ihrem VRAM-Bedarf aufgelistet.
+
+<img src="docs/screenshots/gpu.png" alt="GPU & KI" width="860">
 
 ### 📊 Boost-Bericht: echtes Vorher und Nachher
 Keine erfundenen Angaben wie „Ihr PC ist 87 % schneller“. RigSweep **misst** Ihren Rechner und vergleicht zwei Momentaufnahmen: belegter/freier RAM, durchschnittliche CPU-Last, Anzahl der Prozesse, laufende Dienste, Chrome-RAM, Node-/Agent-RAM.
@@ -129,6 +142,11 @@ Ein kuratierter Katalog ([`catalog/tweaks.json`](src-tauri/catalog/tweaks.json))
 ### 🔍 Prozessanalyse
 CPU / RAM / Datenträger pro Prozess und **welche Dienste in jeder `svchost.exe` laufen**. Deaktivieren Sie einen Dienst oder beenden Sie einen Prozess direkt aus der Liste (wichtige Elemente sind gesperrt 🔒). Jede App wird mit ihrem eigenen Symbol angezeigt.
 
+- ❓ **Warum?**: Ein Klick auf einen Prozess zeigt, was dahintersteckt: CPU, Arbeitsspeicher, Datenträger, Threads, Hersteller, Datei und Befehlszeile, welches Programm ihn gestartet hat und welche Programme er selbst gestartet hat. Bekannte Windows-Prozesse (Defender, Windows Search, Windows Update, svchost, WMI…) kommen mit einer verständlichen Erklärung, warum sie gerade beschäftigt sind.
+- 🛡️ **Was Defender scannt**: Die Übersicht zeigt **Warum?** neben einem Prozess, der viel CPU braucht, bei Microsoft Defender schon früher. Für Defender zeichnet **Aufzeichnen, was gescannt wird** 20 Sekunden lang mit und listet die Ordner, Dateitypen und Prozesse auf, die die Scans ausgelöst haben. Stammt das meiste aus Ihrer Entwicklungsarbeit, verweist RigSweep auf die Optimierung mit Defender-Ausschlüssen für Dev-Ordner.
+
+<img src="docs/screenshots/processes.png" alt="Prozesse" width="860">
+
 ### 🚀 Autostart: was der Task-Manager nicht zeigt
 Die Liste „Autostart-Apps“ im Task-Manager lässt das meiste aus, was mit Windows startet. RigSweep zeigt alles, ohne die Bestandteile von Windows selbst:
 
@@ -138,6 +156,29 @@ Die Liste „Autostart-Apps“ im Task-Manager lässt das meiste aus, was mit Wi
 - 💾 Jede Änderung wird gesichert und lässt sich wiederherstellen. Schaltet sich eine App nach einem Update wieder ein, deaktiviert der Watchdog sie erneut.
 
 <img src="docs/screenshots/startup.png" alt="Autostart" width="860">
+
+### 📡 Netzwerk: welche App welchen Port belegt
+- 📶 **Pro Adapter**: Download- und Upload-Geschwindigkeit, Verbindungsgeschwindigkeit und Datenvolumen seit dem Start. Windows liefert Bytezahlen pro App nur an Tools, die als Administrator eine Ablaufverfolgung starten, deshalb wird der Datenverkehr pro Adapter angezeigt, nicht pro App.
+- 🔌 **Pro App**: lauschende Ports (TCP und UDP), die Zahl offener Verbindungen und die Remoteadressen, mit denen die App spricht.
+- 🔍 **Wer nutzt das?**: Geben Sie einen Port ein, um zu sehen, welcher Prozess ihn belegt (mit Befehlszeile), oder eine Datei bzw. einen Ordner, um zu sehen, welche Apps sie geöffnet haben oder darin arbeiten. Hier wird nur nachgesehen, nichts beendet.
+
+<img src="docs/screenshots/network.png" alt="Netzwerk" width="860">
+
+### 🔎 Finden: Überbleibsel und Dateien, die einen zweiten Blick wert sind
+Drei Listen zum Durchsehen. Entfernt wird nur, was Sie auswählen.
+
+- 📦 **Programme ohne Deinstallationsprogramm**: Einträge unter „Installierte Apps“, deren Deinstallationsprogramm fehlt, und Ordner unter „Program Files“, die kein installiertes Programm, kein Dienst, keine Verknüpfung und keine Aufgabe mehr nutzt. Jeder Eintrag wird vor dem Entfernen in einer Sicherungsdatei gespeichert, Ordner landen im Papierkorb.
+- 🕒 **Alte Dateien**: Dateien über 50 MB in Downloads, Desktop und Dokumente, die seit einem Jahr nicht geändert wurden, sowie Installationsprogramme in Downloads, die älter als 90 Tage sind. Sie landen im Papierkorb. Mit OneDrive synchronisierte Dateien werden markiert, denn wer sie löscht, löscht sie auf allen Geräten.
+- 🛡️ **Einen Blick wert**: unsignierte Programme, die mit Windows starten oder aus AppData bzw. Temp laufen, Namen, die ihren echten Dateityp verbergen (`rechnung.pdf.exe`, ein verstecktes Rechts-nach-links-Zeichen), und unsignierte Downloads. In der Liste zu stehen ist kein Urteil: **Mit Defender scannen** fragt Microsoft Defender gezielt nach dieser einen Datei.
+
+<img src="docs/screenshots/finders.png" alt="Finden" width="860">
+
+### 🎨 Einfach oder Profi, Klar oder KI-Look
+Unter **🛠️ Einstellungen → Darstellung & Funktionen**:
+
+- 🧭 **Modus**: **Einfach** zeigt die Übersicht, die Bereinigungen und verständliche Texte und blendet die Expertenseiten (Prozesse, Netzwerk) aus. **Profi** zeigt alles, auch GPU-Engines, Verbindungen und die Rohwerte. Neue Installationen starten mit „Einfach“.
+- 🖌️ **Stil**: **Klar** ist flach, mit Liniensymbolen; **KI-Look** bringt Emoji, Farbverläufe und ein sanftes Leuchten.
+- 📡 **Überwachung**: GPU und VRAM pro Prozess, KI-Auslastung, Netzwerk, Temperaturen und Warnungen zum Laufwerkszustand lassen sich einzeln abschalten. Was abgeschaltet ist, wird nie abgefragt und kostet keine CPU.
 
 ### 🔄 Updates nach Ihrer Wahl
 Unter **🛠️ Einstellungen → 🔄 Updates** gibt es die Schaltfläche **Jetzt suchen** und die optionale Einstellung *Automatisch nach Updates suchen* (beim Start, danach einmal täglich), die **standardmäßig deaktiviert** ist. Sobald eine neue Version erscheint, wird in der Seitenleiste eine Schaltfläche mit den Neuerungen angezeigt. Nichts wird installiert, bevor Sie auf **Installieren und neu starten** klicken, und nur, wenn der Download mit dem Schlüssel von RigSweep signiert ist. Ihre Optimierungen, Sicherungen und Einstellungen bleiben erhalten. Was genau bei einer Suche geschieht, steht in der [Datenschutzerklärung](#-datenschutzerkl%C3%A4rung).

@@ -71,6 +71,7 @@ Python e Java eseguono anche normali app desktop, quindi per questi vengono elen
 - 🟠🔴 **Indicatore nell'area di notifica**: l'icona nell'area di notifica (e il pulsante sulla barra delle applicazioni quando la finestra è aperta) mostra un punto arancione quando i processi dev inutilizzati occupano ≥ 1 GB e un punto rosso da ≥ 2 GB. Passa il mouse sull'icona per vedere quanto. Le soglie si impostano in Impostazioni, dove puoi anche disattivare il punto.
 - ♻️ **Daemon di build**: i server di Gradle, Kotlin e Roslyn sono fatti per restare attivi. Terminarli non fa danni; si riavviano alla build successiva.
 - 🔒 **Bloccato**: i processi gestiti da **VS Code, Cursor, JetBrains, Visual Studio…** (i tuoi language server) o da un'app desktop non possono mai essere terminati da qui.
+- 🎯 **Una riga o tante**: seleziona le righe e fai clic su **Termina selezionati**, oppure usa il pulsante **Termina** di una singola riga. In entrambi i casi compare la stessa conferma, con quanto verrà liberato.
 - ✅ Nulla viene terminato senza la tua conferma, e prima di ogni terminazione viene controllato il riutilizzo del PID.
 
 ### 💾 Disco dev: node_modules, cache e worktree
@@ -94,6 +95,18 @@ Le informazioni di base per cui apriresti CPU-Z, GPU-Z, CrystalDiskInfo e Crysta
 - ⚡ **Test di velocità**: lettura e scrittura sequenziali più letture casuali 4K, per ogni unità. Scrive un file temporaneo da 512 MB e poi lo elimina.
 - 🧮 **CPU, GPU, memoria**: modello, core e thread, cache, virtualizzazione (necessaria per WSL 2 e Docker), memoria video e driver, tipo di RAM, velocità e slot liberi.
 - 🔋 **Sistema e batteria**: scheda madre, BIOS, build di Windows, tempo di accensione e usura della batteria sui portatili.
+
+<img src="docs/screenshots/hardware.png" alt="Hardware" width="860">
+
+### 🎮 GPU e IA: cosa gira sulla scheda video e sulla NPU
+Cosa fa ogni app su GPU e NPU, letto dagli stessi contatori usati da Gestione attività. Non viene installato nulla, e finché la pagina è chiusa non viene letto nulla.
+
+- 🎮 **Per scheda**: utilizzo, memoria dedicata e condivisa in uso e, in modalità Pro, un indicatore per ogni motore attivo (3D, Compute, Copy, Video…).
+- 📋 **Per app**: utilizzo GPU, motore e memoria video dedicata di ogni app che usa la GPU, più la memoria condivisa in modalità Pro.
+- 🧠 **NPU**: l'unità di elaborazione neurale compare accanto alle GPU, e l'utilizzo NPU di ogni app è mostrato insieme al suo utilizzo GPU.
+- 🤖 **Carico IA**: i runtime di IA locali in esecuzione (Ollama, LM Studio, llama.cpp, Jan, LocalAI, KoboldCpp, ComfyUI, vLLM, Python con PyTorch o Transformers…) e la memoria video che occupano. Per Ollama sono elencati anche i modelli caricati e la VRAM di ciascuno.
+
+<img src="docs/screenshots/gpu.png" alt="GPU e IA" width="860">
 
 ### 📊 Report boost: prima e dopo reali
 Niente numeri finti del tipo "il tuo PC è più veloce dell'87%". RigSweep **misura** il tuo PC e confronta due istantanee: RAM in uso/libera, CPU media, numero di processi, servizi in esecuzione, RAM di Chrome, RAM di Node/agenti.
@@ -129,6 +142,11 @@ Un catalogo curato ([`catalog/tweaks.json`](src-tauri/catalog/tweaks.json)) con 
 ### 🔍 Analisi dei processi
 CPU / RAM / disco per processo, e **quali servizi vivono dentro ogni `svchost.exe`**. Disattiva un servizio o termina un processo direttamente dall'elenco (gli elementi di sistema sono bloccati 🔒). Ogni app è mostrata con la sua icona.
 
+- ❓ **Perché?**: fai clic su un processo per vedere cos'è: CPU, memoria, disco, thread, produttore, file e riga di comando, quale programma l'ha avviato e quali programmi ha avviato lui. I processi noti di Windows (Defender, Windows Search, Windows Update, svchost, WMI…) hanno una spiegazione chiara del perché sono impegnati.
+- 🛡️ **Cosa sta analizzando Defender**: la Dashboard mostra **Scopri perché** accanto a un processo che usa molta CPU, e prima ancora accanto a Microsoft Defender. Per Defender, **Registra cosa analizza** lo osserva per 20 secondi ed elenca le cartelle, i tipi di file e i processi che hanno causato le analisi. Se gran parte viene dal tuo lavoro di sviluppo, ti indirizza all'ottimizzazione con le esclusioni di Defender per le cartelle dev.
+
+<img src="docs/screenshots/processes.png" alt="Processi" width="860">
+
 ### 🚀 Avvio: ciò che Gestione attività non mostra
 L'elenco App di avvio di Gestione attività tralascia quasi tutto ciò che parte con Windows. RigSweep mostra tutto, esclusi i componenti di Windows stesso:
 
@@ -138,6 +156,29 @@ L'elenco App di avvio di Gestione attività tralascia quasi tutto ciò che parte
 - 💾 Ogni modifica viene salvata e si può ripristinare, e se un aggiornamento riattiva un'app, il watchdog la disattiva di nuovo.
 
 <img src="docs/screenshots/startup.png" alt="Avvio" width="860">
+
+### 📡 Rete: quale app occupa quale porta
+- 📶 **Per scheda di rete**: velocità di download e upload, velocità di collegamento e traffico dall'avvio. Windows fornisce il conteggio dei byte per app solo agli strumenti che avviano una traccia come amministratore, quindi il traffico è mostrato per scheda, non per app.
+- 🔌 **Per app**: porte in ascolto (TCP e UDP), numero di connessioni aperte e indirizzi remoti con cui ogni app comunica.
+- 🔍 **Chi lo sta usando?**: inserisci una porta per vedere quale processo la occupa, con la sua riga di comando, oppure un file o una cartella per vedere quali app lo tengono aperto o ci lavorano dentro. Si limita a guardare: da qui non viene terminato nulla.
+
+<img src="docs/screenshots/network.png" alt="Rete" width="860">
+
+### 🔎 Trova: avanzi e file che meritano un secondo sguardo
+Tre elenchi da controllare. Non viene rimosso nulla che tu non abbia scelto.
+
+- 📦 **Programmi senza disinstallatore**: voci di App installate il cui programma di disinstallazione non c'è più, e cartelle in Program Files che nessun programma installato, servizio, collegamento o attività usa. Ogni voce viene salvata in un file di backup prima di essere rimossa, e le cartelle finiscono nel Cestino.
+- 🕒 **File vecchi**: file oltre 50 MB in Download, Desktop e Documenti non modificati da un anno, e programmi di installazione in Download più vecchi di 90 giorni. Finiscono nel Cestino, e i file sincronizzati con OneDrive vengono segnalati, perché eliminarli li rimuove da tutti i dispositivi.
+- 🛡️ **Da controllare**: programmi non firmati che si avviano con Windows o girano da AppData o Temp, nomi che nascondono il vero tipo (`fattura.pdf.exe`, un carattere nascosto da destra a sinistra) e download non firmati. Essere in elenco non è un verdetto: **Analizza con Defender** chiede a Microsoft Defender di quel singolo file.
+
+<img src="docs/screenshots/finders.png" alt="Trova" width="860">
+
+### 🎨 Semplice o Pro, Pulito o Stile IA
+In **🛠️ Impostazioni → Aspetto e funzioni**:
+
+- 🧭 **Modalità**: **Semplice** mostra la Dashboard, le pulizie e parole chiare, e nasconde le pagine per esperti (Processi, Rete). **Pro** mostra tutto, compresi i motori della GPU, le connessioni e i valori grezzi. Le nuove installazioni partono in Semplice.
+- 🖌️ **Stile**: **Pulito** è piatto, con icone al tratto; **Stile IA** aggiunge emoji, sfumature e un leggero bagliore.
+- 📡 **Monitor**: disattiva GPU e VRAM per processo, Carico IA, Rete, Temperature o Avvisi sullo stato dei dischi. Un monitor disattivato non viene mai letto, quindi non consuma CPU.
 
 ### 🔄 Aggiornamenti, decidi tu
 **🛠️ Impostazioni → 🔄 Aggiornamenti** ha un pulsante **Cerca ora** e un'opzione facoltativa *Cerca aggiornamenti automaticamente* (all'avvio, poi una volta al giorno), **disattivata per impostazione predefinita**. Quando esce una nuova versione, nella barra laterale compare un pulsante con le note sulla versione. Nulla viene installato finché non fai clic su **Installa e riavvia**, e solo se il download è firmato con la chiave di RigSweep. Ottimizzazioni, backup e impostazioni vengono mantenuti. Vedi l'[informativa sulla privacy](#-informativa-sulla-privacy) per sapere esattamente cosa fa un controllo.

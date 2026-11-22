@@ -32,12 +32,12 @@ $html = $html.Replace('<script src="app.js"></script>', '<script src="app.js"></
 [IO.File]::WriteAllText($index, $html, (New-Object Text.UTF8Encoding $false))
 
 $url = ([Uri]$index).AbsoluteUri
-function Shot($lang, $tab, $name) {
+function Shot($lang, $tab, $name, $query = "") {
   $png = Join-Path $out $name
   # separate profile so an open Edge window is never reused
   $args = @("--headless=new", "--disable-gpu", "--hide-scrollbars", "--force-device-scale-factor=1",
     "--user-data-dir=$work\profile-$lang-$tab", "--window-size=1240,820", "--virtual-time-budget=4000",
-    "--screenshot=$png", "$url`?lang=$lang&tab=$tab")
+    "--screenshot=$png", "$url`?lang=$lang&tab=$tab$query")
   Start-Process -FilePath $edge -ArgumentList $args -Wait -WindowStyle Hidden
   Write-Host "wrote $png"
 }
@@ -47,6 +47,10 @@ foreach ($lang in $Langs) {
 if ($Langs -contains "en") {
   # the homepage gallery and the README use these
   foreach ($tab in "dashboard", "impact", "disk", "browser", "tweaks", "startup", "settings") { Shot "en" $tab "$tab.png" }
+  # the expert pages only show in Pro mode
+  $pro = "&prefs=" + [Uri]::EscapeDataString('{"mode":"pro"}')
+  foreach ($tab in "processes", "gpu", "network", "hardware") { Shot "en" $tab "$tab.png" $pro }
+  Shot "en" "finders" "finders.png" "&scan=finders"
 }
 # the homepage shows these Dashboards to Spanish and French visitors
 foreach ($lang in "es", "fr") { if ($Langs -contains $lang) { Shot $lang "dashboard" "dashboard-$lang.png" } }

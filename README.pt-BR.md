@@ -71,6 +71,7 @@ Python e Java também executam aplicativos comuns da área de trabalho, por isso
 - 🟠🔴 **Indicador na área de notificação**: o ícone na área de notificação (e o botão na barra de tarefas enquanto a janela está aberta) ganha um ponto laranja quando processos de dev abandonados ocupam ≥ 1 GB e um ponto vermelho a partir de ≥ 2 GB. Passe o mouse sobre o ícone para ver quanto. Os limites são definidos em Configurações, onde o ponto também pode ser desativado.
 - ♻️ **Daemon de build**: os servidores do Gradle, do Kotlin e do Roslyn foram feitos para ficar rodando. Finalizá-los não causa problemas; eles reiniciam no próximo build.
 - 🔒 **Bloqueado**: processos que pertencem ao **VS Code, Cursor, JetBrains, Visual Studio…** (seus servidores de linguagem) ou a um aplicativo da área de trabalho nunca podem ser finalizados por aqui.
+- 🎯 **Uma linha ou várias**: marque as linhas e clique em **Finalizar** acima da lista, ou use o botão **Finalizar** de uma linha só. Os dois mostram a mesma confirmação, com o que vai ser liberado.
 - ✅ Nada é finalizado sem a sua confirmação, e a reutilização de PID é verificada antes de cada finalização.
 
 ### 💾 Disco dev: node_modules, caches e worktrees
@@ -94,6 +95,18 @@ O básico que você abriria no CPU-Z, GPU-Z, CrystalDiskInfo e CrystalDiskMark, 
 - ⚡ **Teste de velocidade**: leitura e gravação sequenciais, mais leituras aleatórias 4K, por unidade. Ele grava um arquivo temporário de 512 MB e depois o apaga.
 - 🧮 **CPU, GPU, memória**: modelo, núcleos e threads, cache, virtualização (exigida pelo WSL 2 e pelo Docker), memória de vídeo e driver, tipo de RAM, velocidade e slots livres.
 - 🔋 **Sistema e bateria**: placa-mãe, BIOS, build do Windows, tempo ligado e desgaste da bateria em notebooks.
+
+<img src="docs/screenshots/hardware.png" alt="Hardware" width="860">
+
+### 🎮 GPU e IA: o que roda na sua placa de vídeo e na NPU
+O que cada aplicativo faz na GPU e na NPU, lido dos mesmos contadores que o Gerenciador de Tarefas usa. Nada é instalado, e nada é consultado enquanto a página está fechada.
+
+- 🎮 **Por adaptador**: uso, memória dedicada e compartilhada em uso e, no modo Pro, um medidor para cada mecanismo ativo (3D, Compute, Copy, Video…).
+- 📋 **Por aplicativo**: uso de GPU, mecanismo e memória de vídeo dedicada de cada aplicativo que usa a GPU, mais a memória compartilhada no modo Pro.
+- 🧠 **NPU**: a unidade de processamento neural aparece ao lado das GPUs, e o uso de NPU de cada aplicativo é mostrado junto com o uso de GPU.
+- 🤖 **Carga de IA**: os runtimes de IA locais em execução (Ollama, LM Studio, llama.cpp, Jan, LocalAI, KoboldCpp, ComfyUI, vLLM, Python com PyTorch ou Transformers…) e a memória de vídeo que eles ocupam. No Ollama, os modelos carregados e a VRAM de cada um também aparecem.
+
+<img src="docs/screenshots/gpu.png" alt="GPU e IA" width="860">
 
 ### 📊 Relatório de ganhos: antes e depois reais
 Nada de números falsos como "seu PC está 87% mais rápido". O RigSweep **mede** sua máquina e compara dois snapshots: RAM usada/livre, CPU média, quantidade de processos, serviços em execução, RAM do Chrome, RAM de Node/agentes.
@@ -129,6 +142,11 @@ Um catálogo selecionado ([`catalog/tweaks.json`](src-tauri/catalog/tweaks.json)
 ### 🔍 Analisador de processos
 CPU / RAM / disco por processo, e **quais serviços rodam dentro de cada `svchost.exe`**. Desative um serviço ou finalize um processo direto da lista (os itens essenciais ficam bloqueados 🔒). Cada aplicativo aparece com o próprio ícone.
 
+- ❓ **Por quê?**: clique em um processo para ver o que ele é: CPU, memória, disco, threads, fabricante, arquivo e linha de comando, qual programa o iniciou e quais programas ele iniciou. Processos conhecidos do Windows (Defender, Windows Search, Windows Update, svchost, WMI…) vêm com uma explicação simples de por que estão ocupados.
+- 🛡️ **O que o Defender está verificando**: o Painel mostra **Ver por quê** ao lado de um processo que usa muita CPU, e mais cedo ainda ao lado do Microsoft Defender. No caso do Defender, **Gravar o que ele verifica** acompanha o processo por 20 segundos e lista as pastas, os tipos de arquivo e os processos que provocaram as verificações. Se a maior parte vier do seu trabalho de desenvolvimento, ele indica o ajuste de exclusões do Defender para pastas de desenvolvimento.
+
+<img src="docs/screenshots/processes.png" alt="Processos" width="860">
+
 ### 🚀 Inicialização: o que o Gerenciador de Tarefas não mostra
 A lista de Aplicativos de inicialização do Gerenciador de Tarefas deixa de fora quase tudo o que inicia com o Windows. O RigSweep mostra tudo, menos os componentes do próprio Windows:
 
@@ -138,6 +156,29 @@ A lista de Aplicativos de inicialização do Gerenciador de Tarefas deixa de for
 - 💾 Cada alteração tem backup e pode ser restaurada, e se uma atualização reativar um aplicativo, o watchdog o desativa de novo.
 
 <img src="docs/screenshots/startup.png" alt="Inicialização" width="860">
+
+### 📡 Rede: qual aplicativo ocupa qual porta
+- 📶 **Por adaptador**: velocidade de download e upload, velocidade do link e tráfego desde a inicialização. O Windows só fornece a contagem de bytes por aplicativo para ferramentas que fazem rastreamento como administrador, então o tráfego aparece por adaptador, não por aplicativo.
+- 🔌 **Por aplicativo**: portas em escuta (TCP e UDP), o número de conexões abertas e os endereços remotos com que cada aplicativo se comunica.
+- 🔍 **Quem está usando?**: digite uma porta para ver qual processo a ocupa, com a linha de comando, ou um arquivo ou pasta para ver quais aplicativos estão com ele aberto ou trabalhando dentro dele. Só consulta: nada é finalizado por aqui.
+
+<img src="docs/screenshots/network.png" alt="Rede" width="860">
+
+### 🔎 Encontrar: sobras e arquivos que merecem uma segunda olhada
+Três listas para revisar. Nada é removido sem você escolher.
+
+- 📦 **Programas sem desinstalador**: entradas em Aplicativos instalados cujo desinstalador sumiu, e pastas em Program Files que nenhum programa instalado, serviço, atalho ou tarefa usa. Cada entrada é salva em um arquivo de backup antes de ser removida, e as pastas vão para a Lixeira.
+- 🕒 **Arquivos antigos**: arquivos com mais de 50 MB em Downloads, Área de Trabalho e Documentos que não mudam há um ano, e instaladores em Downloads com mais de 90 dias. Eles vão para a Lixeira, e um arquivo sincronizado com o OneDrive é sinalizado, porque apagá-lo remove o arquivo em todos os dispositivos.
+- 🛡️ **Vale uma olhada**: programas sem assinatura que iniciam com o Windows ou rodam a partir de AppData ou Temp, nomes que escondem o tipo real (`fatura.pdf.exe`, um caractere oculto da direita para a esquerda) e downloads sem assinatura. Estar na lista não é um veredito: **Verificar com o Defender** pergunta ao Microsoft Defender sobre aquele arquivo.
+
+<img src="docs/screenshots/finders.png" alt="Encontrar" width="860">
+
+### 🎨 Simples ou Pro, Limpo ou Estilo IA
+Em **🛠️ Configurações → Aparência e recursos**:
+
+- 🧭 **Modo**: **Simples** mostra o Painel, as limpezas e uma linguagem direta, e esconde as páginas para especialistas (Processos, Rede). **Pro** mostra tudo, incluindo os mecanismos da GPU, as conexões e os números brutos. Instalações novas começam no Simples.
+- 🖌️ **Estilo**: **Limpo** é plano, com ícones de linha; **Estilo IA** acrescenta emoji, degradês e um brilho suave.
+- 📡 **Monitores**: desligue GPU e VRAM por processo, Carga de IA, Rede, Temperaturas ou Alertas de saúde do disco. Um monitor desligado nunca é consultado, então não gasta CPU.
 
 ### 🔄 Atualizações, quando você quiser
 Em **🛠️ Configurações → 🔄 Atualizações** há um botão **Verificar agora** e uma opção *Verificar atualizações automaticamente* (ao iniciar e depois uma vez por dia), que vem **desativada por padrão**. Quando sai uma nova versão, aparece um botão na barra lateral com as novidades. Nada é instalado até você clicar em **Instalar e reiniciar**, e só se o download estiver assinado com a chave do RigSweep. Seus ajustes, backups e configurações são mantidos. Veja na [política de privacidade](#-pol%C3%ADtica-de-privacidade) exatamente o que uma verificação faz.

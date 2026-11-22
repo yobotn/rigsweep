@@ -1,7 +1,7 @@
 window.T = window.T || {};
 T["it"] = {
     "gal.cleanup": "Pulizia dev", "gal.dashboard": "Dashboard", "gal.impact": "Risultati", "gal.disk": "Disco dev", "gal.tweaks": "Ottimizzazioni", "gal.settings": "Impostazioni", "gal.label": "Schermate",
-    "live.title": "Liberato finora dagli utenti di RigSweep", "live.procs": "processi di sviluppo chiusi", "cta.join": "⬇️ Unisciti: scarica per Windows",
+    "live.title": "Liberato finora dagli utenti di RigSweep", "live.cpu": "CPU liberata in una volta", "cta.join": "⬇️ Unisciti: scarica per Windows",
     "nav.features": "Funzionalità", "nav.trust": "FAQ antivirus",
     "hero.badge": "🆓 Gratis e open source · MIT",
     "hero.title": "Spazio per i tuoi <span>agenti</span>.",
@@ -21,7 +21,7 @@ T["it"] = {
     "story.p3": "<strong>RigSweep mostra cosa sta davvero usando il tuo PC, fa pulizia di ciò che non serve più e rende ogni modifica reversibile.</strong>",
     "stat.chrome": "🌐 Chrome (37 processi)", "stat.node": "⬢ Node + Claude (14 processi)", "stat.services": "🧩 Servizi di Windows in esecuzione",
     "stat.cap": "Misurato sul portatile da 32 GB dell'autore, nel mezzo di una giornata di lavoro.",
-    "feat.eyebrow": "Funzionalità", "feat.h": "✨ Cosa fa", "feat.lead": "Pensato per gli sviluppatori che vivono tra terminali e agenti AI, non per i trucchi da \"PC booster\".",
+    "feat.eyebrow": "Funzionalità", "feat.h": "✨ Cosa fa", "feat.lead": "Pensato per gli sviluppatori che vivono tra terminali e agenti AI, non per i trucchi da \"PC booster\". Un'unica app al posto di Gestione attività, di uno strumento hardware come CPU-Z e di un programma di pulizia.",
     "f1.h": "Pulizia dev", "f1.p": "Dev server, daemon di build e CLI di agenti orfani o inattivi in Node, Python, Java, .NET e altro, ognuno con il suo albero di processi, progetto, RAM e porte.",
     "f2.h": "Report boost", "f2.p": "Misurazioni reali prima/dopo invece di percentuali inventate. Puoi copiarle come Markdown e condividere il tuo risultato.",
     "f3.h": "Helper schede per Chrome", "f3.p": "Una piccola estensione per sospendere le schede inattive, chiudere i duplicati e chiudere le schede in base a un pattern come localhost:*. Non ha accesso alla rete.",
@@ -32,7 +32,7 @@ T["it"] = {
   "f8.h": "Aggiornamenti, decidi tu", "f8.p": "Disattivati per impostazione predefinita. Cerca quando vuoi o attiva un controllo giornaliero. Gli aggiornamenti si installano solo quando fai clic, e solo se sono firmati.",
   "f9.h": "Pulizia browser", "f9.p": "Svuota le cache di Chrome, Edge, Brave, Vivaldi, Opera e Firefox. Accessi, cookie, password e cronologia non vengono mai toccati.",
   "f10.h": "Disco dev", "f10.p": "Elimina node_modules, .next, target e .venv dai progetti che non tocchi più, pulisce le cache di pacchetti, shader della GPU e strumenti di IA (npm, pip, Cargo, CUDA, Cursor, VS Code…) e rimuove i worktree git lasciati dagli agenti.",
-  "f11.h": "Hardware", "f11.p": "Salute dei dischi, un test di velocità e i dettagli di CPU, GPU, RAM e batteria in un'unica scheda, invece di quattro strumenti separati. Nessun driver installato.",
+  "f11.h": "Hardware", "f11.p": "Salute dei dischi, un test di velocità e i dettagli di CPU, GPU, RAM e batteria in un'unica scheda, invece di quattro strumenti separati. Nessun driver installato.", "f12.h": "GPU e IA", "f12.p": "Cosa fa ogni app sulla scheda video e sulla NPU, dagli stessi contatori di Gestione attività, più i runtime di IA in esecuzione (Ollama, LM Studio, llama.cpp, ComfyUI, PyTorch), i modelli caricati e la memoria video che occupano.", "f13.h": "Rete", "f13.p": "Traffico per scheda di rete, quale app tiene ogni connessione o porta in ascolto, e una ricerca che ti dice chi usa la porta 3000 o un file o una cartella bloccati.", "f14.h": "Trova", "f14.p": "Programmi senza più il programma di disinstallazione, cartelle rimaste in Programmi, file grandi e vecchi in Download e programmi all'avvio non firmati da controllare, con una scansione di Microsoft Defender in un clic. Quello che rimuovi finisce nel Cestino o in un backup.", "f15.h": "Semplice o Pro", "f15.p": "Semplice mostra la dashboard e le pulizie con parole chiare. Pro aggiunge Processi, Rete, motori GPU e i dati grezzi. Scegli lo stile Pulito o Stile IA e spegni i monitor che non ti servono, così non consumano CPU.", "gal.processes": "Processi", "gal.gpu": "GPU e IA", "gal.network": "Rete", "gal.hardware": "Hardware",
     "clean.eyebrow": "Pulizia dev", "clean.h": "🧹 Elimina le sessioni inutilizzate, in sicurezza", "shot.cleanup": "Pulizia dev", "shot.dashboard": "Dashboard", "clean.l5": "<b>Anche i server MCP e i browser headless lasciati in giro dai tuoi agenti</b> vengono trovati, e un indicatore in tempo reale mostra la RAM recuperata pochi secondi dopo ogni pulizia.",
     "clean.l1": "<b>Orfani</b>: il loro terminale è chiuso ma sono ancora in esecuzione, come il classico zombie localhost:3000.",
     "clean.l2": "<b>Gli agenti inattivi nei terminali aperti non vengono mai preselezionati</b>, perché stanno aspettando te.",

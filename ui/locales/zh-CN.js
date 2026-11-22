@@ -202,7 +202,7 @@ I18N["zh-CN"] = {
     "look.proHint": "全部显示：进程、网络、GPU 引擎、连接和原始数值。",
     "look.pro": "专业",
     "look.simpleHint": "仪表板、清理功能和通俗说明。专家页面保持隐藏。",
-    "look.simple": "简洁",
+    "look.simple": "简单",
     "look.mode": "模式",
     "set.tab.look": "外观和功能",
     "set.language": "语言",

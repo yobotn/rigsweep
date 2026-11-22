@@ -1,7 +1,7 @@
 window.T = window.T || {};
 T["pt-BR"] = {
     "gal.cleanup": "Limpeza dev", "gal.dashboard": "Painel", "gal.impact": "Impacto", "gal.disk": "Disco dev", "gal.tweaks": "Ajustes", "gal.settings": "Configurações", "gal.label": "Capturas de tela",
-    "live.title": "Liberado pelos usuários do RigSweep até agora", "live.procs": "processos de dev encerrados", "cta.join": "⬇️ Faça parte: baixe para Windows",
+    "live.title": "Liberado pelos usuários do RigSweep até agora", "live.cpu": "CPU liberada de uma vez", "cta.join": "⬇️ Faça parte: baixe para Windows",
     "nav.features": "Recursos", "nav.trust": "FAQ do antivírus",
     "hero.badge": "🆓 Gratuito e open source · MIT",
     "hero.title": "Espaço para seus <span>agentes</span>.",
@@ -21,7 +21,7 @@ T["pt-BR"] = {
     "story.p3": "<strong>O RigSweep mostra o que realmente está usando sua máquina, limpa o que ficou abandonado e permite desfazer qualquer alteração.</strong>",
     "stat.chrome": "🌐 Chrome (37 processos)", "stat.node": "⬢ Node + Claude (14 processos)", "stat.services": "🧩 Serviços do Windows em execução",
     "stat.cap": "Medido no notebook de 32 GB do autor no meio de um dia de trabalho.",
-    "feat.eyebrow": "Recursos", "feat.h": "✨ O que ele faz", "feat.lead": "Feito para desenvolvedores que vivem em terminais e agentes de IA, não para truques de \"acelerador de PC\".",
+    "feat.eyebrow": "Recursos", "feat.h": "✨ O que ele faz", "feat.lead": "Feito para desenvolvedores que vivem em terminais e agentes de IA, não para truques de \"acelerador de PC\". Um só app no lugar do Gerenciador de Tarefas, de uma ferramenta de hardware como o CPU-Z e de um limpador.",
     "f1.h": "Limpeza dev", "f1.p": "Servidores de dev, daemons de build e CLIs de agentes órfãos e ociosos em Node, Python, Java, .NET e outros, cada um com sua árvore de processos, projeto, RAM e portas.",
     "f2.h": "Relatório de ganhos", "f2.p": "Medições reais de antes e depois, em vez de porcentagens inventadas. Copie como Markdown e compartilhe seu resultado.",
     "f3.h": "Assistente de guias do Chrome", "f3.p": "Uma pequena extensão para suspender guias ociosas, fechar duplicadas e fechar guias por padrão, como localhost:*. Ela não tem acesso à rede.",
@@ -32,7 +32,7 @@ T["pt-BR"] = {
   "f8.h": "Atualizações, quando você quiser", "f8.p": "Desativadas por padrão. Verifique quando quiser ou ative uma verificação diária. As atualizações só são instaladas quando você clica, e só se forem assinadas.",
   "f9.h": "Limpeza de navegador", "f9.p": "Esvazia os caches do Chrome, Edge, Brave, Vivaldi, Opera e Firefox. Logins, cookies, senhas e histórico nunca são tocados.",
   "f10.h": "Disco dev", "f10.p": "Apaga node_modules, .next, target e .venv dos projetos que você não mexe mais, limpa caches de pacotes, de shaders da GPU e de ferramentas de IA (npm, pip, Cargo, CUDA, Cursor, VS Code…) e remove worktrees do git que os agentes deixaram para trás.",
-  "f11.h": "Hardware", "f11.p": "Saúde dos discos, um teste de velocidade e os detalhes de CPU, GPU, RAM e bateria em uma única aba, em vez de quatro ferramentas. Sem instalar drivers.",
+  "f11.h": "Hardware", "f11.p": "Saúde dos discos, um teste de velocidade e os detalhes de CPU, GPU, RAM e bateria em uma única aba, em vez de quatro ferramentas. Sem instalar drivers.", "f12.h": "GPU e IA", "f12.p": "O que cada app faz na placa de vídeo e na NPU, pelos mesmos contadores do Gerenciador de Tarefas, além dos runtimes de IA em execução (Ollama, LM Studio, llama.cpp, ComfyUI, PyTorch), os modelos carregados e a memória de vídeo que ocupam.", "f13.h": "Rede", "f13.p": "Tráfego por adaptador, qual app mantém cada conexão ou porta em escuta, e uma busca que mostra quem está usando a porta 3000 ou um arquivo ou pasta bloqueados.", "f14.h": "Encontrar", "f14.p": "Programas cujo desinstalador sumiu, pastas que sobraram em Arquivos de Programas, arquivos grandes e antigos em Downloads e programas de inicialização sem assinatura que valem uma olhada, com verificação do Microsoft Defender em um clique. O que você remove vai para a Lixeira ou para um backup.", "f15.h": "Simples ou Pro", "f15.p": "O modo Simples mostra o painel e as limpezas em palavras claras. O Pro adiciona Processos, Rede, mecanismos da GPU e os números brutos. Escolha o estilo Limpo ou Estilo IA e desligue os monitores de que não precisa para que não gastem CPU.", "gal.processes": "Processos", "gal.gpu": "GPU e IA", "gal.network": "Rede", "gal.hardware": "Hardware",
     "clean.eyebrow": "Limpeza dev", "clean.h": "🧹 Limpe sessões abandonadas com segurança", "shot.cleanup": "Limpeza dev", "shot.dashboard": "Painel", "clean.l5": "<b>Servidores MCP e navegadores headless que seus agentes deixaram para trás</b> também são encontrados, e um medidor ao vivo mostra a RAM recuperada segundos depois de cada limpeza.",
     "clean.l1": "<b>Órfãos</b>: o terminal foi fechado, mas eles continuam rodando, como o clássico zumbi em localhost:3000.",
     "clean.l2": "<b>Agentes ociosos em terminais abertos nunca vêm pré-selecionados</b>, porque estão esperando por você.",

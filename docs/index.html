@@ -283,7 +283,7 @@
         <div class="live-row">
           <div><b data-live="disk_freed" data-unit="bytes"></b><span data-t="live.disk">disk space freed</span></div>
           <div data-needs="ram_recovered"><b data-live="ram_recovered" data-unit="bytes"></b><span data-t="live.ram">RAM recovered</span></div>
-          <div data-needs="processes_ended"><b data-live="processes_ended"></b><span data-t="live.procs">dev processes ended</span></div>
+          <div data-needs="cpu_peak"><b data-live="cpu_peak" data-unit="pct"></b><span data-t="live.cpu">CPU freed at once</span></div>
           <div data-needs="tabs_slept"><b data-live="tabs_slept"></b><span data-t="live.tabs">browser tabs slept</span></div>
           <div data-min-installs="25"><b data-live="installs"></b><span data-t="live.pcs">PCs sharing</span></div>
         </div>
@@ -301,6 +301,10 @@
           <button role="tab" data-shot="impact" aria-selected="false" data-t="gal.impact">Impact</button>
           <button role="tab" data-shot="disk" aria-selected="false" data-t="gal.disk">Dev Disk</button>
           <button role="tab" data-shot="tweaks" aria-selected="false" data-t="gal.tweaks">Tweaks</button>
+          <button role="tab" data-shot="processes" aria-selected="false" data-t="gal.processes">Processes</button>
+          <button role="tab" data-shot="gpu" aria-selected="false" data-t="gal.gpu">GPU &amp; AI</button>
+          <button role="tab" data-shot="network" aria-selected="false" data-t="gal.network">Network</button>
+          <button role="tab" data-shot="hardware" aria-selected="false" data-t="gal.hardware">Hardware</button>
           <button role="tab" data-shot="settings" aria-selected="false" data-t="gal.settings">Settings</button>
         </div>
         <div class="frame">
@@ -342,7 +346,7 @@
     <section id="features">
       <span class="eyebrow" data-t="feat.eyebrow">Features</span>
       <h2 data-t="feat.h">✨ What it does</h2>
-      <p class="lead" data-t="feat.lead">Built for developers who live in terminals and AI agents, not for 'PC booster' tricks.</p>
+      <p class="lead" data-t="feat.lead">Built for developers who live in terminals and AI agents, not for 'PC booster' tricks. One app in place of Task Manager, a hardware info tool like CPU-Z and a cleaner.</p>
       <div class="grid">
         <div class="card"><div class="ic">🧹</div><h3 data-t="f1.h">Dev Cleanup</h3><p data-t="f1.p">Orphaned and idle dev servers, build daemons and agent CLIs across Node, Python, Java, .NET and more, each with its process tree, project, RAM and ports.</p></div>
         <div class="card"><div class="ic">📊</div><h3 data-t="f2.h">Boost Report</h3><p data-t="f2.p">Real before/after measurements instead of fake percentages. You can copy them as Markdown and share your result.</p></div>
@@ -355,6 +359,10 @@
         <div class="card"><div class="ic">🧽</div><h3 data-t="f9.h">Browser Cleanup</h3><p data-t="f9.p">Empties caches for Chrome, Edge, Brave, Vivaldi, Opera and Firefox. Sign-ins, cookies, passwords and history are never touched.</p></div>
         <div class="card"><div class="ic">💾</div><h3 data-t="f10.h">Dev Disk</h3><p data-t="f10.p">Deletes node_modules, .next, target and .venv in projects you stopped touching, cleans package, GPU shader and AI tool caches (npm, pip, Cargo, CUDA, Cursor, VS Code…) and removes git worktrees agents left behind.</p></div>
         <div class="card"><div class="ic">🖥️</div><h3 data-t="f11.h">Hardware</h3><p data-t="f11.p">Disk health, a disk speed test and your CPU, GPU, RAM and battery details in one tab, instead of four separate tools. No driver installed.</p></div>
+        <div class="card"><div class="ic">🎮</div><h3 data-t="f12.h">GPU &amp; AI</h3><p data-t="f12.p">What each app does on your graphics card and NPU, from the counters Task Manager uses, plus the AI runtimes running now (Ollama, LM Studio, llama.cpp, ComfyUI, PyTorch), their loaded models and the video memory they hold.</p></div>
+        <div class="card"><div class="ic">📡</div><h3 data-t="f13.h">Network</h3><p data-t="f13.p">Traffic per adapter, which app holds which connection or listening port, and a search that tells you who is using port 3000 or a locked file or folder.</p></div>
+        <div class="card"><div class="ic">🔎</div><h3 data-t="f14.h">Find</h3><p data-t="f14.p">Programs whose uninstaller is gone, leftover Program Files folders, big old files in Downloads, and unsigned startup programs worth a look, with a Microsoft Defender scan in one click. Removed items go to the Recycle Bin or a backup.</p></div>
+        <div class="card"><div class="ic">🎛️</div><h3 data-t="f15.h">Simple or Pro</h3><p data-t="f15.p">Simple shows the Dashboard and the cleanups in plain words. Pro adds Processes, Network, GPU engines and the raw numbers. Pick the Clean or AI-ish style, and turn off monitors you don't need so they cost no CPU.</p></div>
       </div>
     </section>
 
@@ -514,6 +522,8 @@
     let liveData = null;
     function fmtLive(v, unit) {
       const lang = document.documentElement.lang || "en";
+      // CPU: percent of a PC's whole CPU, the most one cleanup gave back
+      if (unit === "pct") return new Intl.NumberFormat(lang, { style: "percent", maximumFractionDigits: 0 }).format(v / 100);
       if (unit !== "bytes") return new Intl.NumberFormat(lang, { notation: v >= 1e5 ? "compact" : "standard", maximumFractionDigits: v >= 1e5 ? 1 : 0 }).format(Math.round(v));
       const u = ["byte", "kilobyte", "megabyte", "gigabyte", "terabyte", "petabyte"];
       let i = 0;

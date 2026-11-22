@@ -14,3 +14,6 @@ if (new URLSearchParams(location.search).get("why")) setTimeout(() => processWhy
 
 // ?view=excluded opens a list filter (for screenshots)
 if (new URLSearchParams(location.search).get("view")) setTimeout(() => document.querySelector(`[data-disk-view="${new URLSearchParams(location.search).get("view")}"]`)?.click(), 1200);
+
+// ?scan=finders runs the three Find scans (for screenshots)
+if (new URLSearchParams(location.search).get("scan") === "finders") setTimeout(() => document.querySelectorAll("[data-fd-scan]").forEach((b) => b.click()), 600);

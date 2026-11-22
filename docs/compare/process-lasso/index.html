@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RigSweep vs Process Lasso: CPU priority automation or developer PC cleanup · RigSweep</title>
+  <meta name="description" content="RigSweep vs Process Lasso compared on Windows: price, open source, ProBalance, CPU affinity and priority rules, power plans, dev process cleanup, node_modules and package caches." />
+  <link rel="canonical" href="https://rigsweep.com/compare/process-lasso/" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="RigSweep" />
+  <meta property="og:title" content="RigSweep vs Process Lasso: CPU priority automation or developer PC cleanup · RigSweep" />
+  <meta property="og:description" content="RigSweep vs Process Lasso compared on Windows: price, open source, ProBalance, CPU affinity and priority rules, power plans, dev process cleanup, node_modules and package caches." />
+  <meta property="og:url" content="https://rigsweep.com/compare/process-lasso/" />
+  <meta property="og:image" content="https://rigsweep.com/social.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="theme-color" content="#0b0e13" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="alternate" type="text/plain" href="https://rigsweep.com/llms.txt" title="llms.txt" />
+  <style>
+    :root { --bg: #0b0e13; --panel: #141922; --border: #262e3f; --text: #e8ebf1; --muted: #a3abbd; --accent: #4f8cff; color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.7 "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif; }
+    a { color: var(--accent); }
+    code { font-family: Consolas, ui-monospace, monospace; font-size: .9em; background: var(--panel); border-radius: 5px; padding: 1px 6px; overflow-wrap: anywhere; }
+    .wrap { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+    nav { border-bottom: 1px solid var(--border); }
+    nav .wrap { display: flex; justify-content: space-between; align-items: center; gap: 16px; min-height: 60px; font-size: 14px; flex-wrap: wrap; }
+    nav .logo { font-weight: 700; font-size: 18px; color: var(--text); text-decoration: none; }
+    nav .links { display: flex; gap: 16px; flex-wrap: wrap; }
+    nav .links a { color: var(--muted); text-decoration: none; }
+    main { padding: 32px 16px 24px; }
+    .crumbs { font-size: 14px; color: var(--muted); margin-bottom: 16px; }
+    .crumbs a { color: var(--muted); }
+    h1 { font-size: clamp(30px, 5vw, 42px); line-height: 1.15; margin: 0 0 16px; letter-spacing: -0.015em; }
+    h2 { font-size: 22px; margin: 36px 0 8px; }
+    h3 { font-size: 17px; margin: 24px 0 6px; }
+    p, li { color: var(--muted); }
+    strong { color: var(--text); }
+    pre { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; overflow-x: auto; }
+    pre code { background: none; padding: 0; overflow-wrap: normal; }
+    .tw { overflow-x: auto; margin: 16px 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 15px; line-height: 1.5; }
+    th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+    thead th { color: var(--text); border-bottom-color: var(--muted); }
+    tbody th { color: var(--text); font-weight: 600; }
+    td { color: var(--muted); }
+    .note { font-size: 14px; }
+    footer { margin-top: 48px; padding: 24px 16px 40px; border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; }
+  </style>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "TechArticle",
+      "headline": "RigSweep vs Process Lasso",
+      "description": "RigSweep vs Process Lasso compared on Windows: price, open source, ProBalance, CPU affinity and priority rules, power plans, dev process cleanup, node_modules and package caches.",
+      "url": "https://rigsweep.com/compare/process-lasso/",
+      "mainEntityOfPage": "https://rigsweep.com/compare/process-lasso/",
+      "inLanguage": "en",
+      "datePublished": "2026-11-22",
+      "dateModified": "2026-11-22",
+      "author": {
+        "@type": "Person",
+        "name": "yobotn",
+        "url": "https://github.com/yobotn"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "@id": "https://rigsweep.com/#org",
+        "name": "RigSweep",
+        "url": "https://rigsweep.com/",
+        "logo": "https://rigsweep.com/icon.png"
+      },
+      "about": {
+        "@type": "SoftwareApplication",
+        "@id": "https://rigsweep.com/#app",
+        "name": "RigSweep",
+        "operatingSystem": "Windows 10, Windows 11",
+        "applicationCategory": "DeveloperApplication"
+      }
+    },
+    {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://rigsweep.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Compare",
+          "item": "https://rigsweep.com/compare/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "RigSweep vs Process Lasso",
+          "item": "https://rigsweep.com/compare/process-lasso/"
+        }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Can RigSweep set CPU priority or affinity like Process Lasso?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. RigSweep doesn't change process priority or CPU affinity. It shows CPU, RAM and disk per process and ends the leftover processes you pick. For priority and affinity rules, use Process Lasso."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does RigSweep replace Process Lasso for developers?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Only partly. RigSweep removes dev servers, MCP servers and agent CLIs you no longer need and cleans dev caches. Process Lasso keeps the processes you do need from slowing the rest of Windows."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is RigSweep free?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. RigSweep is free and open source under the MIT license, with no paid tier, no ads and no account."
+          }
+        }
+      ]
+    }
+  ]
+}
+  </script>
+</head>
+<body>
+  <nav><div class="wrap"><a class="logo" href="/">🧹 RigSweep</a><div class="links"><a href="/guides/">Guides</a><a href="/compare/">Compare</a><a href="/developers/">API</a><a href="/about/">About</a><a href="https://github.com/yobotn/rigsweep">GitHub</a></div></div></nav>
+  <main class="wrap">
+    <div class="crumbs"><a href="/">Home</a> › <a href="/compare/">Compare</a> › RigSweep vs Process Lasso</div>
+    <h1>RigSweep vs Process Lasso</h1>
+    <p><strong>Process Lasso, from Bitsum, tunes how running processes use the CPU: ProBalance lowers the priority of background processes that hog the CPU, and rules set priority, CPU affinity and power plans per program. It has a free version and a paid Pro license.</strong> RigSweep is a free, open-source (MIT) app for developer PCs: it ends leftover dev servers, MCP servers and agent CLIs, and deletes stale <code>node_modules</code>, build output and package caches. Process Lasso keeps running processes in line; RigSweep finds the ones you don't need and cleans the disk.</p>
+
+    <h2>Who each is for</h2>
+    <ul>
+    <li><strong>Process Lasso</strong>: people who want Windows to stay responsive under heavy load, and power users who want lasting CPU priority, affinity and power plan rules for their apps, on desktops and servers.</li>
+    <li><strong>RigSweep</strong>: developers whose RAM, CPU and disk go to dev servers, agent sessions, dependencies and build output.</li>
+    </ul>
+
+    <h2>Facts side by side</h2>
+    <div class="tw"><table>
+    <thead><tr><th></th><th>RigSweep</th><th>Process Lasso</th></tr></thead>
+    <tbody>
+    <tr><th scope="row">Price and license</th><td>Free, MIT license</td><td>Free version. Pro is a lifetime, yearly or monthly license, for one PC or up to 5 PCs in one home; commercial use needs a license</td></tr>
+    <tr><th scope="row">Open source</th><td>Yes</td><td>No source code published on bitsum.com</td></tr>
+    <tr><th scope="row">Platforms</th><td>Windows 10 and 11</td><td>Windows 7 to 11 and Windows Server 2012 to 2025</td></tr>
+    <tr><th scope="row">Automatic CPU balancing</th><td>No</td><td>Yes: ProBalance lowers the priority of background processes that monopolize the CPU</td></tr>
+    <tr><th scope="row">Priority and CPU affinity rules</th><td>No</td><td>Yes: CPU and I/O priorities, CPU affinities and CPU Sets, applied every time a program starts</td></tr>
+    <tr><th scope="row">Power plans</th><td>One reversible tweak switches to the High performance plan</td><td>Switches plans automatically: Performance Mode, IdleSaver, per-app power profiles (Pro)</td></tr>
+    <tr><th scope="row">Ends leftover dev processes</th><td>Yes: dev servers, build daemons, MCP servers, agent CLIs, headless browsers, with their process trees</td><td>Not a listed feature. It can limit instances or block chosen processes (Pro)</td></tr>
+    <tr><th scope="row">node_modules and build output</th><td>Yes: Node, Rust, .NET, Java, Python projects, only next to their project file</td><td>No</td></tr>
+    <tr><th scope="row">Package caches</th><td>Yes: npm, pnpm, Yarn, Bun, pip, uv, Cargo, Go, NuGet, Gradle, Maven, Playwright, Puppeteer, Hugging Face</td><td>No</td></tr>
+    <tr><th scope="row">Browser cleanup</th><td>Empties caches of Chrome, Edge, Brave, Vivaldi, Opera and Firefox. Sign-ins, cookies, passwords and history are never touched</td><td>No</td></tr>
+    <tr><th scope="row">Startup</th><td>Startup page lists apps, plus the services and scheduled tasks Task Manager doesn't show</td><td>Not a listed feature</td></tr>
+    <tr><th scope="row">Ads, upsell, telemetry</th><td>No ads, no account, no paid tier. Anonymous usage stats only if you agree at first run</td><td>Free version shows a short reminder at startup. Some features are trial-only without Pro</td></tr>
+    <tr><th scope="row">Interface languages</th><td>12</td><td>–</td></tr>
+    </tbody>
+    </table></div>
+    <p class="note">Checked November 2026 on bitsum.com (the <a href="https://bitsum.com/">Process Lasso home page</a>, <a href="https://bitsum.com/process-lasso-free-vs-pro/">Free vs Pro</a> and <a href="https://bitsum.com/get-lasso-pro/">Get Process Lasso Pro</a> pages). RigSweep facts are from its <a href="https://github.com/yobotn/rigsweep#readme">README</a> and <a href="/">homepage</a>. A dash means we couldn't verify it on an official source. Spotted something out of date? <a href="https://github.com/yobotn/rigsweep/issues">Open an issue</a>.</p>
+
+    <h2>Where Process Lasso is the better choice</h2>
+    <ul>
+    <li>Your PC stutters when a build, render or scan pins the CPU. ProBalance keeps the foreground responsive without ending anything.</li>
+    <li>You want lasting rules: a program always starts with a set priority, CPU affinity or CPU Set, for example keeping a game on its fastest cores.</li>
+    <li>You want power plans to change on their own: a fast plan while chosen apps run, a saving plan when idle.</li>
+    <li>You need a CPU limiter, instance limits, a watchdog or Windows Server support (some of these need Pro).</li>
+    </ul>
+
+    <h2>Where RigSweep is the better choice</h2>
+    <ul>
+    <li>Leftover dev servers, MCP servers and agent CLIs keep holding RAM and ports after a terminal closed. RigSweep finds them with their project and pre-selects only orphans, so you can end them instead of throttling them.</li>
+    <li>Your disk fills with <code>node_modules</code>, build output, package caches and AI tool caches. Process Lasso doesn't clean disks.</li>
+    <li>You want browser caches emptied without being signed out, and a Startup list that includes services and scheduled tasks.</li>
+    <li>You want open-source code you can read, with no paid tier and no startup reminder.</li>
+    </ul>
+    <p>The two do different jobs and work well together: Process Lasso for how processes run, RigSweep for what's left over. <a href="https://github.com/yobotn/rigsweep/releases/latest">Download RigSweep</a>.</p>
+    <h2 id="faq">FAQ</h2>
+    <h3>Can RigSweep set CPU priority or affinity like Process Lasso?</h3>
+    <p>No. RigSweep doesn't change process priority or CPU affinity. It shows CPU, RAM and disk per process and ends the leftover processes you pick. For priority and affinity rules, use Process Lasso.</p>
+    <h3>Does RigSweep replace Process Lasso for developers?</h3>
+    <p>Only partly. RigSweep removes dev servers, MCP servers and agent CLIs you no longer need and cleans dev caches. Process Lasso keeps the processes you do need from slowing the rest of Windows.</p>
+    <h3>Is RigSweep free?</h3>
+    <p>Yes. RigSweep is free and open source under the MIT license, with no paid tier, no ads and no account.</p>
+  </main>
+  <footer class="wrap">🧹 RigSweep · free forever under the <a href="https://github.com/yobotn/rigsweep/blob/main/LICENSE">MIT license</a> · <a href="/">Home</a> · <a href="/guides/">Guides</a> · <a href="/compare/">Compare</a> · <a href="/developers/">API</a> · <a href="/llms.txt">llms.txt</a></footer>
+</body>
+</html>
