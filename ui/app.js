@@ -2942,7 +2942,7 @@ function fillSpaceDrives() {
   const sel = $("#fd-space-drive");
   if (!sel || !volumes) return;
   const cur = sel.value;
-  sel.innerHTML = volumes.map((v) => `<option value="${esc(v.drive)}\\">⁦${esc(v.drive)}⁩ · ${esc(t("space.free", { size: fmtBytes(v.free) }))}</option>`).join("");
+  sel.innerHTML = volumes.map((v) => `<option value="${esc(v.drive)}\\">${ltr(esc(v.drive))} · ${esc(t("space.free", { size: fmtBytes(v.free) }))}</option>`).join("");
   if (cur) sel.value = cur;
 }
 async function openSizes(path, fresh = false) {
