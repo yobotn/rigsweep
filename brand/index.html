@@ -227,7 +227,7 @@
 if (location.protocol === "file:") document.getElementById("offline").style.display = "block";
 
 const BRAND = { blue: "#4f8cff", green: "#34c38f" };
-const ICON_DEFAULTS = { glyph: "color", bg: "gradient", angle: 135, radius: 23, inset: 0, scale: 74, gloss: true, shadow: true, flatSmall: true };
+const ICON_DEFAULTS = { glyph: "color", bg: "gradient", angle: 135, radius: 23, inset: 0, scale: 74, gloss: false, shadow: true, flatSmall: true };
 const OG_DEFAULTS = {
   h1: "Room for your", h2: "agents.",
   sub: "Free up RAM, CPU and disk on Windows dev machines cluttered by AI-agent sessions. Every change is reversible.",
@@ -248,9 +248,11 @@ async function loadGlyphs() {
 
 // ---------- icon renderer ----------
 function rr(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
-function angleGrad(ctx, x, y, w, h, deg, stops) {
-  const a = (deg - 90) * Math.PI / 180, cx = x + w / 2, cy = y + h / 2;
-  const len = (Math.abs(w * Math.cos(a)) + Math.abs(h * Math.sin(a))) / 2;
+// r = corner radius: the gradient ends where the rounded tile ends, so the exact brand blue and
+// green are visible instead of being cut off with the square corners
+function angleGrad(ctx, x, y, w, h, deg, stops, r = 0) {
+  const a = (deg - 90) * Math.PI / 180, cx = x + w / 2, cy = y + h / 2, c = Math.abs(Math.cos(a)), s = Math.abs(Math.sin(a));
+  const len = (w * c + h * s) / 2 - r * (c + s - 1);
   const g = ctx.createLinearGradient(cx - Math.cos(a) * len, cy - Math.sin(a) * len, cx + Math.cos(a) * len, cy + Math.sin(a) * len);
   stops.forEach(([o, c]) => g.addColorStop(o, c));
   return g;
@@ -261,14 +263,14 @@ function drawIcon(ctx, S, o = icon) {
   if (o.bg !== "none") {
     ctx.save();
     rr(ctx, pad, pad, w, w, r);
-    if (o.bg === "gradient") ctx.fillStyle = angleGrad(ctx, pad, pad, w, w, o.angle, [[0, BRAND.blue], [1, BRAND.green]]);
+    if (o.bg === "gradient") ctx.fillStyle = angleGrad(ctx, pad, pad, w, w, o.angle, [[0, BRAND.blue], [1, BRAND.green]], r);
     else if (o.bg === "dark") ctx.fillStyle = angleGrad(ctx, pad, pad, w, w, o.angle, [[0, "#1d2433"], [1, "#11151d"]]);
     else ctx.fillStyle = angleGrad(ctx, pad, pad, w, w, o.angle, [[0, "#ffffff"], [1, "#e9eef7"]]);
     ctx.fill();
     ctx.clip();
     if (o.gloss) {
       const g = ctx.createLinearGradient(0, pad, 0, pad + w * .6);
-      g.addColorStop(0, o.bg === "light" ? "rgba(255,255,255,.6)" : "rgba(255,255,255,.22)"); g.addColorStop(1, "rgba(255,255,255,0)");
+      g.addColorStop(0, o.bg === "light" ? "rgba(255,255,255,.6)" : o.bg === "gradient" ? "rgba(255,255,255,.08)" : "rgba(255,255,255,.22)"); g.addColorStop(1, "rgba(255,255,255,0)");
       ctx.fillStyle = g; ctx.fillRect(pad, pad, w, w);
     }
     if (o.bg === "dark") { // gradient hairline so the dark tile still carries the brand sweep

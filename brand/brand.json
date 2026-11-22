@@ -6,7 +6,7 @@
     "radius": 23,
     "inset": 0,
     "scale": 74,
-    "gloss": true,
+    "gloss": false,
     "shadow": true,
     "flatSmall": true
   },
