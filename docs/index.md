@@ -26,12 +26,13 @@ Every session spawns more processes, and many keep running after you close the t
 - **Temperatures**: CPU and GPU temperatures with a 5-minute trend and a warning when your PC stays hot. No driver, no admin rights.
 - **Updates, your choice**: Off by default. Check when you want, or turn on a daily check. Updates install only when you click, and only if they're signed.
 - **Browser Cleanup**: Empties caches for Chrome, Edge, Brave, Vivaldi, Opera and Firefox. Sign-ins, cookies, passwords and history are never touched.
-- **Dev Disk**: Deletes node_modules, .next, target and .venv in projects you stopped touching, cleans package, GPU shader and AI tool caches (npm, pip, Cargo, CUDA, Cursor, VS Code…) and removes git worktrees agents left behind.
+- **Dev Disk**: Deletes node_modules, .next, target and .venv in projects you stopped touching, cleans package, GPU shader and AI tool caches, removes git worktrees agents left behind, clears Windows leftovers (old temp files, update downloads, crash dumps) and shrinks Docker and WSL virtual disks. It shows how much free space you'll have before you click, and can clean the caches that rebuild themselves every week.
 - **Hardware**: Disk health, a disk speed test and your CPU, GPU, RAM and battery details in one tab, instead of four separate tools. No driver installed.
 - **GPU & AI**: What each app does on your graphics card and NPU, from the counters Task Manager uses, plus the AI runtimes running now (Ollama, LM Studio, llama.cpp, ComfyUI, PyTorch), their loaded models and the video memory they hold.
 - **Network**: Traffic per adapter, which app holds which connection or listening port, and a search that tells you who is using port 3000 or a locked file or folder.
-- **Find**: Programs whose uninstaller is gone, leftover Program Files folders, big old files in Downloads, and unsigned startup programs worth a look, with a Microsoft Defender scan in one click. Removed items go to the Recycle Bin or a backup.
+- **Find**: See what's taking space on each drive folder by folder, move package caches off C: to another drive or a Dev Drive, and review programs whose uninstaller is gone, big old files in Downloads and unsigned startup programs, with a Microsoft Defender scan in one click.
 - **Simple or Pro**: Simple shows the Dashboard and the cleanups in plain words. Pro adds Processes, Network, GPU engines and the raw numbers. Pick the Clean or AI-ish style, and turn off monitors you don't need so they cost no CPU.
+- **For AI agents**: rigsweep --disk-report --json and --disk-clean --safe --dry-run work without admin rights, and rigsweep --mcp is an MCP server, so Claude Code, Cursor or Codex can check free space, see what takes it and free the caches that rebuild themselves.
 
 ## Sweep stale sessions, safely
 

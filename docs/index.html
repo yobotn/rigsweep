@@ -216,6 +216,7 @@
     .card .ic { width: 44px; height: 44px; display: grid; place-items: center; font-size: 22px; border-radius: 12px; background: var(--panel2); }
     .card h3 { margin: var(--s1) 0 0; font-size: 18px; }
     .card p { margin: 0; color: var(--muted); font-size: 15px; }
+    .card.wide { grid-column: 1 / -1; }
 
     /* feature rows: text + framed screenshot, same proportions every time */
     .row { display: grid; grid-template-columns: 5fr 7fr; gap: var(--s4); align-items: center; }
@@ -389,12 +390,13 @@
         <div class="card"><div class="ic">🌡️</div><h3 data-t="f7.h">Temperatures</h3><p data-t="f7.p">CPU and GPU temperatures with a 5-minute trend and a warning when your PC stays hot. No driver, no admin rights.</p></div>
         <div class="card"><div class="ic">🔄</div><h3 data-t="f8.h">Updates, your choice</h3><p data-t="f8.p">Off by default. Check when you want, or turn on a daily check. Updates install only when you click, and only if they're signed.</p></div>
         <div class="card"><div class="ic">🧽</div><h3 data-t="f9.h">Browser Cleanup</h3><p data-t="f9.p">Empties caches for Chrome, Edge, Brave, Vivaldi, Opera and Firefox. Sign-ins, cookies, passwords and history are never touched.</p></div>
-        <div class="card"><div class="ic">💾</div><h3 data-t="f10.h">Dev Disk</h3><p data-t="f10.p">Deletes node_modules, .next, target and .venv in projects you stopped touching, cleans package, GPU shader and AI tool caches (npm, pip, Cargo, CUDA, Cursor, VS Code…) and removes git worktrees agents left behind.</p></div>
+        <div class="card"><div class="ic">💾</div><h3 data-t="f10.h">Dev Disk</h3><p data-t="f10.p">Deletes node_modules, .next, target and .venv in projects you stopped touching, cleans package, GPU shader and AI tool caches, removes git worktrees agents left behind, clears Windows leftovers (old temp files, update downloads, crash dumps) and shrinks Docker and WSL virtual disks. It shows how much free space you'll have before you click, and can clean the caches that rebuild themselves every week.</p></div>
         <div class="card"><div class="ic">🖥️</div><h3 data-t="f11.h">Hardware</h3><p data-t="f11.p">Disk health, a disk speed test and your CPU, GPU, RAM and battery details in one tab, instead of four separate tools. No driver installed.</p></div>
         <div class="card"><div class="ic">🎮</div><h3 data-t="f12.h">GPU &amp; AI</h3><p data-t="f12.p">What each app does on your graphics card and NPU, from the counters Task Manager uses, plus the AI runtimes running now (Ollama, LM Studio, llama.cpp, ComfyUI, PyTorch), their loaded models and the video memory they hold.</p></div>
         <div class="card"><div class="ic">📡</div><h3 data-t="f13.h">Network</h3><p data-t="f13.p">Traffic per adapter, which app holds which connection or listening port, and a search that tells you who is using port 3000 or a locked file or folder.</p></div>
-        <div class="card"><div class="ic">🔎</div><h3 data-t="f14.h">Find</h3><p data-t="f14.p">Programs whose uninstaller is gone, leftover Program Files folders, big old files in Downloads, and unsigned startup programs worth a look, with a Microsoft Defender scan in one click. Removed items go to the Recycle Bin or a backup.</p></div>
+        <div class="card"><div class="ic">🔎</div><h3 data-t="f14.h">Find</h3><p data-t="f14.p">See what's taking space on each drive folder by folder, move package caches off C: to another drive or a Dev Drive, and review programs whose uninstaller is gone, big old files in Downloads and unsigned startup programs, with a Microsoft Defender scan in one click.</p></div>
         <div class="card"><div class="ic">🎛️</div><h3 data-t="f15.h">Simple or Pro</h3><p data-t="f15.p">Simple shows the Dashboard and the cleanups in plain words. Pro adds Processes, Network, GPU engines and the raw numbers. Pick the Clean or AI-ish style, and turn off monitors you don't need so they cost no CPU.</p></div>
+        <div class="card wide"><div class="ic">🤖</div><h3 data-t="f16.h">For AI agents</h3><p data-t="f16.p">rigsweep --disk-report --json and --disk-clean --safe --dry-run work without admin rights, and rigsweep --mcp is an MCP server, so Claude Code, Cursor or Codex can check free space, see what takes it and free the caches that rebuild themselves.</p></div>
       </div>
     </section>
 
