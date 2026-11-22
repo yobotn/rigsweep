@@ -189,6 +189,7 @@ fn run_app(start_hidden: bool) {
             spawn_watchdog(app.handle().clone());
             spawn_dev_monitor(app.handle().clone());
             spawn_disk_watch(app.handle().clone());
+            spawn_disk_autoclean(app.handle().clone());
             if let Ok(db) = app.state::<AppState>().db.lock() {
                 live::load_switches(&db);
             }
@@ -268,6 +269,55 @@ fn build_tray(app: &AppHandle) -> tauri::Result<()> {
         })
         .build(app)?;
     Ok(())
+}
+
+/// Settings > Dev Disk "clean automatically": once an hour, check whether a run is due (a week
+/// since the last one, or the system drive below the chosen free space, at most twice a day),
+/// then empty only the caches that rebuild themselves. Logged to History as "auto".
+fn spawn_disk_autoclean(app: AppHandle) {
+    std::thread::spawn(move || {
+        const LAST: &str = "disk_auto_last";
+        std::thread::sleep(Duration::from_secs(300));
+        loop {
+            let state = app.state::<AppState>();
+            let (s, last) = match state.db.lock() {
+                Ok(db) => (engine::Settings::load(&db), db.get_setting(LAST).and_then(|v| v.parse::<u64>().ok()).unwrap_or(0)),
+                Err(_) => {
+                    std::thread::sleep(Duration::from_secs(3600));
+                    continue;
+                }
+            };
+            let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
+            let since = now.saturating_sub(last);
+            let low = s.disk_auto_low_gb > 0 && devdisk::system_free().is_some_and(|f| f < u64::from(s.disk_auto_low_gb) << 30);
+            let due = s.disk_auto_clean && (since >= 7 * 86_400 || (low && since >= 12 * 3600));
+            if due && !state.paused.load(Ordering::Relaxed) && !devdisk::is_running() {
+                if let Ok(db) = state.db.lock() {
+                    let _ = db.set_setting(LAST, &now.to_string());
+                }
+                let cfg = commands::disk_config(&s);
+                let targets = devdisk::auto_targets(&devdisk::report(&cfg));
+                if !targets.is_empty() {
+                    let done = app.clone();
+                    let _ = devdisk::start(cfg, targets, |_| {}, move |r| {
+                        if let Ok(db) = done.state::<AppState>().db.lock() {
+                            for c in &r.cleaned {
+                                db.log("auto", None, "disk_clean", true, c);
+                            }
+                            if r.freed > 0 {
+                                db.log("auto", None, "disk_clean", true, &format!("automatic cleanup freed {:.1} MB", r.freed as f64 / 1048576.0));
+                            }
+                            db.add_impact("auto", &r.impact);
+                        }
+                        if r.freed > 0 {
+                            let _ = done.emit("disk-autocleaned", r.freed);
+                        }
+                    });
+                }
+            }
+            std::thread::sleep(Duration::from_secs(3600));
+        }
+    });
 }
 
 /// Every minute: scan dev processes (that's also what measures "quiet for N minutes"), end the

@@ -485,7 +485,7 @@ pub async fn clean_browser_caches(state: State<'_, AppState>, targets: Vec<Clean
 
 // ---------- dev disk ----------
 
-fn disk_config(s: &Settings) -> devdisk::Config {
+pub(crate) fn disk_config(s: &Settings) -> devdisk::Config {
     devdisk::Config {
         roots: s.disk_roots.clone(),
         excludes: s.disk_excludes.clone(),

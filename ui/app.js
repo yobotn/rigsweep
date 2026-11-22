@@ -2170,6 +2170,8 @@ function renderSettings() {
   setField("#s-disk-roots", "value", (s.disk_roots || []).join("\n"));
   setField("#s-disk-excludes", "value", (s.disk_excludes || []).join("\n"));
   setField("#s-disk-stale", "value", s.disk_stale_days ?? 30);
+  setField("#s-disk-auto", "checked", !!s.disk_auto_clean);
+  setField("#s-disk-auto-low", "value", s.disk_auto_low_gb ?? 0);
   renderUpdate();
   $("#s-info").textContent = t("set.info", { s: state.startup_registered ? t("set.registered") : t("set.notRegistered"), d: state.data_dir });
   loadAv();
@@ -2265,6 +2267,8 @@ async function saveSettingsNow() {
     disk_excludes: lines($("#s-disk-excludes").value),
     disk_disabled: state.settings.disk_disabled || [],
     disk_stale_days: Math.min(3650, Math.max(1, Math.round(Number($("#s-disk-stale").value)) || 30)),
+    disk_auto_clean: $("#s-disk-auto").checked,
+    disk_auto_low_gb: Math.min(4096, Math.max(0, Math.round(Number($("#s-disk-auto-low").value)) || 0)),
   };
   const status = $("#set-saved");
   status.textContent = t("set.saving");
@@ -2680,6 +2684,13 @@ listen("dev-autocleaned", (e) => {
   noteFreed("dev", r.freed_mem);
   toast(t("clean.auto.done", { n: r.ended.length, mem: fmtBytes(r.freed_mem) }) + "\n• " + r.ended.join("\n• "), "ok", 8000);
   if (currentTab === "cleanup") loadDev(null, true); else delete scannedAt.cleanup;
+});
+// Settings > Dev Disk "clean automatically" ran (weekly, or the system drive got low)
+listen("disk-autocleaned", async (e) => {
+  noteFreed("disk", e.payload);
+  await loadVolumes();
+  toast(t("disk.auto.done", { mem: fmtBytes(e.payload) }) + spaceNow(), "ok", 9000);
+  if (currentTab === "disk" || disk) loadDisk(true);
 });
 // background disk health check: a drive got worse (health, wear, errors, temperature)
 listen("disk-alerts", (e) => {

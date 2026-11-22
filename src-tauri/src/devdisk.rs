@@ -2250,6 +2250,24 @@ mod live {
     }
 }
 
+// ---------- unattended cleanup (Settings > Dev Disk) ----------
+
+/// What a weekly / low-disk run empties without asking: only caches that rebuild themselves
+/// (tier "safe"), not marked "never clean", not in use, at least 50 MB. Never projects,
+/// worktrees, the Recycle Bin or anything that has to be downloaded again.
+pub fn auto_targets(r: &DiskReport) -> Vec<DiskTarget> {
+    r.caches
+        .iter()
+        .filter(|c| c.tier == "safe" && !c.disabled && !c.busy && !c.show_only && c.bytes >= 50 << 20)
+        .map(|c| DiskTarget { kind: "cache".into(), id: c.id.into(), name: String::new(), bytes: c.bytes })
+        .collect()
+}
+
+/// Free bytes on the system drive.
+pub fn system_free() -> Option<u64> {
+    crate::hardware::volumes().ok()?.into_iter().find(|v| v.system).map(|v| v.free)
+}
+
 // ---------- Docker Desktop and WSL virtual disks ----------
 //
 // A .vhdx grows as Linux writes and never shrinks on its own, even after images or files inside

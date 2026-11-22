@@ -60,6 +60,12 @@ pub struct Settings {
     /// Dev Cleanup: command lines the user marked "Keep this" (deliberately detached jobs)
     #[serde(default)]
     pub dev_keep: Vec<String>,
+    /// Dev Disk: once a week, empty the caches that rebuild themselves (off unless turned on)
+    #[serde(default)]
+    pub disk_auto_clean: bool,
+    /// Dev Disk: also run that cleanup when the system drive has less than this many GB free (0: off)
+    #[serde(default)]
+    pub disk_auto_low_gb: u32,
 }
 
 fn default_live_refresh() -> u32 {
@@ -127,6 +133,8 @@ impl Settings {
             disk_auto_min_mb: db.get_setting("disk_auto_min_mb").and_then(|s| s.parse().ok()).unwrap_or(default_auto_min_mb()),
             live_refresh_secs: db.get_setting("live_refresh_secs").and_then(|s| s.parse().ok()).unwrap_or(default_live_refresh()).clamp(2, 60),
             dev_keep: json_list(db, "dev_keep").unwrap_or_default(),
+            disk_auto_clean: db.get_setting("disk_auto_clean").as_deref() == Some("1"),
+            disk_auto_low_gb: db.get_setting("disk_auto_low_gb").and_then(|s| s.parse().ok()).unwrap_or(0),
         };
         crate::devclean::set_keep(&s.dev_keep);
         s
@@ -156,6 +164,8 @@ impl Settings {
         db.set_setting("disk_auto_min_mb", &self.disk_auto_min_mb.min(100_000).to_string())?;
         db.set_setting("live_refresh_secs", &self.live_refresh_secs.clamp(2, 60).to_string())?;
         db.set_setting("dev_keep", &serde_json::to_string(&self.dev_keep)?)?;
+        db.set_setting("disk_auto_clean", if self.disk_auto_clean { "1" } else { "0" })?;
+        db.set_setting("disk_auto_low_gb", &self.disk_auto_low_gb.min(4096).to_string())?;
         crate::devclean::set_keep(&self.dev_keep);
         Ok(())
     }
