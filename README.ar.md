@@ -6,7 +6,7 @@
 
 **[🌐 الصفحة الرئيسية](https://rigsweep.com)** · **[⬇️ التنزيل](https://github.com/yobotn/rigsweep/releases/latest)** · **[📖 أسئلة مكافحة الفيروسات](#%EF%B8%8F-%D8%A7%D9%84%D8%A5%D9%86%D8%B0%D8%A7%D8%B1%D8%A7%D8%AA-%D8%A7%D9%84%D9%83%D8%A7%D8%B0%D8%A8%D8%A9-%D9%85%D9%86-%D8%A8%D8%B1%D8%A7%D9%85%D8%AC-%D9%85%D9%83%D8%A7%D9%81%D8%AD%D8%A9-%D8%A7%D9%84%D9%81%D9%8A%D8%B1%D9%88%D8%B3%D8%A7%D8%AA)**
 
-[🇬🇧 English](README.md) · [🇩🇪 Deutsch](README.de.md) · [🇪🇸 Español](README.es.md) · [🇫🇷 Français](README.fr.md) · [🇮🇹 Italiano](README.it.md) · [🇧🇷 Português](README.pt-BR.md) · [🇷🇺 Русский](README.ru.md) · [🇯🇵 日本語](README.ja.md) · [🇰🇷 한국어](README.ko.md) · [🇨🇳 简体中文](README.zh-CN.md) · [🇮🇱 עברית](README.he.md) · 🇸🇦 العربية
+[🇬🇧 English](README.md) · [🇩🇪 Deutsch](README.de.md) · [🇪🇸 Español](README.es.md) · [🇫🇷 Français](README.fr.md) · [🇮🇹 Italiano](README.it.md) · [🇧🇷 Português](README.pt-BR.md) · [🇷🇺 Русский](README.ru.md) · [🇯🇵 日本語](README.ja.md) · [🇰🇷 한국어](README.ko.md) · [🇨🇳 简体中文](README.zh-CN.md) · 🇸🇦 العربية
 
 ![Windows 10/11](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?logo=windows)
 ![Rust + Tauri 2](https://img.shields.io/badge/Rust-Tauri%202-orange?logo=rust)
@@ -206,8 +206,8 @@
 ### 🔄 التحديثات باختيارك
 في **🛠️ الإعدادات ← 🔄 التحديثات** يوجد زر **التحقق الآن** وخيار اختياري هو *التحقق من وجود تحديثات تلقائيًا* (عند بدء التشغيل، ثم مرة يوميًا)، وهو **معطّل افتراضيًا**. عند صدور إصدار جديد، يظهر زر في الشريط الجانبي مع ملاحظات الإصدار. لا يُثبَّت أي شيء حتى تنقر فوق **التثبيت وإعادة التشغيل**، وبشرط أن يكون التنزيل موقّعًا بمفتاح RigSweep. يتم الاحتفاظ بتحسيناتك ونسخك الاحتياطية وإعداداتك. راجع [سياسة الخصوصية](#-%D8%B3%D9%8A%D8%A7%D8%B3%D8%A9-%D8%A7%D9%84%D8%AE%D8%B5%D9%88%D8%B5%D9%8A%D8%A9) لمعرفة ما يفعله التحقق بالضبط.
 
-### 🌍 12 لغة
-تتوفر الواجهة بـ **English وDeutsch وEspañol وFrançais وItaliano وPortuguês (Brasil) وРусский و日本語 و한국어 و简体中文 وעברית والعربية** (بدّل اللغة من الشريط الجانبي)، وكذلك برنامج التثبيت وإضافة Chrome. وقد تمت ترجمة كل لغة بمصطلحات Windows الرسمية الخاصة بها («إدارة المهام» و«الخدمات» و«برنامج جدولة المهام»…)، لا ترجمة حرفية. هل لاحظت صياغة غير موفقة؟ افتح بلاغًا (issue) أو طلب سحب (PR) على `ui/locales/<code>.js` (التطبيق) أو `docs/locales/<code>.js` (الصفحة الرئيسية) أو `README.<code>.md`.
+### 🌍 11 لغة
+تتوفر الواجهة بـ **English وDeutsch وEspañol وFrançais وItaliano وPortuguês (Brasil) وРусский و日本語 و한국어 و简体中文 والعربية** (بدّل اللغة من الشريط الجانبي)، وكذلك برنامج التثبيت وإضافة Chrome. وقد تمت ترجمة كل لغة بمصطلحات Windows الرسمية الخاصة بها («إدارة المهام» و«الخدمات» و«برنامج جدولة المهام»…)، لا ترجمة حرفية. هل لاحظت صياغة غير موفقة؟ افتح بلاغًا (issue) أو طلب سحب (PR) على `ui/locales/<code>.js` (التطبيق) أو `docs/locales/<code>.js` (الصفحة الرئيسية) أو `README.<code>.md`.
 
 ---
 

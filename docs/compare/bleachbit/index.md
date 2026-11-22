@@ -23,7 +23,7 @@
 | Registry cleaner | No | No general registry cleaner. Advanced cleaners can delete specific registry keys |
 | Driver updater | No | No |
 | Ads, upsell, telemetry | No ads, no account, no paid tier. Anonymous usage stats only if you agree at first run | No ads, no upsells (per bleachbit.org) |
-| Interface languages | 12 | 61 |
+| Interface languages | 11 | 61 |
 
 Checked November 2026 on bleachbit.org ([home](https://www.bleachbit.org/), [features](https://www.bleachbit.org/features) and [Windows download](https://www.bleachbit.org/download/windows) pages). RigSweep facts are from its [README](https://github.com/yobotn/rigsweep#readme) and [homepage](https://rigsweep.com/). A dash means we couldn't verify it on an official source. Spotted something out of date? [Open an issue](https://github.com/yobotn/rigsweep/issues).
 

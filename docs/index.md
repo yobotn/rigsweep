@@ -26,7 +26,7 @@ None of it was a virus or junk. It was the normal leftovers of working with AI a
 - **Chrome tab helper**: A tiny extension to sleep idle tabs, close duplicates and close tabs by pattern like localhost:*. It has no network access.
 - **Reversible tweaks**: Telemetry, Xbox, indexer, background apps, keeping Edge from coming back and more, each with a risk level. Originals are backed up and restorable in one click.
 - **Processes & startup**: CPU, RAM and disk per process, the services inside each svchost.exe, and the auto-start services and tasks Task Manager never shows.
-- **12 languages**: English, Deutsch, Español, Français, Italiano, Português, Русский, 日本語, 한국어, 简体中文, עברית and العربية in the app, the installer and the Chrome extension, using each language's official Windows terms.
+- **11 languages**: English, Deutsch, Español, Français, Italiano, Português, Русский, 日本語, 한국어, 简体中文 and العربية in the app, the installer and the Chrome extension, using each language's official Windows terms.
 - **Temperatures**: CPU and GPU temperatures with a 5-minute trend and a warning when your PC stays hot. No driver, no admin rights.
 - **Updates, your choice**: Off by default. Check when you want, or turn on a daily check. Updates install only when you click, and only if they're signed.
 - **Browser Cleanup**: Empties caches for Chrome, Edge, Brave, Vivaldi, Opera and Firefox. Sign-ins, cookies, passwords and history are never touched.

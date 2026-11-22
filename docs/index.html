@@ -44,7 +44,7 @@
         "url": "https://rigsweep.com/",
         "logo": "https://rigsweep.com/icon.png",
         "sameAs": ["https://github.com/yobotn/rigsweep", "https://github.com/yobotn"],
-        "contactPoint": { "@type": "ContactPoint", "contactType": "customer support", "url": "https://github.com/yobotn/rigsweep/issues", "availableLanguage": ["en", "de", "es", "fr", "it", "pt", "ru", "ja", "ko", "zh", "he", "ar"] }
+        "contactPoint": { "@type": "ContactPoint", "contactType": "customer support", "url": "https://github.com/yobotn/rigsweep/issues", "availableLanguage": ["en", "de", "es", "fr", "it", "pt", "ru", "ja", "ko", "zh", "ar"] }
       },
       {
         "@type": "WebSite",
@@ -52,7 +52,7 @@
         "url": "https://rigsweep.com/",
         "name": "RigSweep",
         "publisher": { "@id": "https://rigsweep.com/#org" },
-        "inLanguage": ["en", "de", "es", "fr", "it", "pt-BR", "ru", "ja", "ko", "zh-CN", "he", "ar"]
+        "inLanguage": ["en", "de", "es", "fr", "it", "pt-BR", "ru", "ja", "ko", "zh-CN", "ar"]
       },
       {
         "@type": "SoftwareApplication",
@@ -72,8 +72,8 @@
         "screenshot": ["https://rigsweep.com/screenshots/cleanup.png", "https://rigsweep.com/screenshots/dashboard.png", "https://rigsweep.com/screenshots/tweaks.png"],
         "image": "https://rigsweep.com/icon.png",
         "keywords": "Windows dev cleanup, leftover node processes, free port 3000, node_modules cleaner, package cache cleaner, AI agent sessions, Claude Code, MCP servers, free RAM",
-        "featureList": ["Dev Cleanup: end orphaned and idle dev servers, build daemons, MCP servers and agent CLIs by process tree", "Dev Disk: delete old node_modules, build output, package, GPU and AI tool caches, and leftover git worktrees", "Boost Report: measured before/after RAM and CPU", "Reversible Windows tweaks with backups and a System Restore point", "Browser cache cleanup", "Chrome tab helper extension", "CPU and GPU temperature tracking", "12 languages"],
-        "inLanguage": ["en", "de", "es", "fr", "it", "pt-BR", "ru", "ja", "ko", "zh-CN", "he", "ar"],
+        "featureList": ["Dev Cleanup: end orphaned and idle dev servers, build daemons, MCP servers and agent CLIs by process tree", "Dev Disk: delete old node_modules, build output, package, GPU and AI tool caches, and leftover git worktrees", "Boost Report: measured before/after RAM and CPU", "Reversible Windows tweaks with backups and a System Restore point", "Browser cache cleanup", "Chrome tab helper extension", "CPU and GPU temperature tracking", "11 languages"],
+        "inLanguage": ["en", "de", "es", "fr", "it", "pt-BR", "ru", "ja", "ko", "zh-CN", "ar"],
         "codeRepository": "https://github.com/yobotn/rigsweep",
         "softwareHelp": { "@type": "CreativeWork", "name": "RigSweep CLI reference", "url": "https://rigsweep.com/cli/" },
         "author": { "@type": "Person", "name": "yobotn", "url": "https://github.com/yobotn" },
@@ -111,8 +111,7 @@
       document.documentElement.dataset.style = l === "ai" ? "ai" : "clean"; })();
   </script>
   <style>
-    /* Hebrew and Arabic: Heebo and Cairo (SIL OFL, docs/fonts), self-hosted and limited to their scripts */
-    @font-face { font-family: "Heebo"; src: url("fonts/heebo-hebrew.woff2") format("woff2"); font-weight: 100 900; font-display: swap; unicode-range: U+0590-05FF, U+FB1D-FB4F, U+200C-200F, U+20AA; }
+    /* Arabic: Cairo (SIL OFL, docs/fonts), self-hosted and limited to its script */
     @font-face { font-family: "Cairo"; src: url("fonts/cairo-arabic.woff2") format("woff2"); font-weight: 200 1000; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+FB50-FDFF, U+FE70-FEFF, U+200C-200F; }
     /* ---------- tokens ---------- */
     :root {
@@ -121,7 +120,7 @@
       --r-sm: 8px; --r: 14px; --r-lg: 18px;
       --s1: 8px; --s2: 16px; --s3: 24px; --s4: 40px; --s5: 72px;
       --shadow: 0 24px 64px rgba(0,0,0,.55);
-      --font: "Heebo", "Cairo", "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif;
+      --font: "Cairo", "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif;
       color-scheme: dark;
     }
     * { box-sizing: border-box; }
@@ -262,10 +261,7 @@
     .chip .ico { margin: 0; }
     html:not([data-style="ai"]) .emo { display: none; }
     html[data-style="ai"] .ico { display: none; }
-    /* clean look: no gradient text, no glow, no lift; the AI look is the page as it was */
-    html:not([data-style="ai"]) .hero h1 span { background: none; color: var(--accent); }
-    html:not([data-style="ai"]) .live-row b { background: none; color: var(--text); }
-    html:not([data-style="ai"]) .final { background: var(--panel); }
+    /* clean look: no glow, no lift; the blue-to-green gradients stay in both looks */
     html:not([data-style="ai"]) .btn:hover { transform: none; }
     html:not([data-style="ai"]) .frame { box-shadow: 0 12px 32px rgba(0,0,0,.35); }
     html:not([data-style="ai"]) .eyebrow { letter-spacing: .02em; text-transform: none; }
@@ -326,7 +322,7 @@
         <a class="btn primary" id="hero-dl" href="https://github.com/yobotn/rigsweep/releases/latest" data-t="cta.download">⬇️ Download for Windows</a>
         <a class="btn" href="https://github.com/yobotn/rigsweep" data-t="cta.source">⭐ View on GitHub</a>
       </div>
-      <div class="meta" data-t="hero.meta">Windows 10 / 11 · ~3 MB installer · 12 languages</div>
+      <div class="meta" data-t="hero.meta">Windows 10 / 11 · ~3 MB installer · 11 languages</div>
       <div class="gallery">
         <div class="gallery-tabs" role="tablist" data-t-aria="gal.label" aria-label="Screenshots">
           <button role="tab" data-shot="cleanup" aria-selected="true" data-t="gal.cleanup">Dev Cleanup</button>
@@ -389,7 +385,7 @@
         <div class="card"><div class="ic">🌐</div><h3 data-t="f3.h">Chrome tab helper</h3><p data-t="f3.p">A tiny extension to sleep idle tabs, close duplicates and close tabs by pattern like localhost:*. It has no network access.</p></div>
         <div class="card"><div class="ic">⚙️</div><h3 data-t="f4.h">Reversible tweaks</h3><p data-t="f4.p">Telemetry, Xbox, indexer, background apps, keeping Edge from coming back and more, each with a risk level. Originals are backed up and restorable in one click.</p></div>
         <div class="card"><div class="ic">🔍</div><h3 data-t="f5.h">Processes &amp; startup</h3><p data-t="f5.p">CPU, RAM and disk per process, the services inside each svchost.exe, and the auto-start services and tasks Task Manager never shows.</p></div>
-        <div class="card"><div class="ic">🌍</div><h3 data-t="f6.h">12 languages</h3><p data-t="f6.p">English, Deutsch, Español, Français, Italiano, Português, Русский, 日本語, 한국어, 简体中文, עברית and العربية in the app, the installer and the Chrome extension, using each language's official Windows terms.</p></div>
+        <div class="card"><div class="ic">🌍</div><h3 data-t="f6.h">11 languages</h3><p data-t="f6.p">English, Deutsch, Español, Français, Italiano, Português, Русский, 日本語, 한국어, 简体中文 and العربية in the app, the installer and the Chrome extension, using each language's official Windows terms.</p></div>
         <div class="card"><div class="ic">🌡️</div><h3 data-t="f7.h">Temperatures</h3><p data-t="f7.p">CPU and GPU temperatures with a 5-minute trend and a warning when your PC stays hot. No driver, no admin rights.</p></div>
         <div class="card"><div class="ic">🔄</div><h3 data-t="f8.h">Updates, your choice</h3><p data-t="f8.p">Off by default. Check when you want, or turn on a daily check. Updates install only when you click, and only if they're signed.</p></div>
         <div class="card"><div class="ic">🧽</div><h3 data-t="f9.h">Browser Cleanup</h3><p data-t="f9.p">Empties caches for Chrome, Edge, Brave, Vivaldi, Opera and Firefox. Sign-ins, cookies, passwords and history are never touched.</p></div>
@@ -504,11 +500,11 @@
   <script src="locales/he.js"></script>
   <script src="locales/ar.js"></script>
   <script>
-    const LANGS = { "en": "English", "de": "Deutsch", "es": "Español", "fr": "Français", "it": "Italiano", "pt-BR": "Português (Brasil)", "ru": "Русский", "ja": "日本語", "ko": "한국어", "zh-CN": "简体中文", "he": "עברית", "ar": "العربية" };
+    const LANGS = { "en": "English", "de": "Deutsch", "es": "Español", "fr": "Français", "it": "Italiano", "pt-BR": "Português (Brasil)", "ru": "Русский", "ja": "日本語", "ko": "한국어", "zh-CN": "简体中文", "ar": "العربية" };
     // the Dashboard shot is a real capture (en/es/fr); the Dev Cleanup shot exists in every language
     const DASH = { en: "dashboard", es: "dashboard-es", fr: "dashboard-fr" };
-    const HERO = ["de", "es", "fr", "it", "pt-BR", "ru", "ja", "ko", "zh-CN", "he", "ar"]; // languages with a localized Dev Cleanup shot
-    const RTL = ["he", "ar"];
+    const HERO = ["de", "es", "fr", "it", "pt-BR", "ru", "ja", "ko", "zh-CN", "ar"]; // languages with a localized Dev Cleanup shot
+    const RTL = ["ar"];
     const ALIAS = { pt: "pt-BR", zh: "zh-CN" };
     const resolve = (tag) => {
       if (!tag) return null;

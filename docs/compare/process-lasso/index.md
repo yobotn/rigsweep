@@ -25,7 +25,7 @@
 | Browser cleanup | Empties caches of Chrome, Edge, Brave, Vivaldi, Opera and Firefox. Sign-ins, cookies, passwords and history are never touched | No |
 | Startup | Startup page lists apps, plus the services and scheduled tasks Task Manager doesn't show | Not a listed feature |
 | Ads, upsell, telemetry | No ads, no account, no paid tier. Anonymous usage stats only if you agree at first run | Free version shows a short reminder at startup. Some features are trial-only without Pro |
-| Interface languages | 12 | – |
+| Interface languages | 11 | – |
 
 Checked November 2026 on bitsum.com (the [Process Lasso home page](https://bitsum.com/), [Free vs Pro](https://bitsum.com/process-lasso-free-vs-pro/) and [Get Process Lasso Pro](https://bitsum.com/get-lasso-pro/) pages). RigSweep facts are from its [README](https://github.com/yobotn/rigsweep#readme) and [homepage](https://rigsweep.com/). A dash means we couldn't verify it on an official source. Spotted something out of date? [Open an issue](https://github.com/yobotn/rigsweep/issues).
 

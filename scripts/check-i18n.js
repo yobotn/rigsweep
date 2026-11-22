@@ -5,7 +5,9 @@
 const fs = require("fs"), path = require("path");
 const repo = path.join(__dirname, "..");
 const read = (f) => fs.readFileSync(path.join(repo, f), "utf8");
-const LANGS = ["de", "es", "fr", "it", "pt-BR", "ru", "ja", "ko", "zh-CN", "he", "ar"];
+const LANGS = ["de", "es", "fr", "it", "pt-BR", "ru", "ja", "ko", "zh-CN", "he", "ar"]; // app + Chrome extension
+// Public pages (homepage, READMEs) never list Hebrew; the app keeps it.
+const PUBLIC_LANGS = LANGS.filter((l) => l !== "he");
 let problems = 0;
 const fail = (where, msg) => { problems++; console.log(`✗ ${where}: ${msg}`); };
 
@@ -52,13 +54,13 @@ for (const l of LANGS) {
 
 // ---- homepage ----
 const T = {};
-for (const l of ["en", ...LANGS]) {
+for (const l of ["en", ...PUBLIC_LANGS]) {
   try { new Function("window", "T", read(`docs/locales/${l}.js`))({ T }, T); } catch (e) { fail(`docs/locales/${l}.js`, e.message); }
 }
-for (const l of LANGS) compareTables(`docs/locales/${l}.js`, T.en, T[l], { placeholders: false, newlines: false });
+for (const l of PUBLIC_LANGS) compareTables(`docs/locales/${l}.js`, T.en, T[l], { placeholders: false, newlines: false });
 const site = read("docs/index.html");
-for (const l of LANGS) if (!site.includes(`locales/${l}.js`)) fail("docs/index.html", `doesn't load locales/${l}.js`);
-for (const l of LANGS) if (!fs.existsSync(path.join(repo, `docs/screenshots/cleanup-${l}.png`))) fail("docs/screenshots", `cleanup-${l}.png missing`);
+for (const l of PUBLIC_LANGS) if (!site.includes(`locales/${l}.js`)) fail("docs/index.html", `doesn't load locales/${l}.js`);
+for (const l of PUBLIC_LANGS) if (!fs.existsSync(path.join(repo, `docs/screenshots/cleanup-${l}.png`))) fail("docs/screenshots", `cleanup-${l}.png missing`);
 
 // ---- READMEs ----
 const E = read("README.md");
@@ -68,7 +70,7 @@ const blocks = (s) => [...s.matchAll(/^```[^\n]*\n([\s\S]*?)^```/gm)].map((m) =>
 const rows = (s) => (s.match(/^\|/gm) || []).length;
 const links = (s) => [...s.matchAll(/\]\((https?:[^)\s]+|[^)#\s][^)\s]*)\)/g)].map((m) => m[1])
   .filter((u) => !/^README\./.test(u) && !/screenshots\//.test(u)).sort().join("\n");
-for (const l of LANGS) {
+for (const l of PUBLIC_LANGS) {
   const f = `README.${l}.md`;
   let X;
   try { X = read(f); } catch { fail(f, "missing"); continue; }
@@ -76,10 +78,20 @@ for (const l of LANGS) {
   if (fences(E) !== fences(X) || blocks(E) !== blocks(X)) fail(f, "code blocks differ (commands must be identical)");
   if (rows(E) !== rows(X)) fail(f, "table rows differ");
   if (links(E) !== links(X)) fail(f, "links differ");
-  for (const o of ["README.md", ...LANGS.filter((x) => x !== l).map((x) => `README.${x}.md`)])
+  for (const o of ["README.md", ...PUBLIC_LANGS.filter((x) => x !== l).map((x) => `README.${x}.md`)])
     if (!X.includes(`(${o})`)) fail(f, `language bar lacks ${o}`);
 }
-for (const l of LANGS) if (!E.includes(`(README.${l}.md)`)) fail("README.md", `language bar lacks README.${l}.md`);
+for (const l of PUBLIC_LANGS) if (!E.includes(`(README.${l}.md)`)) fail("README.md", `language bar lacks README.${l}.md`);
 
-console.log(problems ? `\n${problems} problem(s)` : `i18n in sync: ${LANGS.length + 1} languages (app ${Object.keys(I18N.en).length} keys, site ${Object.keys(T.en).length} keys, READMEs)`);
+// ---- rule: no Israeli flag anywhere public, no Hebrew on public pages ----
+const walk = (d) => fs.readdirSync(path.join(repo, d), { withFileTypes: true }).flatMap((e) =>
+  e.isDirectory() ? walk(`${d}/${e.name}`) : /.(md|html|js|txt|json|xml)$/.test(e.name) ? [`${d}/${e.name}`] : []);
+for (const f of [...fs.readdirSync(repo).filter((x) => /^README.*.md$/.test(x)), ...walk("docs")]) {
+  const s = read(f);
+  if (s.includes("🇮🇱")) fail(f, "contains the Israeli flag");
+  if (/[֐-׿]/.test(s)) fail(f, "contains Hebrew (public pages must not list it)");
+}
+for (const f of ["ui", "chrome-extension"].flatMap(walk)) if (read(f).includes("🇮🇱")) fail(f, "contains the Israeli flag");
+
+console.log(problems ? `\n${problems} problem(s)` : `i18n in sync: ${LANGS.length + 1} languages (app ${Object.keys(I18N.en).length} keys, site ${Object.keys(T.en).length} keys, READMEs ${PUBLIC_LANGS.length + 1})`);
 process.exit(problems ? 1 : 0);

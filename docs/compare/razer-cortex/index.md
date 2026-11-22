@@ -24,7 +24,7 @@
 | Junk and browser cleanup | Empties caches of Chrome, Edge, Brave, Vivaldi, Opera and Firefox. Sign-ins, cookies, passwords and history are never touched | System Booster removes junk files from game platforms, Windows and browsers |
 | GPU monitoring | GPU & AI page: what each app does on the GPU and NPU, VRAM per process, loaded AI models | Not a listed feature |
 | Ads, upsell, telemetry | No ads, no account, no paid tier. Anonymous usage stats only if you agree at first run | Game deals, giveaways and Razer Silver rewards in the app |
-| Interface languages | 12 | – |
+| Interface languages | 11 | – |
 
 Checked November 2026 on razer.com (the [Razer Cortex](https://www.razer.com/cortex) and [Game Booster and System Booster](https://www.razer.com/cortex/booster) pages and the [Razer blog post on Cortex](https://www.razer.com/blog/razer-cortex-a-smarter-way-to-capture-launch-and-optimize-your-pc-games)). RigSweep facts are from its [README](https://github.com/yobotn/rigsweep#readme) and [homepage](https://rigsweep.com/). A dash means we couldn't verify it on an official source. Spotted something out of date? [Open an issue](https://github.com/yobotn/rigsweep/issues).
 

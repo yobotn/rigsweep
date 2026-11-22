@@ -26,4 +26,4 @@ If Microsoft Defender flagged or deleted RigSweep, read the [antivirus FAQ](http
 
 ## 🌍 Translations
 
-Spotted an awkward phrase in one of the 12 languages? Pull requests on `ui/locales`, `docs/locales` or the README files are welcome.
+Spotted an awkward phrase in one of the 11 languages? Pull requests on `ui/locales`, `docs/locales` or the README files are welcome.

@@ -2,8 +2,8 @@
 # (mock-tauri.js), in headless Edge (the same engine as the app's WebView2): Dev Cleanup in every
 # language, plus Dashboard, Tweaks and Startup in English (tweak names come from the English catalog).
 # Usage: powershell -ExecutionPolicy Bypass -File scripts\screenshots\make-screenshots.ps1
-#        add -Langs he (one language) to render only that one
-param([string[]]$Langs = @("en", "de", "es", "fr", "it", "pt-BR", "ru", "ja", "ko", "zh-CN", "he", "ar"))
+#        add -Langs ar (one language) to render only that one
+param([string[]]$Langs = @("en", "de", "es", "fr", "it", "pt-BR", "ru", "ja", "ko", "zh-CN", "ar"))  # no Hebrew: the screenshots are published on the site
 $ErrorActionPreference = "Stop"
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $repo = Resolve-Path (Join-Path $here "..\..")

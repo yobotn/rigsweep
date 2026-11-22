@@ -23,7 +23,7 @@
 | Registry cleaner | No | No |
 | Driver updater | No | No |
 | Ads, upsell, telemetry | No ads, no account, no paid tier. Anonymous usage stats only if you agree at first run | – |
-| Interface languages | 12 | – |
+| Interface languages | 11 | – |
 
 Checked November 2026 on npkill's official repository ([README](https://github.com/voidcosmos/npkill) and [profiles](https://github.com/voidcosmos/npkill/blob/main/docs/profiles.md)). RigSweep facts are from its [README](https://github.com/yobotn/rigsweep#readme) and [homepage](https://rigsweep.com/). A dash means we couldn't verify it on an official source. Spotted something out of date? [Open an issue](https://github.com/yobotn/rigsweep/issues).
 

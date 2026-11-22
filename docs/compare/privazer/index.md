@@ -23,7 +23,7 @@
 | Registry cleaner | No | Yes, with registry restore |
 | Driver updater | No | No |
 | Ads, upsell, telemetry | No ads, no account, no paid tier. Anonymous usage stats only if you agree at first run | "Zero tracking. Zero telemetry. Zero ad." per privazer.com. PRO version offered |
-| Interface languages | 12 | – |
+| Interface languages | 11 | – |
 
 Checked November 2026 on privazer.com ([home](https://privazer.com/en/) and [differences between versions](https://privazer.com/en/version-difference.php)). RigSweep facts are from its [README](https://github.com/yobotn/rigsweep#readme) and [homepage](https://rigsweep.com/). A dash means we couldn't verify it on an official source. Spotted something out of date? [Open an issue](https://github.com/yobotn/rigsweep/issues).
 
