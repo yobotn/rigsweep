@@ -13,6 +13,10 @@ In the AI era a dev laptop doesn't run one thing anymore. A normal day means sev
 
 Every session spawns more processes, and many keep running after you close the terminal. Task Manager only shows a wall of node.exe, python.exe and chrome.exe, with no idea which session or project they belong to.
 
+Then the disk. I was building three Rust apps side by side, and each project's target folder had grown to about 40 GB: ~120 GB of build output that Cargo never cleans up on its own. The Dev Disk tab found all three in one scan.
+
+None of it was a virus or junk. It was the normal leftovers of working with AI agents, plus Windows background stuff a dev box doesn't need. Existing “PC booster” apps either do scary irreversible things or know nothing about dev workflows, so I built the tool I wanted.
+
 **RigSweep shows what's actually using your machine, sweeps what's stale, and keeps every change reversible.**
 
 ## Features
@@ -33,6 +37,7 @@ Every session spawns more processes, and many keep running after you close the t
 - **Find**: See what's taking space on each drive folder by folder, move package caches off C: to another drive or a Dev Drive, and review programs whose uninstaller is gone, big old files in Downloads and unsigned startup programs, with a Microsoft Defender scan in one click.
 - **Simple or Pro**: Simple shows the Dashboard and the cleanups in plain words. Pro adds Processes, Network, GPU engines and the raw numbers. Pick the Clean or AI-ish style, and turn off monitors you don't need so they cost no CPU.
 - **For AI agents**: rigsweep --disk-report --json and --disk-clean --safe --dry-run work without admin rights, and rigsweep --mcp is an MCP server, so Claude Code, Cursor or Codex can check free space, see what takes it and free the caches that rebuild themselves.
+- **Console pop-ups**: That Command Prompt window that flashes and vanishes: RigSweep records the exact command it ran, what started it (a scheduled task, a service or an app) and what ran inside it, and can turn off the task behind it, with a backup.
 
 ## Sweep stale sessions, safely
 

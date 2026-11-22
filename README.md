@@ -82,9 +82,13 @@ Old projects keep gigabytes of `node_modules`, `.next`, `target`, `bin/obj` and 
 - 🎮 **GPU & machine learning**: NVIDIA, AMD, Intel and DirectX shader caches, the CUDA compute cache, PyTorch hub models and compiled extensions, the Triton kernel cache, and unused conda packages (through `conda clean --all`). Ollama and LM Studio models are shown with their size, never deleted.
 - 🤖 **AI tools & editors**: the app caches of Cursor, VS Code, Windsurf, the Claude desktop app, Codex and ChatGPT, skipped while the app is open. Cursor’s state backup and old checkpoints can go too (never pre-selected). Chat history (Cursor’s chat database, Claude Code chats, Codex sessions) is only shown with its size, so you can see where the space went.
 - 🌿 **Git worktrees**: worktrees that Claude Code, Cursor, Codex or you created, with their branch, repo and how long they’ve been idle. Removed with `git worktree remove`, which refuses one with uncommitted or untracked work; the branch and its commits stay. Files git ignores that would go too (like `.env`) are listed first, and worktrees are never pre-selected.
+- 🖥️ **Windows leftovers**: your temp files and Windows temp files untouched for 7 days, Windows Update downloads, Delivery Optimization files, crash dumps and error reports, the thumbnail cache and the Recycle Bin (never ticked for you). Windows.old is shown with its size only.
+- 🐳 **Docker & WSL virtual disks**: the `.vhdx` of Docker Desktop and of every WSL distro grows and never shrinks on its own. **Compact** shrinks it to what Linux really uses. Docker Desktop is quit and WSL is shut down first, and nothing inside the disk is deleted.
 - 🎯 **Auto-select**: right on the Dev Disk tab, choose how long a project must sit untouched (3 to 365 days), which folders get ticked (build output, dependencies, package caches) and a minimum size.
 - 🚫 **Never clean**: switch off any cache. The ones that mean a big re-download (Playwright, Puppeteer, Hugging Face, Gradle, Maven, NuGet packages, Go modules) start switched off.
 - 🙈 **Exclusions**: AppData, tool folders in your profile (`.cargo`, `.nvm`, `.vscode`…), `.git` and Windows are always skipped. Add your own paths or folder names (`vendor`, `old-*`) in Settings, or click **Exclude** on a project.
+- 💽 **Drive meter**: Dev Disk, Browser Cleanup and the Dashboard open with your drive's free space now and after cleaning ("58 GB free → 81 GB free") and one big **Free X GB** button. The Dashboard adds up everything the scans found.
+- 🔁 **Clean automatically** (Settings → Dev Disk, off by default): once a week, and optionally when C: drops below a size you choose, RigSweep empties only the caches that rebuild themselves. Never projects, the Recycle Bin or slow downloads.
 - ⏸️ **Pause, resume or stop** a long cleanup and follow it on a progress bar. A cleanup cut short by a restart can pick up where it left off.
 - ✅ Scans your user profile (Desktop, Documents, Downloads, OneDrive…) by default. Nothing is deleted without your confirmation, and every folder is checked again right before deletion.
 
@@ -157,6 +161,16 @@ Task Manager's Startup apps list skips most of what starts with Windows. RigSwee
 
 <img src="docs/screenshots/startup.png" alt="Startup" width="860">
 
+### 🪟 Console pop-ups: what was that window?
+A Command Prompt or PowerShell window pops up, closes a moment later, and you never find out what ran. **Speed up → 🪟 Console pop-ups** records every one of them:
+
+- 🪟 Every console window that opens and closes on its own within a minute is listed with the **exact command it ran**, even if it was open for only a few milliseconds.
+- 🔎 **What started it**: the scheduled task (by name), the service, the app or Explorer, plus the full parent chain under Details.
+- 📜 **What ran inside it**: the programs it started (e.g. a `.bat` file calling `curl` and `reg`) and its exit code.
+- 🔁 The same command from the same source is one row with a count (×12), so a task that fires every hour is easy to spot.
+- ⏹ **Turn off…** disables the third-party scheduled task behind it, backed up and undoable from Startup or Tweaks like any other startup change.
+- 🙈 Commands that run hidden aren't listed, only windows you could actually see. RigSweep reads process starts from Windows' own kernel event stream (ETW) and changes nothing by watching. Switch it off in Settings → Appearance & features.
+
 ### 📡 Network: which app holds which port
 - 📶 **Per adapter**: download and upload speed, link speed and traffic since start-up. Windows only gives per-app byte counts to tools that trace as administrator, so traffic is shown per adapter, not per app.
 - 🔌 **Per app**: listening ports (TCP and UDP), the number of open connections and the remote addresses each app talks to.
@@ -165,8 +179,10 @@ Task Manager's Startup apps list skips most of what starts with Windows. RigSwee
 <img src="docs/screenshots/network.png" alt="Network" width="860">
 
 ### 🔎 Find: leftovers and files worth a second look
-Three lists to review. Nothing is removed unless you pick it.
+Where your space went, and three lists to review. Nothing is removed unless you pick it.
 
+- 📊 **What's taking space**: the biggest folders on any drive, one level at a time. Click one to go deeper; *Show* opens it in Explorer. It only reads.
+- 🚚 **Move caches off the system drive**: npm, pip, uv, Yarn, Bun, NuGet, Go, Gradle, Playwright, Hugging Face and PyTorch caches move to another drive or a Dev Drive in one click. RigSweep sets the tool's own environment variable for your account.
 - 📦 **Programs without an uninstaller**: entries in Installed apps whose uninstaller is gone, and folders in Program Files that no installed program, service, shortcut or task uses. Each entry is saved to a backup file before it's removed, and folders go to the Recycle Bin.
 - 🕒 **Old files**: files over 50 MB in Downloads, Desktop and Documents that haven't changed for a year, and installers in Downloads older than 90 days. They go to the Recycle Bin, and a file synced with OneDrive is flagged, because deleting it removes it on every device.
 - 🛡️ **Worth a look**: unsigned programs that start with Windows or run from AppData or Temp, names that hide their real type (`invoice.pdf.exe`, a hidden right-to-left character) and unsigned downloads. Being listed isn't a verdict: **Scan with Defender** asks Microsoft Defender about that one file.
@@ -179,6 +195,11 @@ In **🛠️ Settings → Appearance & features**:
 - 🧭 **Mode**: **Simple** shows the Dashboard, the cleanups and plain words, and hides the expert pages (Processes, Network). **Pro** shows everything, including GPU engines, connections and the raw numbers. New installs start in Simple.
 - 🖌️ **Style**: **Clean** is flat with line icons; **AI-ish** adds emoji, gradients and a soft glow.
 - 📡 **Monitors**: turn off GPU and VRAM per process, AI workload, Network, Temperatures or Disk health alerts. A monitor that's off is never sampled, so it costs no CPU.
+
+### 🤖 For AI agents and scripts
+- ⌨️ **Headless commands** that need **no admin rights**: `rigsweep --disk-report --json`, `rigsweep --disk-clean --safe [--dry-run] --json` and `rigsweep --port 3000 --json`.
+- 🔌 **MCP server**: `rigsweep --mcp` gives Claude Code, Cursor or Codex the tools `drive_space`, `disk_report`, `free_disk_space` (a dry run unless told otherwise) and `port_owner`. For Claude Code: `claude mcp add rigsweep -- "C:\Program Files\RigSweep\rigsweep.exe" --mcp`.
+- 📖 Full reference: [rigsweep.com/cli](https://rigsweep.com/cli/).
 
 ### 🔄 Updates, your choice
 **🛠️ Settings → 🔄 Updates** has a **Check now** button and an optional *Check for updates automatically* (at startup, then once a day), which is **off by default**. When a new version is out, a button appears in the sidebar with the release notes. Nothing is installed until you click **Install and restart**, and only if the download is signed with RigSweep's key. Your tweaks, backups and settings are kept. See the [privacy policy](#-privacy-policy) for exactly what a check does.

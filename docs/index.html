@@ -365,12 +365,15 @@
           <h2 data-t="story.h">📖 Why it exists</h2>
           <p data-t="story.p1">In the AI era a dev laptop doesn't run one thing anymore. A normal day means several Claude Code sessions in different terminals, a dev server per project, build watchers, and a browser full of docs and previews.</p>
           <p data-t="story.p2">Every session spawns more processes, and many keep running after you close the terminal. Task Manager only shows a wall of node.exe, python.exe and chrome.exe, with no idea which session or project they belong to.</p>
+          <p data-t="story.p2b">Then the disk. I was building three Rust apps side by side, and each project's target folder had grown to about 40 GB: ~120 GB of build output that Cargo never cleans up on its own. The Dev Disk tab found all three in one scan.</p>
+          <p data-t="story.p2c">None of it was a virus or junk. It was the normal leftovers of working with AI agents, plus Windows background stuff a dev box doesn't need. Existing “PC booster” apps either do scary irreversible things or know nothing about dev workflows, so I built the tool I wanted.</p>
           <p data-t-html="story.p3"><strong>RigSweep shows what's actually using your machine, sweeps what's stale, and keeps every change reversible.</strong></p>
         </div>
         <div class="panel">
           <div class="stat"><span data-t="stat.chrome">🌐 Chrome (37 processes)</span><b>6.5 GB</b></div>
           <div class="stat"><span data-t="stat.node">⬢ Node + Claude (14 processes)</span><b>2.5 GB</b></div>
           <div class="stat"><span data-t="stat.services">🧩 Windows services running</span><b>~150</b></div>
+          <div class="stat"><span data-t="stat.rust">🦀 Rust target folders (3 projects)</span><b>~120 GB</b></div>
           <div class="cap" data-t="stat.cap">Measured on the author's 32 GB laptop in the middle of a working day.</div>
         </div>
       </div>
@@ -396,6 +399,7 @@
         <div class="card"><div class="ic">📡</div><h3 data-t="f13.h">Network</h3><p data-t="f13.p">Traffic per adapter, which app holds which connection or listening port, and a search that tells you who is using port 3000 or a locked file or folder.</p></div>
         <div class="card"><div class="ic">🔎</div><h3 data-t="f14.h">Find</h3><p data-t="f14.p">See what's taking space on each drive folder by folder, move package caches off C: to another drive or a Dev Drive, and review programs whose uninstaller is gone, big old files in Downloads and unsigned startup programs, with a Microsoft Defender scan in one click.</p></div>
         <div class="card"><div class="ic">🎛️</div><h3 data-t="f15.h">Simple or Pro</h3><p data-t="f15.p">Simple shows the Dashboard and the cleanups in plain words. Pro adds Processes, Network, GPU engines and the raw numbers. Pick the Clean or AI-ish style, and turn off monitors you don't need so they cost no CPU.</p></div>
+        <div class="card wide"><div class="ic">🪟</div><h3 data-t="f17.h">Console pop-ups</h3><p data-t="f17.p">That Command Prompt window that flashes and vanishes: RigSweep records the exact command it ran, what started it (a scheduled task, a service or an app) and what ran inside it, and can turn off the task behind it, with a backup.</p></div>
         <div class="card wide"><div class="ic">🤖</div><h3 data-t="f16.h">For AI agents</h3><p data-t="f16.p">rigsweep --disk-report --json and --disk-clean --safe --dry-run work without admin rights, and rigsweep --mcp is an MCP server, so Claude Code, Cursor or Codex can check free space, see what takes it and free the caches that rebuild themselves.</p></div>
       </div>
     </section>

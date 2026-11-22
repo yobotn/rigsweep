@@ -82,9 +82,13 @@ Los proyectos antiguos conservan gigas de `node_modules`, `.next`, `target`, `bi
 - 🎮 **GPU y aprendizaje automático**: cachés de shaders de NVIDIA, AMD, Intel y DirectX, la caché de cómputo de CUDA, los modelos de PyTorch Hub y sus extensiones compiladas, la caché de kernels de Triton y los paquetes de conda que no se usan (con `conda clean --all`). Los modelos de Ollama y LM Studio se muestran con su tamaño, pero nunca se borran.
 - 🤖 **Herramientas de IA y editores**: las cachés de Cursor, VS Code, Windsurf, la app de escritorio de Claude, Codex y ChatGPT, que se saltan mientras la app está abierta. También pueden irse la copia de estado y los checkpoints antiguos de Cursor (nunca preseleccionados). El historial de chats (la base de datos de chats de Cursor, los chats de Claude Code, las sesiones de Codex) solo se muestra con su tamaño, para que veas a dónde se fue el espacio.
 - 🌿 **Worktrees de git**: los worktrees que crearon Claude Code, Cursor, Codex o tú mismo, con su rama, su repositorio y cuánto tiempo llevan sin usarse. Se quitan con `git worktree remove`, que se niega si hay trabajo sin confirmar o archivos sin seguimiento; la rama y sus commits se conservan. Los archivos que git ignora y que también se irían (como `.env`) aparecen antes en una lista, y los worktrees nunca se preseleccionan.
+- 🖥️ **Restos de Windows**: tus archivos temporales y los de Windows que llevan 7 días sin tocarse, las descargas de Windows Update, los archivos de Optimización de distribución, los volcados de memoria y los informes de errores, la caché de miniaturas y la Papelera de reciclaje (nunca viene marcada). Windows.old solo se muestra con su tamaño.
+- 🐳 **Discos virtuales de Docker y WSL**: el `.vhdx` de Docker Desktop y el de cada distro de WSL crecen y nunca se encogen solos. **Compactar** los reduce a lo que Linux usa de verdad. Antes se cierra Docker Desktop y se apaga WSL, y no se borra nada de dentro del disco.
 - 🎯 **Selección automática**: en la propia pestaña Disco dev eliges cuánto tiempo debe pasar un proyecto sin tocarse (de 3 a 365 días), qué carpetas se marcan (resultados de compilación, dependencias, cachés de paquetes) y un tamaño mínimo.
 - 🚫 **No limpiar nunca**: puedes desactivar cualquier caché. Las que implican una descarga grande (Playwright, Puppeteer, Hugging Face, Gradle, Maven, paquetes de NuGet, módulos de Go) vienen desactivadas.
 - 🙈 **Exclusiones**: AppData, las carpetas de herramientas de tu perfil (`.cargo`, `.nvm`, `.vscode`…), `.git` y Windows se omiten siempre. Añade tus propias rutas o nombres de carpeta (`vendor`, `old-*`) en Ajustes, o pulsa **Excluir** en un proyecto.
+- 💽 **Medidor de la unidad**: Disco dev, Limpieza de navegadores y el Panel se abren con el espacio libre de tu unidad ahora y después de limpiar ("58 GB libres → 81 GB libres") y un gran botón **Liberar X GB**. El Panel suma todo lo que encontraron los análisis.
+- 🔁 **Limpiar automáticamente** (Configuración → Disco dev, desactivado por defecto): una vez por semana, y si quieres también cuando a C: le quede menos espacio del que elijas, RigSweep vacía solo las cachés que se reconstruyen solas. Nunca proyectos, la Papelera ni descargas lentas.
 - ⏸️ **Pausa, reanuda o detén** una limpieza larga y síguela con una barra de progreso. Si un reinicio la interrumpe, puede continuar donde se quedó.
 - ✅ Por defecto analiza tu perfil de usuario (Escritorio, Documentos, Descargas, OneDrive…). No se borra nada sin tu confirmación, y cada carpeta se vuelve a comprobar justo antes de borrarla.
 
@@ -157,6 +161,16 @@ La lista de aplicaciones de arranque del Administrador de tareas omite casi todo
 
 <img src="docs/screenshots/startup.png" alt="Inicio" width="860">
 
+### 🪟 Ventanas de consola: ¿qué era esa ventana?
+Se abre una ventana de Símbolo del sistema o de PowerShell, se cierra un instante después y nunca sabes qué se ejecutó. **Acelerar → 🪟 Ventanas de consola** las registra todas:
+
+- 🪟 Cada ventana de consola que se abre y se cierra sola en menos de un minuto aparece con el **comando exacto que ejecutó**, aunque solo estuviera abierta unos milisegundos.
+- 🔎 **Qué la inició**: la tarea programada (por su nombre), el servicio, la aplicación o el Explorador, además de la cadena completa de procesos padre en Detalles.
+- 📜 **Qué se ejecutó dentro**: los programas que inició (por ejemplo, un archivo `.bat` que llama a `curl` y `reg`) y su código de salida.
+- 🔁 El mismo comando desde el mismo origen ocupa una sola fila con un contador (×12), así que una tarea que salta cada hora se ve enseguida.
+- ⏹ **Desactivar…** deshabilita la tarea programada de terceros que hay detrás, con copia de seguridad y reversible desde Inicio o Ajustes, como cualquier otro cambio de inicio.
+- 🙈 Los comandos que se ejecutan ocultos no aparecen, solo las ventanas que de verdad podías ver. RigSweep lee los inicios de procesos del propio flujo de eventos del kernel de Windows (ETW) y no cambia nada por observar. Se desactiva en Configuración → Apariencia y funciones.
+
 ### 📡 Red: qué aplicación ocupa cada puerto
 - 📶 **Por adaptador**: velocidad de descarga y de subida, velocidad del vínculo y tráfico desde el inicio. Windows solo da el recuento de bytes por aplicación a las herramientas que hacen un seguimiento como administrador, así que el tráfico se muestra por adaptador, no por aplicación.
 - 🔌 **Por aplicación**: puertos en escucha (TCP y UDP), el número de conexiones abiertas y las direcciones remotas con las que se comunica cada aplicación.
@@ -165,8 +179,10 @@ La lista de aplicaciones de arranque del Administrador de tareas omite casi todo
 <img src="docs/screenshots/network.png" alt="Red" width="860">
 
 ### 🔎 Buscar: restos y archivos que merecen una segunda mirada
-Tres listas para revisar. No se quita nada que no elijas.
+A dónde se fue tu espacio, y tres listas para revisar. No se quita nada que no elijas.
 
+- 📊 **Qué ocupa espacio**: las carpetas más grandes de cualquier unidad, nivel a nivel. Haz clic en una para entrar; *Mostrar* la abre en el Explorador. Solo lee.
+- 🚚 **Sacar las cachés de la unidad del sistema**: las cachés de npm, pip, uv, Yarn, Bun, NuGet, Go, Gradle, Playwright, Hugging Face y PyTorch pasan a otra unidad o a un Dev Drive en un clic. RigSweep configura la variable de entorno propia de cada herramienta para tu cuenta.
 - 📦 **Programas sin desinstalador**: entradas de Aplicaciones instaladas cuyo desinstalador ya no existe, y carpetas de Program Files que no usa ningún programa instalado, servicio, acceso directo ni tarea. Cada entrada se guarda en un archivo de copia de seguridad antes de quitarla, y las carpetas van a la Papelera de reciclaje.
 - 🕒 **Archivos antiguos**: archivos de más de 50 MB en Descargas, Escritorio y Documentos que no han cambiado en un año, e instaladores en Descargas con más de 90 días. Van a la Papelera de reciclaje, y los archivos sincronizados con OneDrive se marcan, porque al borrarlos desaparecen en todos tus dispositivos.
 - 🛡️ **Vale la pena revisar**: programas sin firmar que se inician con Windows o se ejecutan desde AppData o Temp, nombres que ocultan su tipo real (`factura.pdf.exe`, un carácter oculto de derecha a izquierda) y descargas sin firmar. Aparecer en la lista no es un veredicto: **Analizar con Defender** le pregunta a Microsoft Defender por ese archivo concreto.
@@ -179,6 +195,11 @@ En **🛠️ Configuración → Apariencia y funciones**:
 - 🧭 **Modo**: **Sencillo** muestra el Panel, las limpiezas y un lenguaje claro, y oculta las páginas para expertos (Procesos, Red). **Pro** lo muestra todo, incluidos los motores de la GPU, las conexiones y los datos sin procesar. Las instalaciones nuevas empiezan en Sencillo.
 - 🖌️ **Estilo**: **Limpio** es plano, con iconos de línea; **Estilo IA** añade emoji, degradados y un brillo suave.
 - 📡 **Monitores**: desactiva GPU y VRAM por proceso, Carga de IA, Red, Temperaturas o Alertas de estado del disco. Un monitor desactivado nunca se consulta, así que no gasta CPU.
+
+### 🤖 Para agentes de IA y scripts
+- ⌨️ **Comandos sin interfaz** que **no necesitan permisos de administrador**: `rigsweep --disk-report --json`, `rigsweep --disk-clean --safe [--dry-run] --json` y `rigsweep --port 3000 --json`.
+- 🔌 **Servidor MCP**: `rigsweep --mcp` da a Claude Code, Cursor o Codex las herramientas `drive_space`, `disk_report`, `free_disk_space` (una simulación salvo que se le indique lo contrario) y `port_owner`. Para Claude Code: `claude mcp add rigsweep -- "C:\Program Files\RigSweep\rigsweep.exe" --mcp`.
+- 📖 Referencia completa: [rigsweep.com/cli](https://rigsweep.com/cli/).
 
 ### 🔄 Actualizaciones, tú decides
 **🛠️ Configuración → 🔄 Actualizaciones** tiene un botón **Buscar ahora** y la opción *Buscar actualizaciones automáticamente* (al iniciar y después una vez al día), que está **desactivada de forma predeterminada**. Cuando sale una versión nueva, aparece un botón en la barra lateral con las novedades. No se instala nada hasta que haces clic en **Instalar y reiniciar**, y solo si la descarga está firmada con la clave de RigSweep. Tus ajustes, copias de seguridad y configuración se conservan. Consulta la [política de privacidad](#-pol%C3%ADtica-de-privacidad) para saber exactamente qué hace una búsqueda.

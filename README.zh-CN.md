@@ -82,9 +82,13 @@ Python 和 Java 也会运行普通的桌面应用，因此对于这两者，只�
 - 🎮 **GPU 与机器学习**：NVIDIA、AMD、Intel 和 DirectX 着色器缓存、CUDA 计算缓存、PyTorch Hub 模型和编译好的扩展、Triton 内核缓存，以及没用到的 conda 包（通过 `conda clean --all` 清理）。Ollama 和 LM Studio 的模型只显示大小，绝不删除。
 - 🤖 **AI 工具与编辑器**：Cursor、VS Code、Windsurf、Claude 桌面应用、Codex 和 ChatGPT 的应用缓存，应用开着时会跳过。Cursor 的状态备份和旧检查点也可以删除（绝不预先勾选）。聊天记录（Cursor 的聊天数据库、Claude Code 对话、Codex 会话）只显示大小，让你看清空间都去哪了。
 - 🌿 **Git 工作树**：Claude Code、Cursor、Codex 或你自己创建的工作树，附带分支、仓库和闲置时长。通过 `git worktree remove` 移除，有未提交或未跟踪内容的工作树会被它拒绝；分支和提交都会保留。会被一起删掉的 git 忽略文件（如 `.env`）会先列出来，工作树也绝不预先勾选。
+- 🖥️ **Windows 残留**：7 天没动过的用户临时文件和 Windows 临时文件、Windows 更新下载内容、传递优化文件、崩溃转储和错误报告、缩略图缓存以及回收站（绝不预先勾选）。Windows.old 只显示大小。
+- 🐳 **Docker 和 WSL 虚拟磁盘**：Docker Desktop 和每个 WSL 发行版的 `.vhdx` 只会变大，不会自己缩小。**压缩**会把它缩到 Linux 实际用到的大小。压缩前会先退出 Docker Desktop 并关闭 WSL，磁盘里的内容一样都不删。
 - 🎯 **自动选择**：直接在开发磁盘页设置项目闲置多久才算过期（3 到 365 天）、勾选哪些文件夹（构建产物、依赖、包缓存）以及最小体积。
 - 🚫 **从不清理**：任何缓存都可以关掉。需要大量重新下载的那些（Playwright、Puppeteer、Hugging Face、Gradle、Maven、NuGet 包、Go 模块）默认就是关闭的。
 - 🙈 **排除**：AppData、用户目录中的工具文件夹（`.cargo`、`.nvm`、`.vscode` 等）、`.git` 和 Windows 始终跳过。你可以在设置中添加自己的路径或文件夹名（`vendor`、`old-*`），也可以在项目上点击 **排除**。
+- 💽 **磁盘空间条**：开发磁盘、浏览器清理和仪表板一打开就显示驱动器现在和清理后的可用空间（“可用 58 GB → 可用 81 GB”），外加一个大大的**释放 X GB**按钮。仪表板会把所有扫描找到的空间加在一起。
+- 🔁 **自动清理**（设置 → 开发磁盘，默认关闭）：每周一次，也可以在 C: 盘可用空间低于你设定的大小时触发，RigSweep 只清空会自动重建的缓存。不碰项目、回收站，也不碰重新下载很慢的内容。
 - ⏸️ 耗时较长的清理可以**暂停、继续或停止**，并有进度条显示。因重启而中断的清理可以从中断处继续。
 - ✅ 默认扫描你的用户目录（桌面、文档、下载、OneDrive 等）。未经你确认不会删除任何东西，每个文件夹在删除前都会再检查一次。
 
@@ -157,6 +161,16 @@ Python 和 Java 也会运行普通的桌面应用，因此对于这两者，只�
 
 <img src="docs/screenshots/startup.png" alt="启动项" width="860">
 
+### 🪟 控制台弹窗：刚才那个窗口是什么？
+一个命令提示符或 PowerShell 窗口突然弹出来，转眼又关掉了，你永远不知道它运行了什么。**提速 → 🪟 控制台弹窗**会把每一次都记录下来：
+
+- 🪟 一分钟内自己打开又关闭的每个控制台窗口都会列出来，并显示它**运行的确切命令**，哪怕它只开了几毫秒。
+- 🔎 **是谁启动的**：计划任务（显示名称）、服务、应用或资源管理器，在“详情”里还能看到完整的父进程链。
+- 📜 **里面运行了什么**：它启动的程序（例如一个调用 `curl` 和 `reg` 的 `.bat` 文件）以及退出代码。
+- 🔁 同一来源的同一命令合并为一行并显示次数（×12），每小时触发一次的任务一眼就能认出来。
+- ⏹ **关闭…**会禁用背后的第三方计划任务，有备份，也能像其他启动项更改一样在“启动项”或“优化”中撤消。
+- 🙈 隐藏运行的命令不会列出，只列出你真正能看到的窗口。RigSweep 从 Windows 自带的内核事件流（ETW）读取进程启动信息，只看不改。可以在设置 → 外观和功能中关闭。
+
 ### 📡 网络：哪个应用占用了哪个端口
 - 📶 **按适配器**：下载和上传速度、链接速度，以及开机以来的流量。Windows 只向以管理员身份进行跟踪的工具提供按应用统计的字节数，所以流量按适配器显示，而不是按应用。
 - 🔌 **按应用**：监听端口（TCP 和 UDP）、打开的连接数，以及每个应用通信的远程地址。
@@ -165,8 +179,10 @@ Python 和 Java 也会运行普通的桌面应用，因此对于这两者，只�
 <img src="docs/screenshots/network.png" alt="网络" width="860">
 
 ### 🔎 查找：残留项和值得再看一眼的文件
-三份待检查的列表。只会删除你选中的内容。
+看看空间都去哪了，外加三份待检查的列表。只会删除你选中的内容。
 
+- 📊 **什么占了空间**：任意驱动器上最大的文件夹，一次看一层。单击某个文件夹即可深入查看；*显示*会在资源管理器中打开它。只读，不做任何更改。
+- 🚚 **把缓存移出系统盘**：一键把 npm、pip、uv、Yarn、Bun、NuGet、Go、Gradle、Playwright、Hugging Face 和 PyTorch 的缓存移到其他驱动器或 Dev Drive。RigSweep 会为你的账户设置该工具自己的环境变量。
 - 📦 **没有卸载程序的程序**：“已安装的应用”中卸载程序已经不存在的条目，以及 Program Files 中没有任何已安装程序、服务、快捷方式或任务在用的文件夹。每个条目在删除前都会先保存到备份文件，文件夹会移到回收站。
 - 🕒 **旧文件**：“下载”“桌面”和“文档”中一年未修改、超过 50 MB 的文件，以及“下载”中超过 90 天的安装程序。它们会移到回收站；与 OneDrive 同步的文件会被标出，因为删除后所有设备上都会消失。
 - 🛡️ **值得一看**：随 Windows 启动或从 AppData、Temp 运行的未签名程序，隐藏真实类型的文件名（`invoice.pdf.exe`、隐藏的从右到左字符），以及未签名的下载文件。出现在列表里并不代表有害：**用 Defender 扫描**会就这一个文件询问 Microsoft Defender。
@@ -179,6 +195,11 @@ Python 和 Java 也会运行普通的桌面应用，因此对于这两者，只�
 - 🧭 **模式**：**简单**模式只显示仪表板、各项清理和通俗的说明，并隐藏面向专家的页面（进程、网络）。**专业**模式显示全部内容，包括 GPU 引擎、连接和原始数值。新安装默认使用简单模式。
 - 🖌️ **风格**：**简洁**风格是扁平的线条图标；**AI 风**会加上表情符号、渐变和柔和的光晕。
 - 📡 **监视器**：可以分别关闭按进程的 GPU 和显存、AI 负载、网络、温度和磁盘健康警报。关闭的监视器从不采样，因此不占用 CPU。
+
+### 🤖 给 AI 智能体和脚本用
+- ⌨️ **无界面命令**，**无需管理员权限**：`rigsweep --disk-report --json`、`rigsweep --disk-clean --safe [--dry-run] --json` 和 `rigsweep --port 3000 --json`。
+- 🔌 **MCP 服务器**：`rigsweep --mcp` 为 Claude Code、Cursor 或 Codex 提供 `drive_space`、`disk_report`、`free_disk_space`（除非另行指定，否则只做演练）和 `port_owner` 这几个工具。在 Claude Code 中：`claude mcp add rigsweep -- "C:\Program Files\RigSweep\rigsweep.exe" --mcp`。
+- 📖 完整参考：[rigsweep.com/cli](https://rigsweep.com/cli/)。
 
 ### 🔄 更新由你决定
 **🛠️ 设置 → 🔄 更新**中有一个**立即检查**按钮，以及一个可选的*自动检查更新*（启动时检查，之后每天一次），该选项**默认关闭**。有新版本时，侧边栏中会出现一个按钮，附带发行说明。在你单击**安装并重启**之前，不会安装任何内容，而且只有下载内容使用 RigSweep 的密钥签名时才会安装。你的优化、备份和设置都会保留。检查更新时具体会做什么，请参阅[隐私政策](#-隐私政策)。
@@ -223,7 +244,7 @@ RigSweep 是开源软件，但**目前尚未进行代码签名**。会更改服�
 ## 🛠️ 从源代码构建
 
 ```powershell
-winget install Rustlang.Rustup        # + VS 2022 生成工具（C++ 工作负载）
+winget install Rustlang.Rustup        # + VS 2022 Build Tools (C++ workload)
 npm install
 npm run build                         # -> src-tauri/target/release/rigsweep.exe + bundle/nsis/*-setup.exe
 ```
@@ -242,9 +263,9 @@ npm run build                         # -> src-tauri/target/release/rigsweep.exe
 ### 🧪 测试
 ```powershell
 cd src-tauri
-cargo test                                          # 目录有效性、备份、快照、命令解析
-cargo test live_status   -- --ignored --nocapture   # 只读：每项优化的检测状态
-cargo test live_dev_scan -- --ignored --nocapture   # 只读：开发清理当前看到的内容
+cargo test                                          # catalog validity, backups, snapshots, command parsing
+cargo test live_status   -- --ignored --nocapture   # read-only: detected status of every tweak
+cargo test live_dev_scan -- --ignored --nocapture   # read-only: what Dev Cleanup sees right now
 ```
 
 ### ➕ 添加优化

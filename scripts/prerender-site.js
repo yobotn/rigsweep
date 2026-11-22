@@ -57,6 +57,10 @@ ${en["story.p1"]}
 
 ${en["story.p2"]}
 
+${en["story.p2b"]}
+
+${en["story.p2c"]}
+
 ${md(en["story.p3"])}
 
 ## Features

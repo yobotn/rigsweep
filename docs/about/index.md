@@ -6,7 +6,7 @@
 
 ## Why it exists
 
-In the AI era a dev laptop doesn't run one thing anymore. A normal day means several Claude Code sessions in different terminals, a dev server per project, build watchers and a browser full of docs and previews. Every session spawns more processes, and many keep running after you close the terminal. On the author's 32 GB laptop, a mid-day measurement found 37 Chrome processes using 6.5 GB and 14 Node and Claude processes using 2.5 GB. None of it was malware. It was the normal leftovers of working with agents.
+In the AI era a dev laptop doesn't run one thing anymore. A normal day means several Claude Code sessions in different terminals, a dev server per project, build watchers and a browser full of docs and previews. Every session spawns more processes, and many keep running after you close the terminal. On the author's 32 GB laptop, a mid-day measurement found 37 Chrome processes using 6.5 GB and 14 Node and Claude processes using 2.5 GB. On disk, the target folders of three Rust apps built side by side had grown to about 40 GB each, ~120 GB of build output that Cargo never cleans up on its own. None of it was malware. It was the normal leftovers of working with agents.
 
 Classic "PC booster" apps either do scary, irreversible things or know nothing about dev workflows. RigSweep was built to do the opposite: show what is actually using the machine, sweep what is stale, and keep every change reversible.
 
