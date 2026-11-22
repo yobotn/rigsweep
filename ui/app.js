@@ -795,9 +795,9 @@ async function loadBrowsers(btn, fresh = !!btn) {
   try { await scanOnce("browser", scanBrowsers, fresh); } finally { busy(btn, false); }
 }
 async function scanBrowsers() {
-  if (!bc) $("#bc-body").innerHTML = `<tr><td colspan="5" class="loading"><span class="spinner"></span> ${esc(t("bc.scanning"))}</td></tr>`;
+  if (!bc) $("#bc-body").innerHTML = `<tr><td colspan="6" class="loading"><span class="spinner"></span> ${esc(t("bc.scanning"))}</td></tr>`;
   try { [bc] = await Promise.all([call("get_browser_caches", undefined, { quiet: !bc }), loadVolumes()]); delete scanFailed.browser; }
-  catch (e) { if (!bc) failRow("#bc-body", 5, "browser", e); throw e; }
+  catch (e) { if (!bc) failRow("#bc-body", 6, "browser", e); throw e; }
   const rows = bcRows(), keys = new Set(rows.map((r) => r.k));
   bcSel = new Set([...bcSel].filter((k) => keys.has(k)));
   rows.forEach((r) => {
@@ -812,7 +812,7 @@ function renderBrowsers() {
   if (!bc) return;
   if (!bc.browsers.length) {
     $("#bc-summary").textContent = "";
-    $("#bc-body").innerHTML = `<tr><td colspan="5" class="loading">${esc(t("bc.none"))}</td></tr>`;
+    $("#bc-body").innerHTML = `<tr><td colspan="6" class="loading">${esc(t("bc.none"))}</td></tr>`;
     return;
   }
   const picked = bcRows().filter((r) => bcSel.has(r.k)).reduce((a, r) => a + r.i.bytes, 0);
@@ -825,7 +825,7 @@ function renderBrowsers() {
   const profOrder = sorter("bc", (p) => sk === "profile" ? (p.dir === "" ? t("bc.shared") : p.name) : total(p));
   const itemOrder = sorter("bc", (i) => sk === "what" ? t("bc.item." + i.key) : sk === "type" ? i.tier : i.bytes);
   $("#bc-body").innerHTML = [...bc.browsers].sort((x, y) => bTotal(y) - bTotal(x)).map((b) => {
-    const head = `<tr class="group"><td colspan="5"><b>${esc(b.name)}</b> <span class="sub">${fmtBytes(bTotal(b))}</span>
+    const head = `<tr class="group"><td colspan="6"><b>${esc(b.name)}</b> <span class="sub">${fmtBytes(bTotal(b))}</span>
       ${b.running ? ` <span class="badge idle">${esc(t("bc.running"))}</span>${b.id === "edge" ? `<div class="sub">${esc(t("bc.edgeHint"))}</div>` : ""}` : ""}</td></tr>`;
     const profs = [...b.profiles].sort((x, y) => (x.dir === "") - (y.dir === "") || profOrder(x, y));
     return head + profs.map((p) => [...p.items].sort(sk === "profile" ? (x, y) => y.bytes - x.bytes : itemOrder).map((i, n) => {
@@ -838,6 +838,7 @@ function renderBrowsers() {
         <td>${esc(t("bc.item." + i.key))}</td>
         <td><span class="risk ${i.tier === "safe" ? "safe" : "caution"}">${esc(t("bc.tier." + i.tier))}</span></td>
         <td class="num">${fmtBytes(i.bytes)}</td>
+        <td>${b.running || !i.bytes ? "" : `<button class="small ghost" data-icon="trash-2" data-bc-one="${esc(k)}">${esc(t("ready.clean"))}</button>`}</td>
       </tr>`;
     }).join("")).join("");
   }).join("");
@@ -848,10 +849,16 @@ $("#bc-body").addEventListener("change", (e) => {
   const k = e.target.dataset.bc;
   if (k) { e.target.checked ? bcSel.add(k) : bcSel.delete(k); renderBrowsers(); }
 });
+$("#bc-body").addEventListener("click", (e) => {
+  const one = e.target.closest("[data-bc-one]");
+  const row = one && bcRows().find((r) => r.k === one.dataset.bcOne && !r.b.running);
+  if (row) $("#btn-bc-clean").onclick({ target: one }, [row]);
+});
 $("#btn-bc-scan").onclick = (e) => loadBrowsers(e.target);
 $("#btn-bc-safe").onclick = () => { bcRows().filter((r) => r.i.tier === "safe" && !r.b.running && r.i.bytes > 0).forEach((r) => bcSel.add(r.k)); renderBrowsers(); };
-$("#btn-bc-clean").onclick = async (e) => {
-  const picked = bcRows().filter((r) => bcSel.has(r.k) && !r.b.running);
+// only: clean just these rows (a row's own Clean button) instead of what's ticked
+$("#btn-bc-clean").onclick = async (e, only) => {
+  const picked = only || bcRows().filter((r) => bcSel.has(r.k) && !r.b.running);
   if (!picked.length) return toast(t("bc.nothing"));
   const size = picked.reduce((a, r) => a + r.i.bytes, 0);
   const site = picked.filter((r) => r.i.tier === "site");
@@ -1123,6 +1130,8 @@ function renderDisk() {
     stale: fmtBytes(disk.projects.filter(isStale).reduce((a, p) => a + p.items.reduce((b, i) => b + i.bytes, 0), 0)), sel: fmtBytes(picked),
   });
   renderDiskSpace();
+  // one row's own Clean button: the same confirm and backend job as "Delete selected", for just that row
+  const oneBtn = (k) => `<button class="small ghost" data-icon="trash-2" data-disk-one="${esc(k)}" ${jobActive(diskJob) ? "disabled" : ""}>${esc(t("ready.clean"))}</button>`;
   const chk = (k, locked) => locked ? "🔒" : `<input type="checkbox" data-disk="${esc(k)}" ${diskSel.has(k) ? "checked" : ""} />`;
   const tier = (x) => `<span class="risk ${x === "safe" || x === "build" ? "safe" : x === "history" || x === "bin" ? "caution" : x === "shown" ? "" : "moderate"}">${esc(t("disk.tier." + x))}</span>`;
   let html = "";
@@ -1148,7 +1157,7 @@ function renderDisk() {
         <td>${c.show_only ? `<span aria-label="${esc(t("disk.showOnly"))}">👁</span>` : c.disabled ? "🚫" : chk(cKey(c), c.busy || c.bytes === 0)}</td>
         <td>${esc(t("disk.cache." + c.id))}</td><td>${tier(c.show_only ? "shown" : c.tier)}</td>
         <td class="num">${fmtBytes(size)}</td><td class="sub">${info.join(" · ")}</td>
-        <td>${c.show_only ? "" : `<button class="small ghost" data-disk-toggle="${esc(c.id)}" data-on="${c.disabled ? 1 : 0}">${esc(t(c.disabled ? "disk.enable" : "disk.disable"))}</button>`}</td>
+        <td><div class="row-acts">${c.show_only || c.disabled || c.busy || !c.bytes ? "" : oneBtn(cKey(c))}${c.show_only ? "" : `<button class="small ghost" data-disk-toggle="${esc(c.id)}" data-on="${c.disabled ? 1 : 0}">${esc(t(c.disabled ? "disk.enable" : "disk.disable"))}</button>`}</div></td>
       </tr>`;
     }).join("");
   }
@@ -1206,7 +1215,7 @@ function renderDisk() {
       const note = a.eco === "leftover" ? t("disk.leftover") : a.pnpm ? t("disk.pnpm") : a.eco === "python" && a.tier === "deps" ? t("disk.venv") : "";
       return `<tr class="${p.busy ? "locked" : ""}">
         <td>${chk(aKey(p, a), p.busy)}</td><td><code>${esc(a.name)}</code> <span class="sub">${esc(DISK_ECO[a.eco] ?? a.eco)}</span></td>
-        <td>${tier(a.tier)}</td><td class="num">${fmtBytes(a.bytes)}</td><td class="sub">${esc(note)}</td><td></td>
+        <td>${tier(a.tier)}</td><td class="num">${fmtBytes(a.bytes)}</td><td class="sub">${esc(note)}</td><td>${p.busy || !a.bytes ? "" : oneBtn(aKey(p, a))}</td>
       </tr>`;
     }).join("");
   }).join("");
@@ -1241,8 +1250,12 @@ $("#disk-body").addEventListener("change", (e) => {
 });
 $("#disk-body").addEventListener("click", async (e) => {
   const tg = e.target.closest("[data-disk-toggle]"), ex = e.target.closest("[data-disk-exclude]"), inc = e.target.closest("[data-disk-include]");
-  const vd = e.target.closest("[data-vd]");
+  const vd = e.target.closest("[data-vd]"), one = e.target.closest("[data-disk-one]");
   if (vd) return compactVdisk(vd);
+  if (one) {
+    const row = diskRows().find((r) => r.k === one.dataset.diskOne);
+    return row ? $("#btn-disk-clean").onclick({ target: one }, [row]) : undefined;
+  }
   if (inc) {
     state.settings = await call("remove_disk_exclude", { path: inc.dataset.diskInclude });
     toast(t("disk.ex.included", { p: shortPath(inc.dataset.diskInclude) }), "ok");
@@ -1293,8 +1306,10 @@ async function compactVdisk(btn) {
 
 $("#btn-disk-scan").onclick = () => loadDisk(true);
 $("#btn-disk-suggest").onclick = () => { diskRows().filter(diskSuggested).forEach((r) => diskSel.add(r.k)); renderDisk(); };
-$("#btn-disk-clean").onclick = async (e) => {
-  const picked = diskRows().filter((r) => diskSel.has(r.k));
+// only: clean just these rows (a row's own Clean button) instead of what's ticked
+$("#btn-disk-clean").onclick = async (e, only) => {
+  if (jobActive(diskJob)) return toast(t("disk.job.busy"), "warn");
+  const picked = only || diskRows().filter((r) => diskSel.has(r.k));
   if (!picked.length) return toast(t("disk.nothing"));
   const size = picked.reduce((a, r) => a + r.bytes, 0);
   const deps = picked.some((r) => r.a?.tier === "deps");
