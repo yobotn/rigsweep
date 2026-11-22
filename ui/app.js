@@ -60,7 +60,7 @@ function safeSet(k, v) { try { localStorage.setItem(k, v); } catch {} }
 // ---------- appearance & features (Settings → Appearance & features) ----------
 // Mode: Simple hides expert pages and columns (.pro-only). Style: Lucide icons, flat ("clean") or
 // emoji, gradients ("ai"). Monitors: a switched-off monitor is never polled, so it costs nothing.
-const PREF_DEFAULTS = { style: "clean", mode: "", mon_gpu: true, mon_ai: true, mon_net: true, mon_heat: true, mon_disk_alerts: true };
+const PREF_DEFAULTS = { style: "clean", mode: "", mon_gpu: true, mon_ai: true, mon_net: true, mon_heat: true, mon_disk_alerts: true, mon_flashes: true };
 const prefs = (() => { try { return { ...PREF_DEFAULTS, ...JSON.parse(safeGet("prefs") || "{}") }; } catch { return { ...PREF_DEFAULTS }; } })();
 if (!prefs.mode) {
   // new installs start in Simple; someone who already used RigSweep keeps the full app
@@ -383,10 +383,10 @@ setupIntros();
 
 // ---------- pages and their in-page tabs ----------
 // The sidebar has one entry per group; the pages of a group are tabs at the top of the content.
-const ALL_GROUPS = { home: ["dashboard", "impact"], clean: ["cleanup", "disk", "browser", "finders"], tune: ["tweaks", "processes", "startup"], pc: ["hardware", "gpu", "network", "report"] };
+const ALL_GROUPS = { home: ["dashboard", "impact"], clean: ["cleanup", "disk", "browser", "finders"], tune: ["tweaks", "processes", "startup", "flashes"], pc: ["hardware", "gpu", "network", "report"] };
 // pages only Pro shows, and pages that belong to a monitor someone switched off
 const PRO_PAGES = new Set(["processes", "network"]);
-const pageOn = (p) => !(prefs.mode === "simple" && PRO_PAGES.has(p)) && !(p === "gpu" && !prefs.mon_gpu && !prefs.mon_ai) && !(p === "network" && !prefs.mon_net);
+const pageOn = (p) => !(prefs.mode === "simple" && PRO_PAGES.has(p)) && !(p === "gpu" && !prefs.mon_gpu && !prefs.mon_ai) && !(p === "network" && !prefs.mon_net) && !(p === "flashes" && !prefs.mon_flashes);
 const visibleGroups = () => Object.fromEntries(Object.entries(ALL_GROUPS).map(([g, ps]) => [g, ps.filter(pageOn)]));
 let GROUPS = visibleGroups();
 const groupOf = (name) => Object.keys(GROUPS).find((g) => GROUPS[g].includes(name));
@@ -456,6 +456,7 @@ function showTab(name) {
   if (name === "gpu") openGpu();
   if (name === "network") openNetwork();
   if (name === "finders") openFinders();
+  if (name === "flashes") openFlashes();
   if (name === "history") loadHistory();
   if (name === "settings") renderSettings();
 }
@@ -1695,6 +1696,105 @@ $("#st-off").addEventListener("click", async (e) => {
   loadStartup(null, true);
 });
 
+// ---------- console pop-ups (flashes.rs) ----------
+// Console windows that opened and closed on their own: what ran, what started it, what ran inside.
+// The same command from the same source is one row with a count, so a task firing every hour shows up as a pattern.
+let flashes = null;
+const flTs = (ms) => { const d = new Date(ms), p = (n) => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`; };
+const flDur = (ms) => ms < 1000 ? t("fl.ms", { n: ms }) : t("fl.s", { n: (ms / 1000).toLocaleString(LANG, { maximumFractionDigits: ms < 10000 ? 1 : 0 }) });
+// the program's full path from its command line, for its icon
+function flExe(cmd) {
+  const c = String(cmd || "").replace(/^\\\?\?\\/, "").trim();
+  const m = c.startsWith('"') ? c.slice(1).split('"')[0] : (c.match(/^.*?\.exe/i)?.[0] || c.split(/\s/)[0]);
+  return /[\\/]/.test(m) ? m : "";
+}
+async function openFlashes() {
+  const gen = tabGen;
+  const r = await call("get_flashes").catch(() => null);
+  if (!r || gen !== tabGen) return;
+  flashes = r;
+  renderFlashes();
+}
+function flSource(f) {
+  if (f.source === "task") return f.task ? t("fl.by.task", { x: ltr(f.task) }) : t("fl.by.taskUnknown");
+  if (f.source === "service") return t("fl.by.service", { x: ltr(f.source_name) });
+  if (f.source === "explorer") return t("fl.by.explorer");
+  if (f.source === "app") return ltr(f.source_name);
+  return t("fl.by.unknown");
+}
+const flTaskOff = (path) => (state?.tweaks || []).some((x) => x.id === "custom.task." + path.toLowerCase() && x.in_profile);
+function flNodes(list) {
+  return `<ul class="fl-nodes">${list.map((n) => `<li><b>${esc(n.name)}</b> <span class="sub">PID ${n.pid}</span>${n.cmd ? `<div class="sub mono-cut"><bdi dir="ltr">${esc(n.cmd)}</bdi></div>` : ""}</li>`).join("")}</ul>`;
+}
+function renderFlashes() {
+  if (!flashes) return;
+  const s = flashes.status;
+  $("#fl-status").innerHTML = s.on ? `<i class="pulse"></i><span>${esc(t("fl.on"))}</span>`
+    : `<span class="warn-text">${esc(s.error === "admin" ? t("fl.admin") : s.error ? t("fl.err", { m: s.error }) : t("fl.starting"))}</span>`;
+  const groups = new Map();
+  flashes.rows.forEach((f) => {
+    const k = [f.name, f.cmd, f.task || "", f.source, f.source_name].join("\u0001");
+    const g = groups.get(k);
+    if (g) g.n++; else groups.set(k, { f, n: 1 });
+  });
+  $("#btn-fl-clear").disabled = !flashes.rows.length;
+  if (!groups.size) {
+    $("#fl-body").innerHTML = `<tr><td colspan="5" class="loading">${esc(t("fl.none"))}</td></tr>`;
+    return;
+  }
+  $("#fl-body").innerHTML = [...groups.values()].map(({ f, n }) => {
+    const cmd = f.cmd.length > 140 ? f.cmd.slice(0, 138) + "…" : f.cmd;
+    const taskBtn = f.task && f.task_user
+      ? (flTaskOff(f.task) ? `<span class="badge active">${esc(t("fl.taskOff"))}</span>` : `<button class="small ghost" data-fl-task="${esc(f.task)}">${esc(t("st.off"))}</button>`)
+      : "";
+    return `<tr>
+      <td class="fl-when">${agoHtml(flTs(f.t))}${n > 1 ? `<div><span class="badge idle">${esc(t("fl.times", { n }))}</span></div>` : ""}</td>
+      <td><div class="named">${ico(flExe(f.cmd))}<div><b>${esc(f.name)}</b>
+        <div class="sub mono-cut" title="${esc(f.cmd)}"><bdi dir="ltr">${esc(cmd)}</bdi></div>
+        <details class="chg"><summary>${esc(t("fl.details"))}</summary>
+          ${f.chain.length ? `<h3>${esc(t("fl.chain"))}</h3>${flNodes(f.chain)}` : ""}
+          ${f.children.length ? `<h3>${esc(t("fl.inside"))}</h3>${flNodes(f.children)}` : ""}
+          ${f.exit != null ? `<p class="sub">${esc(t("fl.exit", { x: f.exit }))}</p>` : ""}
+        </details></div></div></td>
+      <td>${esc(flSource(f))}</td>
+      <td class="num">${esc(flDur(f.ms))}</td>
+      <td class="fl-acts">${taskBtn}<button class="small ghost" data-fl-copy="${f.id}">${esc(t("fl.copy"))}</button></td>
+    </tr>`;
+  }).join("");
+}
+listen("flash", (e) => {
+  if (!flashes) return;
+  flashes.rows.unshift(e.payload);
+  if (currentTab === "flashes") renderFlashes();
+});
+$("#fl-body").addEventListener("click", async (e) => {
+  const el = e.target.closest("button");
+  if (!el) return;
+  if (el.dataset.flCopy) {
+    const f = flashes.rows.find((x) => String(x.id) === el.dataset.flCopy);
+    try { await navigator.clipboard.writeText(f?.cmd || ""); toast(t("fl.copied"), "ok"); } catch {}
+    return;
+  }
+  const path = el.dataset.flTask;
+  if (!path) return;
+  const name = path.split("\\").pop();
+  if (!(await modal(t("st.offTitle", { name }), `<p>${esc(t("st.offBody.task"))}</p><p class="sub">${esc(t("st.backup"))}</p>`, { okText: t("st.off").replace("…", "") }))) return;
+  busy(el, true);
+  try {
+    const id = await call("add_startup_tweak", { kind: "task", key: path, display: name });
+    const r = await call("apply_tweaks", { ids: [id] });
+    const res = r.results[0];
+    toast(res?.ok ? t("st.done", { name }) : t("proc.problem", { m: res?.messages.join("; ") }), res?.ok ? "ok" : "err", 8000);
+    selected.add(id);
+  } catch { busy(el, false); return; }
+  await loadState();
+  renderFlashes();
+});
+$("#btn-fl-clear").onclick = async () => {
+  if (!(await modal(t("fl.clearTitle"), "", { okText: t("fl.clear") }))) return;
+  try { await call("clear_flashes"); flashes.rows = []; renderFlashes(); toast(t("fl.cleared"), "ok"); } catch {}
+};
+
 // ---------- dashboard ----------
 let dashLoading = false;
 async function loadDashboard() {
@@ -2141,8 +2241,8 @@ $("[data-stab-panel=look]").addEventListener("change", async (e) => {
   GROUPS = visibleGroups();
   syncTileLinks();
   renderPageTabs();
-  if (el.dataset.mon === "mon_heat" || el.dataset.mon === "mon_disk_alerts") {
-    try { await call("set_monitors", { heat: prefs.mon_heat, diskAlerts: prefs.mon_disk_alerts }); } catch {} // call() already showed the error
+  if (["mon_heat", "mon_disk_alerts", "mon_flashes"].includes(el.dataset.mon)) {
+    try { await call("set_monitors", { heat: prefs.mon_heat, diskAlerts: prefs.mon_disk_alerts, flashes: prefs.mon_flashes }); } catch {} // call() already showed the error
   }
   flashSaved();
 });

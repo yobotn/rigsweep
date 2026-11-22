@@ -46,7 +46,7 @@ foreach ($lang in $Langs) {
 }
 if ($Langs -contains "en") {
   # the homepage gallery and the README use these
-  foreach ($tab in "dashboard", "impact", "disk", "browser", "tweaks", "startup", "settings") { Shot "en" $tab "$tab.png" }
+  foreach ($tab in "dashboard", "impact", "disk", "browser", "tweaks", "startup", "flashes", "settings") { Shot "en" $tab "$tab.png" }
   # the expert pages only show in Pro mode
   $pro = "&prefs=" + [Uri]::EscapeDataString('{"mode":"pro"}')
   foreach ($tab in "processes", "gpu", "network", "hardware") { Shot "en" $tab "$tab.png" $pro }

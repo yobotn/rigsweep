@@ -220,6 +220,23 @@
       { pid: 20410, name: "python.exe", label: "ComfyUI (Python)", models: [], vram: 1.2 * GB, util: 3, npu_util: 0 }],
     get_net_totals: { in_per_sec: 2.4 * 1048576, out_per_sec: 310 * 1024, ifaces: [
       { name: "Wi-Fi", description: "Intel(R) Wi-Fi 7 BE200 320MHz", kind: "wifi", hardware: true, link_speed: 2.4e9, in_per_sec: 2.4 * 1048576, out_per_sec: 310 * 1024, in_total: 18.2 * GB, out_total: 2.1 * GB }] },
+    get_flashes: { status: { on: true, since: Date.now() - 6 * 3600e3, error: null }, rows: [
+      { id: 9, t: Date.now() - 4 * 60e3, ms: 420, pid: 30112, name: "cmd.exe", exit: 0, source: "task", source_name: "", task: "\\Acme\\AcmeSyncHelper", task_user: true,
+        cmd: 'C:\\WINDOWS\\system32\\cmd.exe /c "C:\\Program Files\\Acme\\Sync\\refresh-token.bat"',
+        chain: [{ pid: 2140, name: "svchost.exe", cmd: "C:\\WINDOWS\\system32\\svchost.exe -k netsvcs -p -s Schedule" }, { pid: 1020, name: "services.exe", cmd: "" }],
+        children: [{ pid: 30140, name: "curl.exe", cmd: "curl -s https://sync.acme.example/token" }, { pid: 30152, name: "reg.exe", cmd: "reg add HKCU\\Software\\Acme\\Sync /v Token /f" }] },
+      { id: 8, t: Date.now() - 64 * 60e3, ms: 410, pid: 28770, name: "cmd.exe", exit: 0, source: "task", source_name: "", task: "\\Acme\\AcmeSyncHelper", task_user: true,
+        cmd: 'C:\\WINDOWS\\system32\\cmd.exe /c "C:\\Program Files\\Acme\\Sync\\refresh-token.bat"', chain: [], children: [] },
+      { id: 7, t: Date.now() - 124 * 60e3, ms: 395, pid: 27002, name: "cmd.exe", exit: 0, source: "task", source_name: "", task: "\\Acme\\AcmeSyncHelper", task_user: true,
+        cmd: 'C:\\WINDOWS\\system32\\cmd.exe /c "C:\\Program Files\\Acme\\Sync\\refresh-token.bat"', chain: [], children: [] },
+      { id: 6, t: Date.now() - 38 * 60e3, ms: 2300, pid: 26210, name: "powershell.exe", exit: 0, source: "service", source_name: "GameLauncherSvc", task: null, task_user: false,
+        cmd: "powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\\ProgramData\\GameLauncher\\cleanup.ps1",
+        chain: [{ pid: 4410, name: "launcherservice.exe", cmd: '"C:\\Program Files (x86)\\GameLauncher\\LauncherService.exe"' }, { pid: 1020, name: "services.exe", cmd: "" }], children: [] },
+      { id: 5, t: Date.now() - 3 * 3600e3, ms: 160, pid: 21400, name: "cmd.exe", exit: 1, source: "app", source_name: "updater.exe", task: null, task_user: false,
+        cmd: "C:\\WINDOWS\\system32\\cmd.exe /c tasklist /fi \"imagename eq printhelper.exe\"",
+        chain: [{ pid: 21388, name: "updater.exe", cmd: '"C:\\Users\\dev\\AppData\\Local\\PrintHelper\\updater.exe" --silent' }], children: [{ pid: 21420, name: "tasklist.exe", cmd: 'tasklist /fi "imagename eq printhelper.exe"' }] },
+      { id: 4, t: Date.now() - 5 * 3600e3, ms: 850, pid: 18800, name: "defrag.exe", exit: 0, source: "task", source_name: "", task: "\\Microsoft\\Windows\\Defrag\\ScheduledDefrag", task_user: false,
+        cmd: "C:\\WINDOWS\\system32\\defrag.exe -c -h -o -$", chain: [], children: [] }] },
     get_connections: { conns: [], procs: [
       { pid: 18244, name: "node.exe", listening: [5173], udp: [], established: 2, tcp: 3, remotes: [{ host: "127.0.0.1", count: 2 }] },
       { pid: 9876, name: "Code.exe", listening: [], udp: [], established: 14, tcp: 14, remotes: [{ host: "140.82.112.21", count: 6 }, { host: "13.107.42.18", count: 4 }] },

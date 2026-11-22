@@ -14,6 +14,7 @@ mod discovery;
 mod elevation;
 mod engine;
 mod finders;
+mod flashes;
 mod gpu;
 mod hardware;
 mod icons;
@@ -193,6 +194,8 @@ fn run_app(start_hidden: bool) {
             commands::get_live,
             commands::check_update,
             commands::install_update,
+            commands::get_flashes,
+            commands::clear_flashes,
         ])
         .setup(move |app| {
             build_tray(app.handle())?;
@@ -200,9 +203,12 @@ fn run_app(start_hidden: bool) {
             spawn_dev_monitor(app.handle().clone());
             spawn_disk_watch(app.handle().clone());
             spawn_disk_autoclean(app.handle().clone());
+            let mut flashes_on = true;
             if let Ok(db) = app.state::<AppState>().db.lock() {
                 live::load_switches(&db);
+                flashes_on = db.get_setting("mon_flashes").as_deref() != Some("0");
             }
+            flashes::spawn(app.handle().clone(), flashes_on);
             live::spawn(app.handle().clone());
             share::spawn(app.handle().clone());
             let h = app.handle().clone();
@@ -223,8 +229,13 @@ fn run_app(start_hidden: bool) {
                 api.prevent_close();
             }
         })
-        .run(tauri::generate_context!())
-        .expect("error while running RigSweep");
+        .build(tauri::generate_context!())
+        .expect("error while running RigSweep")
+        .run(|_, event| {
+            if let tauri::RunEvent::Exit = event {
+                flashes::shutdown();
+            }
+        });
 }
 
 fn build_tray(app: &AppHandle) -> tauri::Result<()> {

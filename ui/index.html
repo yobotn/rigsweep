@@ -339,6 +339,22 @@
       <div id="tweak-list"><div class="loading"><span class="spinner"></span> <span data-i18n="tw.loading"></span></div></div>
     </section>
 
+    <!-- CONSOLE POP-UPS -->
+    <section id="tab-flashes" class="tab">
+      <header>
+        <h1 data-i18n="fl.title"></h1>
+        <div class="actions">
+          <span id="fl-status" class="label live-sub"></span>
+          <button id="btn-fl-clear" data-icon="trash-2" class="ghost" data-i18n="fl.clear"></button>
+        </div>
+      </header>
+      <div class="intro"><p class="hint" data-i18n="fl.hint"></p></div>
+      <div class="card flush"><table class="tbl">
+        <thead><tr><th data-i18n="fl.col.when"></th><th data-i18n="fl.col.what"></th><th data-i18n="fl.col.by"></th><th class="num" data-i18n="fl.col.dur"></th><th></th></tr></thead>
+        <tbody id="fl-body"><tr><td colspan="5" class="loading"><span class="spinner"></span></td></tr></tbody>
+      </table></div>
+    </section>
+
     <!-- STARTUP -->
     <section id="tab-startup" class="tab">
       <header>
@@ -460,6 +476,7 @@
           <label class="chk"><input type="checkbox" data-mon="mon_ai" /> <span><span data-i18n="mon.ai"></span><span class="sub" data-i18n="mon.aiHint"></span></span></label>
           <label class="chk"><input type="checkbox" data-mon="mon_net" /> <span><span data-i18n="mon.net"></span><span class="sub" data-i18n="mon.netHint"></span></span></label>
           <label class="chk"><input type="checkbox" data-mon="mon_heat" /> <span><span data-i18n="mon.heat"></span><span class="sub" data-i18n="mon.heatHint"></span></span></label>
+          <label class="chk"><input type="checkbox" data-mon="mon_flashes" /> <span><span data-i18n="mon.flashes"></span><span class="sub" data-i18n="mon.flashesHint"></span></span></label>
           <label class="chk"><input type="checkbox" data-mon="mon_disk_alerts" /> <span><span data-i18n="mon.disk_alerts"></span><span class="sub" data-i18n="mon.disk_alertsHint"></span></span></label>
           </div>
         </div>

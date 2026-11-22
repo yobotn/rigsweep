@@ -139,6 +139,13 @@ th[aria-sort="ascending"] .th-sort::after { content: "↑"; opacity: 1; color: v
 .tbl tbody tr:hover td { background: var(--row-hover); }
 .sub { color: var(--muted); font-size: var(--fs-xs); }
 /* a Linux command line / stuck shell tools: keep the row one line, full text on hover */
+.fl-nodes { list-style: none; margin: 0 0 var(--s2); padding: 0; }
+.fl-nodes li { padding: var(--s1) 0; }
+#tab-flashes details h3 { font-size: var(--fs-xs); color: var(--muted); margin: var(--s2) 0 0; font-weight: 600; }
+#tab-flashes .mono-cut { max-width: 520px; }
+.fl-acts, .fl-when { white-space: nowrap; }
+.fl-acts { text-align: end; }
+.fl-acts > * + * { margin-inline-start: var(--s1); }
 .mono-cut { font-family: ui-monospace, Consolas, monospace; font-size: var(--fs-xs); max-width: 320px; overflow-wrap: anywhere; direction: ltr; unicode-bidi: isolate; }
 .svc { display: inline-flex; gap: var(--s0); align-items: center; background: var(--panel2); border-radius: var(--r-sm); padding: 1px var(--s1); margin: 1px var(--s-1) 1px 0; font-size: var(--fs-xs); }
 .svc.known { outline: 1px solid #2f4a7a; }

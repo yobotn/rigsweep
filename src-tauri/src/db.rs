@@ -116,7 +116,8 @@ impl Db {
              CREATE TABLE IF NOT EXISTS impact(
                 id INTEGER PRIMARY KEY AUTOINCREMENT, run INTEGER NOT NULL, ts TEXT NOT NULL, source TEXT NOT NULL,
                 area TEXT NOT NULL, kind TEXT NOT NULL, bytes INTEGER NOT NULL, count INTEGER NOT NULL);
-             CREATE INDEX IF NOT EXISTS impact_ts ON impact(ts);",
+             CREATE INDEX IF NOT EXISTS impact_ts ON impact(ts);
+             CREATE TABLE IF NOT EXISTS flashes(id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, json TEXT NOT NULL);",
         )?;
         // 0.8.2: the CPU an ended process tree was using is kept next to its memory
         let has_cpu: bool = conn.prepare("SELECT 1 FROM pragma_table_info('impact') WHERE name = 'cpu'")?.exists([])?;
@@ -212,6 +213,33 @@ impl Db {
 
     pub fn backup_count(&self) -> Result<i64> {
         Ok(self.conn.query_row("SELECT COUNT(*) FROM backups", [], |r| r.get(0))?)
+    }
+
+    // ---------- console windows that flashed (flashes.rs) ----------
+    pub fn add_flash(&self, ts: i64, json: &str) -> Result<()> {
+        self.conn.execute("INSERT INTO flashes(ts, json) VALUES(?1, ?2)", params![ts, json])?;
+        // the newest 500 are plenty to find a pattern
+        self.conn.execute("DELETE FROM flashes WHERE id <= (SELECT MAX(id) FROM flashes) - 500", [])?;
+        Ok(())
+    }
+
+    pub fn flashes(&self, limit: i64) -> Result<Vec<Value>> {
+        let mut st = self.conn.prepare("SELECT id, json FROM flashes ORDER BY id DESC LIMIT ?1")?;
+        let rows = st
+            .query_map(params![limit], |r| Ok((r.get::<_, i64>(0)?, r.get::<_, String>(1)?)))?
+            .filter_map(|r| r.ok())
+            .filter_map(|(id, j)| {
+                let mut v: Value = serde_json::from_str(&j).ok()?;
+                v["id"] = id.into();
+                Some(v)
+            })
+            .collect();
+        Ok(rows)
+    }
+
+    pub fn clear_flashes(&self) -> Result<()> {
+        self.conn.execute("DELETE FROM flashes", [])?;
+        Ok(())
     }
 
     // ---------- history ----------

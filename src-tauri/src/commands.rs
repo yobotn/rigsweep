@@ -677,11 +677,36 @@ pub async fn set_dev_keep(state: State<'_, AppState>, cmd: String, keep: bool) -
 /// background disk health check). The UI-polled monitors (GPU, network) need no switch here:
 /// when they are off, the UI simply never asks.
 #[tauri::command]
-pub async fn set_monitors(state: State<'_, AppState>, heat: bool, disk_alerts: bool) -> R<()> {
+pub async fn set_monitors(state: State<'_, AppState>, heat: bool, disk_alerts: bool, flashes: Option<bool>) -> R<()> {
     let db = lock(&state)?;
     db.set_setting("mon_heat", if heat { "1" } else { "0" }).map_err(err)?;
     db.set_setting("mon_disk_alerts", if disk_alerts { "1" } else { "0" }).map_err(err)?;
+    if let Some(on) = flashes {
+        db.set_setting("mon_flashes", if on { "1" } else { "0" }).map_err(err)?;
+        crate::flashes::set_enabled(on);
+    }
     crate::live::load_switches(&db);
+    Ok(())
+}
+
+#[derive(Serialize)]
+pub struct FlashesView {
+    pub status: crate::flashes::Status,
+    pub rows: Vec<serde_json::Value>,
+}
+
+/// Console windows that flashed open and closed, newest first.
+#[tauri::command]
+pub async fn get_flashes(state: State<'_, AppState>) -> R<FlashesView> {
+    let db = lock(&state)?;
+    Ok(FlashesView { status: crate::flashes::status(), rows: db.flashes(300).map_err(err)? })
+}
+
+#[tauri::command]
+pub async fn clear_flashes(state: State<'_, AppState>) -> R<()> {
+    let db = lock(&state)?;
+    db.clear_flashes().map_err(err)?;
+    db.log("gui", None, "clear_flashes", true, "");
     Ok(())
 }
 
