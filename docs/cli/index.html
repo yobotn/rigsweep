@@ -49,9 +49,22 @@
     <li><code>rigsweep.exe --apply --tray</code>: the same, then stays in the tray.</li>
     <li><code>rigsweep.exe --restore-all</code>: headless. Reverts every tweak to the original value backed up before RigSweep changed it, then exits.</li>
     </ul>
-    <p>Flags are case-insensitive. RigSweep needs administrator rights: when it is started without them, it relaunches itself elevated through a UAC prompt, with the same flags. From an elevated terminal or a scheduled task running with highest privileges, no prompt appears.</p>
+    <p>Flags are case-insensitive. The GUI and the tweak commands above need administrator rights: when started without them, RigSweep relaunches itself elevated through a UAC prompt, with the same flags. From an elevated terminal or a scheduled task running with highest privileges, no prompt appears.</p>
+    <h2>Disk and port commands (no admin rights, since 0.10.0)</h2>
+    <p>These print to the terminal they were started from, or to a file or pipe, and never open a window or a UAC prompt. Add <code>--json</code> for machine-readable output.</p>
+    <ul>
+    <li><code>rigsweep.exe --disk-report [--json]</code>: free space per drive and everything Dev Disk finds: package and tool caches, Windows leftovers, old build and dependency folders per project, git worktrees, Docker / WSL virtual disks. Read-only.</li>
+    <li><code>rigsweep.exe --disk-clean --safe --dry-run [--json]</code>: lists the caches that rebuild themselves (npm, pip, temp files older than a week, Windows Update downloads…) and how much emptying them would free.</li>
+    <li><code>rigsweep.exe --disk-clean --safe [--json]</code>: empties exactly that list and reports the space freed and the system drive's free space before and after. Projects, worktrees, the Recycle Bin, virtual disks and caches that are slow to download again are never touched from the command line; clean those in the app, where each step is confirmed.</li>
+    <li><code>rigsweep.exe --port 3000 [--json]</code>: which processes hold a local port, with PID and command line.</li>
+    <li><code>rigsweep.exe --mcp</code>: a <a href="https://modelcontextprotocol.io/">Model Context Protocol</a> server on stdin / stdout (see below).</li>
+    </ul>
+    <h2>MCP server for AI agents</h2>
+    <p><code>rigsweep.exe --mcp</code> lets an agent such as Claude Code, Cursor or Codex check disk space and free it on its own. Tools: <code>drive_space</code>, <code>disk_report</code>, <code>free_disk_space</code> (a dry run unless <code>dry_run</code> is <code>false</code>; only caches that rebuild themselves) and <code>port_owner</code>. To add it to Claude Code:</p>
+    <pre><code>claude mcp add rigsweep -- "C:\Program Files\RigSweep\rigsweep.exe" --mcp</code></pre>
+    <p>Other clients take the same command in their MCP settings: <code>{"command": "C:\\Program Files\\RigSweep\\rigsweep.exe", "args": ["--mcp"]}</code>. Use the path RigSweep was installed to.</p>
     <h2>Using it from an agent or script</h2>
-    <p>An agent can tell a user to run <code>rigsweep.exe --restore-all</code> to undo every Windows tweak in one step, for example when a setting changed by RigSweep is suspected of causing a problem. Ending dev processes and deleting folders is GUI-only today, because every cleanup asks for confirmation. A headless <code>--dev-clean</code> / <code>--disk-clean</code> with <code>--dry-run</code> and JSON output is proposed in <a href="https://github.com/yobotn/rigsweep/issues/6">issue #6</a>: vote on it with a 👍 if you need it.</p>
+    <p>An agent can tell a user to run <code>rigsweep.exe --restore-all</code> to undo every Windows tweak in one step, for example when a setting changed by RigSweep is suspected of causing a problem. For disk space, an agent can run <code>rigsweep.exe --disk-report --json</code> to see what takes space and <code>rigsweep.exe --disk-clean --safe --dry-run --json</code> before cleaning, or use the MCP server above. Ending dev processes and deleting project folders stay in the app, because those cleanups ask for confirmation.</p>
     <h2>Where things live</h2>
     <ul>
     <li><strong>Database</strong> (backups of original values, history, measurements): <code>%ProgramData%\RigSweep\rigsweep.db</code>, with rotating copies <code>.bak.1</code> to <code>.bak.5</code>.</li>

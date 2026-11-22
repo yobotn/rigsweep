@@ -5,6 +5,7 @@ mod analyzer;
 mod badge;
 mod browserclean;
 mod catalog;
+mod cli;
 mod commands;
 mod db;
 mod devclean;
@@ -41,6 +42,11 @@ use commands::AppState;
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let has = |f: &str| args.iter().any(|a| a.eq_ignore_ascii_case(f));
+
+    // headless commands for scripts and agents (no admin rights needed, no window)
+    if cli::try_run(&args) {
+        return;
+    }
 
     if !elevation::is_elevated() {
         if !elevation::relaunch_elevated(&args) {
