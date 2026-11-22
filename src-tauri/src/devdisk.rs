@@ -881,6 +881,10 @@ enum How {
     /// empty the folders, but keep artifacts the user built and installed locally (`mvn install`
     /// writes `maven-metadata-local.xml` next to them): those can't be downloaded again
     KeepLocal,
+    /// delete only what nothing has touched for this many days (temp folders)
+    Aged(u64),
+    /// the Recycle Bin on every drive, emptied through the shell
+    RecycleBin,
 }
 
 struct CacheDef {
@@ -942,6 +946,17 @@ const CACHES: &[CacheDef] = &[
     CacheDef { id: "codex", eco: "ai", tier: "safe", how: How::Empty, busy: &["\\codex.exe", "@openai\\codex"] },
     CacheDef { id: "codexhist", eco: "ai", tier: "history", how: How::Show, busy: &[] },
     CacheDef { id: "chatgpt", eco: "ai", tier: "safe", how: How::Empty, busy: &["\\chatgpt.exe"] },
+    // Windows leftovers: what Disk Cleanup / Storage Sense would clear, plus what they hide
+    CacheDef { id: "wintemp", eco: "win", tier: "safe", how: How::Aged(7), busy: &[] },
+    CacheDef { id: "systemp", eco: "win", tier: "safe", how: How::Aged(7), busy: &[] },
+    // never while Windows is installing an update
+    CacheDef { id: "wudownload", eco: "win", tier: "safe", how: How::Empty, busy: &["\\tiworker.exe", "\\trustedinstaller.exe", "\\wusa.exe"] },
+    CacheDef { id: "deliveryopt", eco: "win", tier: "safe", how: How::Tool("powershell.exe", &["-NoProfile", "-NonInteractive", "-Command", "Delete-DeliveryOptimizationCache -Force"]), busy: &[] },
+    CacheDef { id: "crashdumps", eco: "win", tier: "safe", how: How::Empty, busy: &["\\werfault.exe"] },
+    CacheDef { id: "thumbcache", eco: "win", tier: "safe", how: How::Empty, busy: &[] },
+    CacheDef { id: "recyclebin", eco: "win", tier: "bin", how: How::RecycleBin, busy: &[] },
+    // the previous Windows: Settings > Storage removes it properly (and it is the way back)
+    CacheDef { id: "winold", eco: "win", tier: "shown", how: How::Show, busy: &[] },
 ];
 
 /// The cache folders of an Electron app (and VS Code-style editors) inside its data folder.
@@ -980,7 +995,35 @@ fn cache_paths(id: &str) -> Vec<PathBuf> {
     let in_pkg = |prefix: &str, app: &str| -> Vec<Option<PathBuf>> {
         store_packages(prefix).into_iter().map(|p| Some(p.join("LocalCache\\Roaming").join(app))).collect()
     };
+    let win = env_dir("SystemRoot").or_else(|| env_dir("windir"));
+    let w = |rel: &str| win.as_ref().map(|b| b.join(rel));
     let v: Vec<Option<PathBuf>> = match id {
+        "wintemp" => vec![temp_dir()],
+        "systemp" => vec![w("Temp")],
+        "wudownload" => vec![w("SoftwareDistribution\\Download")],
+        "deliveryopt" => vec![w("ServiceProfiles\\NetworkService\\AppData\\Local\\Microsoft\\Windows\\DeliveryOptimization\\Cache")],
+        "crashdumps" => {
+            let pd = env_dir("ProgramData");
+            vec![
+                l("CrashDumps"), w("Minidump"), w("MEMORY.DMP"), l("Microsoft\\Windows\\WER\\ReportArchive"), l("Microsoft\\Windows\\WER\\ReportQueue"),
+                pd.as_ref().map(|p| p.join("Microsoft\\Windows\\WER\\ReportArchive")), pd.map(|p| p.join("Microsoft\\Windows\\WER\\ReportQueue")),
+            ]
+        }
+        // Explorer's thumbnail and icon databases (the ones it has open stay)
+        "thumbcache" => l("Microsoft\\Windows\\Explorer")
+            .and_then(|d| fs::read_dir(d).ok())
+            .map(|rd| {
+                rd.flatten()
+                    .filter(|e| {
+                        let n = e.file_name().to_string_lossy().to_lowercase();
+                        (n.starts_with("thumbcache_") || n.starts_with("iconcache_")) && n.ends_with(".db")
+                    })
+                    .map(|e| Some(e.path()))
+                    .collect()
+            })
+            .unwrap_or_default(),
+        "recyclebin" => recycle_roots().into_iter().map(Some).collect(),
+        "winold" => std::env::var("SystemDrive").ok().map(|d| PathBuf::from(format!("{d}\\Windows.old"))).into_iter().map(Some).collect(),
         "npm" => vec![npm.map(|p| p.join("_cacache"))],
         "npx" => vec![npm.map(|p| p.join("_npx"))],
         "pnpm" => vec![l("pnpm\\store")],
@@ -1046,7 +1089,7 @@ fn cache_paths(id: &str) -> Vec<PathBuf> {
     // a cache path must never be a drive root or the profile itself; a few caches are single files
     v.into_iter()
         .flatten()
-        .filter(|p| p.is_absolute() && p.components().count() > 3)
+        .filter(|p| p.is_absolute() && (p.components().count() > 3 || matches!(id, "recyclebin" | "winold")))
         .filter(|p| p.is_dir() || fs::symlink_metadata(p).is_ok_and(|m| m.is_file()))
         .fold(vec![], |mut v: Vec<PathBuf>, p| {
             if !v.iter().any(|x| lower(x) == lower(&p)) {
@@ -1147,13 +1190,79 @@ fn local_split(d: &Path) -> (Vec<PathBuf>, bool) {
 /// The folders whose content a cleanup would remove (for KeepNewest: the old version folders).
 fn targets_of(def: &CacheDef) -> Vec<PathBuf> {
     let paths = cache_paths(def.id);
-    if def.how == How::KeepNewest {
-        paths.iter().flat_map(|p| old_versions(def.id, p)).collect()
-    } else if def.how == How::KeepLocal {
-        paths.iter().flat_map(|p| local_split(p).0).collect()
-    } else {
-        paths
+    match def.how {
+        How::KeepNewest => paths.iter().flat_map(|p| old_versions(def.id, p)).collect(),
+        How::KeepLocal => paths.iter().flat_map(|p| local_split(p).0).collect(),
+        How::Aged(days) => paths.iter().flat_map(|p| aged_entries(p, days)).collect(),
+        _ => paths,
     }
+}
+
+/// Entries of `dir` that nothing has touched for `days` days (a folder: nothing inside it either).
+/// Links, git checkouts (agent worktrees are handled on their own) and RigSweep's own files stay;
+/// a folder too big to check quickly stays too.
+fn aged_entries(dir: &Path, days: u64) -> Vec<PathBuf> {
+    let cutoff = SystemTime::now() - Duration::from_secs(days * 86_400);
+    let Ok(rd) = fs::read_dir(dir) else { return vec![] };
+    rd.flatten()
+        .filter_map(|e| {
+            let p = e.path();
+            let m = fs::symlink_metadata(&p).ok()?;
+            let name = e.file_name().to_string_lossy().to_lowercase();
+            if is_reparse(&m) || name.starts_with("rigsweep") || name.starts_with(".rigsweep") || (m.is_dir() && p.join(".git").exists()) {
+                return None;
+            }
+            let mut budget = 20_000u32;
+            (!touched_since(&p, &m, cutoff, &mut budget)).then_some(p)
+        })
+        .collect()
+}
+
+fn touched_since(p: &Path, m: &fs::Metadata, cutoff: SystemTime, budget: &mut u32) -> bool {
+    if m.modified().map_or(true, |t| t > cutoff) || m.created().is_ok_and(|t| t > cutoff) {
+        return true;
+    }
+    if !m.is_dir() {
+        return false;
+    }
+    let Ok(rd) = fs::read_dir(p) else { return true };
+    for e in rd.flatten() {
+        if *budget == 0 {
+            return true;
+        }
+        *budget -= 1;
+        let Ok(cm) = fs::symlink_metadata(e.path()) else { continue };
+        if is_reparse(&cm) || touched_since(&e.path(), &cm, cutoff, budget) {
+            return true;
+        }
+    }
+    false
+}
+
+/// `X:\$Recycle.Bin` on every fixed drive that has one, the system drive first (the space
+/// meter counts the whole bin there).
+fn recycle_roots() -> Vec<PathBuf> {
+    let mut v: Vec<PathBuf> = sysinfo::Disks::new_with_refreshed_list()
+        .map(|d| d.iter().filter(|x| !x.is_removable()).map(|x| x.mount_point().join("$Recycle.Bin")).collect())
+        .unwrap_or_default();
+    v.retain(|p| p.is_dir());
+    let sys = std::env::var("SystemDrive").unwrap_or_else(|_| "C:".into()).to_lowercase();
+    v.sort_by_key(|p| !p.to_string_lossy().to_lowercase().starts_with(&sys));
+    v
+}
+
+/// Bytes in the Recycle Bin on all drives.
+fn recycle_size() -> u64 {
+    use windows::Win32::UI::Shell::{SHQueryRecycleBinW, SHQUERYRBINFO};
+    let mut info = SHQUERYRBINFO { cbSize: std::mem::size_of::<SHQUERYRBINFO>() as u32, ..Default::default() };
+    // SAFETY: a null root means every drive; `info` outlives the call
+    unsafe { SHQueryRecycleBinW(windows::core::PCWSTR::null(), &mut info) }.map(|_| info.i64Size.max(0) as u64).unwrap_or(0)
+}
+
+fn empty_recycle_bin() {
+    use windows::Win32::UI::Shell::{SHEmptyRecycleBinW, SHERB_NOCONFIRMATION, SHERB_NOPROGRESSUI, SHERB_NOSOUND};
+    // SAFETY: no window, null root = every drive; fails harmlessly when the bin is already empty
+    let _ = unsafe { SHEmptyRecycleBinW(None, windows::core::PCWSTR::null(), SHERB_NOCONFIRMATION | SHERB_NOPROGRESSUI | SHERB_NOSOUND) };
 }
 
 #[derive(Serialize, Clone, Debug)]
@@ -1172,11 +1281,14 @@ pub struct CacheView {
     pub keep_newest: bool,
     /// shown with its size only; never cleaned here (models, chat history)
     pub show_only: bool,
+    /// only what is older than this many days goes (0: everything)
+    pub aged_days: u64,
     pub paths: Vec<String>,
 }
 
 fn tool_label(how: How) -> String {
     match how {
+        How::Tool("powershell.exe", args) => args.last().map(|a| a.to_string()).unwrap_or_default(),
         How::Tool(exe, args) | How::ToolOrEmpty(exe, args) => {
             let args: Vec<&str> = args.iter().copied().filter(|a| !a.starts_with('/')).collect();
             if exe == "cmd.exe" { args.join(" ") } else { format!("{} {}", exe.trim_end_matches(".exe"), args.join(" ")) }
@@ -1209,8 +1321,12 @@ fn scan_caches(cfg: &Config, hay: &[String]) -> Vec<CacheView> {
         if paths.is_empty() {
             return None;
         }
-        let total: u64 = paths.iter().map(|p| path_size(p)).sum();
-        let bytes = if def.how == How::KeepNewest {
+        let total: u64 = if def.how == How::RecycleBin { recycle_size() } else { paths.iter().map(|p| path_size(p)).sum() };
+        let bytes = if def.how == How::RecycleBin {
+            total
+        } else if matches!(def.how, How::Aged(_)) {
+            targets_of(def).iter().map(|p| path_size(p)).sum()
+        } else if def.how == How::KeepNewest {
             targets_of(def).iter().map(|p| local_size(p)).sum()
         } else if def.how == How::KeepLocal {
             targets_of(def).iter().map(|p| path_size(p)).sum()
@@ -1231,6 +1347,7 @@ fn scan_caches(cfg: &Config, hay: &[String]) -> Vec<CacheView> {
             tool: tool_label(def.how),
             keep_newest: def.how == How::KeepNewest,
             show_only: def.how == How::Show,
+            aged_days: if let How::Aged(d) = def.how { d } else { 0 },
             paths: paths.iter().map(|p| p.to_string_lossy().into_owned()).collect(),
         })
     })
@@ -1255,6 +1372,8 @@ pub struct DiskReport {
     pub project_total: u64,
     pub stale_total: u64,
     pub worktree_total: u64,
+    /// Docker Desktop and WSL virtual disks (compacted, never deleted)
+    pub vdisks: Vec<VDisk>,
     pub scan_ms: u64,
 }
 
@@ -1278,6 +1397,7 @@ pub fn report(cfg: &Config) -> DiskReport {
         caches,
         projects,
         worktrees,
+        vdisks: vdisks(),
         scan_ms: t0.elapsed().as_millis() as u64,
     }
 }
@@ -1539,7 +1659,7 @@ fn clean_cache(def: &CacheDef) -> Result<(u64, bool), String> {
     match def.how {
         How::Empty => Ok(empty(&paths, false)),
         How::KeepNewest => Ok(empty(&targets_of(def), true)),
-        How::KeepLocal => {
+        How::KeepLocal | How::Aged(_) => {
             let left = AtomicU64::new(0);
             let stopped = par_map(&targets_of(def), |p| hold() || wipe_entry(p, &left)).into_iter().any(|s| s);
             Ok((left.into_inner(), stopped))
@@ -1556,6 +1676,12 @@ fn clean_cache(def: &CacheDef) -> Result<(u64, bool), String> {
         How::Conda => {
             let exe = conda_exe(&paths);
             by_tool(&exe, &["clean", "--all", "--yes"]).map_err(|e| format!("conda clean failed: {e}"))?;
+            Ok((0, false))
+        }
+        How::RecycleBin => {
+            let before = recycle_size();
+            empty_recycle_bin();
+            FREED.fetch_add(before.saturating_sub(recycle_size()), Ordering::Relaxed);
             Ok((0, false))
         }
         How::Show => Err("only shown here; remove it in the app that owns it".into()),
@@ -2123,3 +2249,156 @@ mod live {
         println!("caches {} MB, projects {} MB, stale {} MB, worktrees {} MB", r.cache_total / 1048576, r.project_total / 1048576, r.stale_total / 1048576, r.worktree_total / 1048576);
     }
 }
+
+// ---------- Docker Desktop and WSL virtual disks ----------
+//
+// A .vhdx grows as Linux writes and never shrinks on its own, even after images or files inside
+// are deleted. Compacting gives the empty space back to Windows: shut WSL down (and Docker
+// Desktop), then let diskpart compact the file. Nothing inside the disk is deleted, except that
+// Docker's build cache and dangling images can be pruned first.
+
+#[derive(Serialize, Clone, Debug)]
+pub struct VDisk {
+    /// "docker" | "wsl"
+    pub kind: &'static str,
+    /// the WSL distribution, or "Docker Desktop"
+    pub name: String,
+    pub path: String,
+    pub bytes: u64,
+}
+
+/// Docker Desktop's own data disks, then every registered WSL distribution's disk.
+pub fn vdisks() -> Vec<VDisk> {
+    let mut v: Vec<VDisk> = vec![];
+    let mut add = |kind: &'static str, name: String, p: PathBuf| {
+        let Ok(m) = fs::metadata(&p) else { return };
+        // under 1 GB there is nothing worth compacting (Docker's small system disk)
+        if !m.is_file() || m.len() < 1 << 30 || v.iter().any(|x| x.path.eq_ignore_ascii_case(&p.to_string_lossy())) {
+            return;
+        }
+        v.push(VDisk { kind, name, path: p.to_string_lossy().into_owned(), bytes: m.len() });
+    };
+    let mut docker_dirs: Vec<PathBuf> = env_dir("LOCALAPPDATA").map(|l| l.join("Docker\\wsl")).into_iter().collect();
+    // a disk image moved in Docker Desktop's settings (Resources > Advanced)
+    for f in ["settings-store.json", "settings.json"] {
+        let Some(j) = env_dir("APPDATA").and_then(|a| fs::read_to_string(a.join("Docker").join(f)).ok()) else { continue };
+        let Ok(j) = serde_json::from_str::<serde_json::Value>(&j) else { continue };
+        for k in ["CustomWslDistroDir", "customWslDistroDir", "DataFolder", "dataFolder"] {
+            if let Some(d) = j.get(k).and_then(|x| x.as_str()).filter(|d| !d.is_empty()) {
+                docker_dirs.push(PathBuf::from(d));
+            }
+        }
+    }
+    for d in docker_dirs {
+        for sub in ["", "disk", "data", "main", "distro"] {
+            let dir = if sub.is_empty() { d.clone() } else { d.join(sub) };
+            let Ok(rd) = fs::read_dir(&dir) else { continue };
+            for e in rd.flatten() {
+                if e.file_name().to_string_lossy().to_lowercase().ends_with(".vhdx") {
+                    add("docker", "Docker Desktop".into(), e.path());
+                }
+            }
+        }
+    }
+    let lxss = winreg::RegKey::predef(winreg::enums::HKEY_CURRENT_USER).open_subkey("Software\\Microsoft\\Windows\\CurrentVersion\\Lxss");
+    if let Ok(lxss) = lxss {
+        for id in lxss.enum_keys().flatten() {
+            let Ok(k) = lxss.open_subkey(&id) else { continue };
+            let name: String = k.get_value("DistributionName").unwrap_or_default();
+            let base: String = k.get_value("BasePath").unwrap_or_default();
+            if base.is_empty() {
+                continue;
+            }
+            let file: String = k.get_value("VhdFileName").unwrap_or_else(|_| "ext4.vhdx".into());
+            let base = base.trim_start_matches("\\\\?\\");
+            let kind = if name.to_lowercase().starts_with("docker-desktop") { "docker" } else { "wsl" };
+            add(kind, if kind == "docker" { "Docker Desktop".into() } else { name }, PathBuf::from(base).join(file));
+        }
+    }
+    v.sort_by(|a, b| b.bytes.cmp(&a.bytes));
+    v
+}
+
+#[derive(Serialize, Debug)]
+pub struct Compacted {
+    pub before: u64,
+    pub after: u64,
+    pub pruned: bool,
+}
+
+static COMPACTING: Mutex<()> = Mutex::new(());
+
+/// Run a tool hidden, giving up (and killing it) after `secs`.
+fn run_for(exe: &str, args: &[&str], secs: u64) -> Result<String, String> {
+    use std::os::windows::process::CommandExt;
+    use std::process::{Command, Stdio};
+    let mut child = Command::new(exe)
+        .args(args)
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .creation_flags(0x0800_0000) // CREATE_NO_WINDOW
+        .spawn()
+        .map_err(|e| format!("{exe}: {e}"))?;
+    let start = Instant::now();
+    loop {
+        match child.try_wait() {
+            Ok(Some(_)) => break,
+            Ok(None) if start.elapsed() > Duration::from_secs(secs) => {
+                let _ = child.kill();
+                let _ = child.wait();
+                return Err(format!("{exe} gave no result after {secs} s"));
+            }
+            Ok(None) => std::thread::sleep(Duration::from_millis(250)),
+            Err(e) => return Err(e.to_string()),
+        }
+    }
+    let o = child.wait_with_output().map_err(|e| e.to_string())?;
+    let text = |b: &[u8]| String::from_utf8_lossy(b).trim().to_string();
+    if o.status.success() {
+        Ok(text(&o.stdout))
+    } else {
+        let e = text(&o.stderr);
+        Err(if e.is_empty() { text(&o.stdout) } else { e }.chars().take(300).collect())
+    }
+}
+
+/// Shrink one virtual disk. Docker Desktop is quit and WSL is shut down first (running
+/// containers and Linux shells stop); neither is started again afterwards.
+pub fn compact_vdisk(path: &str, prune: bool) -> Result<Compacted, String> {
+    let _one = COMPACTING.try_lock().map_err(|_| "another virtual disk is being compacted".to_string())?;
+    if is_running() {
+        return Err("a cleanup is running; try again when it has finished".into());
+    }
+    // only a disk the scan found, never an arbitrary path
+    let d = vdisks().into_iter().find(|v| v.path.eq_ignore_ascii_case(path)).ok_or("not a known Docker or WSL disk")?;
+    let size = || fs::metadata(&d.path).map(|m| m.len()).unwrap_or(0);
+    let before = size();
+    let mut pruned = false;
+    if d.kind == "docker" {
+        if prune && run_for("docker", &["info", "--format", "{{.ServerVersion}}"], 20).is_ok() {
+            pruned = run_for("docker", &["builder", "prune", "-f"], 900).is_ok();
+            pruned |= run_for("docker", &["image", "prune", "-f"], 900).is_ok();
+        }
+        let _ = run_for("docker", &["desktop", "stop"], 120);
+        for exe in ["Docker Desktop.exe", "com.docker.backend.exe", "com.docker.build.exe"] {
+            let _ = run_for("taskkill", &["/F", "/IM", exe], 30);
+        }
+    }
+    run_for("wsl.exe", &["--shutdown"], 180).map_err(|e| format!("couldn't shut WSL down: {e}"))?;
+    std::thread::sleep(Duration::from_secs(3));
+    let script = std::env::temp_dir().join(format!("rigsweep-compact-{}.txt", std::process::id()));
+    fs::write(&script, format!("select vdisk file=\"{}\"\r\nattach vdisk readonly\r\ncompact vdisk\r\ndetach vdisk\r\n", d.path))
+        .map_err(|e| e.to_string())?;
+    let r = run_for("diskpart.exe", &["/s", &script.to_string_lossy()], 3600);
+    let _ = fs::remove_file(&script);
+    if let Err(e) = r {
+        // a failed run can leave the disk attached; detach it so WSL / Docker can start
+        let _ = fs::write(&script, format!("select vdisk file=\"{}\"\r\ndetach vdisk\r\n", d.path));
+        let _ = run_for("diskpart.exe", &["/s", &script.to_string_lossy()], 120);
+        let _ = fs::remove_file(&script);
+        return Err(format!("diskpart couldn't compact it (still in use?): {}", e.lines().last().unwrap_or("")));
+    }
+    Ok(Compacted { before, after: size(), pruned })
+}
+

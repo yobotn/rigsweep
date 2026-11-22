@@ -500,6 +500,25 @@ pub async fn get_dev_disk(state: State<'_, AppState>) -> R<DiskReport> {
     tauri::async_runtime::spawn_blocking(move || devdisk::report(&cfg)).await.map_err(err)
 }
 
+/// Compact a Docker Desktop / WSL virtual disk (quits Docker Desktop, shuts WSL down).
+#[tauri::command]
+pub async fn compact_vdisk(state: State<'_, AppState>, path: String, prune: bool) -> R<devdisk::Compacted> {
+    let p = path.clone();
+    let r = tauri::async_runtime::spawn_blocking(move || devdisk::compact_vdisk(&p, prune)).await.map_err(err)?;
+    let db = lock(&state)?;
+    match &r {
+        Ok(c) => {
+            let got = c.before.saturating_sub(c.after);
+            db.log("gui", None, "disk_compact", true, &format!("{path}: {:.1} GB -> {:.1} GB", c.before as f64 / 1e9, c.after as f64 / 1e9));
+            if got > 0 {
+                db.add_impact("gui", &[crate::impact::Freed::new("disk", "vdisk", got, 1)]);
+            }
+        }
+        Err(e) => db.log("gui", None, "disk_compact", false, &format!("{path}: {e}")),
+    }
+    r
+}
+
 /// What a stopped or interrupted cleanup still has to do; survives a reload or restart.
 const DISK_RESUME: &str = "disk_resume";
 

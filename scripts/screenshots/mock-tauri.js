@@ -166,7 +166,11 @@
     proj("C:\\Users\\dev\\code\\shop-web", 2, [art("node_modules", "node", "deps", 890 * 1048576)]),
   ];
   const caches = [cache("npm", "node", "safe", 2.4 * GB), cache("pnpm", "node", "safe", 3.1 * GB), cache("cargo", "rust", "safe", 1.7 * GB), cache("pip", "python", "safe", 640 * 1048576), { ...cache("nugetpkgs", "dotnet", "safe", 1.1 * GB), disabled: true }];
-  const diskReport = { caches, projects, worktrees: [], roots: ["C:\\Users\\dev\\code"], home: "C:\\Users\\dev",
+  caches.push(cache("wudownload", "win", "safe", 740 * 1048576), { ...cache("wintemp", "win", "safe", 2.6 * GB), total: 3.4 * GB, aged_days: 7 },
+    cache("crashdumps", "win", "safe", 310 * 1048576), cache("recyclebin", "win", "bin", 1.8 * GB));
+  const vdisks = [{ kind: "docker", name: "Docker Desktop", path: "C:\Users\dev\AppData\Local\Docker\wsl\disk\docker_data.vhdx", bytes: 31.2 * GB },
+    { kind: "wsl", name: "Ubuntu-24.04", path: "C:\Users\dev\AppData\Local\wsl\ext4.vhdx", bytes: 7.2 * GB }];
+  const diskReport = { caches, projects, worktrees: [], vdisks, roots: ["C:\\Users\\dev\\code"], home: "C:\\Users\\dev",
     cache_total: caches.reduce((a, c) => a + c.bytes, 0), project_total: projects.reduce((a, x) => a + x.items.reduce((b, i) => b + i.bytes, 0), 0),
     stale_total: 0, worktree_total: 0, scan_ms: 4200 };
   const bitem = (key, tier, bytes) => ({ key, tier, bytes });
@@ -190,6 +194,7 @@
     get_history: history,
     get_snapshots: [],
     get_dev_disk: diskReport,
+    compact_vdisk: { before: 31.2 * GB, after: 17.9 * GB, pruned: true },
     get_volumes: [{ drive: "C:", total: 476 * GB, free: 58 * GB, system: true }, { drive: "D:", total: 931 * GB, free: 412 * GB, system: false }],
     process_why: { pid: 18244, name: "node.exe", exe: "C:\\Program Files\\nodejs\\node.exe", cmd: "node C:\\Users\\dev\\code\\shop-web\\node_modules\\vite\\bin\\vite.js --port 5173",
       start_time: Math.floor(Date.now() / 1000) - 33000, cpu: 7.2, mem: 612 * 1048576, disk_read: 1.2 * 1048576, disk_write: 300 * 1024, threads: 14,

@@ -854,7 +854,7 @@ $("#btn-bc-clean").onclick = async (e) => {
   if (!picked.length) return toast(t("bc.nothing"));
   const size = picked.reduce((a, r) => a + r.i.bytes, 0);
   const site = picked.filter((r) => r.i.tier === "site");
-  const html = `<p>${esc(t("bc.confirm.body"))}</p><ul>${picked.map((r) =>
+  const html = `${spaceLines(sumBy(picked, sysDrive, (r) => r.i.bytes))}<p>${esc(t("bc.confirm.body"))}</p><ul>${picked.map((r) =>
     `<li><b>${esc(r.b.name)}</b> · ${esc(r.p.dir === "" ? t("bc.shared") : r.p.name)} · ${esc(t("bc.item." + r.i.key))} <span class="sub">${fmtBytes(r.i.bytes)}</span></li>`).join("")}</ul>
     ${site.length ? `<p class="warn-text">${esc(t("bc.site.warn"))}</p>` : ""}`;
   if (!(await modal(t("bc.confirm.title", { size: fmtBytes(size) }), html, { okText: t("bc.clean"), danger: site.length > 0 }))) return;
@@ -862,7 +862,8 @@ $("#btn-bc-clean").onclick = async (e) => {
   try {
     const r = await call("clean_browser_caches", { targets: picked.map((x) => ({ browser: x.b.id, profile: x.p.dir, key: x.i.key })) });
     noteFreed("bc", r.freed);
-    let msg = t("bc.done", { mem: fmtBytes(r.freed) });
+    await loadVolumes();
+    let msg = t("bc.done", { mem: fmtBytes(r.freed) }) + spaceNow();
     if (r.locked_files) msg += "\n" + t("bc.locked", { n: r.locked_files });
     if (r.skipped_running.length) msg += "\n" + t("bc.skipped", { b: r.skipped_running.join(", ") });
     toast(msg, r.skipped_running.length ? "warn" : "ok", 9000);
@@ -936,6 +937,18 @@ function renderSpace(el, picked, all, cta) {
 const sysDrive = () => (volumes || []).find((v) => v.system)?.drive;
 const sumBy = (rows, drive, bytes) => rows.reduce((m, r) => { const d = drive(r) || sysDrive(); if (d) m.set(d, (m.get(d) || 0) + bytes(r)); return m; }, new Map());
 const diskDrive = (r) => driveOf(r.c ? r.c.paths?.[0] : r.p ? r.p.path : r.w?.path);
+// "C: 58 GB free → 81 GB free" lines for a confirm dialog (picked: Map drive -> bytes)
+function spaceLines(picked) {
+  return [...picked].map(([d, b]) => {
+    const v = (volumes || []).find((x) => x.drive === d);
+    return v ? `<p class="space-line">💽 <b dir="ltr">${esc(d)}</b> ${esc(t("space.line", { now: fmtBytes(v.free), after: fmtBytes(v.free + Math.min(b, v.total - v.free)) }))}</p>` : "";
+  }).join("");
+}
+// after a cleanup: "C: now has 81 GB free" (volumes must be fresh)
+function spaceNow() {
+  const v = (volumes || []).find((x) => x.system);
+  return v ? "\n" + t("space.nowFree", { d: v.drive, size: fmtBytes(v.free) }) : "";
+}
 function renderDiskSpace() {
   // an orphaned worktree goes to the Recycle Bin, which frees nothing until the bin is emptied
   const rows = diskRows().filter((r) => !r.w?.orphan);
@@ -1054,12 +1067,12 @@ function renderDisk() {
   });
   renderDiskSpace();
   const chk = (k, locked) => locked ? "🔒" : `<input type="checkbox" data-disk="${esc(k)}" ${diskSel.has(k) ? "checked" : ""} />`;
-  const tier = (x) => `<span class="risk ${x === "safe" || x === "build" ? "safe" : x === "history" ? "caution" : x === "shown" ? "" : "moderate"}">${esc(t("disk.tier." + x))}</span>`;
+  const tier = (x) => `<span class="risk ${x === "safe" || x === "build" ? "safe" : x === "history" || x === "bin" ? "caution" : x === "shown" ? "" : "moderate"}">${esc(t("disk.tier." + x))}</span>`;
   let html = "";
   // package caches, then GPU & machine learning, then AI tools & editors; each its own group
-  const cacheGroup = (c) => c.eco === "gpu" || c.eco === "ml" ? "gpu" : c.eco === "ai" ? "ai" : "pkg";
+  const cacheGroup = (c) => c.eco === "gpu" || c.eco === "ml" ? "gpu" : c.eco === "ai" ? "ai" : c.eco === "win" ? "win" : "pkg";
   const cacheOrder = sorter("disk", (c, k) => k === "what" ? t("disk.cache." + c.id) : k === "type" ? c.tier : k === "idle" ? (c.disabled ? -1 : c.busy ? 1 : 0) : c.bytes);
-  for (const [g, title] of [["pkg", "disk.caches"], ["gpu", "disk.caches.gpu"], ["ai", "disk.caches.ai"]]) {
+  for (const [g, title] of [["win", "disk.caches.win"], ["pkg", "disk.caches"], ["gpu", "disk.caches.gpu"], ["ai", "disk.caches.ai"]]) {
     const list = disk.caches.filter((c) => cacheGroup(c) === g && !(diskView === "active" && c.disabled));
     if (!list.length) continue;
     const freeable = list.filter((c) => !c.disabled && !c.show_only).reduce((a, c) => a + c.bytes, 0);
@@ -1070,6 +1083,7 @@ function renderDisk() {
       if (c.disabled) info.push(`<span class="badge">${esc(t("disk.disabled"))}</span>`);
       if (c.busy && !c.show_only) info.push(`<span class="badge idle">${esc(t("disk.cacheBusy"))}</span>`);
       if (c.keep_newest) info.push(esc(t("disk.keepNewest", { total: fmtBytes(c.total) })));
+      else if (c.aged_days) info.push(esc(t("disk.agedOnly", { d: c.aged_days, total: fmtBytes(c.total) })));
       else if (c.total > c.bytes && !c.show_only) info.push(esc(t(c.id === "conda" ? "disk.condaShared" : "disk.pnpmShared", { total: fmtBytes(c.total) })));
       if (c.tool) info.push(esc(t("disk.tool", { c: c.tool })));
       const size = c.show_only ? c.total : c.bytes;
@@ -1080,6 +1094,15 @@ function renderDisk() {
         <td>${c.show_only ? "" : `<button class="small ghost" data-disk-toggle="${esc(c.id)}" data-on="${c.disabled ? 1 : 0}">${esc(t(c.disabled ? "disk.enable" : "disk.disable"))}</button>`}</td>
       </tr>`;
     }).join("");
+  }
+  if (disk.vdisks?.length && diskView !== "active") {
+    html += `<tr class="group"><td colspan="6"><b>${esc(t("disk.vdisks"))}</b> <span class="sub">${fmtBytes(disk.vdisks.reduce((a, v) => a + v.bytes, 0))}</span></td></tr>`;
+    html += disk.vdisks.map((v) => `<tr title="${esc(v.path)}">
+        <td><span aria-hidden="true">💽</span></td>
+        <td>${esc(v.kind === "docker" ? t("disk.vd.docker") : t("disk.vd.wsl", { n: v.name }))}</td><td>${tier("compact")}</td>
+        <td class="num">${fmtBytes(v.bytes)}</td><td class="sub">${esc(t(v.kind === "docker" ? "disk.vd.dockerInfo" : "disk.vd.wslInfo"))}</td>
+        <td><button class="small ghost" data-icon="shrink" data-vd="${esc(v.path)}">${esc(t("disk.vd.compact"))}</button></td>
+      </tr>`).join("");
   }
   if (disk.worktrees?.length) {
     html += `<tr class="group"><td colspan="6"><b>${esc(t("disk.worktrees"))}</b> <span class="sub">${fmtBytes(disk.worktree_total)}</span></td></tr>`;
@@ -1160,6 +1183,8 @@ $("#disk-body").addEventListener("change", (e) => {
 });
 $("#disk-body").addEventListener("click", async (e) => {
   const tg = e.target.closest("[data-disk-toggle]"), ex = e.target.closest("[data-disk-exclude]"), inc = e.target.closest("[data-disk-include]");
+  const vd = e.target.closest("[data-vd]");
+  if (vd) return compactVdisk(vd);
   if (inc) {
     state.settings = await call("remove_disk_exclude", { path: inc.dataset.diskInclude });
     toast(t("disk.ex.included", { p: shortPath(inc.dataset.diskInclude) }), "ok");
@@ -1184,6 +1209,30 @@ $("#disk-body").addEventListener("click", async (e) => {
     renderDisk();
   }
 });
+// Docker Desktop / WSL disks: shrink the .vhdx (nothing inside is deleted unless pruning is ticked)
+async function compactVdisk(btn) {
+  const v = (disk?.vdisks || []).find((x) => x.path === btn.dataset.vd);
+  if (!v) return;
+  if (jobActive(diskJob)) return toast(t("disk.job.busy"), "warn");
+  const docker = v.kind === "docker";
+  const html = `<p>${esc(t("disk.vd.body"))}</p>
+    <p class="warn-text">${esc(t(docker ? "disk.vd.warnDocker" : "disk.vd.warnWsl"))}</p>
+    ${docker ? `<label class="check-row"><input type="checkbox" id="vd-prune" checked /> <span>${esc(t("disk.vd.prune"))}</span></label>` : ""}
+    <p class="sub">${esc(t("disk.vd.slow"))}</p>`;
+  const title = t("disk.vd.confirm", { n: docker ? t("disk.vd.docker") : v.name, size: fmtBytes(v.bytes) });
+  if (!(await modal(title, html, { okText: t("disk.vd.compact") }))) return;
+  const prune = docker && !!$("#vd-prune")?.checked;
+  busy(btn, true, t("disk.vd.running"));
+  try {
+    const r = await call("compact_vdisk", { path: v.path, prune });
+    const got = Math.max(0, r.before - r.after);
+    noteFreed("disk", got);
+    await loadVolumes();
+    toast(t("disk.vd.done", { before: fmtBytes(r.before), after: fmtBytes(r.after), got: fmtBytes(got) }) + spaceNow(), "ok", 10000);
+  } finally { busy(btn, false); }
+  loadDisk(true);
+}
+
 $("#btn-disk-scan").onclick = () => loadDisk(true);
 $("#btn-disk-suggest").onclick = () => { diskRows().filter(diskSuggested).forEach((r) => diskSel.add(r.k)); renderDisk(); };
 $("#btn-disk-clean").onclick = async (e) => {
@@ -1200,7 +1249,7 @@ $("#btn-disk-clean").onclick = async (e) => {
     : r.w ? `<li><bdi dir="ltr">${esc(shortPath(r.w.path))}</bdi> <span class="sub">${fmtBytes(r.bytes)}</span></li>`
     : `<li>${esc(shortPath(r.p.path))}\\<b>${esc(r.a.name)}</b> <span class="sub">${fmtBytes(r.bytes)}</span></li>`).join("");
   const ign = [...new Set(wts.flatMap((r) => r.w.ignored))];
-  const html = `<p>${esc(t("disk.confirm.body"))}</p><ul class="scroll-list">${li}</ul>
+  const html = `${spaceLines(sumBy(picked.filter((r) => !r.w?.orphan), diskDrive, (r) => r.bytes))}<p>${esc(t("disk.confirm.body"))}</p><ul class="scroll-list">${li}</ul>
     ${deps ? `<p class="warn-text">${esc(t("disk.deps.warn"))}</p>` : ""}
     ${redl ? `<p class="warn-text">${esc(t("disk.redl.warn"))}</p>` : ""}
     ${hist ? `<p class="warn-text">${esc(t("disk.hist.warn"))}</p>` : ""}
@@ -1251,11 +1300,11 @@ function applyDiskJob(j) {
 function onDiskJobEnd(j) {
   const r = j.result;
   noteFreed("disk", r.freed);
-  loadVolumes().then(renderDisk);
   let msg = j.state === "stopped" ? t("disk.job.stoppedToast", { mem: fmtBytes(r.freed) }) : t("disk.done", { mem: fmtBytes(r.freed) });
   if (r.locked_files) msg += "\n" + t("disk.locked", { n: r.locked_files });
   if (r.skipped.length) msg += "\n" + t("disk.skipped") + "\n• " + r.skipped.map(shortPath).join("\n• ");
-  toast(msg, r.skipped.length ? "warn" : "ok", 10000);
+  // the toast waits for fresh drive sizes, so it can say how much is free now
+  loadVolumes().then(() => { renderDisk(); toast(msg + spaceNow(), r.skipped.length ? "warn" : "ok", 10000); });
   if (disk) {
     // drop what's gone at once; the rescan below (slow on big trees) only refreshes the sizes
     const gone = new Set(r.done);
@@ -2442,10 +2491,31 @@ function renderReady() {
     || (data() && recentFreed(key) ? freedTile(key, icon, go, recentFreed(key)) : null)
     || { key, icon, go, state: data() ? "none" : "checking", big: data() ? "✓" : "", cap: t(data() ? `ready.none.${key}` : "ready.scanHint"), text: t(data() ? `ready.none.${key}` : "ready.scanning") });
   // one tile per kind: the amount big, what it is underneath, the actions at the bottom
+  renderDashSpace();
   $("#ready-list").innerHTML = rows.map((r) => `<li class="ready-tile ${r.key} ${r.state || "has"}" aria-label="${esc(r.text)}" ${r.state === "checking" ? 'aria-busy="true"' : ""}>
     <div class="ready-top"><span class="ready-ico" aria-hidden="true">${r.icon}</span><span class="ready-big">${r.state === "checking" ? `<span class="scanning"><i class="scan-dot"></i>${esc(t("ready.scanning"))}</span>` : esc(r.big)}</span></div>
     <div class="ready-cap"${r.capHtml ? ` title="${esc(t(`ready.none.${r.key}`))}"` : ""}>${r.capHtml ?? esc(r.cap)}</div>
     <div class="ready-acts"><button class="small ghost" data-go="${r.go}">${esc(t("ready.review"))}</button>${r.state ? "" : `<button class="small primary" data-ready="${r.key}">${esc(r.act)}</button>`}</div></li>`).join("");
+}
+// the whole PC on the Dashboard: what Dev Disk and Browser cleanup would free together, one
+// button that goes through each page's own confirmation in turn
+const dashCta = {
+  disabled: false,
+  click: async () => {
+    const dsk = disk && !jobActive(diskJob) ? diskRows().filter(diskSuggested) : [];
+    if (dsk.length) { diskSel = new Set(dsk.map((r) => r.k)); await $("#btn-disk-clean").onclick({ target: $("#btn-disk-clean") }); }
+    const br = bc ? bcRows().filter(bcPreselect) : [];
+    if (br.length) { bcSel = new Set(br.map((r) => r.k)); await $("#btn-bc-clean").onclick({ target: $("#btn-bc-clean") }); }
+  },
+};
+function renderDashSpace() {
+  const dRows = disk ? diskRows().filter((r) => !r.w?.orphan) : [], bRows = bc ? bcRows().filter((r) => !r.b.running) : [];
+  const add = (a, b) => { b.forEach((v, k) => a.set(k, (a.get(k) || 0) + v)); return a; };
+  const picked = add(sumBy(dRows.filter(diskSuggested), diskDrive, (r) => r.bytes), sumBy(bRows.filter(bcPreselect), sysDrive, (r) => r.i.bytes));
+  const all = add(sumBy(dRows, diskDrive, (r) => r.bytes), sumBy(bRows, sysDrive, (r) => r.i.bytes));
+  dashCta.disabled = jobActive(diskJob);
+  if (!volumes) return loadVolumes().then(() => volumes && renderDashSpace());
+  renderSpace($("#dash-space"), picked, all, dashCta);
 }
 $("#ready-list").addEventListener("click", (e) => {
   const go = e.target.closest("[data-go]");

@@ -172,6 +172,7 @@ fn run_app(start_hidden: bool) {
             commands::get_hardware,
             commands::disk_speed_test,
             commands::get_volumes,
+            commands::compact_vdisk,
             commands::take_snapshot,
             commands::get_snapshots,
             commands::clear_snapshots,
