@@ -3,6 +3,7 @@ T["ko"] = {
     "gal.cleanup": "개발 정리", "gal.dashboard": "대시보드", "gal.impact": "성과", "gal.disk": "개발 디스크", "gal.tweaks": "시스템 조정", "gal.settings": "설정", "gal.label": "스크린샷",
     "live.title": "지금까지 RigSweep 사용자가 확보한 것", "live.cpu": "한 번에 확보한 CPU", "cta.join": "⬇️ 함께하기: Windows용 다운로드",
     "nav.features": "기능", "nav.trust": "바이러스 백신 FAQ",
+    "look.label": "디자인", "look.clean": "심플", "look.ai": "AI",
     "hero.badge": "🆓 무료 오픈 소스 · MIT",
     "hero.title": "<span>에이전트</span>를 위한 여유 공간.",
     "hero.sub": "AI 에이전트 세션, 잊고 있던 개발 서버, Windows 백그라운드 서비스로 가득 찬 Windows 개발 PC의 RAM과 CPU를 확보하세요. 모든 변경 사항은 되돌릴 수 있습니다.",

@@ -3,6 +3,7 @@ T["ja"] = {
     "gal.cleanup": "開発クリーンアップ", "gal.dashboard": "ダッシュボード", "gal.impact": "効果", "gal.disk": "開発ディスク", "gal.tweaks": "最適化", "gal.settings": "設定", "gal.label": "スクリーンショット",
     "live.title": "RigSweep ユーザーがこれまでに解放したもの", "live.cpu": "一度に解放した CPU", "cta.join": "⬇️ 参加しよう: Windows 版をダウンロード",
     "nav.features": "機能", "nav.trust": "ウイルス対策 FAQ",
+    "look.label": "デザイン", "look.clean": "シンプル", "look.ai": "AI",
     "hero.badge": "🆓 無料のオープンソース · MIT",
     "hero.title": "<span>エージェント</span>にもっと余裕を。",
     "hero.sub": "AI エージェントのセッション、放置された開発サーバー、Windows のバックグラウンド サービスで埋まった Windows 開発マシンの RAM と CPU を解放します。すべての変更は元に戻せます。",

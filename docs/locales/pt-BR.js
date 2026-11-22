@@ -3,6 +3,7 @@ T["pt-BR"] = {
     "gal.cleanup": "Limpeza dev", "gal.dashboard": "Painel", "gal.impact": "Impacto", "gal.disk": "Disco dev", "gal.tweaks": "Ajustes", "gal.settings": "Configurações", "gal.label": "Capturas de tela",
     "live.title": "Liberado pelos usuários do RigSweep até agora", "live.cpu": "CPU liberada de uma vez", "cta.join": "⬇️ Faça parte: baixe para Windows",
     "nav.features": "Recursos", "nav.trust": "FAQ do antivírus",
+    "look.label": "Design", "look.clean": "Sóbrio", "look.ai": "IA",
     "hero.badge": "🆓 Gratuito e open source · MIT",
     "hero.title": "Espaço para seus <span>agentes</span>.",
     "hero.sub": "Libere RAM e CPU em PCs Windows de desenvolvimento lotados de sessões de agentes de IA, servidores de dev esquecidos e serviços do Windows em segundo plano. Toda alteração pode ser desfeita.",

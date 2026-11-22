@@ -4,6 +4,7 @@ T["en"] = {
     "gal.cleanup": "Dev Cleanup", "gal.dashboard": "Dashboard", "gal.impact": "Impact", "gal.disk": "Dev Disk", "gal.tweaks": "Tweaks", "gal.settings": "Settings", "gal.label": "Screenshots",
     "live.title": "Freed by RigSweep users so far", "live.cpu": "CPU freed at once", "cta.join": "⬇️ Join the impact: download for Windows",
     "nav.features": "Features", "nav.trust": "Antivirus FAQ",
+    "look.label": "Design", "look.clean": "Clean", "look.ai": "AI",
     "hero.badge": "🆓 Free & open source · MIT",
     "hero.title": "Room for your <span>agents</span>.",
     "hero.sub": "Free up RAM and CPU on Windows dev machines cluttered by AI-agent sessions, forgotten dev servers and background Windows services. Every change is reversible.",

@@ -8,7 +8,7 @@
 </head>
 <body>
   <aside class="sidebar">
-    <div class="brand"><span class="bolt">🧹</span> RigSweep<div class="tagline" data-i18n="tagline"></div></div>
+    <div class="brand"><span class="bolt" data-no-icon>🧹</span> RigSweep<div class="tagline" data-i18n="tagline"></div></div>
     <nav>
       <button data-tab="dashboard" data-group="home" class="active" data-i18n="nav.dashboard"></button>
       <button data-tab="cleanup" data-group="clean" data-i18n="nav.clean"></button>
@@ -170,6 +170,7 @@
         <label><input type="checkbox" id="da-caches" /> <span data-i18n="disk.auto.caches"></span></label>
         <label><span data-i18n="disk.auto.min"></span> <select id="da-min"></select></label>
       </div>
+      <div id="disk-space" class="space hidden"></div>
       <div class="list-filter">
         <div id="disk-summary" class="summary"></div>
         <div class="seg" id="disk-view" role="radiogroup" data-i18n-aria="disk.view"></div>
@@ -276,6 +277,7 @@
         </div>
       </header>
       <div class="intro"><p class="hint" data-i18n="bc.hint"></p></div>
+      <div id="bc-space" class="space hidden"></div>
       <div id="bc-summary" class="summary"></div>
       <div class="card flush"><table class="tbl">
         <thead><tr>

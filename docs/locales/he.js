@@ -3,6 +3,7 @@ T["he"] = {
     "gal.cleanup": "ניקוי פיתוח", "gal.dashboard": "לוח מחוונים", "gal.impact": "השפעה", "gal.disk": "דיסק פיתוח", "gal.tweaks": "כוונונים", "gal.settings": "הגדרות", "gal.label": "צילומי מסך",
     "live.title": "מה שמשתמשי RigSweep פינו עד עכשיו", "live.cpu": "מעבד שהתפנה בבת אחת", "cta.join": "⬇️ הצטרפו: הורדה ל-Windows",
     "nav.features": "תכונות", "nav.trust": "שאלות נפוצות על אנטי-וירוס",
+    "look.label": "עיצוב", "look.clean": "נקי", "look.ai": "AI",
     "hero.badge": "🆓 חינמי וקוד פתוח · MIT",
     "hero.title": "מקום ל<span>סוכנים</span> שלך.",
     "hero.sub": "פינוי RAM ו-CPU במחשבי פיתוח עם Windows, שעמוסים בסשנים של סוכני AI, בשרתי פיתוח שנשכחו ובשירותי רקע של Windows. כל שינוי הפיך.",

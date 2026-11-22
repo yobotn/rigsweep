@@ -3,6 +3,7 @@ T["fr"] = {
     "gal.cleanup": "Nettoyage dev", "gal.dashboard": "Tableau de bord", "gal.impact": "Bilan", "gal.disk": "Disque dev", "gal.tweaks": "Réglages", "gal.settings": "Paramètres", "gal.label": "Captures d’écran",
     "live.title": "Libéré par les utilisateurs de RigSweep jusqu'ici", "live.cpu": "CPU libéré d’un coup", "cta.join": "⬇️ Rejoignez le mouvement : télécharger pour Windows",
     "nav.features": "Fonctionnalités", "nav.trust": "FAQ antivirus",
+    "look.label": "Design", "look.clean": "Sobre", "look.ai": "IA",
     "hero.badge": "🆓 Gratuit et open source · MIT",
     "hero.title": "De la place pour vos <span>agents</span>.",
     "hero.sub": "Libérez RAM et CPU sur les machines de dev Windows encombrées par les sessions d'agents IA, les serveurs de dev oubliés et les services Windows en arrière-plan. Chaque changement est réversible.",

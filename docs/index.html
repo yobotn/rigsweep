@@ -105,6 +105,11 @@
     ]
   }
   </script>
+  <script>
+    // design toggle: "clean" (default, flat with Lucide icons) or "ai" (gradients, glow, emoji); ?look=ai to share one
+    (() => { let l = new URLSearchParams(location.search).get("look"); try { l = l || localStorage.getItem("look"); } catch {}
+      document.documentElement.dataset.style = l === "ai" ? "ai" : "clean"; })();
+  </script>
   <style>
     /* Hebrew and Arabic: Heebo and Cairo (SIL OFL, docs/fonts), self-hosted and limited to their scripts */
     @font-face { font-family: "Heebo"; src: url("fonts/heebo-hebrew.woff2") format("woff2"); font-weight: 100 900; font-display: swap; unicode-range: U+0590-05FF, U+FB1D-FB4F, U+200C-200F, U+20AA; }
@@ -243,6 +248,27 @@
     footer { margin-top: var(--s5); padding: var(--s3) 0 var(--s4); border-top: 1px solid var(--border); color: var(--muted); font-size: 14px;
       display: flex; justify-content: space-between; gap: var(--s2); flex-wrap: wrap; }
 
+    /* ---------- design toggle ---------- */
+    .look { display: inline-flex; border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--panel); padding: 2px; }
+    .look button { background: none; border: 0; border-radius: 6px; color: var(--muted); font: inherit; font-size: 13px; padding: 4px 10px; cursor: pointer; white-space: nowrap; }
+    .look button:hover { color: var(--text); }
+    .look button[aria-pressed="true"] { background: var(--panel2); color: var(--text); }
+    .look button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+    /* icons.js keeps each emoji in a .emo span beside its Lucide .ico twin; the look picks one */
+    .ico { display: inline-flex; width: 1.1em; height: 1.1em; vertical-align: -0.18em; margin-inline-end: 0.4em; flex-shrink: 0; }
+    .ico svg { width: 100%; height: 100%; }
+    .card .ic .ico { width: 22px; height: 22px; margin: 0; color: var(--accent); }
+    .chip .ico { margin: 0; }
+    html:not([data-style="ai"]) .emo { display: none; }
+    html[data-style="ai"] .ico { display: none; }
+    /* clean look: no gradient text, no glow, no lift; the AI look is the page as it was */
+    html:not([data-style="ai"]) .hero h1 span { background: none; color: var(--accent); }
+    html:not([data-style="ai"]) .live-row b { background: none; color: var(--text); }
+    html:not([data-style="ai"]) .final { background: var(--panel); }
+    html:not([data-style="ai"]) .btn:hover { transform: none; }
+    html:not([data-style="ai"]) .frame { box-shadow: 0 12px 32px rgba(0,0,0,.35); }
+    html:not([data-style="ai"]) .eyebrow { letter-spacing: .02em; text-transform: none; }
+
     @media (max-width: 900px) {
       .grid { grid-template-columns: repeat(2, 1fr); }
       .story, .row, .row.flip { grid-template-columns: 1fr; gap: var(--s3); }
@@ -253,7 +279,9 @@
       .wrap { padding: 0 var(--s2); }
       .grid { grid-template-columns: 1fr; }
       .links a.hide-sm { display: none; }
-      .links { gap: var(--s2); }
+      .links { gap: 10px; }
+      .look button { padding: 4px 8px; }
+      .lang { max-width: 104px; }
       .frame .bar { height: 26px; }
       .btn { width: 100%; }
     }
@@ -262,12 +290,16 @@
 <body>
   <nav class="nav" id="nav">
     <div class="wrap">
-      <a class="logo" href="#">🧹 RigSweep</a>
+      <a class="logo" href="#"><span data-no-icon>🧹</span> RigSweep</a>
       <div class="links">
         <a class="hide-sm" href="#features" data-t="nav.features">Features</a>
         <a class="hide-sm" href="#faq" data-t="nav.faq">FAQ</a>
         <a class="hide-sm" href="#trust" data-t="nav.trust">Antivirus FAQ</a>
-        <a href="https://github.com/yobotn/rigsweep">GitHub</a>
+        <a class="hide-sm" href="https://github.com/yobotn/rigsweep">GitHub</a>
+        <div class="look" id="look" role="group" data-t-aria="look.label" aria-label="Design">
+          <button type="button" data-look="clean" aria-pressed="true" data-t="look.clean">Clean</button>
+          <button type="button" data-look="ai" aria-pressed="false" data-t="look.ai">AI</button>
+        </div>
         <select class="lang" id="lang" aria-label="Language"></select>
       </div>
     </div>
@@ -452,6 +484,7 @@
     </footer>
   </main>
 
+  <script src="icons.js" defer></script>
   <script src="locales/en.js"></script>
   <script src="locales/de.js"></script>
   <script src="locales/es.js"></script>
@@ -500,6 +533,15 @@
       const next = tabs[(i + step + tabs.length) % tabs.length];
       e.preventDefault(); showShot(next.dataset.shot); next.focus();
     });
+
+    const look = document.getElementById("look");
+    function setLook(l, save) {
+      document.documentElement.dataset.style = l;
+      look.querySelectorAll("[data-look]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.look === l)));
+      if (save) try { localStorage.setItem("look", l); } catch {}
+    }
+    look.addEventListener("click", (e) => { const b = e.target.closest("[data-look]"); if (b) setLook(b.dataset.look, true); });
+    setLook(document.documentElement.dataset.style, false);
 
     function apply(lang) {
       if (!T[lang]) lang = "en";

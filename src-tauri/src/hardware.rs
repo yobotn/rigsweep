@@ -867,3 +867,29 @@ mod tests {
         println!("{:?}", check_disks().map(|r| r.1));
     }
 }
+
+/// One mounted drive's size and free space, for the "used now / after cleaning" meters.
+#[derive(Serialize)]
+pub struct Volume {
+    /// drive letter like "C:"
+    pub drive: String,
+    pub total: u64,
+    pub free: u64,
+    pub system: bool,
+}
+
+pub fn volumes() -> Result<Vec<Volume>, String> {
+    let disks = sysinfo::Disks::new_with_refreshed_list().map_err(|e| e.to_string())?;
+    let sys = std::env::var("SystemDrive").unwrap_or_else(|_| "C:".into()).to_uppercase();
+    let mut out: Vec<Volume> = disks
+        .iter()
+        .filter_map(|d| {
+            let m = d.mount_point().to_string_lossy().to_uppercase();
+            let drive = m.get(..2).filter(|s| s.ends_with(':'))?.to_string();
+            (d.total_space() > 0).then(|| Volume { system: drive == sys, drive, total: d.total_space(), free: d.available_space() })
+        })
+        .collect();
+    out.sort_by(|a, b| a.drive.cmp(&b.drive));
+    out.dedup_by(|a, b| a.drive == b.drive);
+    Ok(out)
+}

@@ -791,6 +791,12 @@ pub async fn get_hardware(fresh: bool) -> R<serde_json::Value> {
     tauri::async_runtime::spawn_blocking(move || crate::hardware::inventory(fresh)).await.map_err(err)?
 }
 
+/// Size and free space of each drive letter (cheap; read fresh every call).
+#[tauri::command]
+pub async fn get_volumes() -> R<Vec<crate::hardware::Volume>> {
+    tauri::async_runtime::spawn_blocking(crate::hardware::volumes).await.map_err(err)?
+}
+
 /// Disk speed test on one drive letter ("D:"); takes 10-30 seconds.
 #[tauri::command]
 pub async fn disk_speed_test(drive: String) -> R<crate::hardware::Bench> {

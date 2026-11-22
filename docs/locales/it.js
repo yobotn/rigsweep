@@ -3,6 +3,7 @@ T["it"] = {
     "gal.cleanup": "Pulizia dev", "gal.dashboard": "Dashboard", "gal.impact": "Risultati", "gal.disk": "Disco dev", "gal.tweaks": "Ottimizzazioni", "gal.settings": "Impostazioni", "gal.label": "Schermate",
     "live.title": "Liberato finora dagli utenti di RigSweep", "live.cpu": "CPU liberata in una volta", "cta.join": "⬇️ Unisciti: scarica per Windows",
     "nav.features": "Funzionalità", "nav.trust": "FAQ antivirus",
+    "look.label": "Design", "look.clean": "Sobrio", "look.ai": "IA",
     "hero.badge": "🆓 Gratis e open source · MIT",
     "hero.title": "Spazio per i tuoi <span>agenti</span>.",
     "hero.sub": "Libera RAM e CPU sui PC Windows di sviluppo intasati da sessioni di agenti AI, dev server dimenticati e servizi di Windows in background. Ogni modifica è reversibile.",

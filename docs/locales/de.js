@@ -3,6 +3,7 @@ T["de"] = {
     "gal.cleanup": "Dev-Bereinigung", "gal.dashboard": "Übersicht", "gal.impact": "Bilanz", "gal.disk": "Dev-Speicher", "gal.tweaks": "Optimierungen", "gal.settings": "Einstellungen", "gal.label": "Screenshots",
     "live.title": "Bisher von RigSweep-Nutzern freigegeben", "live.cpu": "CPU auf einmal freigegeben", "cta.join": "⬇️ Mach mit: für Windows herunterladen",
     "nav.features": "Funktionen", "nav.trust": "Antivirus-FAQ",
+    "look.label": "Design", "look.clean": "Schlicht", "look.ai": "KI",
     "hero.badge": "🆓 Kostenlos & Open Source · MIT",
     "hero.title": "Platz für Ihre <span>Agents</span>.",
     "hero.sub": "Geben Sie RAM und CPU auf Windows-Entwicklerrechnern frei, die von KI-Agent-Sitzungen, vergessenen Dev-Servern und Windows-Hintergrunddiensten überladen sind. Jede Änderung lässt sich rückgängig machen.",

@@ -3,6 +3,7 @@ T["zh-CN"] = {
     "gal.cleanup": "开发清理", "gal.dashboard": "仪表板", "gal.impact": "清理成果", "gal.disk": "开发磁盘", "gal.tweaks": "优化", "gal.settings": "设置", "gal.label": "截图",
     "live.title": "RigSweep 用户迄今释放的资源", "live.cpu": "单次释放的 CPU", "cta.join": "⬇️ 一起加入：下载 Windows 版",
     "nav.features": "功能", "nav.trust": "防病毒常见问题",
+    "look.label": "外观", "look.clean": "简洁", "look.ai": "AI",
     "hero.badge": "🆓 免费开源 · MIT",
     "hero.title": "给你的<span>智能体</span>腾出空间。",
     "hero.sub": "Windows 开发机被 AI 智能体会话、遗忘的开发服务器和 Windows 后台服务占满？RigSweep 帮你释放内存和 CPU。每项更改都可以撤消。",

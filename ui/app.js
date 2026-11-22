@@ -795,7 +795,7 @@ async function loadBrowsers(btn, fresh = !!btn) {
 }
 async function scanBrowsers() {
   if (!bc) $("#bc-body").innerHTML = `<tr><td colspan="5" class="loading"><span class="spinner"></span> ${esc(t("bc.scanning"))}</td></tr>`;
-  try { bc = await call("get_browser_caches", undefined, { quiet: !bc }); delete scanFailed.browser; }
+  try { [bc] = await Promise.all([call("get_browser_caches", undefined, { quiet: !bc }), loadVolumes()]); delete scanFailed.browser; }
   catch (e) { if (!bc) failRow("#bc-body", 5, "browser", e); throw e; }
   const rows = bcRows(), keys = new Set(rows.map((r) => r.k));
   bcSel = new Set([...bcSel].filter((k) => keys.has(k)));
@@ -816,6 +816,7 @@ function renderBrowsers() {
   }
   const picked = bcRows().filter((r) => bcSel.has(r.k)).reduce((a, r) => a + r.i.bytes, 0);
   $("#bc-summary").textContent = t("bc.summary", { safe: fmtBytes(bc.safe_total), site: fmtBytes(bc.site_total), sel: fmtBytes(picked) });
+  renderBcSpace();
   const total = (p) => p.items.reduce((a, i) => a + i.bytes, 0);
   const bTotal = (b) => b.profiles.reduce((a, p) => a + total(p), 0);
   const sk = sorts.bc.key;
@@ -881,6 +882,71 @@ const wKey = (w) => `w|${w.path}`;
 // git won't remove a worktree with changes, so it can't be picked; one whose repo is gone can
 // only go to the Recycle Bin (picked by hand, after a warning)
 const wLocked = (w) => w.busy || (w.dirty && !w.orphan);
+// ---------- drive space meters (Dev Disk, Browser cleanup) ----------
+// The page's main call to action: how full each drive is now, how full it will be after
+// cleaning what's ticked, and one big button that does it.
+let volumes = null;
+async function loadVolumes() {
+  try { volumes = await invoke("get_volumes"); } catch (e) { console.error("get_volumes", e); }
+}
+const driveOf = (p) => /^[a-z]:/i.test(p || "") ? p.slice(0, 2).toUpperCase() : null;
+// picked / all: Map drive -> bytes. Drives with something ticked get a meter; with nothing
+// ticked, the drive with the most to free does (so the page still says what's possible).
+function renderSpace(el, picked, all, cta) {
+  const vols = volumes || [];
+  const sys = vols.find((v) => v.system)?.drive;
+  let show = vols.filter((v) => picked.get(v.drive) > 0);
+  if (!show.length) {
+    const best = [...all].sort((a, b) => b[1] - a[1])[0]?.[0] || sys;
+    show = vols.filter((v) => v.drive === best);
+  }
+  el.classList.toggle("hidden", !show.length);
+  if (!show.length) return;
+  const total = [...picked.values()].reduce((a, b) => a + b, 0);
+  const pct = (n, v) => Math.round((n / v.total) * 100);
+  const rows = show.map((v) => {
+    const used = v.total - v.free;
+    const gain = Math.min(picked.get(v.drive) || 0, used);
+    const max = Math.min(all.get(v.drive) || 0, used);
+    const after = used - gain;
+    const lvl = (u) => pct(u, v) >= 90 ? "bad" : pct(u, v) >= 75 ? "warn" : "";
+    return `<div class="space-row">
+      <div class="space-drive">💽 <b dir="ltr">${esc(v.drive)}</b></div>
+      <div class="space-nums">
+        <div class="space-now"><div class="label">${esc(t("space.now"))}</div>
+          <div class="big ${lvl(used)}">${esc(t("space.free", { size: fmtBytes(v.free) }))}</div>
+          <div class="sub">${esc(t("space.used", { pct: pct(used, v), total: fmtBytes(v.total) }))}</div></div>
+        <div class="space-arrow" aria-hidden="true">→</div>
+        <div class="space-after"><div class="label">${esc(t("space.after"))}</div>
+          <div class="big ${gain ? "good" : lvl(after)}">${esc(t("space.free", { size: fmtBytes(v.free + gain) }))}${gain ? ` <bdi class="gain" dir="ltr">+${esc(fmtBytes(gain))}</bdi>` : ""}</div>
+          <div class="sub">${esc(t("space.used", { pct: pct(after, v), total: fmtBytes(v.total) }))}</div></div>
+      </div>
+      <div class="space-bar" role="img" aria-label="${esc(t("space.aria", { d: v.drive, now: pct(used, v), after: pct(after, v) }))}">
+        <i class="used ${lvl(after)}" style="width:${(after / v.total) * 100}%"></i><i class="gain" style="width:${(gain / v.total) * 100}%"></i><i class="more" style="width:${(Math.max(0, max - gain) / v.total) * 100}%"></i>
+      </div>
+      ${max > gain ? `<div class="sub">${esc(t("space.max", { size: fmtBytes(max), d: v.drive }))}</div>` : ""}
+    </div>`;
+  }).join("");
+  const busyNow = cta.disabled;
+  el.innerHTML = `<div class="space-rows">${rows}</div>
+    <button class="primary space-cta" data-icon="trash-2" ${!total || busyNow ? "disabled" : ""}>${esc(total ? t("space.cta", { size: fmtBytes(total) }) : t("space.ctaNone"))}</button>`;
+  el.querySelector(".space-cta").onclick = () => cta.click();
+}
+// anything without a drive letter of its own (a cache found by name only) counts toward the system drive
+const sysDrive = () => (volumes || []).find((v) => v.system)?.drive;
+const sumBy = (rows, drive, bytes) => rows.reduce((m, r) => { const d = drive(r) || sysDrive(); if (d) m.set(d, (m.get(d) || 0) + bytes(r)); return m; }, new Map());
+const diskDrive = (r) => driveOf(r.c ? r.c.paths?.[0] : r.p ? r.p.path : r.w?.path);
+function renderDiskSpace() {
+  // an orphaned worktree goes to the Recycle Bin, which frees nothing until the bin is emptied
+  const rows = diskRows().filter((r) => !r.w?.orphan);
+  renderSpace($("#disk-space"), sumBy(rows.filter((r) => diskSel.has(r.k)), diskDrive, (r) => r.bytes), sumBy(rows, diskDrive, (r) => r.bytes), $("#btn-disk-clean"));
+}
+function renderBcSpace() {
+  // browser profiles live under %LOCALAPPDATA%, on the system drive
+  const rows = bcRows().filter((r) => !r.b.running);
+  renderSpace($("#bc-space"), sumBy(rows.filter((r) => bcSel.has(r.k)), sysDrive, (r) => r.i.bytes), sumBy(rows, sysDrive, (r) => r.i.bytes), $("#btn-bc-clean"));
+}
+
 const diskRows = () => [
   ...(disk?.caches || []).filter((c) => !c.disabled && !c.busy && !c.show_only && c.bytes > 0).map((c) => ({ k: cKey(c), bytes: c.bytes, c })),
   ...(disk?.projects || []).filter((p) => !p.busy).flatMap((p) => p.items.map((a) => ({ k: aKey(p, a), bytes: a.bytes, p, a }))),
@@ -935,7 +1001,7 @@ async function scanDisk() {
   const btn = $("#btn-disk-scan");
   busy(btn, true, t("bc.scanning"));
   if (!disk) $("#disk-body").innerHTML = `<tr><td colspan="6" class="loading"><span class="spinner"></span> ${esc(t("disk.scanning"))}</td></tr>`;
-  try { disk = await call("get_dev_disk", undefined, { quiet: !disk }); delete scanFailed.disk; }
+  try { [disk] = await Promise.all([call("get_dev_disk", undefined, { quiet: !disk }), loadVolumes()]); delete scanFailed.disk; }
   catch (e) { if (!disk) failRow("#disk-body", 6, "disk", e); throw e; }
   finally { busy(btn, false); }
   const rows = diskRows(), keys = new Set(rows.map((r) => r.k));
@@ -986,6 +1052,7 @@ function renderDisk() {
     caches: fmtBytes(disk.cache_total), projects: fmtBytes(disk.project_total), n: disk.projects.length,
     stale: fmtBytes(disk.projects.filter(isStale).reduce((a, p) => a + p.items.reduce((b, i) => b + i.bytes, 0), 0)), sel: fmtBytes(picked),
   });
+  renderDiskSpace();
   const chk = (k, locked) => locked ? "🔒" : `<input type="checkbox" data-disk="${esc(k)}" ${diskSel.has(k) ? "checked" : ""} />`;
   const tier = (x) => `<span class="risk ${x === "safe" || x === "build" ? "safe" : x === "history" ? "caution" : x === "shown" ? "" : "moderate"}">${esc(t("disk.tier." + x))}</span>`;
   let html = "";
@@ -1184,6 +1251,7 @@ function applyDiskJob(j) {
 function onDiskJobEnd(j) {
   const r = j.result;
   noteFreed("disk", r.freed);
+  loadVolumes().then(renderDisk);
   let msg = j.state === "stopped" ? t("disk.job.stoppedToast", { mem: fmtBytes(r.freed) }) : t("disk.done", { mem: fmtBytes(r.freed) });
   if (r.locked_files) msg += "\n" + t("disk.locked", { n: r.locked_files });
   if (r.skipped.length) msg += "\n" + t("disk.skipped") + "\n• " + r.skipped.map(shortPath).join("\n• ");
@@ -1215,6 +1283,8 @@ function renderDiskJob() {
   const cleanBtn = $("#btn-disk-clean");
   cleanBtn.disabled = active;
   cleanBtn.title = active ? t("disk.job.busy") : "";
+  const cta = $("#disk-space .space-cta");
+  if (cta && active) cta.disabled = true;
   const resumeN = j?.resume?.length || 0;
   const show = !!j && (j.state !== "idle" || resumeN > 0);
   box.classList.toggle("hidden", !show);

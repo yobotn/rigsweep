@@ -190,6 +190,7 @@
     get_history: history,
     get_snapshots: [],
     get_dev_disk: diskReport,
+    get_volumes: [{ drive: "C:", total: 476 * GB, free: 58 * GB, system: true }, { drive: "D:", total: 931 * GB, free: 412 * GB, system: false }],
     process_why: { pid: 18244, name: "node.exe", exe: "C:\\Program Files\\nodejs\\node.exe", cmd: "node C:\\Users\\dev\\code\\shop-web\\node_modules\\vite\\bin\\vite.js --port 5173",
       start_time: Math.floor(Date.now() / 1000) - 33000, cpu: 7.2, mem: 612 * 1048576, disk_read: 1.2 * 1048576, disk_write: 300 * 1024, threads: 14,
       parents: [{ pid: 15032, name: "pwsh.exe", cpu: 0, mem: 80 * 1048576 }, { pid: 9876, name: "Code.exe", cpu: 9.7, mem: 1.2 * GB }],

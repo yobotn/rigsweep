@@ -171,6 +171,7 @@ fn run_app(start_hidden: bool) {
             finders::finders_defender_scan,
             commands::get_hardware,
             commands::disk_speed_test,
+            commands::get_volumes,
             commands::take_snapshot,
             commands::get_snapshots,
             commands::clear_snapshots,
