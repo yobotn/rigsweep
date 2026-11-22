@@ -892,16 +892,12 @@ async function loadVolumes() {
   try { volumes = await invoke("get_volumes"); } catch (e) { console.error("get_volumes", e); }
 }
 const driveOf = (p) => /^[a-z]:/i.test(p || "") ? p.slice(0, 2).toUpperCase() : null;
-// picked / all: Map drive -> bytes. Drives with something ticked get a meter; with nothing
-// ticked, the drive with the most to free does (so the page still says what's possible).
+// picked / all: Map drive -> bytes. Only a drive where cleaning what's ticked visibly changes
+// its free space gets a meter: "58 GB free → 58 GB free" promises nothing, so it isn't shown.
 function renderSpace(el, picked, all, cta) {
   const vols = volumes || [];
-  const sys = vols.find((v) => v.system)?.drive;
-  let show = vols.filter((v) => picked.get(v.drive) > 0);
-  if (!show.length) {
-    const best = [...all].sort((a, b) => b[1] - a[1])[0]?.[0] || sys;
-    show = vols.filter((v) => v.drive === best);
-  }
+  const gainOn = (v) => Math.min(picked.get(v.drive) || 0, v.total - v.free);
+  const show = vols.filter((v) => gainOn(v) > 0 && fmtBytes(v.free) !== fmtBytes(v.free + gainOn(v)));
   el.classList.toggle("hidden", !show.length);
   if (!show.length) return;
   const total = [...picked.values()].reduce((a, b) => a + b, 0);
@@ -967,6 +963,66 @@ const diskRows = () => [
   ...(disk?.worktrees || []).filter((w) => !wLocked(w)).map((w) => ({ k: wKey(w), bytes: w.bytes, w })),
 ];
 const shortPath = (p) => disk?.home && p.toLowerCase().startsWith(disk.home.toLowerCase() + "\\") ? "~" + p.slice(disk.home.length) : p;
+const baseName = (p) => (p || "").replace(/[\\/]+$/, "").split(/[\\/]/).pop();
+// a path (escaped HTML) with the project's own folder name shown as a pill inside it; when the
+// path doesn't contain it (a worktree kept elsewhere), the pill goes in front
+function pathPill(path, name) {
+  const s = shortPath(path), pill = (n) => `<span class="path-pill">${esc(n)}</span>`;
+  if (!name) return esc(s);
+  const parts = s.split("\\"), i = parts.map((x) => x.toLowerCase()).lastIndexOf(name.toLowerCase());
+  if (i < 0) return `${pill(name)} ${esc(s)}`;
+  return parts.map((x, j) => j === i ? pill(x) : esc(x)).join("\\");
+}
+// Risky removals (a worktree is someone's checkout): a prompt the user pastes into their own AI
+// agent, which checks the folder and says whether anything would be lost before they delete it.
+function wtPrompt(ws) {
+  const one = ws.length === 1;
+  const lines = [
+    one ? "I'm about to delete this git worktree to free disk space." : `I'm about to delete these ${ws.length} git worktrees to free disk space.`,
+    "Before I do, check whether anything would be lost. Don't delete, commit, push or change anything: only inspect and report.",
+    "",
+  ];
+  for (const w of ws) {
+    lines.push(`Worktree: ${w.path}`);
+    lines.push(w.repo ? `Repository: ${w.repo}` : "Repository: missing (moved or deleted), so it would go to the Recycle Bin");
+    lines.push(`Branch: ${w.branch || "unknown"}`, `Size: ${fmtBytes(w.bytes)}`);
+    if (w.tool) lines.push(`Probably created by: ${w.tool}`);
+    if (w.dirty) lines.push("Has uncommitted changes");
+    if (w.ignored?.length) lines.push(`Git-ignored files that would also be deleted: ${w.ignored.join(", ")}`);
+    lines.push("");
+  }
+  lines.push(
+    "Removal runs `git worktree remove`: the folder is deleted, the branch and its commits stay in the repository.",
+    "",
+    "Check, for each worktree:",
+    "1. Uncommitted or untracked files: git -C \"<worktree>\" status --porcelain",
+    "2. Commits on its branch that exist nowhere else (not pushed, not merged): git -C \"<worktree>\" log --oneline <branch> --not --remotes",
+    "3. Stashes made from it: git -C \"<worktree>\" stash list",
+    "4. Ignored files that can't be rebuilt (.env, local config, data, keys) versus ones that can (node_modules, target, dist, caches)",
+    "5. Whether a terminal, editor, dev server or AI agent is still working in it",
+    "",
+    "Then answer SAFE TO DELETE or NOT SAFE for each one, list exactly what would be lost, and how to keep it (commit, push, copy a file).",
+  );
+  if (LANG !== "en") lines.push(`Reply in ${LANGS[LANG]}.`);
+  return lines.join("\n");
+}
+async function copyText(s) {
+  try { await navigator.clipboard.writeText(s); }
+  catch {
+    const ta = Object.assign(document.createElement("textarea"), { value: s });
+    document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove();
+  }
+}
+// "Ask your AI" on a worktree row and in the clean-up confirmation (data-wt-ask = paths, one per line)
+document.addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-wt-ask]");
+  if (!b) return;
+  const paths = b.dataset.wtAsk.split("\n");
+  const ws = (disk?.worktrees || []).filter((w) => paths.includes(w.path));
+  if (!ws.length) return;
+  await copyText(wtPrompt(ws));
+  toast(t("disk.wt.asked"), "ok");
+});
 // auto-select rules (Dev Disk bar): stale = untouched for N days; caches only the "rebuilds itself" ones
 const diskAuto = () => {
   const s = state?.settings || {};
@@ -1121,9 +1177,10 @@ function renderDisk() {
       if (w.ignored.length) notes.push(t("disk.wt.ignored", { list: w.ignored.join(", ") }));
       return `<tr class="${wLocked(w) ? "locked" : ""}" title="${esc(w.path)}">
         <td>${chk(wKey(w), wLocked(w))}</td>
-        <td><b><bdi dir="ltr">${esc(shortPath(w.path))}</bdi></b> <span class="sub">${esc(TOOL[w.tool] || w.tool)}</span></td>
+        <td><b><bdi dir="ltr">${pathPill(w.path, baseName(w.repo))}</bdi></b> <span class="sub">${esc(TOOL[w.tool] || w.tool)}</span></td>
         <td>${tier("worktree")}</td><td class="num">${fmtBytes(w.bytes)}</td>
-        <td>${badges} <span class="sub">${esc(notes.filter(Boolean).join(" · "))}</span></td><td></td>
+        <td>${badges} <span class="sub">${esc(notes.filter(Boolean).join(" · "))}</span></td>
+        <td><button class="small ghost" data-icon="copy" data-wt-ask="${esc(w.path)}" title="${esc(t("disk.wt.askTip"))}">${esc(t("disk.wt.ask"))}</button></td>
       </tr>`;
     }).join("");
   }
@@ -1142,7 +1199,7 @@ function renderDisk() {
         : `<span class="badge active">${esc(p.idle_days === 0 ? t("disk.today") : t("disk.recent", { d: p.idle_days }))}</span>`,
       p.onedrive ? `<span class="badge orphan">${esc(t("disk.onedrive"))}</span>` : "",
     ].join("");
-    const head = `<tr class="group"><td></td><td colspan="2"><b title="${esc(p.path)}"><bdi dir="ltr">${esc(shortPath(p.path))}</bdi></b></td>
+    const head = `<tr class="group"><td></td><td colspan="2"><b title="${esc(p.path)}"><bdi dir="ltr">${pathPill(p.path, baseName(p.path))}</bdi></b></td>
       <td class="num sub">${fmtBytes(total)}</td><td>${badges}</td>
       <td><button class="small ghost" data-disk-exclude="${esc(p.path)}">${esc(t("disk.exclude"))}</button></td></tr>`;
     return head + [...p.items].sort(itemOrder).map((a) => {
@@ -1247,8 +1304,8 @@ $("#btn-disk-clean").onclick = async (e) => {
   const od = picked.some((r) => r.p?.onedrive);
   const li = picked.map((r) => r.c
     ? `<li>${esc(t("disk.cache." + r.c.id))} <span class="sub">${fmtBytes(r.bytes)}</span></li>`
-    : r.w ? `<li><bdi dir="ltr">${esc(shortPath(r.w.path))}</bdi> <span class="sub">${fmtBytes(r.bytes)}</span></li>`
-    : `<li>${esc(shortPath(r.p.path))}\\<b>${esc(r.a.name)}</b> <span class="sub">${fmtBytes(r.bytes)}</span></li>`).join("");
+    : r.w ? `<li><bdi dir="ltr">${pathPill(r.w.path, baseName(r.w.repo))}</bdi> <span class="sub">${fmtBytes(r.bytes)}</span></li>`
+    : `<li><bdi dir="ltr">${pathPill(r.p.path, baseName(r.p.path))}\\<b>${esc(r.a.name)}</b></bdi> <span class="sub">${fmtBytes(r.bytes)}</span></li>`).join("");
   const ign = [...new Set(wts.flatMap((r) => r.w.ignored))];
   const html = `${spaceLines(sumBy(picked.filter((r) => !r.w?.orphan), diskDrive, (r) => r.bytes))}<p>${esc(t("disk.confirm.body"))}</p><ul class="scroll-list">${li}</ul>
     ${deps ? `<p class="warn-text">${esc(t("disk.deps.warn"))}</p>` : ""}
@@ -1257,6 +1314,7 @@ $("#btn-disk-clean").onclick = async (e) => {
     ${wts.some((r) => !r.w.orphan) ? `<p class="warn-text">${esc(t("disk.wt.warn"))}</p>` : ""}
     ${wts.some((r) => r.w.orphan) ? `<p class="warn-text">${esc(t("disk.wt.orphanWarn"))}</p>` : ""}
     ${ign.length ? `<p class="warn-text">${esc(t("disk.wt.ignored", { list: ign.join(", ") }))}</p>` : ""}
+    ${wts.length ? `<p><button class="small ghost" data-icon="copy" data-wt-ask="${esc(wts.map((r) => r.w.path).join("\n"))}">${esc(t("disk.wt.askAll"))}</button> <span class="sub">${esc(t("disk.wt.askTip"))}</span></p>` : ""}
     ${od ? `<p class="warn-text">${esc(t("disk.od.warn"))}</p>` : ""}`;
   if (!(await modal(t("disk.confirm.title", { size: fmtBytes(size) }), html, { okText: t("disk.clean"), danger: true }))) return;
   const targets = picked.map((r) => r.c

@@ -219,6 +219,8 @@ th[aria-sort="ascending"] .th-sort::after { content: "↑"; opacity: 1; color: v
 .badge.serving { color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
 .badge.active { color: var(--safe); background: color-mix(in srgb, var(--safe) 12%, transparent); }
 .badge.managed, .badge.kept { color: var(--safe); background: color-mix(in srgb, var(--safe) 12%, transparent); }
+[data-wt-ask] { white-space: nowrap; }
+.path-pill { display: inline-block; padding: 0 var(--s1); border-radius: var(--r-pill); color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); font-weight: 600; line-height: 1.5; }
 tr.stale td:first-child { box-shadow: inset 3px 0 0 var(--moderate); }
 [dir=rtl] tr.stale td:first-child { box-shadow: inset -3px 0 0 var(--moderate); }
 code { font-family: Consolas, monospace; font-size: var(--fs-xs); background: var(--panel2); border-radius: var(--r-sm); padding: 0 var(--s0); }
