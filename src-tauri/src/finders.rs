@@ -853,7 +853,7 @@ pub struct OldFile {
     pub modified: u64,
     /// last access, unix seconds. Unreliable: Windows often doesn't update it, so it's shown, never used.
     pub accessed: u64,
-    /// big_old | old_installer
+    /// big_old | old_installer | old_archive
     pub category: &'static str,
     /// in a OneDrive folder: recycling deletes it from OneDrive on every device too (OneDrive keeps its own recycle bin)
     pub onedrive: bool,
@@ -871,7 +871,8 @@ pub struct OldFiles {
     pub total_bytes: u64,
 }
 
-const INSTALLER_EXTS: &[&str] = &["exe", "msi", "msix", "msixbundle", "appx", "zip", "7z", "rar", "iso", "dmg"];
+const INSTALLER_EXTS: &[&str] = &["exe", "msi", "msix", "msixbundle", "appx", "iso", "dmg"];
+const ARCHIVE_EXTS: &[&str] = &["zip", "7z", "rar", "tar", "gz", "tgz", "xz", "bz2", "zst"];
 const OLD_MAX_DEPTH: usize = 8;
 const OLD_MAX_ENTRIES: usize = 300_000;
 const OLD_MAX_RESULTS: usize = 500;
@@ -959,9 +960,18 @@ fn scan_old(roots: &[PathBuf], downloads: Option<&Path>, rules: &OldRules) -> Ol
             let modified = unix(m.modified());
             let age = now.saturating_sub(modified) / DAY;
             let bytes = m.len();
-            let installer = dl.as_deref().is_some_and(|d| within(&l, d)) && INSTALLER_EXTS.contains(&ext_of(p).as_str());
-            let category = if installer && age >= rules.installer_days && bytes >= rules.installer_bytes {
-                "old_installer"
+            let ext = ext_of(p);
+            let kind = if !dl.as_deref().is_some_and(|d| within(&l, d)) {
+                None
+            } else if INSTALLER_EXTS.contains(&ext.as_str()) {
+                Some("old_installer")
+            } else if ARCHIVE_EXTS.contains(&ext.as_str()) {
+                Some("old_archive")
+            } else {
+                None
+            };
+            let category = if let Some(k) = kind.filter(|_| age >= rules.installer_days && bytes >= rules.installer_bytes) {
+                k
             } else if age >= rules.min_days && bytes >= rules.min_bytes {
                 "big_old"
             } else {
@@ -1750,6 +1760,7 @@ mod tests {
         file(&root.join(r"proj\old-big-in-project.bin"), 4000, 400);
         file(&root.join(r"node_modules\x\old.bin"), 4000, 400);
         file(&dl.join("setup.exe"), 600, 100);
+        file(&dl.join("photos.zip"), 600, 100);
         file(&dl.join("fresh-setup.msi"), 600, 30);
         file(&dl.join("doc.pdf"), 600, 100);
         let rules = OldRules { min_days: 365, min_bytes: 1000, installer_days: 90, installer_bytes: 500 };
@@ -1759,6 +1770,7 @@ mod tests {
         assert_eq!(got.get("old-big.bin"), Some(&"big_old"));
         assert_eq!(got.get("old-big2.bin"), Some(&"big_old"));
         assert_eq!(got.get("setup.exe"), Some(&"old_installer"));
+        assert_eq!(got.get("photos.zip"), Some(&"old_archive"));
         for n in ["new-big.bin", "old-small.bin", "old-big-in-project.bin", "old.bin", "fresh-setup.msi", "doc.pdf"] {
             assert!(!got.contains_key(n), "{n} should not be listed");
         }

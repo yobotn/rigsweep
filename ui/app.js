@@ -19,10 +19,11 @@ const fmtAge = (s) => s < 3600 ? `${Math.max(1, Math.round(s / 60))}m` : s < 864
 // language; fullDate → the exact date and time, for tooltips. Anything unparseable is shown as is.
 const parseTs = (ts) => { const d = new Date(String(ts ?? "").replace(" ", "T")); return isNaN(d) ? null : d; };
 const AGO_UNITS = [["year", 31536000], ["month", 2592000], ["week", 604800], ["day", 86400], ["hour", 3600], ["minute", 60]];
-function timeAgo(ts) {
+// minSecs: anything more recent reads as that long ago ("1 minute ago" rather than "now")
+function timeAgo(ts, minSecs = 0) {
   const d = parseTs(ts);
   if (!d) return ts ?? "";
-  const s = (d - Date.now()) / 1000, rtf = new Intl.RelativeTimeFormat(LANG, { numeric: "auto" });
+  const s = Math.min((d - Date.now()) / 1000, -minSecs), rtf = new Intl.RelativeTimeFormat(LANG, { numeric: "auto" });
   const u = AGO_UNITS.find(([, n]) => Math.abs(s) >= n);
   return u ? rtf.format(Math.trunc(s / u[1]), u[0]) : rtf.format(0, "second");
 }
@@ -30,10 +31,10 @@ const fullDate = (ts) => parseTs(ts)?.toLocaleString(LANG, { dateStyle: "medium"
 // A self-updating "time ago": any element with data-ago="<ts>" is refreshed by the ticker below, so the
 // labels keep up without re-rendering their section. data-ago-after is text that follows the time
 // (used by <option>s, which can't hold a child element).
-const agoHtml = (ts) => `<time data-ago="${esc(ts)}" title="${esc(fullDate(ts))}">${esc(timeAgo(ts))}</time>`;
+const agoHtml = (ts, minSecs = 0) => `<time data-ago="${esc(ts)}"${minSecs ? ` data-ago-min="${minSecs}"` : ""} title="${esc(fullDate(ts))}">${esc(timeAgo(ts, minSecs))}</time>`;
 function refreshAgo() {
   document.querySelectorAll("[data-ago]").forEach((el) => {
-    const txt = timeAgo(el.dataset.ago) + (el.dataset.agoAfter ?? "");
+    const txt = timeAgo(el.dataset.ago, Number(el.dataset.agoMin) || 0) + (el.dataset.agoAfter ?? "");
     if (el.textContent !== txt) el.textContent = txt;
   });
 }
@@ -767,6 +768,7 @@ async function endDev(picked, btn) {
   startRecovery(live.at(-1)?.mem_used ?? 0, Date.now(), estimate, false);
   try {
     const r = await call("kill_dev_processes", { targets: picked.map((p) => ({ pid: p.pid, start_time: p.start_time, label: p.label, project: p.project, project_path: p.project_path, ports: p.ports })) });
+    noteFreed("dev", r.result.freed_mem);
     let msg = t("clean.done", { n: r.result.ended.length, mem: fmtBytes(r.result.freed_mem) });
     if (r.result.freed_cpu >= 0.5) msg += " · " + t("ready.cpu", { c: r.result.freed_cpu.toFixed(0) });
     if (r.result.cpu_secs >= 1) msg += "\n" + t("clean.done.cpu", { d: fmtDur(r.result.cpu_secs) });
@@ -858,6 +860,7 @@ $("#btn-bc-clean").onclick = async (e) => {
   busy(e.target.closest("button"), true);
   try {
     const r = await call("clean_browser_caches", { targets: picked.map((x) => ({ browser: x.b.id, profile: x.p.dir, key: x.i.key })) });
+    noteFreed("bc", r.freed);
     let msg = t("bc.done", { mem: fmtBytes(r.freed) });
     if (r.locked_files) msg += "\n" + t("bc.locked", { n: r.locked_files });
     if (r.skipped_running.length) msg += "\n" + t("bc.skipped", { b: r.skipped_running.join(", ") });
@@ -1180,6 +1183,7 @@ function applyDiskJob(j) {
 
 function onDiskJobEnd(j) {
   const r = j.result;
+  noteFreed("disk", r.freed);
   let msg = j.state === "stopped" ? t("disk.job.stoppedToast", { mem: fmtBytes(r.freed) }) : t("disk.done", { mem: fmtBytes(r.freed) });
   if (r.locked_files) msg += "\n" + t("disk.locked", { n: r.locked_files });
   if (r.skipped.length) msg += "\n" + t("disk.skipped") + "\n• " + r.skipped.map(shortPath).join("\n• ");
@@ -2317,6 +2321,17 @@ $("#t-heat-tile").onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") {
 $("#heat-callout").addEventListener("click", (e) => { if (e.target.dataset.go) showTab(e.target.dataset.go); });
 
 // ---------- "Ready to free": what the scans found, with one-click actions ----------
+// The last cleanup per tile ({ bytes, at }), so an empty tile can say "Freed 1 GB 5 minutes ago"
+// for a while instead of just "nothing to free". Kept per viewer in localStorage.
+const FREED_FOR = 24 * 3600e3;
+let lastFreed = (() => { try { return JSON.parse(safeGet("lastFreed") || "{}") || {}; } catch { return {}; } })();
+function noteFreed(key, bytes) {
+  if (!(bytes > 0)) return;
+  lastFreed[key] = { bytes, at: new Date().toISOString() };
+  safeSet("lastFreed", JSON.stringify(lastFreed));
+  if (typeof renderReady === "function") renderReady();
+}
+const recentFreed = (key) => { const f = lastFreed[key]; return f && Date.now() - (parseTs(f.at)?.getTime() ?? 0) < FREED_FOR ? f : null; };
 // Dev Disk and the browser caches are scanned quietly in the background (low priority, every few
 // hours), so the Dashboard can say what can be freed without the user opening those pages. Every
 // action still goes through the same confirmation dialog as on its own page.
@@ -2342,17 +2357,24 @@ function readyRows() {
   }
   return rows;
 }
+// nothing left to free, but this tile cleaned something recently: say how much and when
+function freedTile(key, icon, go, f) {
+  const size = fmtBytes(f.bytes), MARK = "";
+  return { key, icon, go, state: "none", big: "✓", text: t("ready.freed", { size, ago: timeAgo(f.at, 60) }),
+    capHtml: esc(t("ready.freed", { size, ago: MARK })).replace(MARK, agoHtml(f.at, 60)) };
+}
 function renderReady() {
   const have = readyRows();
   // always the same three tiles: checking, nothing to free, or the amount, so nothing jumps around
   const SLOTS = [["dev", "🧹", "cleanup", () => dev, "cleanup"], ["disk", "💾", "disk", () => disk, "disk"], ["bc", "🌐", "browser", () => bc, "browser"]];
   const rows = SLOTS.map(([key, icon, go, data, scan]) => have.find((r) => r.key === key)
     || (!data() && scanFailed[scan] ? { key, icon, go, state: "failed", big: "!", cap: t("err.failed"), text: t("err.failed") } : null)
+    || (data() && recentFreed(key) ? freedTile(key, icon, go, recentFreed(key)) : null)
     || { key, icon, go, state: data() ? "none" : "checking", big: data() ? "✓" : "", cap: t(data() ? `ready.none.${key}` : "ready.scanHint"), text: t(data() ? `ready.none.${key}` : "ready.scanning") });
   // one tile per kind: the amount big, what it is underneath, the actions at the bottom
   $("#ready-list").innerHTML = rows.map((r) => `<li class="ready-tile ${r.key} ${r.state || "has"}" aria-label="${esc(r.text)}" ${r.state === "checking" ? 'aria-busy="true"' : ""}>
     <div class="ready-top"><span class="ready-ico" aria-hidden="true">${r.icon}</span><span class="ready-big">${r.state === "checking" ? `<span class="scanning"><i class="scan-dot"></i>${esc(t("ready.scanning"))}</span>` : esc(r.big)}</span></div>
-    <div class="ready-cap">${esc(r.cap)}</div>
+    <div class="ready-cap"${r.capHtml ? ` title="${esc(t(`ready.none.${r.key}`))}"` : ""}>${r.capHtml ?? esc(r.cap)}</div>
     <div class="ready-acts"><button class="small ghost" data-go="${r.go}">${esc(t("ready.review"))}</button>${r.state ? "" : `<button class="small primary" data-ready="${r.key}">${esc(r.act)}</button>`}</div></li>`).join("");
 }
 $("#ready-list").addEventListener("click", (e) => {
@@ -2515,6 +2537,7 @@ listen("dev-autocleaned", (e) => {
   const r = e.payload;
   // the trees were ended a moment before this event; samples from just before it count
   if (r.mem_before) startRecovery(r.mem_before, Date.now() - 2500, r.freed_mem, true);
+  noteFreed("dev", r.freed_mem);
   toast(t("clean.auto.done", { n: r.ended.length, mem: fmtBytes(r.freed_mem) }) + "\n• " + r.ended.join("\n• "), "ok", 8000);
   if (currentTab === "cleanup") loadDev(null, true); else delete scannedAt.cleanup;
 });
@@ -2749,7 +2772,7 @@ function renderFinder(k) {
     <table class="tbl"><thead><tr><th></th><th>${esc(t("fd.col.name"))}</th><th>${esc(t("fd.col.changed"))}</th><th class="num">${esc(t("fd.col.size"))}</th></tr></thead><tbody>${d.files.map((f) => {
       const key = `old|${f.path}`;
       return `<tr><td>${fdChk(key, f.path)}</td><td><bdi dir="ltr">${esc(shortPath(f.path))}</bdi>
-        ${f.category === "old_installer" ? ` <span class="badge idle">${esc(t("fd.old.installer"))}</span>` : ""}${f.onedrive ? ` <span class="badge orphan" title="${esc(t("fd.old.onedriveTip"))}">OneDrive</span>` : ""}</td>
+        ${f.category === "old_installer" ? ` <span class="badge idle">${esc(t("fd.old.installer"))}</span>` : f.category === "old_archive" ? ` <span class="badge idle">${esc(t("fd.old.archive"))}</span>` : ""}${f.onedrive ? ` <span class="badge orphan" title="${esc(t("fd.old.onedriveTip"))}">OneDrive</span>` : ""}</td>
         <td>${esc(fmtDate(f.modified))}</td><td class="num">${fmtBytes(f.bytes)}</td></tr>`;
     }).join("")}</tbody></table>
     <div class="fd-actions"><button class="danger" data-fd-act="old" data-icon="trash-2">${esc(t("fd.old.act"))}</button></div>`;
