@@ -32,7 +32,7 @@ Chaque session lance de nouveaux processus, et beaucoup continuent de tourner ap
 - 🌐 Chrome (37 processus): **6.5 GB**
 - ⬢ Node + Claude (14 processus): **2.5 GB**
 - 🧩 Services Windows en cours d'exécution: **~150**
-- 🦀 Dossiers target Rust (3 projets): **~120 GB**
+- 💾 Dossiers target Rust (3 projets): **~120 GB**
 
 *Mesuré sur le portable de 32 Go de l'auteur en pleine journée de travail.*
 

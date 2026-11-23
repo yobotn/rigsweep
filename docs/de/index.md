@@ -32,41 +32,13 @@ Entwickelt für Entwickler, die in Terminals und mit KI-Agents arbeiten, nicht f
 
 Verwaiste und inaktive Dev-Server, Build-Daemons und Agent-CLIs in Node, Python, Java, .NET und mehr, jeweils mit Prozessbaum, Projekt, RAM und Ports.
 
-### Boost-Bericht
-
-Echte Vorher/Nachher-Messwerte statt erfundener Prozentangaben. Kopieren Sie sie als Markdown und teilen Sie Ihr Ergebnis.
-
-### Chrome-Tab-Helfer
-
-Eine winzige Erweiterung, die inaktive Tabs in den Ruhezustand versetzt, Duplikate schließt und Tabs nach Muster wie localhost:* schließt. Ohne Netzwerkzugriff.
-
-### Umkehrbare Optimierungen
-
-Telemetrie, Xbox, Indizierung, Hintergrund-Apps, eine dauerhafte Sperre für Edge und mehr, jeweils mit Risikostufe. Die Originalwerte werden gesichert und lassen sich mit einem Klick wiederherstellen.
-
-### Prozesse & Autostart
-
-CPU, RAM und Datenträger pro Prozess, die Dienste in jeder svchost.exe und die automatisch startenden Dienste und Aufgaben, die der Task-Manager nie zeigt.
-
-### 11 Sprachen
-
-English, Deutsch, Español, Français, Italiano, Português, Русский, 日本語, 한국어, 简体中文 und العربية in App, Installationsprogramm und Chrome-Erweiterung, jeweils mit den offiziellen Windows-Begriffen der Sprache.
-
-### Temperaturen
-
-CPU- und GPU-Temperaturen mit 5-Minuten-Verlauf und einer Warnung, wenn Ihr PC dauerhaft heiß läuft. Kein Treiber, keine Administratorrechte.
-
-### Updates nach Ihrer Wahl
-
-Standardmäßig aus. Suchen Sie bei Bedarf oder aktivieren Sie eine tägliche Suche. Updates werden nur installiert, wenn Sie klicken, und nur, wenn sie signiert sind.
-
-### Browser-Bereinigung
-
-Leert die Caches von Chrome, Edge, Brave, Vivaldi, Opera und Firefox. Anmeldungen, Cookies, Passwörter und Verlauf bleiben immer unberührt.
-
 ### Dev-Speicher
 
 Löscht node_modules, .next, target und .venv in Projekten, die du nicht mehr anfasst, leert Paket-, GPU-Shader- und KI-Tool-Caches, entfernt Git-Worktrees, die Agents zurückgelassen haben, räumt Windows-Reste auf (alte temporäre Dateien, Update-Downloads, Absturzabbilder) und verkleinert virtuelle Docker- und WSL-Datenträger. Vor dem Klick siehst du, wie viel Platz danach frei ist, und die Caches, die sich selbst neu aufbauen, lassen sich wöchentlich automatisch leeren.
+
+### Für KI-Agents
+
+rigsweep --disk-report --json und --disk-clean --safe --dry-run laufen ohne Adminrechte, und rigsweep --mcp ist ein MCP-Server: Claude Code, Cursor oder Codex können freien Platz prüfen, sehen, was ihn belegt, und die Caches leeren, die sich selbst neu aufbauen.
 
 ### Hardware
 
@@ -80,21 +52,49 @@ Was jede App auf Grafikkarte und NPU tut, aus denselben Zählern wie der Task-Ma
 
 Datenverkehr pro Adapter, welche App welche Verbindung oder welchen lauschenden Port hält, und eine Suche, die zeigt, wer Port 3000 oder eine gesperrte Datei bzw. einen Ordner nutzt.
 
-### Finden
+### Prozesse & Autostart
 
-Sieh Ordner für Ordner, was auf jedem Laufwerk Platz belegt, verschiebe Paket-Caches von C: auf ein anderes Laufwerk oder ein Dev Drive und prüfe Programme ohne Deinstallationsprogramm, große alte Dateien in Downloads und unsignierte Autostart-Programme, mit einem Microsoft-Defender-Scan per Klick.
-
-### Einfach oder Profi
-
-„Einfach“ zeigt das Dashboard und die Bereinigungen in klaren Worten. „Profi“ ergänzt Prozesse, Netzwerk, GPU-Engines und die Rohwerte. Schalte Monitore ab, die du nicht brauchst. Dann kosten sie keine CPU.
+CPU, RAM und Datenträger pro Prozess, die Dienste in jeder svchost.exe und die automatisch startenden Dienste und Aufgaben, die der Task-Manager nie zeigt.
 
 ### Konsolenfenster
 
 Das Eingabeaufforderungsfenster, das kurz aufblitzt und verschwindet: RigSweep zeichnet den genauen Befehl auf, wer es gestartet hat (eine geplante Aufgabe, ein Dienst oder eine App) und was darin lief, und kann die Aufgabe dahinter abschalten, mit Sicherung.
 
-### Für KI-Agents
+### Finden
 
-rigsweep --disk-report --json und --disk-clean --safe --dry-run laufen ohne Adminrechte, und rigsweep --mcp ist ein MCP-Server: Claude Code, Cursor oder Codex können freien Platz prüfen, sehen, was ihn belegt, und die Caches leeren, die sich selbst neu aufbauen.
+Sieh Ordner für Ordner, was auf jedem Laufwerk Platz belegt, verschiebe Paket-Caches von C: auf ein anderes Laufwerk oder ein Dev Drive und prüfe Programme ohne Deinstallationsprogramm, große alte Dateien in Downloads und unsignierte Autostart-Programme, mit einem Microsoft-Defender-Scan per Klick.
+
+### Boost-Bericht
+
+Echte Vorher/Nachher-Messwerte statt erfundener Prozentangaben. Kopieren Sie sie als Markdown und teilen Sie Ihr Ergebnis.
+
+### Umkehrbare Optimierungen
+
+Telemetrie, Xbox, Indizierung, Hintergrund-Apps, eine dauerhafte Sperre für Edge und mehr, jeweils mit Risikostufe. Die Originalwerte werden gesichert und lassen sich mit einem Klick wiederherstellen.
+
+### Browser-Bereinigung
+
+Leert die Caches von Chrome, Edge, Brave, Vivaldi, Opera und Firefox. Anmeldungen, Cookies, Passwörter und Verlauf bleiben immer unberührt.
+
+### Temperaturen
+
+CPU- und GPU-Temperaturen mit 5-Minuten-Verlauf und einer Warnung, wenn Ihr PC dauerhaft heiß läuft. Kein Treiber, keine Administratorrechte.
+
+### Chrome-Tab-Helfer
+
+Eine winzige Erweiterung, die inaktive Tabs in den Ruhezustand versetzt, Duplikate schließt und Tabs nach Muster wie localhost:* schließt. Ohne Netzwerkzugriff.
+
+### Einfach oder Profi
+
+„Einfach“ zeigt das Dashboard und die Bereinigungen in klaren Worten. „Profi“ ergänzt Prozesse, Netzwerk, GPU-Engines und die Rohwerte. Schalte Monitore ab, die du nicht brauchst. Dann kosten sie keine CPU.
+
+### Updates nach Ihrer Wahl
+
+Standardmäßig aus. Suchen Sie bei Bedarf oder aktivieren Sie eine tägliche Suche. Updates werden nur installiert, wenn Sie klicken, und nur, wenn sie signiert sind.
+
+### 11 Sprachen
+
+English, Deutsch, Español, Français, Italiano, Português, Русский, 日本語, 한국어, 简体中文 und العربية in App, Installationsprogramm und Chrome-Erweiterung, jeweils mit den offiziellen Windows-Begriffen der Sprache.
 
 ## 🧹 Liegen gebliebene Sitzungen sicher aufräumen
 

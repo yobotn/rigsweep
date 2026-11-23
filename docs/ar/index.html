@@ -227,6 +227,9 @@
     .card h3 { margin: var(--s1) 0 0; font-size: 18px; }
     .card p { margin: 0; color: var(--muted); font-size: 15px; }
     .card.wide { grid-column: 1 / -1; }
+    /* feature cards: balanced columns, so cards of any length (and any language) leave no gaps */
+    .grid.feats { display: block; columns: 3; column-gap: var(--s2); }
+    .grid.feats .card { break-inside: avoid; margin-bottom: var(--s2); }
 
     /* feature rows: text + framed screenshot, same proportions every time */
     .row { display: grid; grid-template-columns: 5fr 7fr; gap: var(--s4); align-items: center; }
@@ -271,6 +274,7 @@
 
     @media (max-width: 900px) {
       .grid { grid-template-columns: repeat(2, 1fr); }
+      .grid.feats { columns: 2; }
       .story, .row, .row.flip { grid-template-columns: 1fr; gap: var(--s3); }
       .row.flip .copy { order: 0; }
     }
@@ -278,6 +282,7 @@
       :root { --s5: 56px; --s4: 32px; }
       .wrap { padding: 0 var(--s2); }
       .grid { grid-template-columns: 1fr; }
+      .grid.feats { columns: 1; }
       .links a.hide-sm { display: none; }
       .links { gap: 10px; }
       .lang { max-width: 104px; }
@@ -346,9 +351,9 @@
       <h2 data-t="eco.h">ليس Node وحده</h2>
       <p class="lead" data-t="eco.p">يعثر «تنظيف التطوير» على خوادم التطوير وعمليات البناء الخلفية وجلسات الوكلاء المتبقية في البيئات التي تستخدمها فعلاً، إضافةً إلى الجهاز الظاهري لـ WSL 2 / Docker الذي يستهلك غيغابايتات بصمت.</p>
       <div class="chips">
-        <span class="chip">⬢ Node · Bun · Deno</span><span class="chip">🐍 Python</span><span class="chip">☕ Java · Gradle · Maven</span>
-        <span class="chip">🟣 .NET</span><span class="chip">💎 Ruby</span><span class="chip">🐘 PHP</span><span class="chip">🦀 Rust</span>
-        <span class="chip">🐹 Go</span><span class="chip">🐧 WSL 2 · Docker</span><span class="chip">🤖 Claude Code · Codex · Gemini CLI · Aider</span>
+        <span class="chip">Node · Bun · Deno</span><span class="chip">Python</span><span class="chip">Java · Gradle · Maven</span>
+        <span class="chip">.NET</span><span class="chip">Ruby</span><span class="chip">PHP</span><span class="chip">Rust</span>
+        <span class="chip">Go</span><span class="chip">WSL 2 · Docker</span><span class="chip">Claude Code · Codex · Gemini CLI · Aider</span>
       </div>
     </section>
 
@@ -367,7 +372,7 @@
           <div class="stat"><span data-t="stat.chrome">🌐 متصفح Chrome (37 عملية)</span><b>6.5 GB</b></div>
           <div class="stat"><span data-t="stat.node">⬢ Node وClaude (14 عملية)</span><b>2.5 GB</b></div>
           <div class="stat"><span data-t="stat.services">🧩 خدمات Windows قيد التشغيل</span><b>~150</b></div>
-          <div class="stat"><span data-t="stat.rust">🦀 مجلدات target في Rust (3 مشاريع)</span><b>~120 GB</b></div>
+          <div class="stat"><span data-t="stat.rust">💾 مجلدات target في Rust (3 مشاريع)</span><b>~120 GB</b></div>
           <div class="cap" data-t="stat.cap">تم القياس على كمبيوتر المؤلف المحمول بذاكرة 32 غيغابايت في منتصف يوم عمل.</div>
         </div>
       </div>
@@ -377,24 +382,24 @@
       <span class="eyebrow" data-t="feat.eyebrow">الميزات</span>
       <h2 data-t="feat.h">✨ ما الذي يفعله</h2>
       <p class="lead" data-t="feat.lead">مصمم للمطورين الذين يعيشون في الوحدات الطرفية ومع وكلاء الذكاء الاصطناعي، لا لحيل «تسريع الكمبيوتر». تطبيق واحد بدلًا من إدارة المهام وأداة معلومات العتاد مثل CPU-Z وبرنامج التنظيف.</p>
-      <div class="grid">
+      <div class="grid feats">
         <div class="card"><div class="ic">🧹</div><h3 data-t="f1.h">تنظيف التطوير</h3><p data-t="f1.p">خوادم التطوير وعمليات البناء الخلفية وأدوات CLI للوكلاء اليتيمة والخاملة في Node وPython وJava و‎.NET وغيرها، كلٌّ منها مع شجرة عملياته ومشروعه وذاكرة RAM والمنافذ.</p></div>
-        <div class="card"><div class="ic">📊</div><h3 data-t="f2.h">تقرير التسريع</h3><p data-t="f2.p">قياسات حقيقية قبل وبعد بدلاً من نسب مئوية زائفة. يمكنك نسخها بتنسيق Markdown ومشاركة نتيجتك.</p></div>
-        <div class="card"><div class="ic">🌐</div><h3 data-t="f3.h">مساعد علامات التبويب في Chrome</h3><p data-t="f3.p">إضافة صغيرة لتنويم علامات التبويب الخاملة، وإغلاق المكررة، وإغلاق علامات التبويب حسب نمط مثل localhost:*. وهي بلا أي وصول إلى الشبكة.</p></div>
-        <div class="card"><div class="ic">⚙️</div><h3 data-t="f4.h">تحسينات قابلة للتراجع</h3><p data-t="f4.p">القياس عن بُعد وXbox والفهرسة وتطبيقات الخلفية ومنع عودة Edge وغيرها، ولكلٍّ منها مستوى خطورة. تُنسخ القيم الأصلية احتياطيًا ويمكن استعادتها بنقرة واحدة.</p></div>
-        <div class="card"><div class="ic">🔍</div><h3 data-t="f5.h">العمليات وبدء التشغيل</h3><p data-t="f5.p">استخدام CPU وRAM والقرص لكل عملية، والخدمات داخل كل svchost.exe، والخدمات والمهام التي تبدأ تلقائيًا ولا تعرضها إدارة المهام أبدًا.</p></div>
-        <div class="card"><div class="ic">🌍</div><h3 data-t="f6.h">11 لغة</h3><p data-t="f6.p">English وDeutsch وEspañol وFrançais وItaliano وPortuguês وРусский و日本語 و한국어 و简体中文 والعربية في التطبيق وبرنامج التثبيت وإضافة Chrome، باستخدام مصطلحات Windows الرسمية لكل لغة.</p></div>
-        <div class="card"><div class="ic">🌡️</div><h3 data-t="f7.h">درجات الحرارة</h3><p data-t="f7.p">درجات حرارة CPU وGPU مع اتجاه لآخر 5 دقائق وتحذير عندما يظل الكمبيوتر ساخنًا. بلا برنامج تشغيل، وبلا صلاحيات المسؤول.</p></div>
-        <div class="card"><div class="ic">🔄</div><h3 data-t="f8.h">التحديثات باختيارك</h3><p data-t="f8.p">معطّلة افتراضيًا. تحقّق متى شئت، أو شغّل التحقق اليومي. لا تُثبَّت التحديثات إلا عندما تنقر، وبشرط أن تكون موقّعة.</p></div>
-        <div class="card"><div class="ic">🧽</div><h3 data-t="f9.h">تنظيف المتصفحات</h3><p data-t="f9.p">يفرّغ ذاكرات التخزين المؤقت لكلٍّ من Chrome وEdge وBrave وVivaldi وOpera وFirefox. لا يتم المساس أبدًا بعمليات تسجيل الدخول أو ملفات تعريف الارتباط أو كلمات المرور أو سجل التصفح.</p></div>
         <div class="card"><div class="ic">💾</div><h3 data-t="f10.h">قرص التطوير</h3><p data-t="f10.p">يحذف node_modules و.next وtarget و.venv في المشاريع التي توقفت عن العمل عليها، وينظّف ذاكرات الحزم وshaders الـ GPU وأدوات الذكاء الاصطناعي، ويزيل git worktrees التي تركها الوكلاء، ويمسح مخلّفات Windows (الملفات المؤقتة القديمة، وتنزيلات التحديثات، وملفات الأعطال) ويقلّص أقراص Docker وWSL الافتراضية. ترى قبل النقر كم ستصبح المساحة المتاحة، ويمكنه إفراغ الذاكرات التي تُعاد بناؤها وحدها كل أسبوع.</p></div>
+        <div class="card"><div class="ic">🤖</div><h3 data-t="f16.h">لوكلاء الذكاء الاصطناعي</h3><p data-t="f16.p">يعمل rigsweep --disk-report --json و‎--disk-clean --safe --dry-run دون صلاحيات المسؤول، وrigsweep --mcp خادم MCP: يمكن لـ Claude Code أو Cursor أو Codex معرفة المساحة المتاحة وما يشغلها وإفراغ الذاكرات التي تُعاد بناؤها وحدها.</p></div>
         <div class="card"><div class="ic">🖥️</div><h3 data-t="f11.h">الأجهزة</h3><p data-t="f11.p">سلامة الأقراص، واختبار سرعة القرص، وتفاصيل CPU وGPU وRAM والبطارية في علامة تبويب واحدة بدلاً من أربع أدوات منفصلة. بلا تثبيت أي برنامج تشغيل.</p></div>
         <div class="card"><div class="ic">🎮</div><h3 data-t="f12.h">GPU والذكاء الاصطناعي</h3><p data-t="f12.p">ما يفعله كل تطبيق على بطاقة الرسومات ووحدة NPU، من العدادات نفسها التي يستخدمها إدارة المهام، إضافة إلى بيئات الذكاء الاصطناعي التي تعمل الآن (Ollama وLM Studio وllama.cpp وComfyUI وPyTorch) والنماذج المحمّلة وذاكرة الفيديو التي تشغلها.</p></div>
         <div class="card"><div class="ic">📡</div><h3 data-t="f13.h">الشبكة</h3><p data-t="f13.p">حركة البيانات لكل محوّل، وأي تطبيق يحتفظ بأي اتصال أو منفذ استماع، وبحث يخبرك بمن يستخدم المنفذ 3000 أو يقفل ملفًا أو مجلدًا.</p></div>
+        <div class="card"><div class="ic">🔍</div><h3 data-t="f5.h">العمليات وبدء التشغيل</h3><p data-t="f5.p">استخدام CPU وRAM والقرص لكل عملية، والخدمات داخل كل svchost.exe، والخدمات والمهام التي تبدأ تلقائيًا ولا تعرضها إدارة المهام أبدًا.</p></div>
+        <div class="card"><div class="ic">🪟</div><h3 data-t="f17.h">نوافذ الطرفية</h3><p data-t="f17.p">نافذة موجه الأوامر تلك التي تومض ثم تختفي: يسجّل RigSweep الأمر الذي شغّلته بالضبط، وما الذي شغّلها (مهمة مجدولة أو خدمة أو تطبيق)، وما الذي عمل بداخلها، ويمكنه إيقاف المهمة التي تقف وراءها مع نسخة احتياطية.</p></div>
         <div class="card"><div class="ic">🔎</div><h3 data-t="f14.h">البحث</h3><p data-t="f14.p">اعرف ما الذي يشغل المساحة على كل قرص مجلدًا بعد مجلد، وانقل ذاكرات الحزم من C: إلى قرص آخر أو Dev Drive، وراجع البرامج التي فقدت أداة إلغاء التثبيت، والملفات الكبيرة القديمة في التنزيلات، وبرامج بدء التشغيل غير الموقّعة، مع فحص Microsoft Defender بنقرة.</p></div>
+        <div class="card"><div class="ic">📊</div><h3 data-t="f2.h">تقرير التسريع</h3><p data-t="f2.p">قياسات حقيقية قبل وبعد بدلاً من نسب مئوية زائفة. يمكنك نسخها بتنسيق Markdown ومشاركة نتيجتك.</p></div>
+        <div class="card"><div class="ic">⚙️</div><h3 data-t="f4.h">تحسينات قابلة للتراجع</h3><p data-t="f4.p">القياس عن بُعد وXbox والفهرسة وتطبيقات الخلفية ومنع عودة Edge وغيرها، ولكلٍّ منها مستوى خطورة. تُنسخ القيم الأصلية احتياطيًا ويمكن استعادتها بنقرة واحدة.</p></div>
+        <div class="card"><div class="ic">🧽</div><h3 data-t="f9.h">تنظيف المتصفحات</h3><p data-t="f9.p">يفرّغ ذاكرات التخزين المؤقت لكلٍّ من Chrome وEdge وBrave وVivaldi وOpera وFirefox. لا يتم المساس أبدًا بعمليات تسجيل الدخول أو ملفات تعريف الارتباط أو كلمات المرور أو سجل التصفح.</p></div>
+        <div class="card"><div class="ic">🌡️</div><h3 data-t="f7.h">درجات الحرارة</h3><p data-t="f7.p">درجات حرارة CPU وGPU مع اتجاه لآخر 5 دقائق وتحذير عندما يظل الكمبيوتر ساخنًا. بلا برنامج تشغيل، وبلا صلاحيات المسؤول.</p></div>
+        <div class="card"><div class="ic">🌐</div><h3 data-t="f3.h">مساعد علامات التبويب في Chrome</h3><p data-t="f3.p">إضافة صغيرة لتنويم علامات التبويب الخاملة، وإغلاق المكررة، وإغلاق علامات التبويب حسب نمط مثل localhost:*. وهي بلا أي وصول إلى الشبكة.</p></div>
         <div class="card"><div class="ic">🎛️</div><h3 data-t="f15.h">بسيط أو احترافي</h3><p data-t="f15.p">الوضع البسيط يعرض لوحة المعلومات وعمليات التنظيف بكلمات واضحة. والاحترافي يضيف العمليات والشبكة ومحركات GPU والأرقام الخام. أوقف المراقبات التي لا تحتاجها كي لا تستهلك المعالج.</p></div>
-        <div class="card wide"><div class="ic">🪟</div><h3 data-t="f17.h">نوافذ الطرفية</h3><p data-t="f17.p">نافذة موجه الأوامر تلك التي تومض ثم تختفي: يسجّل RigSweep الأمر الذي شغّلته بالضبط، وما الذي شغّلها (مهمة مجدولة أو خدمة أو تطبيق)، وما الذي عمل بداخلها، ويمكنه إيقاف المهمة التي تقف وراءها مع نسخة احتياطية.</p></div>
-        <div class="card wide"><div class="ic">🤖</div><h3 data-t="f16.h">لوكلاء الذكاء الاصطناعي</h3><p data-t="f16.p">يعمل rigsweep --disk-report --json و‎--disk-clean --safe --dry-run دون صلاحيات المسؤول، وrigsweep --mcp خادم MCP: يمكن لـ Claude Code أو Cursor أو Codex معرفة المساحة المتاحة وما يشغلها وإفراغ الذاكرات التي تُعاد بناؤها وحدها.</p></div>
+        <div class="card"><div class="ic">🔄</div><h3 data-t="f8.h">التحديثات باختيارك</h3><p data-t="f8.p">معطّلة افتراضيًا. تحقّق متى شئت، أو شغّل التحقق اليومي. لا تُثبَّت التحديثات إلا عندما تنقر، وبشرط أن تكون موقّعة.</p></div>
+        <div class="card"><div class="ic">🌍</div><h3 data-t="f6.h">11 لغة</h3><p data-t="f6.p">English وDeutsch وEspañol وFrançais وItaliano وPortuguês وРусский و日本語 و한국어 و简体中文 والعربية في التطبيق وبرنامج التثبيت وإضافة Chrome، باستخدام مصطلحات Windows الرسمية لكل لغة.</p></div>
       </div>
     </section>
 
@@ -485,18 +490,18 @@
     </footer>
   </main>
 
-  <script src="/icons.js?v=27f6c102" defer></script>
-  <script src="/locales/en.js?v=7d1477d2"></script>
-  <script src="/locales/de.js?v=052042f1"></script>
-  <script src="/locales/es.js?v=e45e9209"></script>
-  <script src="/locales/fr.js?v=bdd5424d"></script>
-  <script src="/locales/it.js?v=1812906a"></script>
-  <script src="/locales/pt-BR.js?v=6fa827e6"></script>
-  <script src="/locales/ru.js?v=57420723"></script>
-  <script src="/locales/ja.js?v=0add4e94"></script>
-  <script src="/locales/ko.js?v=21618cb5"></script>
-  <script src="/locales/zh-CN.js?v=077815bb"></script>
-  <script src="/locales/ar.js?v=fc2f03df"></script>
+  <script src="/icons.js?v=ec138590" defer></script>
+  <script src="/locales/en.js?v=f1729045"></script>
+  <script src="/locales/de.js?v=9c784f8d"></script>
+  <script src="/locales/es.js?v=a679c5b5"></script>
+  <script src="/locales/fr.js?v=86890dbf"></script>
+  <script src="/locales/it.js?v=96821498"></script>
+  <script src="/locales/pt-BR.js?v=4a64fca4"></script>
+  <script src="/locales/ru.js?v=7bbdce1d"></script>
+  <script src="/locales/ja.js?v=c323ed77"></script>
+  <script src="/locales/ko.js?v=51f743be"></script>
+  <script src="/locales/zh-CN.js?v=2386cb14"></script>
+  <script src="/locales/ar.js?v=7a5d07e4"></script>
   <script>
     const LANGS = { "en": "English", "de": "Deutsch", "es": "Español", "fr": "Français", "it": "Italiano", "pt-BR": "Português (Brasil)", "ru": "Русский", "ja": "日本語", "ko": "한국어", "zh-CN": "简体中文", "ar": "العربية" };
     // the Dashboard shot is a real capture (en/es/fr); the Dev Cleanup shot exists in every language

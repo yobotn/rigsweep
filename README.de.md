@@ -32,7 +32,7 @@ Jede Sitzung startet weitere Prozesse, und viele laufen weiter, nachdem Sie das 
 - 🌐 Chrome (37 Prozesse): **6.5 GB**
 - ⬢ Node + Claude (14 Prozesse): **2.5 GB**
 - 🧩 Laufende Windows-Dienste: **~150**
-- 🦀 Rust-target-Ordner (3 Projekte): **~120 GB**
+- 💾 Rust-target-Ordner (3 Projekte): **~120 GB**
 
 *Gemessen auf dem Laptop des Autors mit 32 GB mitten an einem Arbeitstag.*
 

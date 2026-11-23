@@ -32,41 +32,13 @@ Pensé pour les développeurs qui vivent dans les terminaux et les agents IA, pa
 
 Serveurs de dev, daemons de build et CLI d'agents orphelins ou inactifs pour Node, Python, Java, .NET et plus, chacun avec son arbre de processus, son projet, sa RAM et ses ports.
 
-### Rapport de gains
-
-De vraies mesures avant/après au lieu de pourcentages inventés. Vous pouvez les copier en Markdown et partager votre résultat.
-
-### Assistant d'onglets
-
-Une petite extension pour mettre en veille les onglets inactifs, fermer les doublons et fermer par motif comme localhost:*. Elle n'a aucun accès réseau.
-
-### Réglages réversibles
-
-Télémétrie, Xbox, indexeur, apps en arrière-plan, Edge empêché de revenir et plus, chacun avec un niveau de risque. Les originaux sont sauvegardés et restaurables en un clic.
-
-### Processus et démarrage
-
-CPU, RAM et disque par processus, les services de chaque svchost.exe, et les services et tâches à démarrage automatique que le Gestionnaire des tâches n'affiche jamais.
-
-### 11 langues
-
-English, Deutsch, Español, Français, Italiano, Português, Русский, 日本語, 한국어, 简体中文 et العربية dans l'app, le programme d'installation et l'extension Chrome, avec les termes Windows officiels de chaque langue.
-
-### Températures
-
-Températures du CPU et du GPU avec la tendance sur 5 minutes et une alerte si votre PC reste trop chaud. Sans pilote ni droits d'administrateur.
-
-### Mises à jour, à vous de choisir
-
-Désactivées par défaut. Recherchez quand vous voulez, ou activez une vérification quotidienne. Les mises à jour ne s'installent que sur un clic de votre part, et seulement si elles sont signées.
-
-### Nettoyage des navigateurs
-
-Vide le cache de Chrome, Edge, Brave, Vivaldi, Opera et Firefox. Les sessions ouvertes, cookies, mots de passe et l'historique ne sont jamais touchés.
-
 ### Disque dev
 
 Supprime node_modules, .next, target et .venv dans les projets que vous ne touchez plus, vide les caches de paquets, de shaders GPU et d'outils IA, retire les worktrees git laissés par les agents, nettoie les restes de Windows (vieux fichiers temporaires, téléchargements de mises à jour, vidages de plantage) et réduit les disques virtuels Docker et WSL. Vous voyez l'espace libre que vous aurez avant de cliquer, et les caches qui se reconstruisent seuls peuvent être vidés chaque semaine.
+
+### Pour les agents IA
+
+rigsweep --disk-report --json et --disk-clean --safe --dry-run fonctionnent sans droits administrateur, et rigsweep --mcp est un serveur MCP : Claude Code, Cursor ou Codex peuvent vérifier l'espace libre, voir ce qui l'occupe et vider les caches qui se reconstruisent seuls.
 
 ### Matériel
 
@@ -80,21 +52,49 @@ Ce que fait chaque application sur la carte graphique et le NPU, à partir des c
 
 Le trafic par carte réseau, l'application qui détient chaque connexion ou port en écoute, et une recherche qui indique qui utilise le port 3000 ou un fichier ou dossier verrouillé.
 
-### Recherche
+### Processus et démarrage
 
-Voyez ce qui prend de la place sur chaque disque, dossier par dossier, déplacez les caches de paquets de C: vers un autre disque ou un Dev Drive, et passez en revue les programmes sans désinstalleur, les gros vieux fichiers des Téléchargements et les programmes de démarrage non signés, avec une analyse Microsoft Defender en un clic.
-
-### Simple ou Pro
-
-Le mode Simple affiche le tableau de bord et les nettoyages en termes clairs. Pro ajoute Processus, Réseau, moteurs GPU et valeurs brutes. Désactivez les moniteurs inutiles : ils ne consomment alors aucun CPU.
+CPU, RAM et disque par processus, les services de chaque svchost.exe, et les services et tâches à démarrage automatique que le Gestionnaire des tâches n'affiche jamais.
 
 ### Fenêtres de console
 
 Cette fenêtre d'invite de commandes qui clignote puis disparaît : RigSweep enregistre la commande exacte qu'elle a exécutée, ce qui l'a lancée (une tâche planifiée, un service ou une application) et ce qui a tourné dedans, et peut désactiver la tâche en cause, avec une sauvegarde.
 
-### Pour les agents IA
+### Recherche
 
-rigsweep --disk-report --json et --disk-clean --safe --dry-run fonctionnent sans droits administrateur, et rigsweep --mcp est un serveur MCP : Claude Code, Cursor ou Codex peuvent vérifier l'espace libre, voir ce qui l'occupe et vider les caches qui se reconstruisent seuls.
+Voyez ce qui prend de la place sur chaque disque, dossier par dossier, déplacez les caches de paquets de C: vers un autre disque ou un Dev Drive, et passez en revue les programmes sans désinstalleur, les gros vieux fichiers des Téléchargements et les programmes de démarrage non signés, avec une analyse Microsoft Defender en un clic.
+
+### Rapport de gains
+
+De vraies mesures avant/après au lieu de pourcentages inventés. Vous pouvez les copier en Markdown et partager votre résultat.
+
+### Réglages réversibles
+
+Télémétrie, Xbox, indexeur, apps en arrière-plan, Edge empêché de revenir et plus, chacun avec un niveau de risque. Les originaux sont sauvegardés et restaurables en un clic.
+
+### Nettoyage des navigateurs
+
+Vide le cache de Chrome, Edge, Brave, Vivaldi, Opera et Firefox. Les sessions ouvertes, cookies, mots de passe et l'historique ne sont jamais touchés.
+
+### Températures
+
+Températures du CPU et du GPU avec la tendance sur 5 minutes et une alerte si votre PC reste trop chaud. Sans pilote ni droits d'administrateur.
+
+### Assistant d'onglets
+
+Une petite extension pour mettre en veille les onglets inactifs, fermer les doublons et fermer par motif comme localhost:*. Elle n'a aucun accès réseau.
+
+### Simple ou Pro
+
+Le mode Simple affiche le tableau de bord et les nettoyages en termes clairs. Pro ajoute Processus, Réseau, moteurs GPU et valeurs brutes. Désactivez les moniteurs inutiles : ils ne consomment alors aucun CPU.
+
+### Mises à jour, à vous de choisir
+
+Désactivées par défaut. Recherchez quand vous voulez, ou activez une vérification quotidienne. Les mises à jour ne s'installent que sur un clic de votre part, et seulement si elles sont signées.
+
+### 11 langues
+
+English, Deutsch, Español, Français, Italiano, Português, Русский, 日本語, 한국어, 简体中文 et العربية dans l'app, le programme d'installation et l'extension Chrome, avec les termes Windows officiels de chaque langue.
 
 ## 🧹 Balayez les sessions inactives, en sécurité
 

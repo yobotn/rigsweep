@@ -32,7 +32,7 @@ Ogni sessione avvia altri processi, e molti restano in esecuzione anche dopo ave
 - 🌐 Chrome (37 processi): **6.5 GB**
 - ⬢ Node + Claude (14 processi): **2.5 GB**
 - 🧩 Servizi di Windows in esecuzione: **~150**
-- 🦀 Cartelle target di Rust (3 progetti): **~120 GB**
+- 💾 Cartelle target di Rust (3 progetti): **~120 GB**
 
 *Misurato sul portatile da 32 GB dell'autore, nel mezzo di una giornata di lavoro.*
 

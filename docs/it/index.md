@@ -32,41 +32,13 @@ Pensato per gli sviluppatori che vivono tra terminali e agenti AI, non per i tru
 
 Dev server, daemon di build e CLI di agenti orfani o inattivi in Node, Python, Java, .NET e altro, ognuno con il suo albero di processi, progetto, RAM e porte.
 
-### Report boost
-
-Misurazioni reali prima/dopo invece di percentuali inventate. Puoi copiarle come Markdown e condividere il tuo risultato.
-
-### Helper schede per Chrome
-
-Una piccola estensione per sospendere le schede inattive, chiudere i duplicati e chiudere le schede in base a un pattern come localhost:*. Non ha accesso alla rete.
-
-### Ottimizzazioni reversibili
-
-Telemetria, Xbox, indicizzazione, app in background, blocco del ritorno di Edge e altro, ognuna con un livello di rischio. I valori originali vengono salvati in un backup e si ripristinano con un clic.
-
-### Processi e avvio
-
-CPU, RAM e disco per processo, i servizi in ogni svchost.exe, e i servizi e le attività ad avvio automatico che Gestione attività non mostra mai.
-
-### 11 lingue
-
-English, Deutsch, Español, Français, Italiano, Português, Русский, 日本語, 한국어, 简体中文 e العربية nell'app, nel programma di installazione e nell'estensione per Chrome, con i termini ufficiali di Windows di ogni lingua.
-
-### Temperature
-
-Temperature di CPU e GPU con l'andamento degli ultimi 5 minuti e un avviso quando il PC resta troppo caldo. Nessun driver, nessun privilegio di amministratore.
-
-### Aggiornamenti, decidi tu
-
-Disattivati per impostazione predefinita. Cerca quando vuoi o attiva un controllo giornaliero. Gli aggiornamenti si installano solo quando fai clic, e solo se sono firmati.
-
-### Pulizia browser
-
-Svuota le cache di Chrome, Edge, Brave, Vivaldi, Opera e Firefox. Accessi, cookie, password e cronologia non vengono mai toccati.
-
 ### Disco dev
 
 Elimina node_modules, .next, target e .venv nei progetti che non tocchi più, pulisce le cache di pacchetti, shader GPU e strumenti IA, rimuove i worktree git lasciati dagli agenti, toglie gli avanzi di Windows (vecchi file temporanei, download degli aggiornamenti, dump di arresto) e riduce i dischi virtuali di Docker e WSL. Prima del clic vedi quanto spazio libero avrai, e può svuotare ogni settimana le cache che si ricostruiscono da sole.
+
+### Per gli agenti IA
+
+rigsweep --disk-report --json e --disk-clean --safe --dry-run funzionano senza diritti di amministratore, e rigsweep --mcp è un server MCP: Claude Code, Cursor o Codex possono controllare lo spazio libero, vedere cosa lo occupa e svuotare le cache che si ricostruiscono da sole.
 
 ### Hardware
 
@@ -80,21 +52,49 @@ Cosa fa ogni app sulla scheda video e sulla NPU, dagli stessi contatori di Gesti
 
 Traffico per scheda di rete, quale app tiene ogni connessione o porta in ascolto, e una ricerca che ti dice chi usa la porta 3000 o un file o una cartella bloccati.
 
-### Trova
+### Processi e avvio
 
-Guarda cosa occupa spazio su ogni unità cartella per cartella, sposta le cache dei pacchetti da C: su un'altra unità o un Dev Drive e controlla i programmi senza programma di disinstallazione, i file grandi e vecchi in Download e i programmi di avvio non firmati, con una scansione di Microsoft Defender in un clic.
-
-### Semplice o Pro
-
-Semplice mostra la dashboard e le pulizie con parole chiare. Pro aggiunge Processi, Rete, motori GPU e i dati grezzi. Spegni i monitor che non ti servono, così non consumano CPU.
+CPU, RAM e disco per processo, i servizi in ogni svchost.exe, e i servizi e le attività ad avvio automatico che Gestione attività non mostra mai.
 
 ### Finestre console
 
 Quella finestra del Prompt dei comandi che lampeggia e sparisce: RigSweep registra il comando esatto che ha eseguito, chi l'ha avviata (un'attività pianificata, un servizio o un'app) e cosa è girato al suo interno, e può disattivare l'attività che c'è dietro, con un backup.
 
-### Per gli agenti IA
+### Trova
 
-rigsweep --disk-report --json e --disk-clean --safe --dry-run funzionano senza diritti di amministratore, e rigsweep --mcp è un server MCP: Claude Code, Cursor o Codex possono controllare lo spazio libero, vedere cosa lo occupa e svuotare le cache che si ricostruiscono da sole.
+Guarda cosa occupa spazio su ogni unità cartella per cartella, sposta le cache dei pacchetti da C: su un'altra unità o un Dev Drive e controlla i programmi senza programma di disinstallazione, i file grandi e vecchi in Download e i programmi di avvio non firmati, con una scansione di Microsoft Defender in un clic.
+
+### Report boost
+
+Misurazioni reali prima/dopo invece di percentuali inventate. Puoi copiarle come Markdown e condividere il tuo risultato.
+
+### Ottimizzazioni reversibili
+
+Telemetria, Xbox, indicizzazione, app in background, blocco del ritorno di Edge e altro, ognuna con un livello di rischio. I valori originali vengono salvati in un backup e si ripristinano con un clic.
+
+### Pulizia browser
+
+Svuota le cache di Chrome, Edge, Brave, Vivaldi, Opera e Firefox. Accessi, cookie, password e cronologia non vengono mai toccati.
+
+### Temperature
+
+Temperature di CPU e GPU con l'andamento degli ultimi 5 minuti e un avviso quando il PC resta troppo caldo. Nessun driver, nessun privilegio di amministratore.
+
+### Helper schede per Chrome
+
+Una piccola estensione per sospendere le schede inattive, chiudere i duplicati e chiudere le schede in base a un pattern come localhost:*. Non ha accesso alla rete.
+
+### Semplice o Pro
+
+Semplice mostra la dashboard e le pulizie con parole chiare. Pro aggiunge Processi, Rete, motori GPU e i dati grezzi. Spegni i monitor che non ti servono, così non consumano CPU.
+
+### Aggiornamenti, decidi tu
+
+Disattivati per impostazione predefinita. Cerca quando vuoi o attiva un controllo giornaliero. Gli aggiornamenti si installano solo quando fai clic, e solo se sono firmati.
+
+### 11 lingue
+
+English, Deutsch, Español, Français, Italiano, Português, Русский, 日本語, 한국어, 简体中文 e العربية nell'app, nel programma di installazione e nell'estensione per Chrome, con i termini ufficiali di Windows di ogni lingua.
 
 ## 🧹 Elimina le sessioni inutilizzate, in sicurezza
 

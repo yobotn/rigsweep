@@ -32,7 +32,7 @@ Cada sesión lanza más procesos, y muchos siguen ejecutándose después de cerr
 - 🌐 Chrome (37 procesos): **6.5 GB**
 - ⬢ Node + Claude (14 procesos): **2.5 GB**
 - 🧩 Servicios de Windows en ejecución: **~150**
-- 🦀 Carpetas target de Rust (3 proyectos): **~120 GB**
+- 💾 Carpetas target de Rust (3 proyectos): **~120 GB**
 
 *Medido en el portátil de 32 GB del autor en plena jornada de trabajo.*
 

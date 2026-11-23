@@ -32,7 +32,7 @@ Every session spawns more processes, and many keep running after you close the t
 - 🌐 Chrome (37 processes): **6.5 GB**
 - ⬢ Node + Claude (14 processes): **2.5 GB**
 - 🧩 Windows services running: **~150**
-- 🦀 Rust target folders (3 projects): **~120 GB**
+- 💾 Rust target folders (3 projects): **~120 GB**
 
 *Measured on the author's 32 GB laptop in the middle of a working day.*
 

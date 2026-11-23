@@ -227,6 +227,9 @@
     .card h3 { margin: var(--s1) 0 0; font-size: 18px; }
     .card p { margin: 0; color: var(--muted); font-size: 15px; }
     .card.wide { grid-column: 1 / -1; }
+    /* feature cards: balanced columns, so cards of any length (and any language) leave no gaps */
+    .grid.feats { display: block; columns: 3; column-gap: var(--s2); }
+    .grid.feats .card { break-inside: avoid; margin-bottom: var(--s2); }
 
     /* feature rows: text + framed screenshot, same proportions every time */
     .row { display: grid; grid-template-columns: 5fr 7fr; gap: var(--s4); align-items: center; }
@@ -271,6 +274,7 @@
 
     @media (max-width: 900px) {
       .grid { grid-template-columns: repeat(2, 1fr); }
+      .grid.feats { columns: 2; }
       .story, .row, .row.flip { grid-template-columns: 1fr; gap: var(--s3); }
       .row.flip .copy { order: 0; }
     }
@@ -278,6 +282,7 @@
       :root { --s5: 56px; --s4: 32px; }
       .wrap { padding: 0 var(--s2); }
       .grid { grid-template-columns: 1fr; }
+      .grid.feats { columns: 1; }
       .links a.hide-sm { display: none; }
       .links { gap: 10px; }
       .lang { max-width: 104px; }
@@ -346,9 +351,9 @@
       <h2 data-t="eco.h">Node だけではありません</h2>
       <p class="lead" data-t="eco.p">開発クリーンアップは、実際に使っているスタック全体から、残ったままの開発サーバー、ビルド デーモン、エージェントのセッションを見つけ出します。数 GB を黙って抱え込む WSL 2 / Docker の VM も対象です。</p>
       <div class="chips">
-        <span class="chip">⬢ Node · Bun · Deno</span><span class="chip">🐍 Python</span><span class="chip">☕ Java · Gradle · Maven</span>
-        <span class="chip">🟣 .NET</span><span class="chip">💎 Ruby</span><span class="chip">🐘 PHP</span><span class="chip">🦀 Rust</span>
-        <span class="chip">🐹 Go</span><span class="chip">🐧 WSL 2 · Docker</span><span class="chip">🤖 Claude Code · Codex · Gemini CLI · Aider</span>
+        <span class="chip">Node · Bun · Deno</span><span class="chip">Python</span><span class="chip">Java · Gradle · Maven</span>
+        <span class="chip">.NET</span><span class="chip">Ruby</span><span class="chip">PHP</span><span class="chip">Rust</span>
+        <span class="chip">Go</span><span class="chip">WSL 2 · Docker</span><span class="chip">Claude Code · Codex · Gemini CLI · Aider</span>
       </div>
     </section>
 
@@ -367,7 +372,7 @@
           <div class="stat"><span data-t="stat.chrome">🌐 Chrome (37 プロセス)</span><b>6.5 GB</b></div>
           <div class="stat"><span data-t="stat.node">⬢ Node + Claude (14 プロセス)</span><b>2.5 GB</b></div>
           <div class="stat"><span data-t="stat.services">🧩 実行中の Windows サービス</span><b>~150</b></div>
-          <div class="stat"><span data-t="stat.rust">🦀 Rust の target フォルダー (3 プロジェクト)</span><b>~120 GB</b></div>
+          <div class="stat"><span data-t="stat.rust">💾 Rust の target フォルダー (3 プロジェクト)</span><b>~120 GB</b></div>
           <div class="cap" data-t="stat.cap">作者の 32 GB ノート PC で、作業日の途中に測定した値です。</div>
         </div>
       </div>
@@ -377,24 +382,24 @@
       <span class="eyebrow" data-t="feat.eyebrow">機能</span>
       <h2 data-t="feat.h">✨ できること</h2>
       <p class="lead" data-t="feat.lead">「PC 高速化」の小手先ではなく、ターミナルと AI エージェントを使いこなす開発者のために作りました。タスク マネージャー、CPU-Z のようなハードウェア情報ツール、クリーナーをひとつのアプリで。</p>
-      <div class="grid">
+      <div class="grid feats">
         <div class="card"><div class="ic">🧹</div><h3 data-t="f1.h">開発クリーンアップ</h3><p data-t="f1.p">Node、Python、Java、.NET などの孤立した開発サーバーやアイドル状態の開発サーバー、ビルド デーモン、エージェント CLI を、プロセス ツリー、プロジェクト、RAM、ポートとともに表示します。</p></div>
-        <div class="card"><div class="ic">📊</div><h3 data-t="f2.h">ブースト レポート</h3><p data-t="f2.p">見せかけのパーセンテージではなく、実際の前後の測定値を示します。Markdown でコピーして結果を共有できます。</p></div>
-        <div class="card"><div class="ic">🌐</div><h3 data-t="f3.h">Chrome タブ ヘルパー</h3><p data-t="f3.p">アイドル状態のタブのスリープ、重複タブや localhost:* などのパターンに一致するタブを閉じる小さな拡張機能です。ネットワーク アクセスはありません。</p></div>
-        <div class="card"><div class="ic">⚙️</div><h3 data-t="f4.h">元に戻せる最適化</h3><p data-t="f4.p">テレメトリ、Xbox、インデクサー、バックグラウンド アプリ、Edge の再インストール防止などを、リスク レベル付きで最適化します。元の値はバックアップされ、ワンクリックで元に戻せます。</p></div>
-        <div class="card"><div class="ic">🔍</div><h3 data-t="f5.h">プロセスとスタートアップ</h3><p data-t="f5.p">プロセスごとの CPU、RAM、ディスク使用量、各 svchost.exe 内のサービス、そしてタスク マネージャーには表示されない自動起動のサービスとタスクを表示します。</p></div>
-        <div class="card"><div class="ic">🌍</div><h3 data-t="f6.h">11 言語対応</h3><p data-t="f6.p">アプリ、インストーラー、Chrome 拡張機能は English、Deutsch、Español、Français、Italiano、Português、Русский、日本語、한국어、简体中文、العربية に対応し、各言語の Windows の公式用語を使っています。</p></div>
-        <div class="card"><div class="ic">🌡️</div><h3 data-t="f7.h">温度</h3><p data-t="f7.p">CPU と GPU の温度を 5 分間の推移とともに表示し、PC が高温のままのときは警告します。ドライバーも管理者権限も不要です。</p></div>
-        <div class="card"><div class="ic">🔄</div><h3 data-t="f8.h">更新は自分で選択</h3><p data-t="f8.p">既定ではオフです。好きなときに確認するか、1 日 1 回の自動確認をオンにできます。更新プログラムはクリックしたときだけ、署名されている場合に限りインストールされます。</p></div>
-        <div class="card"><div class="ic">🧽</div><h3 data-t="f9.h">ブラウザー クリーンアップ</h3><p data-t="f9.p">Chrome、Edge、Brave、Vivaldi、Opera、Firefox のキャッシュを空にします。サインイン情報、Cookie、パスワード、履歴には一切触れません。</p></div>
         <div class="card"><div class="ic">💾</div><h3 data-t="f10.h">開発ディスク</h3><p data-t="f10.p">触らなくなったプロジェクトの node_modules、.next、target、.venv を削除し、パッケージ・GPU シェーダー・AI ツールのキャッシュを片付け、エージェントが残した git worktree を取り除き、Windows の残りもの（古い一時ファイル、更新プログラムのダウンロード、クラッシュダンプ）を消して、Docker と WSL の仮想ディスクを縮小します。クリックする前に空きがいくつになるか分かり、自動で作り直されるキャッシュは毎週自動で空にできます。</p></div>
+        <div class="card"><div class="ic">🤖</div><h3 data-t="f16.h">AI エージェント向け</h3><p data-t="f16.p">rigsweep --disk-report --json と --disk-clean --safe --dry-run は管理者権限なしで動き、rigsweep --mcp は MCP サーバーです。Claude Code、Cursor、Codex が空き容量を確認し、何が使っているかを見て、自動で作り直されるキャッシュを空にできます。</p></div>
         <div class="card"><div class="ic">🖥️</div><h3 data-t="f11.h">ハードウェア</h3><p data-t="f11.p">ディスクの健康状態、速度テスト、CPU・GPU・RAM・バッテリーの詳細を、4 つの別ツールではなく 1 つのタブで確認できます。ドライバーのインストールは不要です。</p></div>
         <div class="card"><div class="ic">🎮</div><h3 data-t="f12.h">GPU と AI</h3><p data-t="f12.p">各アプリがグラフィックス カードと NPU で何をしているかを、タスク マネージャーと同じカウンターから表示。実行中の AI ランタイム (Ollama、LM Studio、llama.cpp、ComfyUI、PyTorch)、読み込まれたモデル、使用中のビデオ メモリもわかります。</p></div>
         <div class="card"><div class="ic">📡</div><h3 data-t="f13.h">ネットワーク</h3><p data-t="f13.p">アダプターごとの通信量、どのアプリがどの接続やリッスン ポートを使っているか、そしてポート 3000 やロックされたファイル・フォルダーを何が使用中かを調べる検索。</p></div>
+        <div class="card"><div class="ic">🔍</div><h3 data-t="f5.h">プロセスとスタートアップ</h3><p data-t="f5.p">プロセスごとの CPU、RAM、ディスク使用量、各 svchost.exe 内のサービス、そしてタスク マネージャーには表示されない自動起動のサービスとタスクを表示します。</p></div>
+        <div class="card"><div class="ic">🪟</div><h3 data-t="f17.h">コンソール ウィンドウ</h3><p data-t="f17.p">一瞬だけ開いて消えるコマンド プロンプトのウィンドウ。RigSweep は実行された正確なコマンド、起動元 (タスク スケジューラのタスク、サービス、アプリ)、中で動いたものを記録し、その背後のタスクをバックアップ付きでオフにできます。</p></div>
         <div class="card"><div class="ic">🔎</div><h3 data-t="f14.h">検索</h3><p data-t="f14.p">ドライブごとに何が容量を使っているかをフォルダー単位で確認し、パッケージキャッシュを C: から別のドライブや Dev Drive へ移し、アンインストーラーのないプログラム、ダウンロード内の古い大きなファイル、署名のないスタートアッププログラムを、Microsoft Defender のスキャン付きで確認できます。</p></div>
+        <div class="card"><div class="ic">📊</div><h3 data-t="f2.h">ブースト レポート</h3><p data-t="f2.p">見せかけのパーセンテージではなく、実際の前後の測定値を示します。Markdown でコピーして結果を共有できます。</p></div>
+        <div class="card"><div class="ic">⚙️</div><h3 data-t="f4.h">元に戻せる最適化</h3><p data-t="f4.p">テレメトリ、Xbox、インデクサー、バックグラウンド アプリ、Edge の再インストール防止などを、リスク レベル付きで最適化します。元の値はバックアップされ、ワンクリックで元に戻せます。</p></div>
+        <div class="card"><div class="ic">🧽</div><h3 data-t="f9.h">ブラウザー クリーンアップ</h3><p data-t="f9.p">Chrome、Edge、Brave、Vivaldi、Opera、Firefox のキャッシュを空にします。サインイン情報、Cookie、パスワード、履歴には一切触れません。</p></div>
+        <div class="card"><div class="ic">🌡️</div><h3 data-t="f7.h">温度</h3><p data-t="f7.p">CPU と GPU の温度を 5 分間の推移とともに表示し、PC が高温のままのときは警告します。ドライバーも管理者権限も不要です。</p></div>
+        <div class="card"><div class="ic">🌐</div><h3 data-t="f3.h">Chrome タブ ヘルパー</h3><p data-t="f3.p">アイドル状態のタブのスリープ、重複タブや localhost:* などのパターンに一致するタブを閉じる小さな拡張機能です。ネットワーク アクセスはありません。</p></div>
         <div class="card"><div class="ic">🎛️</div><h3 data-t="f15.h">シンプルとプロ</h3><p data-t="f15.p">シンプルではダッシュボードとクリーンアップをわかりやすい言葉で表示。プロではプロセス、ネットワーク、GPU エンジン、生の数値が加わります。不要なモニターをオフにすれば CPU を使いません。</p></div>
-        <div class="card wide"><div class="ic">🪟</div><h3 data-t="f17.h">コンソール ウィンドウ</h3><p data-t="f17.p">一瞬だけ開いて消えるコマンド プロンプトのウィンドウ。RigSweep は実行された正確なコマンド、起動元 (タスク スケジューラのタスク、サービス、アプリ)、中で動いたものを記録し、その背後のタスクをバックアップ付きでオフにできます。</p></div>
-        <div class="card wide"><div class="ic">🤖</div><h3 data-t="f16.h">AI エージェント向け</h3><p data-t="f16.p">rigsweep --disk-report --json と --disk-clean --safe --dry-run は管理者権限なしで動き、rigsweep --mcp は MCP サーバーです。Claude Code、Cursor、Codex が空き容量を確認し、何が使っているかを見て、自動で作り直されるキャッシュを空にできます。</p></div>
+        <div class="card"><div class="ic">🔄</div><h3 data-t="f8.h">更新は自分で選択</h3><p data-t="f8.p">既定ではオフです。好きなときに確認するか、1 日 1 回の自動確認をオンにできます。更新プログラムはクリックしたときだけ、署名されている場合に限りインストールされます。</p></div>
+        <div class="card"><div class="ic">🌍</div><h3 data-t="f6.h">11 言語対応</h3><p data-t="f6.p">アプリ、インストーラー、Chrome 拡張機能は English、Deutsch、Español、Français、Italiano、Português、Русский、日本語、한국어、简体中文、العربية に対応し、各言語の Windows の公式用語を使っています。</p></div>
       </div>
     </section>
 
@@ -485,18 +490,18 @@
     </footer>
   </main>
 
-  <script src="/icons.js?v=27f6c102" defer></script>
-  <script src="/locales/en.js?v=7d1477d2"></script>
-  <script src="/locales/de.js?v=052042f1"></script>
-  <script src="/locales/es.js?v=e45e9209"></script>
-  <script src="/locales/fr.js?v=bdd5424d"></script>
-  <script src="/locales/it.js?v=1812906a"></script>
-  <script src="/locales/pt-BR.js?v=6fa827e6"></script>
-  <script src="/locales/ru.js?v=57420723"></script>
-  <script src="/locales/ja.js?v=0add4e94"></script>
-  <script src="/locales/ko.js?v=21618cb5"></script>
-  <script src="/locales/zh-CN.js?v=077815bb"></script>
-  <script src="/locales/ar.js?v=fc2f03df"></script>
+  <script src="/icons.js?v=ec138590" defer></script>
+  <script src="/locales/en.js?v=f1729045"></script>
+  <script src="/locales/de.js?v=9c784f8d"></script>
+  <script src="/locales/es.js?v=a679c5b5"></script>
+  <script src="/locales/fr.js?v=86890dbf"></script>
+  <script src="/locales/it.js?v=96821498"></script>
+  <script src="/locales/pt-BR.js?v=4a64fca4"></script>
+  <script src="/locales/ru.js?v=7bbdce1d"></script>
+  <script src="/locales/ja.js?v=c323ed77"></script>
+  <script src="/locales/ko.js?v=51f743be"></script>
+  <script src="/locales/zh-CN.js?v=2386cb14"></script>
+  <script src="/locales/ar.js?v=7a5d07e4"></script>
   <script>
     const LANGS = { "en": "English", "de": "Deutsch", "es": "Español", "fr": "Français", "it": "Italiano", "pt-BR": "Português (Brasil)", "ru": "Русский", "ja": "日本語", "ko": "한국어", "zh-CN": "简体中文", "ar": "العربية" };
     // the Dashboard shot is a real capture (en/es/fr); the Dev Cleanup shot exists in every language

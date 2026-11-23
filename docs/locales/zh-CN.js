@@ -21,7 +21,7 @@ T["zh-CN"] = {
     "story.p2b": "然后我看了看磁盘。我当时在同时开发三个 Rust 应用：RigSweep 本身、<a href=\"https://github.com/yobotn/keeprun\">KeepRun</a>（把 Node、.NET 和 Python 应用作为 Windows 服务持续运行）和 <a href=\"https://github.com/yobotn/focuside\">Focuside</a>（一款专注的 AI 编程智能体 IDE）。每个项目的 <code>target</code> 文件夹都涨到了约 <strong>40 GB</strong>，加起来 <strong>约 120 GB</strong>，全是 Cargo 从不自动清理的构建产物。<strong>开发磁盘</strong>标签页一次扫描就把这三个都找了出来。",
     "story.p2c": "这些都不是病毒，也不是垃圾，而是用 AI 智能体干活时正常留下的残留，再加上开发机根本用不着的 Windows 后台组件。现有的“电脑加速”软件要么做些吓人又不可撤消的操作，要么对开发工作流一无所知，所以我做了一个自己想要的工具。",
     "story.p3": "<strong>RigSweep 让你看清到底是什么在占用电脑，清理闲置的进程，并且每项更改都可以撤消。</strong>",
-    "stat.chrome": "🌐 Chrome（37 个进程）", "stat.node": "⬢ Node + Claude（14 个进程）", "stat.services": "🧩 正在运行的 Windows 服务", "stat.rust": "🦀 Rust target 文件夹（3 个项目）",
+    "stat.chrome": "🌐 Chrome（37 个进程）", "stat.node": "⬢ Node + Claude（14 个进程）", "stat.services": "🧩 正在运行的 Windows 服务", "stat.rust": "💾 Rust target 文件夹（3 个项目）",
     "stat.cap": "在作者的 32 GB 笔记本电脑上于工作日中途测得。",
     "feat.eyebrow": "功能", "feat.h": "✨ 它能做什么", "feat.lead": "专为整天和终端、AI 智能体打交道的开发者打造，而不是那些“电脑加速”的花招。一个应用即可替代任务管理器、CPU-Z 这类硬件信息工具和清理软件。",
     "f1.h": "开发清理", "f1.p": "找出 Node、Python、Java、.NET 等技术栈中孤立和空闲的开发服务器、构建守护进程和智能体 CLI，并显示各自的进程树、项目、内存和端口。",

@@ -227,6 +227,9 @@
     .card h3 { margin: var(--s1) 0 0; font-size: 18px; }
     .card p { margin: 0; color: var(--muted); font-size: 15px; }
     .card.wide { grid-column: 1 / -1; }
+    /* feature cards: balanced columns, so cards of any length (and any language) leave no gaps */
+    .grid.feats { display: block; columns: 3; column-gap: var(--s2); }
+    .grid.feats .card { break-inside: avoid; margin-bottom: var(--s2); }
 
     /* feature rows: text + framed screenshot, same proportions every time */
     .row { display: grid; grid-template-columns: 5fr 7fr; gap: var(--s4); align-items: center; }
@@ -271,6 +274,7 @@
 
     @media (max-width: 900px) {
       .grid { grid-template-columns: repeat(2, 1fr); }
+      .grid.feats { columns: 2; }
       .story, .row, .row.flip { grid-template-columns: 1fr; gap: var(--s3); }
       .row.flip .copy { order: 0; }
     }
@@ -278,6 +282,7 @@
       :root { --s5: 56px; --s4: 32px; }
       .wrap { padding: 0 var(--s2); }
       .grid { grid-template-columns: 1fr; }
+      .grid.feats { columns: 1; }
       .links a.hide-sm { display: none; }
       .links { gap: 10px; }
       .lang { max-width: 104px; }
@@ -346,9 +351,9 @@
       <h2 data-t="eco.h">不只是 Node</h2>
       <p class="lead" data-t="eco.p">开发清理会在你实际使用的各种技术栈中找出遗留的开发服务器、构建守护进程和智能体会话，还有悄悄占用数 GB 内存的 WSL 2 / Docker 虚拟机。</p>
       <div class="chips">
-        <span class="chip">⬢ Node · Bun · Deno</span><span class="chip">🐍 Python</span><span class="chip">☕ Java · Gradle · Maven</span>
-        <span class="chip">🟣 .NET</span><span class="chip">💎 Ruby</span><span class="chip">🐘 PHP</span><span class="chip">🦀 Rust</span>
-        <span class="chip">🐹 Go</span><span class="chip">🐧 WSL 2 · Docker</span><span class="chip">🤖 Claude Code · Codex · Gemini CLI · Aider</span>
+        <span class="chip">Node · Bun · Deno</span><span class="chip">Python</span><span class="chip">Java · Gradle · Maven</span>
+        <span class="chip">.NET</span><span class="chip">Ruby</span><span class="chip">PHP</span><span class="chip">Rust</span>
+        <span class="chip">Go</span><span class="chip">WSL 2 · Docker</span><span class="chip">Claude Code · Codex · Gemini CLI · Aider</span>
       </div>
     </section>
 
@@ -367,7 +372,7 @@
           <div class="stat"><span data-t="stat.chrome">🌐 Chrome（37 个进程）</span><b>6.5 GB</b></div>
           <div class="stat"><span data-t="stat.node">⬢ Node + Claude（14 个进程）</span><b>2.5 GB</b></div>
           <div class="stat"><span data-t="stat.services">🧩 正在运行的 Windows 服务</span><b>~150</b></div>
-          <div class="stat"><span data-t="stat.rust">🦀 Rust target 文件夹（3 个项目）</span><b>~120 GB</b></div>
+          <div class="stat"><span data-t="stat.rust">💾 Rust target 文件夹（3 个项目）</span><b>~120 GB</b></div>
           <div class="cap" data-t="stat.cap">在作者的 32 GB 笔记本电脑上于工作日中途测得。</div>
         </div>
       </div>
@@ -377,24 +382,24 @@
       <span class="eyebrow" data-t="feat.eyebrow">功能</span>
       <h2 data-t="feat.h">✨ 它能做什么</h2>
       <p class="lead" data-t="feat.lead">专为整天和终端、AI 智能体打交道的开发者打造，而不是那些“电脑加速”的花招。一个应用即可替代任务管理器、CPU-Z 这类硬件信息工具和清理软件。</p>
-      <div class="grid">
+      <div class="grid feats">
         <div class="card"><div class="ic">🧹</div><h3 data-t="f1.h">开发清理</h3><p data-t="f1.p">找出 Node、Python、Java、.NET 等技术栈中孤立和空闲的开发服务器、构建守护进程和智能体 CLI，并显示各自的进程树、项目、内存和端口。</p></div>
-        <div class="card"><div class="ic">📊</div><h3 data-t="f2.h">提速报告</h3><p data-t="f2.p">真实的前后对比测量值，而不是虚假的百分比。你可以将结果复制为 Markdown 并分享出去。</p></div>
-        <div class="card"><div class="ic">🌐</div><h3 data-t="f3.h">Chrome 标签页助手</h3><p data-t="f3.p">一个小巧的扩展程序，可以让空闲标签页休眠、关闭重复的标签页，以及按 localhost:* 这样的模式关闭标签页。它没有网络访问权限。</p></div>
-        <div class="card"><div class="ic">⚙️</div><h3 data-t="f4.h">可撤消的优化</h3><p data-t="f4.p">遥测、Xbox、索引器、后台应用、阻止 Edge 重新安装等，每项都标有风险等级。原始值会先备份，单击一下即可还原。</p></div>
-        <div class="card"><div class="ic">🔍</div><h3 data-t="f5.h">进程与启动项</h3><p data-t="f5.p">显示每个进程的 CPU、内存和磁盘占用、每个 svchost.exe 中的服务，以及任务管理器从不显示的自动启动服务和计划任务。</p></div>
-        <div class="card"><div class="ic">🌍</div><h3 data-t="f6.h">11 种语言</h3><p data-t="f6.p">应用、安装程序和 Chrome 扩展程序均提供 English、Deutsch、Español、Français、Italiano、Português、Русский、日本語、한국어、简体中文 和 العربية版本，并使用各语言的 Windows 官方术语。</p></div>
-        <div class="card"><div class="ic">🌡️</div><h3 data-t="f7.h">温度</h3><p data-t="f7.p">显示 CPU 和 GPU 温度及最近 5 分钟的趋势，电脑持续过热时会发出警告。无需安装驱动程序，也无需管理员权限。</p></div>
-        <div class="card"><div class="ic">🔄</div><h3 data-t="f8.h">更新由你决定</h3><p data-t="f8.p">默认关闭。你可以随时手动检查，也可以开启每日自动检查。只有在你单击后才会安装更新，并且更新必须经过签名。</p></div>
-        <div class="card"><div class="ic">🧽</div><h3 data-t="f9.h">浏览器清理</h3><p data-t="f9.p">清空 Chrome、Edge、Brave、Vivaldi、Opera 和 Firefox 的缓存。登录状态、Cookie、密码和历史记录绝不会受影响。</p></div>
         <div class="card"><div class="ic">💾</div><h3 data-t="f10.h">开发磁盘</h3><p data-t="f10.p">删除你不再碰的项目里的 node_modules、.next、target 和 .venv，清理包缓存、GPU 着色器缓存和 AI 工具缓存，移除智能体留下的 git worktree，清掉 Windows 残留（旧临时文件、更新下载、崩溃转储），并压缩 Docker 和 WSL 虚拟磁盘。点击前就能看到清理后有多少可用空间，还可以每周自动清空会自动重建的缓存。</p></div>
+        <div class="card"><div class="ic">🤖</div><h3 data-t="f16.h">给 AI 智能体用</h3><p data-t="f16.p">rigsweep --disk-report --json 和 --disk-clean --safe --dry-run 无需管理员权限，rigsweep --mcp 是一个 MCP 服务器：Claude Code、Cursor 或 Codex 可以查看可用空间、看是什么占了它，并清空会自动重建的缓存。</p></div>
         <div class="card"><div class="ic">🖥️</div><h3 data-t="f11.h">硬件</h3><p data-t="f11.p">硬盘健康、测速，以及 CPU、显卡、内存和电池信息，一个页面全搞定，不用再开四个工具。无需安装驱动。</p></div>
         <div class="card"><div class="ic">🎮</div><h3 data-t="f12.h">GPU 与 AI</h3><p data-t="f12.p">用任务管理器同款计数器显示每个应用在显卡和 NPU 上做什么，还能看到正在运行的 AI 运行时（Ollama、LM Studio、llama.cpp、ComfyUI、PyTorch）、已加载的模型及其占用的显存。</p></div>
         <div class="card"><div class="ic">📡</div><h3 data-t="f13.h">网络</h3><p data-t="f13.p">按网卡显示流量，哪个应用占用了哪个连接或监听端口，还能搜索是谁在用 3000 端口或锁住了某个文件或文件夹。</p></div>
+        <div class="card"><div class="ic">🔍</div><h3 data-t="f5.h">进程与启动项</h3><p data-t="f5.p">显示每个进程的 CPU、内存和磁盘占用、每个 svchost.exe 中的服务，以及任务管理器从不显示的自动启动服务和计划任务。</p></div>
+        <div class="card"><div class="ic">🪟</div><h3 data-t="f17.h">控制台弹窗</h3><p data-t="f17.p">那个一闪而过的命令提示符窗口：RigSweep 会记录它运行的确切命令、是谁启动了它（计划任务、服务还是应用）以及里面运行了什么，还能关闭背后的计划任务，并留有备份。</p></div>
         <div class="card"><div class="ic">🔎</div><h3 data-t="f14.h">查找</h3><p data-t="f14.p">逐个文件夹查看每个驱动器上什么占了空间，把包缓存从 C: 移到其他驱动器或 Dev Drive，并检查没有卸载程序的软件、下载文件夹里又大又旧的文件和未签名的启动程序，一键用 Microsoft Defender 扫描。</p></div>
+        <div class="card"><div class="ic">📊</div><h3 data-t="f2.h">提速报告</h3><p data-t="f2.p">真实的前后对比测量值，而不是虚假的百分比。你可以将结果复制为 Markdown 并分享出去。</p></div>
+        <div class="card"><div class="ic">⚙️</div><h3 data-t="f4.h">可撤消的优化</h3><p data-t="f4.p">遥测、Xbox、索引器、后台应用、阻止 Edge 重新安装等，每项都标有风险等级。原始值会先备份，单击一下即可还原。</p></div>
+        <div class="card"><div class="ic">🧽</div><h3 data-t="f9.h">浏览器清理</h3><p data-t="f9.p">清空 Chrome、Edge、Brave、Vivaldi、Opera 和 Firefox 的缓存。登录状态、Cookie、密码和历史记录绝不会受影响。</p></div>
+        <div class="card"><div class="ic">🌡️</div><h3 data-t="f7.h">温度</h3><p data-t="f7.p">显示 CPU 和 GPU 温度及最近 5 分钟的趋势，电脑持续过热时会发出警告。无需安装驱动程序，也无需管理员权限。</p></div>
+        <div class="card"><div class="ic">🌐</div><h3 data-t="f3.h">Chrome 标签页助手</h3><p data-t="f3.p">一个小巧的扩展程序，可以让空闲标签页休眠、关闭重复的标签页，以及按 localhost:* 这样的模式关闭标签页。它没有网络访问权限。</p></div>
         <div class="card"><div class="ic">🎛️</div><h3 data-t="f15.h">简单或专业</h3><p data-t="f15.p">简单模式用平实的话显示仪表板和清理。专业模式增加进程、网络、GPU 引擎和原始数据。关闭不需要的监视器后就不占 CPU。</p></div>
-        <div class="card wide"><div class="ic">🪟</div><h3 data-t="f17.h">控制台弹窗</h3><p data-t="f17.p">那个一闪而过的命令提示符窗口：RigSweep 会记录它运行的确切命令、是谁启动了它（计划任务、服务还是应用）以及里面运行了什么，还能关闭背后的计划任务，并留有备份。</p></div>
-        <div class="card wide"><div class="ic">🤖</div><h3 data-t="f16.h">给 AI 智能体用</h3><p data-t="f16.p">rigsweep --disk-report --json 和 --disk-clean --safe --dry-run 无需管理员权限，rigsweep --mcp 是一个 MCP 服务器：Claude Code、Cursor 或 Codex 可以查看可用空间、看是什么占了它，并清空会自动重建的缓存。</p></div>
+        <div class="card"><div class="ic">🔄</div><h3 data-t="f8.h">更新由你决定</h3><p data-t="f8.p">默认关闭。你可以随时手动检查，也可以开启每日自动检查。只有在你单击后才会安装更新，并且更新必须经过签名。</p></div>
+        <div class="card"><div class="ic">🌍</div><h3 data-t="f6.h">11 种语言</h3><p data-t="f6.p">应用、安装程序和 Chrome 扩展程序均提供 English、Deutsch、Español、Français、Italiano、Português、Русский、日本語、한국어、简体中文 和 العربية版本，并使用各语言的 Windows 官方术语。</p></div>
       </div>
     </section>
 
@@ -485,18 +490,18 @@
     </footer>
   </main>
 
-  <script src="/icons.js?v=27f6c102" defer></script>
-  <script src="/locales/en.js?v=7d1477d2"></script>
-  <script src="/locales/de.js?v=052042f1"></script>
-  <script src="/locales/es.js?v=e45e9209"></script>
-  <script src="/locales/fr.js?v=bdd5424d"></script>
-  <script src="/locales/it.js?v=1812906a"></script>
-  <script src="/locales/pt-BR.js?v=6fa827e6"></script>
-  <script src="/locales/ru.js?v=57420723"></script>
-  <script src="/locales/ja.js?v=0add4e94"></script>
-  <script src="/locales/ko.js?v=21618cb5"></script>
-  <script src="/locales/zh-CN.js?v=077815bb"></script>
-  <script src="/locales/ar.js?v=fc2f03df"></script>
+  <script src="/icons.js?v=ec138590" defer></script>
+  <script src="/locales/en.js?v=f1729045"></script>
+  <script src="/locales/de.js?v=9c784f8d"></script>
+  <script src="/locales/es.js?v=a679c5b5"></script>
+  <script src="/locales/fr.js?v=86890dbf"></script>
+  <script src="/locales/it.js?v=96821498"></script>
+  <script src="/locales/pt-BR.js?v=4a64fca4"></script>
+  <script src="/locales/ru.js?v=7bbdce1d"></script>
+  <script src="/locales/ja.js?v=c323ed77"></script>
+  <script src="/locales/ko.js?v=51f743be"></script>
+  <script src="/locales/zh-CN.js?v=2386cb14"></script>
+  <script src="/locales/ar.js?v=7a5d07e4"></script>
   <script>
     const LANGS = { "en": "English", "de": "Deutsch", "es": "Español", "fr": "Français", "it": "Italiano", "pt-BR": "Português (Brasil)", "ru": "Русский", "ja": "日本語", "ko": "한국어", "zh-CN": "简体中文", "ar": "العربية" };
     // the Dashboard shot is a real capture (en/es/fr); the Dev Cleanup shot exists in every language

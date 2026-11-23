@@ -227,6 +227,9 @@
     .card h3 { margin: var(--s1) 0 0; font-size: 18px; }
     .card p { margin: 0; color: var(--muted); font-size: 15px; }
     .card.wide { grid-column: 1 / -1; }
+    /* feature cards: balanced columns, so cards of any length (and any language) leave no gaps */
+    .grid.feats { display: block; columns: 3; column-gap: var(--s2); }
+    .grid.feats .card { break-inside: avoid; margin-bottom: var(--s2); }
 
     /* feature rows: text + framed screenshot, same proportions every time */
     .row { display: grid; grid-template-columns: 5fr 7fr; gap: var(--s4); align-items: center; }
@@ -271,6 +274,7 @@
 
     @media (max-width: 900px) {
       .grid { grid-template-columns: repeat(2, 1fr); }
+      .grid.feats { columns: 2; }
       .story, .row, .row.flip { grid-template-columns: 1fr; gap: var(--s3); }
       .row.flip .copy { order: 0; }
     }
@@ -278,6 +282,7 @@
       :root { --s5: 56px; --s4: 32px; }
       .wrap { padding: 0 var(--s2); }
       .grid { grid-template-columns: 1fr; }
+      .grid.feats { columns: 1; }
       .links a.hide-sm { display: none; }
       .links { gap: 10px; }
       .lang { max-width: 104px; }
@@ -346,9 +351,9 @@
       <h2 data-t="eco.h">Не только Node</h2>
       <p class="lead" data-t="eco.p">«Очистка dev» находит оставшиеся dev-серверы, демоны сборки и сеансы агентов во всех стеках, с которыми вы реально работаете, а также виртуальную машину WSL 2 / Docker, которая незаметно занимает гигабайты.</p>
       <div class="chips">
-        <span class="chip">⬢ Node · Bun · Deno</span><span class="chip">🐍 Python</span><span class="chip">☕ Java · Gradle · Maven</span>
-        <span class="chip">🟣 .NET</span><span class="chip">💎 Ruby</span><span class="chip">🐘 PHP</span><span class="chip">🦀 Rust</span>
-        <span class="chip">🐹 Go</span><span class="chip">🐧 WSL 2 · Docker</span><span class="chip">🤖 Claude Code · Codex · Gemini CLI · Aider</span>
+        <span class="chip">Node · Bun · Deno</span><span class="chip">Python</span><span class="chip">Java · Gradle · Maven</span>
+        <span class="chip">.NET</span><span class="chip">Ruby</span><span class="chip">PHP</span><span class="chip">Rust</span>
+        <span class="chip">Go</span><span class="chip">WSL 2 · Docker</span><span class="chip">Claude Code · Codex · Gemini CLI · Aider</span>
       </div>
     </section>
 
@@ -367,7 +372,7 @@
           <div class="stat"><span data-t="stat.chrome">🌐 Chrome (37 процессов)</span><b>6.5 GB</b></div>
           <div class="stat"><span data-t="stat.node">⬢ Node + Claude (14 процессов)</span><b>2.5 GB</b></div>
           <div class="stat"><span data-t="stat.services">🧩 Запущенные службы Windows</span><b>~150</b></div>
-          <div class="stat"><span data-t="stat.rust">🦀 Папки target в Rust (3 проекта)</span><b>~120 GB</b></div>
+          <div class="stat"><span data-t="stat.rust">💾 Папки target в Rust (3 проекта)</span><b>~120 GB</b></div>
           <div class="cap" data-t="stat.cap">Замерено на ноутбуке автора с 32 ГБ ОЗУ в разгар рабочего дня.</div>
         </div>
       </div>
@@ -377,24 +382,24 @@
       <span class="eyebrow" data-t="feat.eyebrow">Возможности</span>
       <h2 data-t="feat.h">✨ Что умеет</h2>
       <p class="lead" data-t="feat.lead">Для разработчиков, которые живут в терминалах и ИИ-агентах, а не для фокусов «ускорителей ПК». Одно приложение вместо диспетчера задач, утилиты вроде CPU-Z и программы для очистки.</p>
-      <div class="grid">
+      <div class="grid feats">
         <div class="card"><div class="ic">🧹</div><h3 data-t="f1.h">Очистка dev</h3><p data-t="f1.p">Брошенные и простаивающие dev-серверы, демоны сборки и CLI агентов для Node, Python, Java, .NET и не только — с деревом процессов, проектом, ОЗУ и портами для каждого.</p></div>
-        <div class="card"><div class="ic">📊</div><h3 data-t="f2.h">Отчет об ускорении</h3><p data-t="f2.p">Реальные замеры «до» и «после» вместо выдуманных процентов. Их можно скопировать в Markdown и поделиться результатом.</p></div>
-        <div class="card"><div class="ic">🌐</div><h3 data-t="f3.h">Помощник вкладок Chrome</h3><p data-t="f3.p">Крошечное расширение: усыпляет неактивные вкладки, закрывает дубликаты и вкладки по шаблону, например localhost:*. Доступа к сети у него нет.</p></div>
-        <div class="card"><div class="ic">⚙️</div><h3 data-t="f4.h">Обратимые настройки ОС</h3><p data-t="f4.p">Телеметрия, Xbox, индексатор, фоновые приложения, запрет на возврат Edge и многое другое — у каждой настройки свой уровень риска. Исходные значения сохраняются и восстанавливаются одним щелчком.</p></div>
-        <div class="card"><div class="ic">🔍</div><h3 data-t="f5.h">Процессы и автозагрузка</h3><p data-t="f5.p">ЦП, ОЗУ и диск по каждому процессу, службы внутри каждого svchost.exe, а также службы и задания с автозапуском, которых Диспетчер задач никогда не показывает.</p></div>
-        <div class="card"><div class="ic">🌍</div><h3 data-t="f6.h">11 языков</h3><p data-t="f6.p">English, Deutsch, Español, Français, Italiano, Português, Русский, 日本語, 한국어, 简体中文 и العربية — в приложении, установщике и расширении Chrome, с официальной терминологией Windows для каждого языка.</p></div>
-        <div class="card"><div class="ic">🌡️</div><h3 data-t="f7.h">Температура</h3><p data-t="f7.p">Температура ЦП и GPU с графиком за 5 минут и предупреждением, если ПК долго перегревается. Без драйверов и прав администратора.</p></div>
-        <div class="card"><div class="ic">🔄</div><h3 data-t="f8.h">Обновления — на ваш выбор</h3><p data-t="f8.p">По умолчанию выключены. Проверяйте, когда захотите, или включите ежедневную проверку. Обновления устанавливаются только по вашему щелчку и только с действительной подписью.</p></div>
-        <div class="card"><div class="ic">🧽</div><h3 data-t="f9.h">Очистка браузеров</h3><p data-t="f9.p">Очищает кеш Chrome, Edge, Brave, Vivaldi, Opera и Firefox. Входы в аккаунты, файлы cookie, пароли и журнал не затрагиваются.</p></div>
         <div class="card"><div class="ic">💾</div><h3 data-t="f10.h">Диск разработчика</h3><p data-t="f10.p">Удаляет node_modules, .next, target и .venv в заброшенных проектах, чистит кэши пакетов, шейдеров GPU и ИИ-инструментов, убирает git worktree, брошенные агентами, вычищает остатки Windows (старые временные файлы, загрузки обновлений, дампы сбоев) и сжимает виртуальные диски Docker и WSL. До нажатия видно, сколько места освободится, а кэши, которые восстанавливаются сами, можно очищать каждую неделю.</p></div>
+        <div class="card"><div class="ic">🤖</div><h3 data-t="f16.h">Для ИИ-агентов</h3><p data-t="f16.p">rigsweep --disk-report --json и --disk-clean --safe --dry-run работают без прав администратора, а rigsweep --mcp — это MCP-сервер: Claude Code, Cursor или Codex могут проверить свободное место, увидеть, что его занимает, и очистить кэши, которые восстанавливаются сами.</p></div>
         <div class="card"><div class="ic">🖥️</div><h3 data-t="f11.h">Железо</h3><p data-t="f11.p">Состояние дисков, тест скорости и сведения о процессоре, видеокарте, памяти и аккумуляторе на одной вкладке вместо четырёх отдельных утилит. Без установки драйверов.</p></div>
         <div class="card"><div class="ic">🎮</div><h3 data-t="f12.h">GPU и ИИ</h3><p data-t="f12.p">Что каждое приложение делает на видеокарте и NPU — по тем же счётчикам, что и диспетчер задач, а также запущенные среды ИИ (Ollama, LM Studio, llama.cpp, ComfyUI, PyTorch), загруженные модели и занятая ими видеопамять.</p></div>
         <div class="card"><div class="ic">📡</div><h3 data-t="f13.h">Сеть</h3><p data-t="f13.p">Трафик по адаптерам, какое приложение держит какое подключение или прослушиваемый порт, и поиск, который покажет, кто занял порт 3000 или заблокировал файл или папку.</p></div>
+        <div class="card"><div class="ic">🔍</div><h3 data-t="f5.h">Процессы и автозагрузка</h3><p data-t="f5.p">ЦП, ОЗУ и диск по каждому процессу, службы внутри каждого svchost.exe, а также службы и задания с автозапуском, которых Диспетчер задач никогда не показывает.</p></div>
+        <div class="card"><div class="ic">🪟</div><h3 data-t="f17.h">Окна консоли</h3><p data-t="f17.p">То самое окно командной строки, которое мигает и исчезает: RigSweep записывает точную команду, которую оно выполнило, что его запустило (задание планировщика, служба или приложение) и что выполнялось внутри, а ещё может отключить стоящее за ним задание, с резервной копией.</p></div>
         <div class="card"><div class="ic">🔎</div><h3 data-t="f14.h">Поиск</h3><p data-t="f14.p">Смотрите, что занимает место на каждом диске, папка за папкой, переносите кэши пакетов с C: на другой диск или Dev Drive и проверяйте программы без деинсталлятора, большие старые файлы в «Загрузках» и неподписанные программы автозапуска, с проверкой Microsoft Defender в один клик.</p></div>
+        <div class="card"><div class="ic">📊</div><h3 data-t="f2.h">Отчет об ускорении</h3><p data-t="f2.p">Реальные замеры «до» и «после» вместо выдуманных процентов. Их можно скопировать в Markdown и поделиться результатом.</p></div>
+        <div class="card"><div class="ic">⚙️</div><h3 data-t="f4.h">Обратимые настройки ОС</h3><p data-t="f4.p">Телеметрия, Xbox, индексатор, фоновые приложения, запрет на возврат Edge и многое другое — у каждой настройки свой уровень риска. Исходные значения сохраняются и восстанавливаются одним щелчком.</p></div>
+        <div class="card"><div class="ic">🧽</div><h3 data-t="f9.h">Очистка браузеров</h3><p data-t="f9.p">Очищает кеш Chrome, Edge, Brave, Vivaldi, Opera и Firefox. Входы в аккаунты, файлы cookie, пароли и журнал не затрагиваются.</p></div>
+        <div class="card"><div class="ic">🌡️</div><h3 data-t="f7.h">Температура</h3><p data-t="f7.p">Температура ЦП и GPU с графиком за 5 минут и предупреждением, если ПК долго перегревается. Без драйверов и прав администратора.</p></div>
+        <div class="card"><div class="ic">🌐</div><h3 data-t="f3.h">Помощник вкладок Chrome</h3><p data-t="f3.p">Крошечное расширение: усыпляет неактивные вкладки, закрывает дубликаты и вкладки по шаблону, например localhost:*. Доступа к сети у него нет.</p></div>
         <div class="card"><div class="ic">🎛️</div><h3 data-t="f15.h">Простой или Профи</h3><p data-t="f15.p">Простой режим показывает панель и очистку понятными словами. «Профи» добавляет процессы, сеть, движки GPU и сырые цифры. Отключите ненужные мониторы — тогда они не тратят ЦП.</p></div>
-        <div class="card wide"><div class="ic">🪟</div><h3 data-t="f17.h">Окна консоли</h3><p data-t="f17.p">То самое окно командной строки, которое мигает и исчезает: RigSweep записывает точную команду, которую оно выполнило, что его запустило (задание планировщика, служба или приложение) и что выполнялось внутри, а ещё может отключить стоящее за ним задание, с резервной копией.</p></div>
-        <div class="card wide"><div class="ic">🤖</div><h3 data-t="f16.h">Для ИИ-агентов</h3><p data-t="f16.p">rigsweep --disk-report --json и --disk-clean --safe --dry-run работают без прав администратора, а rigsweep --mcp — это MCP-сервер: Claude Code, Cursor или Codex могут проверить свободное место, увидеть, что его занимает, и очистить кэши, которые восстанавливаются сами.</p></div>
+        <div class="card"><div class="ic">🔄</div><h3 data-t="f8.h">Обновления — на ваш выбор</h3><p data-t="f8.p">По умолчанию выключены. Проверяйте, когда захотите, или включите ежедневную проверку. Обновления устанавливаются только по вашему щелчку и только с действительной подписью.</p></div>
+        <div class="card"><div class="ic">🌍</div><h3 data-t="f6.h">11 языков</h3><p data-t="f6.p">English, Deutsch, Español, Français, Italiano, Português, Русский, 日本語, 한국어, 简体中文 и العربية — в приложении, установщике и расширении Chrome, с официальной терминологией Windows для каждого языка.</p></div>
       </div>
     </section>
 
@@ -485,18 +490,18 @@
     </footer>
   </main>
 
-  <script src="/icons.js?v=27f6c102" defer></script>
-  <script src="/locales/en.js?v=7d1477d2"></script>
-  <script src="/locales/de.js?v=052042f1"></script>
-  <script src="/locales/es.js?v=e45e9209"></script>
-  <script src="/locales/fr.js?v=bdd5424d"></script>
-  <script src="/locales/it.js?v=1812906a"></script>
-  <script src="/locales/pt-BR.js?v=6fa827e6"></script>
-  <script src="/locales/ru.js?v=57420723"></script>
-  <script src="/locales/ja.js?v=0add4e94"></script>
-  <script src="/locales/ko.js?v=21618cb5"></script>
-  <script src="/locales/zh-CN.js?v=077815bb"></script>
-  <script src="/locales/ar.js?v=fc2f03df"></script>
+  <script src="/icons.js?v=ec138590" defer></script>
+  <script src="/locales/en.js?v=f1729045"></script>
+  <script src="/locales/de.js?v=9c784f8d"></script>
+  <script src="/locales/es.js?v=a679c5b5"></script>
+  <script src="/locales/fr.js?v=86890dbf"></script>
+  <script src="/locales/it.js?v=96821498"></script>
+  <script src="/locales/pt-BR.js?v=4a64fca4"></script>
+  <script src="/locales/ru.js?v=7bbdce1d"></script>
+  <script src="/locales/ja.js?v=c323ed77"></script>
+  <script src="/locales/ko.js?v=51f743be"></script>
+  <script src="/locales/zh-CN.js?v=2386cb14"></script>
+  <script src="/locales/ar.js?v=7a5d07e4"></script>
   <script>
     const LANGS = { "en": "English", "de": "Deutsch", "es": "Español", "fr": "Français", "it": "Italiano", "pt-BR": "Português (Brasil)", "ru": "Русский", "ja": "日本語", "ko": "한국어", "zh-CN": "简体中文", "ar": "العربية" };
     // the Dashboard shot is a real capture (en/es/fr); the Dev Cleanup shot exists in every language
