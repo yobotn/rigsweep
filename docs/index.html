@@ -359,7 +359,7 @@
           <h2 data-t="story.h">📖 Why it exists</h2>
           <p data-t="story.p1">In the AI era a dev laptop doesn't run one thing anymore. A normal day means several Claude Code sessions in different terminals, a dev server per project, build watchers, and a browser full of docs and previews.</p>
           <p data-t="story.p2">Every session spawns more processes, and many keep running after you close the terminal. Task Manager only shows a wall of node.exe, python.exe and chrome.exe, with no idea which session or project they belong to.</p>
-          <p data-t="story.p2b">Then the disk. I was building three Rust apps side by side, and each project's target folder had grown to about 40 GB: ~120 GB of build output that Cargo never cleans up on its own. The Dev Disk tab found all three in one scan.</p>
+          <p data-t-html="story.p2b">Then I looked at my disk. I was building three Rust apps side by side: RigSweep itself, <a href="https://github.com/yobotn/keeprun">KeepRun</a> (keeps Node, .NET and Python apps running as Windows services) and <a href="https://github.com/yobotn/focuside">Focuside</a> (a focused IDE for AI coding agents). Each project's <code>target</code> folder had grown to about <strong>40 GB</strong>, so <strong>~120 GB</strong> in total, all of it build output that Cargo never cleans up on its own. The <strong>Dev Disk</strong> tab found all three in a single scan.</p>
           <p data-t="story.p2c">None of it was a virus or junk. It was the normal leftovers of working with AI agents, plus Windows background stuff a dev box doesn't need. Existing “PC booster” apps either do scary irreversible things or know nothing about dev workflows, so I built the tool I wanted.</p>
           <p data-t-html="story.p3"><strong>RigSweep shows what's actually using your machine, sweeps what's stale, and keeps every change reversible.</strong></p>
         </div>
@@ -486,17 +486,17 @@
   </main>
 
   <script src="/icons.js?v=27f6c102" defer></script>
-  <script src="/locales/en.js?v=48eb0cc6"></script>
-  <script src="/locales/de.js?v=1c4acb65"></script>
-  <script src="/locales/es.js?v=a365a8ec"></script>
-  <script src="/locales/fr.js?v=58d2ce3a"></script>
-  <script src="/locales/it.js?v=9decc038"></script>
-  <script src="/locales/pt-BR.js?v=534b3e4f"></script>
-  <script src="/locales/ru.js?v=725b2733"></script>
-  <script src="/locales/ja.js?v=b32e31c8"></script>
-  <script src="/locales/ko.js?v=b802e21e"></script>
-  <script src="/locales/zh-CN.js?v=4816b518"></script>
-  <script src="/locales/ar.js?v=ba4d5d83"></script>
+  <script src="/locales/en.js?v=7d1477d2"></script>
+  <script src="/locales/de.js?v=052042f1"></script>
+  <script src="/locales/es.js?v=e45e9209"></script>
+  <script src="/locales/fr.js?v=bdd5424d"></script>
+  <script src="/locales/it.js?v=1812906a"></script>
+  <script src="/locales/pt-BR.js?v=6fa827e6"></script>
+  <script src="/locales/ru.js?v=57420723"></script>
+  <script src="/locales/ja.js?v=0add4e94"></script>
+  <script src="/locales/ko.js?v=21618cb5"></script>
+  <script src="/locales/zh-CN.js?v=077815bb"></script>
+  <script src="/locales/ar.js?v=fc2f03df"></script>
   <script>
     const LANGS = { "en": "English", "de": "Deutsch", "es": "Español", "fr": "Français", "it": "Italiano", "pt-BR": "Português (Brasil)", "ru": "Русский", "ja": "日本語", "ko": "한국어", "zh-CN": "简体中文", "ar": "العربية" };
     // the Dashboard shot is a real capture (en/es/fr); the Dev Cleanup shot exists in every language

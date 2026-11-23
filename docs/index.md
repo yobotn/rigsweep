@@ -13,7 +13,7 @@ In the AI era a dev laptop doesn't run one thing anymore. A normal day means sev
 
 Every session spawns more processes, and many keep running after you close the terminal. Task Manager only shows a wall of node.exe, python.exe and chrome.exe, with no idea which session or project they belong to.
 
-Then the disk. I was building three Rust apps side by side, and each project's target folder had grown to about 40 GB: ~120 GB of build output that Cargo never cleans up on its own. The Dev Disk tab found all three in one scan.
+Then I looked at my disk. I was building three Rust apps side by side: RigSweep itself, <a href="https://github.com/yobotn/keeprun">KeepRun</a> (keeps Node, .NET and Python apps running as Windows services) and <a href="https://github.com/yobotn/focuside">Focuside</a> (a focused IDE for AI coding agents). Each project's <code>target</code> folder had grown to about <strong>40 GB</strong>, so <strong>~120 GB</strong> in total, all of it build output that Cargo never cleans up on its own. The <strong>Dev Disk</strong> tab found all three in a single scan.
 
 None of it was a virus or junk. It was the normal leftovers of working with AI agents, plus Windows background stuff a dev box doesn't need. Existing “PC booster” apps either do scary irreversible things or know nothing about dev workflows, so I built the tool I wanted.
 

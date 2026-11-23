@@ -2,6 +2,8 @@
 
 > Why Claude Code sessions, MCP servers and dev servers keep running on Windows after you close the terminal, how to find the leftovers with Task Manager and PowerShell, and how to end them safely.
 
+19 November 2026
+
 **On Windows, a process keeps running when the process that started it exits.** So when you close a terminal, or an agent CLI like Claude Code exits, the MCP servers, dev servers and test runners it started can stay alive, holding RAM, CPU and ports. You can find them with Task Manager or PowerShell and end them with `taskkill /PID <pid> /T /F` after checking what they are.
 
 ## Why it happens
@@ -73,6 +75,8 @@ taskkill /PID 12345 /T /F
 ## How RigSweep does it
 
 [RigSweep](https://rigsweep.com/) is a free, open-source Windows app that does the steps above for you. Its Dev Cleanup tab groups each dev server, build daemon, MCP server and agent CLI with its whole process tree, project folder, age, RAM and listening ports.
+
+![RigSweep Dev Cleanup: leftover dev servers, MCP servers and agent CLIs grouped by project, with age, RAM and ports](https://rigsweep.com/screenshots/cleanup.png)
 
 | Case | What RigSweep does |
 | --- | --- |

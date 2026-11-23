@@ -16,6 +16,7 @@
   <meta name="theme-color" content="#0b0e13" />
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=527e09ea" />
   <link rel="alternate" type="text/plain" href="https://rigsweep.com/llms.txt" title="llms.txt" />
+  <link rel="alternate" type="application/rss+xml" href="https://rigsweep.com/guides/feed.xml" title="RigSweep guides" />
   <style>
     :root { --bg: #0b0e13; --panel: #141922; --border: #262e3f; --text: #e8ebf1; --muted: #a3abbd; --accent: #22c55e; color-scheme: dark; }
     * { box-sizing: border-box; }
@@ -45,6 +46,10 @@
     tbody th { color: var(--text); font-weight: 600; }
     td { color: var(--muted); }
     .note { font-size: 14px; }
+    figure { margin: 20px 0; }
+    figure img { display: block; width: 100%; height: auto; border: 1px solid var(--border); border-radius: 8px; }
+    figcaption { font-size: 14px; color: var(--muted); margin-top: 8px; }
+    .date { font-size: 14px; color: var(--muted); margin: -8px 0 16px; }
     footer { margin-top: 48px; padding: 24px 16px 40px; border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; }
   </style>
   <script type="application/ld+json">
@@ -149,6 +154,7 @@
   <main class="wrap">
     <div class="crumbs"><a href="/">Home</a> › <a href="/guides/">Guides</a> › Port already in use</div>
     <h1>Port 3000 is already in use on Windows</h1>
+    <p class="date"><time datetime="2026-11-19">19 November 2026</time></p>
     <p><strong>"Port 3000 is already in use" (<code>EADDRINUSE</code>) means another process is listening on that port.</strong> On a dev machine it is usually a dev server that kept running after its terminal closed. Find the owner with <code>netstat -ano | findstr :3000</code>, check it with <code>tasklist</code>, and end it if it is a leftover.</p>
 
     <h2>1. Find the process that owns the port</h2>
@@ -187,6 +193,7 @@ Get-CimInstance Win32_Process -Filter "ProcessId = 12345" | Select-Object Name, 
 
     <h2>How RigSweep helps</h2>
     <p><a href="/">RigSweep</a>'s Dev Cleanup tab lists every dev server, build daemon, MCP server and agent CLI with its project folder, age, RAM and listening ports, so the process holding <code>localhost:3000</code> is visible by name and project. A dev server whose terminal is gone is pre-selected, even when it still holds a port. Processes owned by your editor are locked, the WSL 2 / Docker VM is never pre-selected, and nothing is ended until you click. RigSweep doesn't change reserved port ranges.</p>
+    <figure><img src="/screenshots/network.png" alt="RigSweep Network tab: Who is using it? finds the process that holds a port, next to a list of listening ports per process" width="1240" height="820" loading="lazy" /><figcaption>This PC → Network: type a port and see which process holds it.</figcaption></figure>
     <p>See also: <a href="/guides/claude-code-leftover-processes-windows/">Claude Code and MCP servers left running on Windows</a>. <a href="https://github.com/yobotn/rigsweep/releases/latest">Download RigSweep</a> (free, MIT).</p>
     <h2 id="faq">FAQ</h2>
     <h3>How do I find what is using port 3000 on Windows?</h3>

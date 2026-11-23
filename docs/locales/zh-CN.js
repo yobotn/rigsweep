@@ -18,7 +18,7 @@ T["zh-CN"] = {
     "story.eyebrow": "缘起", "story.h": "📖 为什么要做 RigSweep",
     "story.p1": "在 AI 时代，开发用的笔记本电脑早已不只运行一个程序。平常的一天里，不同终端中开着好几个 Claude Code 会话，每个项目一个开发服务器，还有构建监视程序，以及开满文档和预览页面的浏览器。",
     "story.p2": "每个会话都会启动更多进程，其中很多在你关闭终端后仍在运行。任务管理器只显示一长串 node.exe、python.exe 和 chrome.exe，看不出它们属于哪个会话或项目。",
-    "story.p2b": "然后是磁盘。我当时同时在开发三个 Rust 应用，每个项目的 target 文件夹都涨到了约 40 GB，加起来约 120 GB，全是 Cargo 从不自动清理的构建产物。“开发磁盘”标签页一次扫描就把三个都找了出来。",
+    "story.p2b": "然后我看了看磁盘。我当时在同时开发三个 Rust 应用：RigSweep 本身、<a href=\"https://github.com/yobotn/keeprun\">KeepRun</a>（把 Node、.NET 和 Python 应用作为 Windows 服务持续运行）和 <a href=\"https://github.com/yobotn/focuside\">Focuside</a>（一款专注的 AI 编程智能体 IDE）。每个项目的 <code>target</code> 文件夹都涨到了约 <strong>40 GB</strong>，加起来 <strong>约 120 GB</strong>，全是 Cargo 从不自动清理的构建产物。<strong>开发磁盘</strong>标签页一次扫描就把这三个都找了出来。",
     "story.p2c": "这些都不是病毒，也不是垃圾，而是用 AI 智能体干活时正常留下的残留，再加上开发机根本用不着的 Windows 后台组件。现有的“电脑加速”软件要么做些吓人又不可撤消的操作，要么对开发工作流一无所知，所以我做了一个自己想要的工具。",
     "story.p3": "<strong>RigSweep 让你看清到底是什么在占用电脑，清理闲置的进程，并且每项更改都可以撤消。</strong>",
     "stat.chrome": "🌐 Chrome（37 个进程）", "stat.node": "⬢ Node + Claude（14 个进程）", "stat.services": "🧩 正在运行的 Windows 服务", "stat.rust": "🦀 Rust target 文件夹（3 个项目）",

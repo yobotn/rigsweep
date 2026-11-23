@@ -162,9 +162,10 @@ const pageMd = (page) => {
   const desc = page.match(/<meta name="description" content="([^"]+)"/);
   const blocks = [];
   // pre blocks keep their text verbatim; everything else is one block element per match
-  const re = /<pre[^>]*><code>([\s\S]*?)<\/code><\/pre>|<h([1-6])[^>]*>([\s\S]*?)<\/h\2>|<p[^>]*>([\s\S]*?)<\/p>|<ul[^>]*>([\s\S]*?)<\/ul>|<table[^>]*>([\s\S]*?)<\/table>/g;
+  const re = /<pre[^>]*><code>([\s\S]*?)<\/code><\/pre>|<h([1-6])[^>]*>([\s\S]*?)<\/h\2>|<p[^>]*>([\s\S]*?)<\/p>|<ul[^>]*>([\s\S]*?)<\/ul>|<table[^>]*>([\s\S]*?)<\/table>|<figure>[\s\S]*?<img src="([^"]+)" alt="([^"]*)"[\s\S]*?<\/figure>/g;
   for (const m of main.matchAll(re)) {
     if (m[1] !== undefined) blocks.push("```\n" + decode(m[1]) + "\n```");
+    else if (m[7] !== undefined) blocks.push(`![${decode(m[8])}](${m[7].startsWith("/") ? "https://rigsweep.com" + m[7] : m[7]})`);
     else if (m[6] !== undefined) {
       // a table becomes a pipe table: one row per <tr>, th and td cells alike
       const rows = [...m[6].matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/g)].map((tr) =>
@@ -189,6 +190,56 @@ for (const d of walk("docs")) {
   if (!(`${d}/index.md` in out) && fs.existsSync(p(`${d}/index.html`))) out[`${d}/index.md`] = pageMd(read(`${d}/index.html`));
 }
 out["docs/404.html"] = bustBrand(read("docs/404.html"));
+
+// ---- docs/guides/feed.xml: RSS 2.0 of the guides, newest first, full content with absolute links.
+// The site is the source of truth for articles: dev.to (and similar) import new posts from this
+// feed with rigsweep.com as the canonical URL.
+const xml = (t) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const guides = walk("docs/guides").filter((d) => fs.existsSync(p(`${d}/index.html`))).map((d) => {
+  const h = read(`${d}/index.html`);
+  const ld = (k) => decode(h.match(new RegExp(`"${k}": "([^"]+)"`))[1]);
+  const body = h.match(/<main[^>]*>([\s\S]*?)<\/main>/)[1]
+    .replace(/<div class="crumbs">[\s\S]*?<\/div>/, "").replace(/<h1>[\s\S]*?<\/h1>/, "").replace(/<p class="date">[\s\S]*?<\/p>/, "")
+    .replace(/(href|src)="\/(?!\/)/g, '$1="https://rigsweep.com/').replace(/\s*\r?\n\s*/g, "\n").trim();
+  return { title: ld("headline"), desc: ld("description"), url: ld("url"), date: ld("datePublished"), body };
+}).sort((a, b) => b.date.localeCompare(a.date) || a.url.localeCompare(b.url));
+out["docs/guides/feed.xml"] = [
+  '<?xml version="1.0" encoding="UTF-8"?>',
+  '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">',
+  "<channel>",
+  "<title>RigSweep guides</title>",
+  "<link>https://rigsweep.com/guides/</link>",
+  "<description>Fixes for Windows developer machines: leftover processes, busy ports, dev caches and disk space.</description>",
+  "<language>en</language>",
+  '<atom:link href="https://rigsweep.com/guides/feed.xml" rel="self" type="application/rss+xml" />',
+  ...guides.map((g) => [
+    "<item>", `<title>${xml(g.title)}</title>`, `<link>${g.url}</link>`, `<guid isPermaLink="true">${g.url}</guid>`,
+    `<pubDate>${new Date(`${g.date}T08:00:00Z`).toUTCString()}</pubDate>`, `<description>${xml(g.desc)}</description>`,
+    `<content:encoded><![CDATA[${g.body.replace(/]]>/g, "]]]]><![CDATA[>")}]]></content:encoded>`, "</item>",
+  ].join("\n")),
+  "</channel>", "</rss>", "",
+].join("\n");
+
+// ---- README story: the "why I built it" section of all 11 READMEs is generated from the site's
+// story.* and stat.* strings (docs/locales) and the stat numbers in docs/index.html, so the site and
+// GitHub always tell the same story. Edit it there, never in a README.
+const STATS = [...source.matchAll(/data-t="stat\.(\w+)">[^<]*<\/span><b>([^<]+)<\/b>/g)].map((m) => [m[1], m[2]]);
+if (STATS.length < 4) { console.error("✗ docs/index.html: stat panel not found"); process.exit(1); }
+for (const l of LANGS) {
+  const f = l === "en" ? "README.md" : `README.${l}.md`;
+  const g = (k) => md(T[l][k] ?? en[k]);
+  const cur = read(f), nl = cur.includes("\r\n") ? "\r\n" : "\n";
+  const story = [
+    "<!-- Generated from docs/locales (story.*, stat.*) by scripts/prerender-site.js. Edit it there. -->",
+    "", g("story.p1"), "", g("story.p2"), "",
+    ...STATS.map(([k, v]) => `- ${g("stat." + k)}: **${v}**`),
+    "", `*${g("stat.cap")}*`, "", g("story.p2b"), "", g("story.p2c"), "", `> ${g("story.p3")}`, "",
+  ].join(nl);
+  // the block between the first "## " heading after the badges and the next "---" rule
+  const re = /(\n---\r?\n\r?\n## [^\r\n]+\r?\n\r?\n)[\s\S]*?(\r?\n---\r?\n)/;
+  if (!re.test(cur)) { console.error(`✗ ${f}: story section not found`); process.exit(1); }
+  out[f] = cur.replace(re, (m, a, b) => a + story + b);
+}
 let stale = 0;
 for (const [f, s] of Object.entries(out)) {
   // compare without line endings: Windows CI checks files out with CRLF

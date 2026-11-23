@@ -359,7 +359,7 @@
           <h2 data-t="story.h">📖 为什么要做 RigSweep</h2>
           <p data-t="story.p1">在 AI 时代，开发用的笔记本电脑早已不只运行一个程序。平常的一天里，不同终端中开着好几个 Claude Code 会话，每个项目一个开发服务器，还有构建监视程序，以及开满文档和预览页面的浏览器。</p>
           <p data-t="story.p2">每个会话都会启动更多进程，其中很多在你关闭终端后仍在运行。任务管理器只显示一长串 node.exe、python.exe 和 chrome.exe，看不出它们属于哪个会话或项目。</p>
-          <p data-t="story.p2b">然后是磁盘。我当时同时在开发三个 Rust 应用，每个项目的 target 文件夹都涨到了约 40 GB，加起来约 120 GB，全是 Cargo 从不自动清理的构建产物。“开发磁盘”标签页一次扫描就把三个都找了出来。</p>
+          <p data-t-html="story.p2b">然后我看了看磁盘。我当时在同时开发三个 Rust 应用：RigSweep 本身、<a href="https://github.com/yobotn/keeprun">KeepRun</a>（把 Node、.NET 和 Python 应用作为 Windows 服务持续运行）和 <a href="https://github.com/yobotn/focuside">Focuside</a>（一款专注的 AI 编程智能体 IDE）。每个项目的 <code>target</code> 文件夹都涨到了约 <strong>40 GB</strong>，加起来 <strong>约 120 GB</strong>，全是 Cargo 从不自动清理的构建产物。<strong>开发磁盘</strong>标签页一次扫描就把这三个都找了出来。</p>
           <p data-t="story.p2c">这些都不是病毒，也不是垃圾，而是用 AI 智能体干活时正常留下的残留，再加上开发机根本用不着的 Windows 后台组件。现有的“电脑加速”软件要么做些吓人又不可撤消的操作，要么对开发工作流一无所知，所以我做了一个自己想要的工具。</p>
           <p data-t-html="story.p3"><strong>RigSweep 让你看清到底是什么在占用电脑，清理闲置的进程，并且每项更改都可以撤消。</strong></p>
         </div>
@@ -486,17 +486,17 @@
   </main>
 
   <script src="/icons.js?v=27f6c102" defer></script>
-  <script src="/locales/en.js?v=48eb0cc6"></script>
-  <script src="/locales/de.js?v=1c4acb65"></script>
-  <script src="/locales/es.js?v=a365a8ec"></script>
-  <script src="/locales/fr.js?v=58d2ce3a"></script>
-  <script src="/locales/it.js?v=9decc038"></script>
-  <script src="/locales/pt-BR.js?v=534b3e4f"></script>
-  <script src="/locales/ru.js?v=725b2733"></script>
-  <script src="/locales/ja.js?v=b32e31c8"></script>
-  <script src="/locales/ko.js?v=b802e21e"></script>
-  <script src="/locales/zh-CN.js?v=4816b518"></script>
-  <script src="/locales/ar.js?v=ba4d5d83"></script>
+  <script src="/locales/en.js?v=7d1477d2"></script>
+  <script src="/locales/de.js?v=052042f1"></script>
+  <script src="/locales/es.js?v=e45e9209"></script>
+  <script src="/locales/fr.js?v=bdd5424d"></script>
+  <script src="/locales/it.js?v=1812906a"></script>
+  <script src="/locales/pt-BR.js?v=6fa827e6"></script>
+  <script src="/locales/ru.js?v=57420723"></script>
+  <script src="/locales/ja.js?v=0add4e94"></script>
+  <script src="/locales/ko.js?v=21618cb5"></script>
+  <script src="/locales/zh-CN.js?v=077815bb"></script>
+  <script src="/locales/ar.js?v=fc2f03df"></script>
   <script>
     const LANGS = { "en": "English", "de": "Deutsch", "es": "Español", "fr": "Français", "it": "Italiano", "pt-BR": "Português (Brasil)", "ru": "Русский", "ja": "日本語", "ko": "한국어", "zh-CN": "简体中文", "ar": "العربية" };
     // the Dashboard shot is a real capture (en/es/fr); the Dev Cleanup shot exists in every language

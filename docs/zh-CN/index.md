@@ -18,7 +18,7 @@ RigSweep 用户迄今释放的资源
 
 每个会话都会启动更多进程，其中很多在你关闭终端后仍在运行。任务管理器只显示一长串 node.exe、python.exe 和 chrome.exe，看不出它们属于哪个会话或项目。
 
-然后是磁盘。我当时同时在开发三个 Rust 应用，每个项目的 target 文件夹都涨到了约 40 GB，加起来约 120 GB，全是 Cargo 从不自动清理的构建产物。“开发磁盘”标签页一次扫描就把三个都找了出来。
+然后我看了看磁盘。我当时在同时开发三个 Rust 应用：RigSweep 本身、[KeepRun](https://github.com/yobotn/keeprun)（把 Node、.NET 和 Python 应用作为 Windows 服务持续运行）和 [Focuside](https://github.com/yobotn/focuside)（一款专注的 AI 编程智能体 IDE）。每个项目的 `target` 文件夹都涨到了约 **40 GB**，加起来 **约 120 GB**，全是 Cargo 从不自动清理的构建产物。**开发磁盘**标签页一次扫描就把这三个都找了出来。
 
 这些都不是病毒，也不是垃圾，而是用 AI 智能体干活时正常留下的残留，再加上开发机根本用不着的 Windows 后台组件。现有的“电脑加速”软件要么做些吓人又不可撤消的操作，要么对开发工作流一无所知，所以我做了一个自己想要的工具。
 

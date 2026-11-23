@@ -18,7 +18,7 @@ T["ja"] = {
     "story.eyebrow": "開発の経緯", "story.h": "📖 RigSweep が生まれた理由",
     "story.p1": "AI の時代、開発用ノート PC で動いているのはもう 1 つのものだけではありません。いつもの 1 日でも、複数のターミナルで Claude Code のセッションをいくつも開き、プロジェクトごとに開発サーバーを立て、ビルドのウォッチャーを動かし、ブラウザーはドキュメントやプレビューでいっぱいです。",
     "story.p2": "セッションのたびにプロセスが増え、その多くはターミナルを閉じた後も動き続けます。タスク マネージャーに並ぶのは node.exe、python.exe、chrome.exe の羅列だけで、どのセッションやプロジェクトのものかはわかりません。",
-    "story.p2b": "次はディスクです。Rust アプリを 3 つ並行して開発していたところ、各プロジェクトの target フォルダーがそれぞれ約 40 GB に膨らみ、合計で約 120 GB になっていました。すべて Cargo が自動では片付けないビルド成果物です。開発ディスク タブは 1 回のスキャンで 3 つとも見つけました。",
+    "story.p2b": "次にディスクを確認しました。私は 3 つの Rust アプリを並行して開発していました。RigSweep 自体と、<a href=\"https://github.com/yobotn/keeprun\">KeepRun</a> (Node、.NET、Python のアプリを Windows サービスとして動かし続けるツール)、<a href=\"https://github.com/yobotn/focuside\">Focuside</a> (AI コーディング エージェントのための集中型 IDE) です。各プロジェクトの <code>target</code> フォルダーはそれぞれ約 <strong>40 GB</strong> にまで膨らみ、合計で <strong>約 120 GB</strong>。すべて Cargo が自動では片付けないビルド成果物です。[<strong>開発ディスク</strong>] タブは 1 回のスキャンで 3 つとも見つけました。",
     "story.p2c": "どれもウイルスやゴミではありません。AI エージェントと仕事をすれば当たり前に残るものと、開発マシンには要らない Windows のバックグラウンド処理です。既存の「PC 高速化」アプリは、怖くて元に戻せないことをするか、開発の流れをまったく知らないかのどちらかでした。だから、自分が欲しかったツールを作りました。",
     "story.p3": "<strong>RigSweep は、マシンを実際に使っているものを可視化し、古いものを一掃し、すべての変更を元に戻せる状態に保ちます。</strong>",
     "stat.chrome": "🌐 Chrome (37 プロセス)", "stat.node": "⬢ Node + Claude (14 プロセス)", "stat.services": "🧩 実行中の Windows サービス", "stat.rust": "🦀 Rust の target フォルダー (3 プロジェクト)",

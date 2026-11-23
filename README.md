@@ -23,23 +23,24 @@
 
 ## Why I built this
 
-In the AI era, my laptop isn't running *one* thing anymore. On a normal day I have several **Claude Code** sessions in different terminals, a dev server per project, build watchers, and a browser full of docs, previews and dashboards. Every new session spawns more Node processes, and when I close a terminal some of them **just keep running in the background**.
+<!-- Generated from docs/locales (story.*, stat.*) by scripts/prerender-site.js. Edit it there. -->
 
-It started to feel *cluttered*: fans spinning, RAM always near the top, and no clear picture of what was actually eating it. Task Manager just showed me a wall of `node.exe` and `chrome.exe` without telling me which session, which project, or whether anything still needed it.
+In the AI era a dev laptop doesn't run one thing anymore. A normal day means several Claude Code sessions in different terminals, a dev server per project, build watchers, and a browser full of docs and previews.
 
-So I measured my own machine (32 GB RAM) in the middle of a working day:
+Every session spawns more processes, and many keep running after you close the terminal. Task Manager only shows a wall of node.exe, python.exe and chrome.exe, with no idea which session or project they belong to.
 
-| 🔎 What I found | Count | RAM |
-|---|---:|---:|
-| 🌐 Chrome processes | 37 | **6.5 GB** |
-| ⬢ Node + Claude processes (agent CLIs, dev servers, the desktop app) | 14 | **2.5 GB** |
-| 🧩 Windows services running (telemetry, Xbox, search indexer…) | ~150 | — |
+- 🌐 Chrome (37 processes): **6.5 GB**
+- ⬢ Node + Claude (14 processes): **2.5 GB**
+- 🧩 Windows services running: **~150**
+- 🦀 Rust target folders (3 projects): **~120 GB**
+
+*Measured on the author's 32 GB laptop in the middle of a working day.*
 
 Then I looked at my disk. I was building three Rust apps side by side: RigSweep itself, [KeepRun](https://github.com/yobotn/keeprun) (keeps Node, .NET and Python apps running as Windows services) and [Focuside](https://github.com/yobotn/focuside) (a focused IDE for AI coding agents). Each project's `target` folder had grown to about **40 GB**, so **~120 GB** in total, all of it build output that Cargo never cleans up on its own. The **Dev Disk** tab found all three in a single scan.
 
-None of it was "a virus" or "junk". It was the **normal leftovers of working with AI agents**, plus Windows background stuff a dev box doesn't need. Existing "PC booster" apps either do scary irreversible things or know nothing about dev workflows. So I built the tool I wanted:
+None of it was a virus or junk. It was the normal leftovers of working with AI agents, plus Windows background stuff a dev box doesn't need. Existing “PC booster” apps either do scary irreversible things or know nothing about dev workflows, so I built the tool I wanted.
 
-> **See what's actually using your machine, sweep what's stale, and keep every change reversible.**
+> **RigSweep shows what's actually using your machine, sweeps what's stale, and keeps every change reversible.**
 
 ---
 

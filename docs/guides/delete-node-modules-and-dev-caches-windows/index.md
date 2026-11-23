@@ -2,6 +2,8 @@
 
 > How to reclaim disk space from node_modules, .next, target, bin/obj, .venv and the npm, pnpm, Yarn, pip, uv, Cargo, Go, NuGet, Gradle, Maven, Playwright and Hugging Face caches on Windows, with each tool's own command and the caveats.
 
+19 November 2026
+
 **Dependency folders, build output and package caches are safe to delete when you can rebuild or re-download them.** Delete project folders like `node_modules`, `target` or `bin/obj` for projects you aren't working on, and clean package caches with each tool's own command (`npm cache clean --force`, `pnpm store prune`, `uv cache prune`, `go clean -cache`). The next install or build brings back what it needs, at the cost of time and bandwidth.
 
 ## Project folders
@@ -49,6 +51,8 @@ cmd /c rd /s /q node_modules
 ## How RigSweep's Dev Disk does it
 
 [RigSweep](https://rigsweep.com/) is a free, open-source Windows app. Its Dev Disk tab scans your user profile and lists project folders, package caches, GPU and ML caches, AI tool caches and leftover git worktrees with their size.
+
+![RigSweep Dev Disk: build output, dependency folders and package caches per project, with sizes and last-edited dates](https://rigsweep.com/screenshots/disk.png)
 
 - A project folder only counts if its project file sits next to it, so a random `build` folder is never touched.
 - Only projects nobody has edited for 30 days (adjustable) are pre-selected. Projects a running process is using are locked.

@@ -359,7 +359,7 @@
           <h2 data-t="story.h">📖 Por que ele existe</h2>
           <p data-t="story.p1">Na era da IA, um notebook de desenvolvimento não roda mais uma coisa só. Um dia normal tem várias sessões do Claude Code em terminais diferentes, um servidor de dev por projeto, watchers de build e um navegador cheio de documentação e previews.</p>
           <p data-t="story.p2">Cada sessão abre mais processos, e muitos continuam rodando depois que você fecha o terminal. O Gerenciador de Tarefas só mostra uma parede de node.exe, python.exe e chrome.exe, sem dizer a qual sessão ou projeto eles pertencem.</p>
-          <p data-t="story.p2b">Depois, o disco. Eu estava desenvolvendo três apps em Rust ao mesmo tempo, e a pasta target de cada projeto tinha chegado a uns 40 GB: cerca de 120 GB de saída de build que o Cargo nunca limpa sozinho. A aba Disco dev encontrou as três em uma única verificação.</p>
+          <p data-t-html="story.p2b">Depois olhei o disco. Eu estava desenvolvendo três apps em Rust ao mesmo tempo: o próprio RigSweep, <a href="https://github.com/yobotn/keeprun">KeepRun</a> (mantém apps Node, .NET e Python rodando como serviços do Windows) e <a href="https://github.com/yobotn/focuside">Focuside</a> (um IDE focado para agentes de programação com IA). A pasta <code>target</code> de cada projeto tinha chegado a uns <strong>40 GB</strong>, ou seja, <strong>~120 GB</strong> no total, tudo saída de build que o Cargo nunca limpa sozinho. A aba <strong>Disco dev</strong> encontrou as três em uma única varredura.</p>
           <p data-t="story.p2c">Nada disso era vírus nem lixo. Eram as sobras normais de trabalhar com agentes de IA, mais coisas do Windows em segundo plano de que uma máquina de dev não precisa. Os apps “aceleradores de PC” que existiam ou fazem coisas irreversíveis assustadoras ou não sabem nada de fluxos de desenvolvimento, então criei a ferramenta que eu queria.</p>
           <p data-t-html="story.p3"><strong>O RigSweep mostra o que realmente está usando sua máquina, limpa o que ficou abandonado e permite desfazer qualquer alteração.</strong></p>
         </div>
@@ -486,17 +486,17 @@
   </main>
 
   <script src="/icons.js?v=27f6c102" defer></script>
-  <script src="/locales/en.js?v=48eb0cc6"></script>
-  <script src="/locales/de.js?v=1c4acb65"></script>
-  <script src="/locales/es.js?v=a365a8ec"></script>
-  <script src="/locales/fr.js?v=58d2ce3a"></script>
-  <script src="/locales/it.js?v=9decc038"></script>
-  <script src="/locales/pt-BR.js?v=534b3e4f"></script>
-  <script src="/locales/ru.js?v=725b2733"></script>
-  <script src="/locales/ja.js?v=b32e31c8"></script>
-  <script src="/locales/ko.js?v=b802e21e"></script>
-  <script src="/locales/zh-CN.js?v=4816b518"></script>
-  <script src="/locales/ar.js?v=ba4d5d83"></script>
+  <script src="/locales/en.js?v=7d1477d2"></script>
+  <script src="/locales/de.js?v=052042f1"></script>
+  <script src="/locales/es.js?v=e45e9209"></script>
+  <script src="/locales/fr.js?v=bdd5424d"></script>
+  <script src="/locales/it.js?v=1812906a"></script>
+  <script src="/locales/pt-BR.js?v=6fa827e6"></script>
+  <script src="/locales/ru.js?v=57420723"></script>
+  <script src="/locales/ja.js?v=0add4e94"></script>
+  <script src="/locales/ko.js?v=21618cb5"></script>
+  <script src="/locales/zh-CN.js?v=077815bb"></script>
+  <script src="/locales/ar.js?v=fc2f03df"></script>
   <script>
     const LANGS = { "en": "English", "de": "Deutsch", "es": "Español", "fr": "Français", "it": "Italiano", "pt-BR": "Português (Brasil)", "ru": "Русский", "ja": "日本語", "ko": "한국어", "zh-CN": "简体中文", "ar": "العربية" };
     // the Dashboard shot is a real capture (en/es/fr); the Dev Cleanup shot exists in every language

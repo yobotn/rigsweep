@@ -8,4 +8,6 @@
 - [Port 3000 is already in use on Windows](https://rigsweep.com/guides/port-already-in-use-windows/): find the process that holds a port, end it safely, and deal with WSL, Docker and reserved port ranges.
 - [Delete node_modules, build output and package caches](https://rigsweep.com/guides/delete-node-modules-and-dev-caches-windows/): what is safe to delete, each tool's own clean command, and the caveats.
 
+New guides by RSS: [rigsweep.com/guides/feed.xml](https://rigsweep.com/guides/feed.xml).
+
 Comparing tools? See [RigSweep compared with CCleaner, BleachBit, npkill and PrivaZer](https://rigsweep.com/compare/).

@@ -16,6 +16,7 @@
   <meta name="theme-color" content="#0b0e13" />
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=527e09ea" />
   <link rel="alternate" type="text/plain" href="https://rigsweep.com/llms.txt" title="llms.txt" />
+  <link rel="alternate" type="application/rss+xml" href="https://rigsweep.com/guides/feed.xml" title="RigSweep guides" />
   <style>
     :root { --bg: #0b0e13; --panel: #141922; --border: #262e3f; --text: #e8ebf1; --muted: #a3abbd; --accent: #22c55e; color-scheme: dark; }
     * { box-sizing: border-box; }
@@ -45,6 +46,10 @@
     tbody th { color: var(--text); font-weight: 600; }
     td { color: var(--muted); }
     .note { font-size: 14px; }
+    figure { margin: 20px 0; }
+    figure img { display: block; width: 100%; height: auto; border: 1px solid var(--border); border-radius: 8px; }
+    figcaption { font-size: 14px; color: var(--muted); margin-top: 8px; }
+    .date { font-size: 14px; color: var(--muted); margin: -8px 0 16px; }
     footer { margin-top: 48px; padding: 24px 16px 40px; border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; }
   </style>
   <script type="application/ld+json">
@@ -149,6 +154,7 @@
   <main class="wrap">
     <div class="crumbs"><a href="/">Home</a> › <a href="/guides/">Guides</a> › Claude Code leftover processes</div>
     <h1>Claude Code and MCP servers left running on Windows</h1>
+    <p class="date"><time datetime="2026-11-19">19 November 2026</time></p>
     <p><strong>On Windows, a process keeps running when the process that started it exits.</strong> So when you close a terminal, or an agent CLI like Claude Code exits, the MCP servers, dev servers and test runners it started can stay alive, holding RAM, CPU and ports. You can find them with Task Manager or PowerShell and end them with <code>taskkill /PID &lt;pid&gt; /T /F</code> after checking what they are.</p>
 
     <h2>Why it happens</h2>
@@ -193,6 +199,7 @@ $all | Where-Object { $_.Name -in 'node.exe','python.exe','uv.exe','bun.exe' -an
 
     <h2>How RigSweep does it</h2>
     <p><a href="/">RigSweep</a> is a free, open-source Windows app that does the steps above for you. Its Dev Cleanup tab groups each dev server, build daemon, MCP server and agent CLI with its whole process tree, project folder, age, RAM and listening ports.</p>
+    <figure><img src="/screenshots/cleanup.png" alt="RigSweep Dev Cleanup: leftover dev servers, MCP servers and agent CLIs grouped by project, with age, RAM and ports" width="1240" height="820" loading="lazy" /><figcaption>Dev Cleanup groups each leftover process tree with its project, age, RAM and ports.</figcaption></figure>
     <div class="tw"><table>
     <thead><tr><th>Case</th><th>What RigSweep does</th></tr></thead>
     <tbody>

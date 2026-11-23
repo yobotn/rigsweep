@@ -23,23 +23,24 @@
 
 ## Warum ich RigSweep entwickelt habe
 
-Im KI-Zeitalter läuft auf meinem Laptop nicht mehr nur *eine* Sache. An einem normalen Tag habe ich mehrere **Claude Code**-Sitzungen in verschiedenen Terminals, einen Dev-Server pro Projekt, Build-Watcher und einen Browser voller Dokumentation, Vorschauen und Dashboards. Jede neue Sitzung startet weitere Node-Prozesse, und wenn ich ein Terminal schließe, **laufen einige davon einfach im Hintergrund weiter**.
+<!-- Generated from docs/locales (story.*, stat.*) by scripts/prerender-site.js. Edit it there. -->
 
-Das Ganze fühlte sich zunehmend *überladen* an: Lüfter drehen hoch, der RAM ist ständig fast voll, und es gibt keinen klaren Überblick, was ihn eigentlich belegt. Der Task-Manager zeigte mir nur eine Wand aus `node.exe` und `chrome.exe`, ohne zu verraten, zu welcher Sitzung oder welchem Projekt sie gehören oder ob sie überhaupt noch gebraucht werden.
+Im KI-Zeitalter läuft auf einem Entwickler-Laptop nicht mehr nur eine Sache. Ein normaler Tag bedeutet mehrere Claude Code-Sitzungen in verschiedenen Terminals, einen Dev-Server pro Projekt, Build-Watcher und einen Browser voller Dokumentation und Vorschauen.
 
-Also habe ich meinen eigenen Rechner (32 GB RAM) mitten an einem Arbeitstag gemessen:
+Jede Sitzung startet weitere Prozesse, und viele laufen weiter, nachdem Sie das Terminal geschlossen haben. Der Task-Manager zeigt nur eine Wand aus node.exe, python.exe und chrome.exe, ohne zu verraten, zu welcher Sitzung oder welchem Projekt sie gehören.
 
-| 🔎 Was ich gefunden habe | Anzahl | RAM |
-|---|---:|---:|
-| 🌐 Chrome-Prozesse | 37 | **6,5 GB** |
-| ⬢ Node- + Claude-Prozesse (Agent-CLIs, Dev-Server, die Desktop-App) | 14 | **2,5 GB** |
-| 🧩 Laufende Windows-Dienste (Telemetrie, Xbox, Suchindizierung…) | ~150 | — |
+- 🌐 Chrome (37 Prozesse): **6.5 GB**
+- ⬢ Node + Claude (14 Prozesse): **2.5 GB**
+- 🧩 Laufende Windows-Dienste: **~150**
+- 🦀 Rust-target-Ordner (3 Projekte): **~120 GB**
+
+*Gemessen auf dem Laptop des Autors mit 32 GB mitten an einem Arbeitstag.*
 
 Dann habe ich auf die Festplatte geschaut. Ich habe parallel an drei Rust-Apps gebaut: RigSweep selbst, [KeepRun](https://github.com/yobotn/keeprun) (betreibt Node-, .NET- und Python-Apps als Windows-Dienste) und [Focuside](https://github.com/yobotn/focuside) (eine fokussierte IDE für KI-Coding-Agents). Der `target`-Ordner jedes Projekts war auf rund **40 GB** angewachsen, zusammen also **~120 GB**, alles Build-Ausgabe, die Cargo nie von selbst aufräumt. Der Tab **Dev-Speicher** hat alle drei in einem einzigen Scan gefunden.
 
-Nichts davon war „ein Virus“ oder „Datenmüll“. Es waren die **normalen Überbleibsel der Arbeit mit KI-Agents**, dazu Windows-Hintergrundkram, den ein Entwicklerrechner nicht braucht. Bestehende „PC-Booster“-Apps machen entweder beängstigende, nicht umkehrbare Dinge oder wissen nichts über Entwicklungsabläufe. Also habe ich das Tool gebaut, das ich mir gewünscht habe:
+Nichts davon war ein Virus oder Datenmüll. Es waren die ganz normalen Reste der Arbeit mit KI-Agents, dazu Windows-Hintergrundkram, den ein Entwicklerrechner nicht braucht. Die üblichen „PC-Booster“-Apps machen entweder beängstigende, nicht umkehrbare Dinge oder wissen nichts über Dev-Workflows. Also habe ich das Tool gebaut, das ich selbst haben wollte.
 
-> **Sehen, was den Rechner wirklich belastet, Liegengebliebenes aufräumen und jede Änderung umkehrbar halten.**
+> **RigSweep zeigt, was Ihren Rechner wirklich belastet, räumt Liegengebliebenes auf und hält jede Änderung umkehrbar.**
 
 ---
 

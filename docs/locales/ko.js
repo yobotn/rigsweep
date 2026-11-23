@@ -18,7 +18,7 @@ T["ko"] = {
     "story.eyebrow": "개발 이야기", "story.h": "📖 만든 이유",
     "story.p1": "AI 시대의 개발용 노트북은 더 이상 한 가지만 실행하지 않습니다. 평범한 하루에도 여러 터미널에서 Claude Code 세션 몇 개, 프로젝트마다 개발 서버, 빌드 감시 프로세스, 문서와 미리 보기로 가득 찬 브라우저가 실행됩니다.",
     "story.p2": "세션마다 프로세스가 늘어나고, 그중 상당수는 터미널을 닫은 후에도 계속 실행됩니다. 작업 관리자에는 node.exe, python.exe, chrome.exe만 잔뜩 표시될 뿐, 어느 세션이나 프로젝트의 것인지는 알 수 없습니다.",
-    "story.p2b": "다음은 디스크였습니다. Rust 앱 세 개를 동시에 개발하고 있었는데, 프로젝트마다 target 폴더가 약 40GB까지 커져 모두 합치면 약 120GB였습니다. 전부 Cargo가 알아서 정리해 주지 않는 빌드 결과물입니다. 개발 디스크 탭은 한 번의 검사로 세 폴더를 모두 찾아냈습니다.",
+    "story.p2b": "다음으로 디스크를 확인했습니다. 저는 Rust 앱 세 개를 동시에 개발하고 있었습니다. RigSweep 자체와 <a href=\"https://github.com/yobotn/keeprun\">KeepRun</a>(Node, .NET, Python 앱을 Windows 서비스로 계속 실행해 주는 도구), <a href=\"https://github.com/yobotn/focuside\">Focuside</a>(AI 코딩 에이전트를 위한 집중형 IDE)입니다. 프로젝트마다 <code>target</code> 폴더가 약 <strong>40GB</strong>까지 커져서 모두 합치면 <strong>약 120GB</strong>였고, 전부 Cargo가 알아서 정리해 주지 않는 빌드 결과물이었습니다. <strong>개발 디스크</strong> 탭은 한 번의 검사로 세 폴더를 모두 찾아냈습니다.",
     "story.p2c": "바이러스도 쓰레기도 아니었습니다. AI 에이전트와 일하면 으레 남는 것들, 그리고 개발용 PC에는 필요 없는 Windows 백그라운드 작업이었습니다. 기존 'PC 최적화' 앱은 되돌릴 수 없는 위험한 일을 하거나 개발 작업 방식을 전혀 몰랐습니다. 그래서 제가 쓰고 싶은 도구를 직접 만들었습니다.",
     "story.p3": "<strong>RigSweep은 PC를 실제로 무엇이 사용하고 있는지 보여 주고, 방치된 항목을 정리하며, 모든 변경 사항을 되돌릴 수 있게 유지합니다.</strong>",
     "stat.chrome": "🌐 Chrome(프로세스 37개)", "stat.node": "⬢ Node + Claude(프로세스 14개)", "stat.services": "🧩 실행 중인 Windows 서비스", "stat.rust": "🦀 Rust target 폴더(프로젝트 3개)",

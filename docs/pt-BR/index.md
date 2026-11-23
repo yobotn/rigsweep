@@ -18,7 +18,7 @@ Na era da IA, um notebook de desenvolvimento não roda mais uma coisa só. Um di
 
 Cada sessão abre mais processos, e muitos continuam rodando depois que você fecha o terminal. O Gerenciador de Tarefas só mostra uma parede de node.exe, python.exe e chrome.exe, sem dizer a qual sessão ou projeto eles pertencem.
 
-Depois, o disco. Eu estava desenvolvendo três apps em Rust ao mesmo tempo, e a pasta target de cada projeto tinha chegado a uns 40 GB: cerca de 120 GB de saída de build que o Cargo nunca limpa sozinho. A aba Disco dev encontrou as três em uma única verificação.
+Depois olhei o disco. Eu estava desenvolvendo três apps em Rust ao mesmo tempo: o próprio RigSweep, [KeepRun](https://github.com/yobotn/keeprun) (mantém apps Node, .NET e Python rodando como serviços do Windows) e [Focuside](https://github.com/yobotn/focuside) (um IDE focado para agentes de programação com IA). A pasta `target` de cada projeto tinha chegado a uns **40 GB**, ou seja, **~120 GB** no total, tudo saída de build que o Cargo nunca limpa sozinho. A aba **Disco dev** encontrou as três em uma única varredura.
 
 Nada disso era vírus nem lixo. Eram as sobras normais de trabalhar com agentes de IA, mais coisas do Windows em segundo plano de que uma máquina de dev não precisa. Os apps “aceleradores de PC” que existiam ou fazem coisas irreversíveis assustadoras ou não sabem nada de fluxos de desenvolvimento, então criei a ferramenta que eu queria.
 

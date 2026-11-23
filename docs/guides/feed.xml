@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+<channel>
+<title>RigSweep guides</title>
+<link>https://rigsweep.com/guides/</link>
+<description>Fixes for Windows developer machines: leftover processes, busy ports, dev caches and disk space.</description>
+<language>en</language>
+<atom:link href="https://rigsweep.com/guides/feed.xml" rel="self" type="application/rss+xml" />
+<item>
+<title>Claude Code and MCP servers left running on Windows</title>
+<link>https://rigsweep.com/guides/claude-code-leftover-processes-windows/</link>
+<guid isPermaLink="true">https://rigsweep.com/guides/claude-code-leftover-processes-windows/</guid>
+<pubDate>Thu, 19 Nov 2026 08:00:00 GMT</pubDate>
+<description>Why Claude Code sessions, MCP servers and dev servers keep running on Windows after you close the terminal, how to find the leftovers with Task Manager and PowerShell, and how to end them safely.</description>
+<content:encoded><![CDATA[<p><strong>On Windows, a process keeps running when the process that started it exits.</strong> So when you close a terminal, or an agent CLI like Claude Code exits, the MCP servers, dev servers and test runners it started can stay alive, holding RAM, CPU and ports. You can find them with Task Manager or PowerShell and end them with <code>taskkill /PID &lt;pid&gt; /T /F</code> after checking what they are.</p>
+<h2>Why it happens</h2>
+<p>Windows doesn't end a process when its parent exits. Closing a console window signals the programs attached to that console, but processes started in the background, detached or with their own hidden window get no signal. Agent CLIs and many dev tools start MCP servers, watchers and long commands that way. A child only ends with its parent if the launcher put both in a job object set to end them together, and most dev tools don't. Common ways it happens:</p>
+<ul>
+<li><strong>You close the terminal window or tab.</strong> A dev server, watcher or MCP server running in the background or in its own hidden window keeps running.</li>
+<li><strong>The agent CLI exits but its MCP servers don't.</strong> Claude Code starts each stdio MCP server as a child process. If the CLI exits abnormally, or a server was started through a wrapper such as <code>cmd /c npx</code>, the real server process can outlive it.</li>
+<li><strong>An agent command times out.</strong> A long build or test run that the agent moved to the background can keep running after the session ends.</li>
+<li><strong>Ctrl+C stops only the wrapper.</strong> With <code>npm run dev</code> or <code>npx</code>, you stop npm or the <code>cmd</code> launcher, but a child that ignores the signal or was started detached keeps the port.</li>
+</ul>
+<p>These are known, reported problems. Some public reports, with their status in November 2026:</p>
+<ul>
+<li><a href="https://github.com/anthropics/claude-code/issues/92583">anthropics/claude-code#92583</a> (open): on Windows, Bash tool commands moved to the background on timeout are not cleaned up when the session ends.</li>
+<li><a href="https://github.com/anthropics/claude-code/issues/84464">anthropics/claude-code#84464</a> (closed): on Windows, a stopped background task's shell was ended but its process tree kept running.</li>
+<li><a href="https://github.com/anthropics/claude-code/issues/66151">anthropics/claude-code#66151</a> (closed): Stop hook commands on Windows left orphan child processes when Claude Code ended abnormally.</li>
+<li><a href="https://github.com/anthropics/claude-code/issues/1935">anthropics/claude-code#1935</a> (open, reported on macOS): MCP servers not terminated when Claude Code exits.</li>
+<li><a href="https://github.com/modelcontextprotocol/typescript-sdk/issues/2023">modelcontextprotocol/typescript-sdk#2023</a> (open): closing a stdio transport signals only the direct child, so a server started through <code>npx</code> or <code>uvx</code> can be orphaned. On Windows, Node's <code>ChildProcess.kill()</code> doesn't end the process tree.</li>
+</ul>
+<h2>How to see what's still running</h2>
+<h3>Task Manager</h3>
+<p>Open Task Manager (Ctrl+Shift+Esc), go to <strong>Details</strong>, and sort by name. Right-click a column header, choose <strong>Select columns</strong> and add <strong>Command line</strong>. Look for <code>node.exe</code>, <code>python.exe</code>, <code>uv.exe</code>, <code>bun.exe</code> or <code>claude.exe</code> rows whose command line names an MCP server, a dev server or a project you closed.</p>
+<h3>tasklist</h3>
+<pre tabindex="0"><code>tasklist /FI "IMAGENAME eq node.exe"</code></pre>
+<h3>PowerShell: list orphans</h3>
+<p>Each process records the ID of its parent. When that parent is gone, the process is an orphan. This lists Node and Python processes whose parent no longer exists, with their command line:</p>
+<pre tabindex="0"><code>$all = Get-CimInstance Win32_Process
+$alive = @{}; foreach ($p in $all) { $alive[$p.ProcessId] = $true }
+$all | Where-Object { $_.Name -in 'node.exe','python.exe','uv.exe','bun.exe' -and -not $alive[$_.ParentProcessId] } |
+Select-Object ProcessId, Name, CreationDate, CommandLine | Format-List</code></pre>
+<p>Windows reuses process IDs, so a parent ID can point to an unrelated newer process. If a row looks wrong, compare the <code>CreationDate</code> of the parent and the child: a real parent started first.</p>
+<h3>Which process holds a port</h3>
+<pre tabindex="0"><code>netstat -ano | findstr :3000</code></pre>
+<p>The last column is the PID. The <a href="https://rigsweep.com/guides/port-already-in-use-windows/">port 3000 guide</a> covers this in more detail.</p>
+<h2>The manual fix</h2>
+<p>First check what the process is. Ending the wrong <code>node.exe</code> can close an editor's language server or a tool you still use.</p>
+<pre tabindex="0"><code>Get-CimInstance Win32_Process -Filter "ProcessId = 12345" | Select-Object Name, ParentProcessId, CommandLine</code></pre>
+<p>If the command line shows a leftover MCP server or dev server, end it together with its children:</p>
+<pre tabindex="0"><code>taskkill /PID 12345 /T /F</code></pre>
+<p><code>/T</code> ends the whole tree below that PID and <code>/F</code> forces it. Unsaved state in that process is lost, and there is no undo. Skip processes whose command line points into VS Code, Cursor or another editor's folder, and processes run by pm2 or forever on purpose.</p>
+<h2>How RigSweep does it</h2>
+<p><a href="https://rigsweep.com/">RigSweep</a> is a free, open-source Windows app that does the steps above for you. Its Dev Cleanup tab groups each dev server, build daemon, MCP server and agent CLI with its whole process tree, project folder, age, RAM and listening ports.</p>
+<figure><img src="https://rigsweep.com/screenshots/cleanup.png" alt="RigSweep Dev Cleanup: leftover dev servers, MCP servers and agent CLIs grouped by project, with age, RAM and ports" width="1240" height="820" loading="lazy" /><figcaption>Dev Cleanup groups each leftover process tree with its project, age, RAM and ports.</figcaption></figure>
+<div class="tw"><table>
+<thead><tr><th>Case</th><th>What RigSweep does</th></tr></thead>
+<tbody>
+<tr><th scope="row">Orphan (its terminal or launcher is gone)</th><td>Pre-selected, even when it still holds a port</td></tr>
+<tr><th scope="row">MCP server</th><td>Tagged as an MCP server; an older copy of a server that also runs under your current session is marked</td></tr>
+<tr><th scope="row">Idle agent session in an open terminal</th><td>Listed, never pre-selected</td></tr>
+<tr><th scope="row">pm2 or forever daemon and the apps it runs</th><td>Listed as managed, never pre-selected or auto-ended</td></tr>
+<tr><th scope="row">Process owned by VS Code, Cursor, JetBrains or Visual Studio</th><td>Locked, can't be ended from RigSweep</td></tr>
+<tr><th scope="row">WSL 2 / Docker VM</th><td>Shut down with <code>wsl --shutdown</code>, never pre-selected</td></tr>
+<tr><th scope="row">After a sweep</th><td>Shows the RAM it got back and CPU before and after, measured</td></tr>
+</tbody>
+</table></div>
+<p>Nothing is ended until you click, and RigSweep checks for PID reuse before every kill. <a href="https://github.com/yobotn/rigsweep/releases/latest">Download RigSweep</a> (Windows 10 and 11, MIT license).</p>
+<h2 id="faq">FAQ</h2>
+<h3>Why does Claude Code leave node.exe processes running on Windows?</h3>
+<p>Windows doesn't end child processes when their parent exits. MCP servers, dev servers and test runners that Claude Code or your terminal started keep running if the CLI or terminal closes before they are stopped.</p>
+<h3>Is it safe to end all node.exe processes?</h3>
+<p>No. Some belong to your editor (language servers), to tools you run on purpose with pm2, or to a dev server you still use. Check each command line first, then end only the leftovers with <code>taskkill /PID &lt;pid&gt; /T /F</code>.</p>
+<h3>How do I find orphaned processes on Windows?</h3>
+<p>In PowerShell, list processes with <code>Get-CimInstance Win32_Process</code> and keep those whose <code>ParentProcessId</code> no longer exists. Because Windows reuses process IDs, compare creation times when a result looks wrong.</p>
+<h3>Does RigSweep end processes automatically?</h3>
+<p>Only if you turn on auto-cleanup in Settings, which is off by default. Even then, agent CLIs, the WSL/Docker VM, editor-owned processes and pm2 or forever apps are never auto-ended.</p>]]></content:encoded>
+</item>
+<item>
+<title>Delete node_modules, build output and package caches on Windows</title>
+<link>https://rigsweep.com/guides/delete-node-modules-and-dev-caches-windows/</link>
+<guid isPermaLink="true">https://rigsweep.com/guides/delete-node-modules-and-dev-caches-windows/</guid>
+<pubDate>Thu, 19 Nov 2026 08:00:00 GMT</pubDate>
+<description>How to reclaim disk space from node_modules, .next, target, bin/obj, .venv and the npm, pnpm, Yarn, pip, uv, Cargo, Go, NuGet, Gradle, Maven, Playwright and Hugging Face caches on Windows, with each tool's own command and the caveats.</description>
+<content:encoded><![CDATA[<p><strong>Dependency folders, build output and package caches are safe to delete when you can rebuild or re-download them.</strong> Delete project folders like <code>node_modules</code>, <code>target</code> or <code>bin/obj</code> for projects you aren't working on, and clean package caches with each tool's own command (<code>npm cache clean --force</code>, <code>pnpm store prune</code>, <code>uv cache prune</code>, <code>go clean -cache</code>). The next install or build brings back what it needs, at the cost of time and bandwidth.</p>
+<h2>Project folders</h2>
+<div class="tw"><table>
+<thead><tr><th>Folder</th><th>Made by</th><th>How it comes back</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code>node_modules</code></th><td>npm, pnpm, Yarn, Bun</td><td><code>npm install</code> (or your package manager's install)</td></tr>
+<tr><th scope="row"><code>.next</code>, <code>.nuxt</code>, <code>dist</code></th><td>Next.js, Nuxt, bundlers</td><td>The next build or dev run</td></tr>
+<tr><th scope="row"><code>target</code></th><td>Cargo (Rust), Maven (Java)</td><td><code>cargo build</code>, <code>mvn package</code>. In a Rust project, <code>cargo clean</code> removes it</td></tr>
+<tr><th scope="row"><code>bin</code>, <code>obj</code></th><td>.NET</td><td><code>dotnet build</code></td></tr>
+<tr><th scope="row"><code>build</code>, <code>.gradle</code></th><td>Gradle</td><td>The next Gradle build</td></tr>
+<tr><th scope="row"><code>.venv</code>, <code>venv</code></th><td>Python</td><td>Recreate it, for example <code>uv sync</code> or <code>python -m venv .venv</code> plus <code>pip install -r requirements.txt</code></td></tr>
+</tbody>
+</table></div>
+<p>Only delete a folder when the project file that produced it sits next to it (<code>package.json</code>, <code>Cargo.toml</code>, <code>*.csproj</code>, <code>pyvenv.cfg</code>). A folder called <code>build</code> or <code>bin</code> elsewhere may hold something you can't rebuild. On Windows, <code>rd</code> often handles deep <code>node_modules</code> trees better than Explorer:</p>
+<pre tabindex="0"><code>cmd /c rd /s /q node_modules</code></pre>
+<h2>Package caches, with each tool's own command</h2>
+<div class="tw"><table>
+<thead><tr><th>Tool</th><th>Clean command</th><th>Note</th></tr></thead>
+<tbody>
+<tr><th scope="row">npm</th><td><code>npm cache clean --force</code></td><td><code>npm cache verify</code> checks and trims the cache without emptying it</td></tr>
+<tr><th scope="row">pnpm</th><td><code>pnpm store prune</code></td><td>Removes only packages no project references. <code>pnpm store path</code> shows where the store is</td></tr>
+<tr><th scope="row">Yarn</th><td><code>yarn cache clean</code></td><td><code>yarn cache dir</code> shows the folder</td></tr>
+<tr><th scope="row">pip</th><td><code>pip cache purge</code></td><td><code>pip cache dir</code> shows the folder</td></tr>
+<tr><th scope="row">uv</th><td><code>uv cache prune</code></td><td>Removes unused entries. <code>uv cache clean</code> empties the whole cache in <code>%LOCALAPPDATA%\uv\cache</code></td></tr>
+<tr><th scope="row">Go</th><td><code>go clean -cache</code>, <code>go clean -modcache</code></td><td>The build cache rebuilds itself. The module cache means re-downloading every module</td></tr>
+<tr><th scope="row">Cargo</th><td><code>cargo clean</code> (per project)</td><td>Recent Cargo versions clean old downloads in the Cargo home cache on their own. Most of the space is usually in each project's <code>target</code></td></tr>
+<tr><th scope="row">NuGet</th><td><code>dotnet nuget locals all --clear</code></td><td><code>dotnet nuget locals all --list</code> shows the folders first</td></tr>
+<tr><th scope="row">Gradle</th><td><code>gradle --stop</code>, then delete <code>%USERPROFILE%\.gradle\caches</code></td><td>Stop the daemons first or files stay locked. Everything is downloaded again</td></tr>
+<tr><th scope="row">Maven</th><td>Delete folders in <code>%USERPROFILE%\.m2\repository</code></td><td>See the caveat below about <code>mvn install</code></td></tr>
+<tr><th scope="row">Playwright</th><td><code>npx playwright uninstall</code></td><td>Add <code>--all</code> to also remove browsers from other Playwright installs. Default folder: <code>%USERPROFILE%\AppData\Local\ms-playwright</code></td></tr>
+<tr><th scope="row">Hugging Face</th><td><code>hf cache ls</code>, <code>hf cache rm &lt;repo&gt;</code>, <code>hf cache prune</code></td><td>Models can be many GB to download again. <code>--dry-run</code> previews</td></tr>
+</tbody>
+</table></div>
+<h2>Caveats</h2>
+<ul>
+<li><strong>Maven local installs can't be re-downloaded.</strong> Artifacts you built yourself with <code>mvn install</code> exist only in <code>.m2\repository</code>. Deleting the whole folder removes them until you build those projects again.</li>
+<li><strong>pnpm uses hard links.</strong> Files in a project's <code>node_modules</code> and in the pnpm store are the same bytes on disk, so Explorer counts them twice. Deleting one project's <code>node_modules</code> frees less than its size suggests, and <code>pnpm store prune</code> is the way to free store space.</li>
+<li><strong>Locked files.</strong> A running dev server, watcher, test runner or editor can hold files open (native <code>.node</code> modules, <code>esbuild.exe</code>). Deletion then fails part way. Stop the process first; the <a href="https://rigsweep.com/guides/claude-code-leftover-processes-windows/">leftover processes guide</a> shows how to find it.</li>
+<li><strong>Long paths.</strong> Deep <code>node_modules</code> trees can exceed the classic 260-character path limit. <code>rd /s /q</code> or a package-manager command usually works where Explorer stops.</li>
+<li><strong>Big re-downloads.</strong> Playwright browsers, Hugging Face models, Gradle, Maven, NuGet and Go module caches take time and bandwidth to fill again. Clean them when you need the space, not by habit.</li>
+</ul>
+<h2>How RigSweep's Dev Disk does it</h2>
+<p><a href="https://rigsweep.com/">RigSweep</a> is a free, open-source Windows app. Its Dev Disk tab scans your user profile and lists project folders, package caches, GPU and ML caches, AI tool caches and leftover git worktrees with their size.</p>
+<figure><img src="https://rigsweep.com/screenshots/disk.png" alt="RigSweep Dev Disk: build output, dependency folders and package caches per project, with sizes and last-edited dates" width="1240" height="820" loading="lazy" /><figcaption>Dev Disk lists build output and caches per project, with sizes, before anything is deleted.</figcaption></figure>
+<ul>
+<li>A project folder only counts if its project file sits next to it, so a random <code>build</code> folder is never touched.</li>
+<li>Only projects nobody has edited for 30 days (adjustable) are pre-selected. Projects a running process is using are locked.</li>
+<li>uv and Go caches are cleaned with their own commands. For Playwright and Puppeteer, only older browser versions go and the newest stays.</li>
+<li>Caches that mean a big re-download (Playwright, Puppeteer, Hugging Face, Gradle, Maven, NuGet packages, Go modules) start switched off.</li>
+<li>Maven artifacts built with <code>mvn install</code> are never deleted.</li>
+<li>Nothing is deleted until you confirm, and every folder is checked again right before deletion. A long cleanup can be paused, resumed or stopped.</li>
+</ul>
+<p>Prefer a terminal tool for <code>node_modules</code> only? See <a href="https://rigsweep.com/compare/npkill/">RigSweep vs npkill</a>. <a href="https://github.com/yobotn/rigsweep/releases/latest">Download RigSweep</a> (Windows 10 and 11, MIT).</p>
+<h2 id="faq">FAQ</h2>
+<h3>Is it safe to delete node_modules?</h3>
+<p>Yes, if the project has a <code>package.json</code> and a lockfile. The next <code>npm install</code> (or pnpm, Yarn or Bun install) restores it. Close dev servers and editors using the project first so no files are locked.</p>
+<h3>Is it safe to clear the npm cache?</h3>
+<p>Yes. <code>npm cache clean --force</code> empties it and npm downloads packages again when needed. The only cost is time and bandwidth on the next install.</p>
+<h3>How do I clean the pnpm store?</h3>
+<p>Run <code>pnpm store prune</code>. It removes packages that no project references and doesn't affect your projects.</p>
+<h3>Can I delete the .m2 repository folder?</h3>
+<p>You can, but artifacts you built with <code>mvn install</code> live only there and come back only when you build those projects again. Everything downloaded from a remote repository is downloaded again.</p>]]></content:encoded>
+</item>
+<item>
+<title>Port 3000 is already in use on Windows</title>
+<link>https://rigsweep.com/guides/port-already-in-use-windows/</link>
+<guid isPermaLink="true">https://rigsweep.com/guides/port-already-in-use-windows/</guid>
+<pubDate>Thu, 19 Nov 2026 08:00:00 GMT</pubDate>
+<description>How to find which process holds port 3000 (or any port) on Windows with netstat, Get-NetTCPConnection and tasklist, end it safely, and handle Docker, WSL and Hyper-V reserved port ranges.</description>
+<content:encoded><![CDATA[<p><strong>"Port 3000 is already in use" (<code>EADDRINUSE</code>) means another process is listening on that port.</strong> On a dev machine it is usually a dev server that kept running after its terminal closed. Find the owner with <code>netstat -ano | findstr :3000</code>, check it with <code>tasklist</code>, and end it if it is a leftover.</p>
+<h2>1. Find the process that owns the port</h2>
+<h3>Command Prompt</h3>
+<pre tabindex="0"><code>netstat -ano | findstr :3000</code></pre>
+<p>Look for a line in the <code>LISTENING</code> state. The last number is the process ID (PID).</p>
+<h3>PowerShell</h3>
+<pre tabindex="0"><code>Get-NetTCPConnection -LocalPort 3000 -State Listen | Select-Object LocalAddress, LocalPort, OwningProcess</code></pre>
+<h3>What is that PID?</h3>
+<pre tabindex="0"><code>tasklist /FI "PID eq 12345"
+Get-CimInstance Win32_Process -Filter "ProcessId = 12345" | Select-Object Name, ParentProcessId, CommandLine</code></pre>
+<p>The command line tells you which project and tool it is, for example <code>node ... next dev</code> or <code>python -m uvicorn ...</code>.</p>
+<h2>2. End it safely</h2>
+<p>If it is a dev server you no longer need, end it and its child processes:</p>
+<pre tabindex="0"><code>taskkill /PID 12345 /T /F</code></pre>
+<p>Or in PowerShell, for a single process:</p>
+<pre tabindex="0"><code>Stop-Process -Id 12345</code></pre>
+<p>Don't end a process you can't identify. If the owner is <code>svchost.exe</code>, <code>System</code> or a database you run on purpose, pick another port for your app instead.</p>
+<h2>Common causes</h2>
+<div class="tw"><table>
+<thead><tr><th>Owner you see</th><th>Likely cause</th><th>What to do</th></tr></thead>
+<tbody>
+<tr><th scope="row"><code>node.exe</code>, <code>python.exe</code>, <code>bun.exe</code>, <code>dotnet.exe</code></th><td>A dev server left running after its terminal closed, or after Ctrl+C stopped only the npm or cmd wrapper</td><td>Check the command line, then end the tree with <code>taskkill /T /F</code></td></tr>
+<tr><th scope="row"><code>wslrelay.exe</code></th><td>A server running inside WSL 2. Windows forwards its localhost port through this relay</td><td>Stop the server inside WSL. <code>wsl -e ss -ltnp</code> shows Linux listeners. <code>wsl --shutdown</code> stops everything in WSL</td></tr>
+<tr><th scope="row">A Docker Desktop process</th><td>A container publishes the port</td><td><code>docker ps --filter "publish=3000"</code>, then stop that container</td></tr>
+<tr><th scope="row">Nothing listens, yet the bind fails with <code>EACCES</code> or a permissions error</th><td>The port is inside a range Windows reserved, often for Hyper-V, WSL 2 or Docker</td><td>See the next section</td></tr>
+</tbody>
+</table></div>
+<h2>Reserved port ranges (Hyper-V, WSL 2, Docker)</h2>
+<p>Windows can reserve blocks of ports for Hyper-V and related features. A port inside a reserved block can't be used even though no process owns it. Node reports this as <code>listen EACCES: permission denied</code> instead of <code>EADDRINUSE</code>. List the reserved ranges:</p>
+<pre tabindex="0"><code>netsh interface ipv4 show excludedportrange protocol=tcp</code></pre>
+<p>If your port falls inside a listed range, the simplest fix is to use a port outside it. Restarting the WinNAT service (<code>net stop winnat</code>, then <code>net start winnat</code>, as administrator) often releases the reservation until the next restart. It briefly interrupts networking for WSL and containers.</p>
+<h2>How RigSweep helps</h2>
+<p><a href="https://rigsweep.com/">RigSweep</a>'s Dev Cleanup tab lists every dev server, build daemon, MCP server and agent CLI with its project folder, age, RAM and listening ports, so the process holding <code>localhost:3000</code> is visible by name and project. A dev server whose terminal is gone is pre-selected, even when it still holds a port. Processes owned by your editor are locked, the WSL 2 / Docker VM is never pre-selected, and nothing is ended until you click. RigSweep doesn't change reserved port ranges.</p>
+<figure><img src="https://rigsweep.com/screenshots/network.png" alt="RigSweep Network tab: Who is using it? finds the process that holds a port, next to a list of listening ports per process" width="1240" height="820" loading="lazy" /><figcaption>This PC → Network: type a port and see which process holds it.</figcaption></figure>
+<p>See also: <a href="https://rigsweep.com/guides/claude-code-leftover-processes-windows/">Claude Code and MCP servers left running on Windows</a>. <a href="https://github.com/yobotn/rigsweep/releases/latest">Download RigSweep</a> (free, MIT).</p>
+<h2 id="faq">FAQ</h2>
+<h3>How do I find what is using port 3000 on Windows?</h3>
+<p>Run <code>netstat -ano | findstr :3000</code> and read the PID in the last column of the LISTENING line, or in PowerShell run <code>Get-NetTCPConnection -LocalPort 3000 -State Listen</code>. Then <code>tasklist /FI "PID eq &lt;pid&gt;"</code> shows the program.</p>
+<h3>How do I kill the process on port 3000?</h3>
+<p>After checking what it is, run <code>taskkill /PID &lt;pid&gt; /T /F</code>. <code>/T</code> also ends its child processes, which matters for npm and npx wrappers.</p>
+<h3>Why does the port show as used by wslrelay.exe?</h3>
+<p>A server inside WSL 2 is listening on that port, and Windows forwards localhost traffic to it through wslrelay.exe. Stop the server inside WSL, or run <code>wsl --shutdown</code>.</p>
+<h3>Why do I get EACCES on a port nothing is using?</h3>
+<p>The port is probably in a range Windows reserved. Check with <code>netsh interface ipv4 show excludedportrange protocol=tcp</code> and pick a port outside those ranges.</p>]]></content:encoded>
+</item>
+</channel>
+</rss>

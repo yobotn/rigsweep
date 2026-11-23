@@ -2,6 +2,8 @@
 
 > How to find which process holds port 3000 (or any port) on Windows with netstat, Get-NetTCPConnection and tasklist, end it safely, and handle Docker, WSL and Hyper-V reserved port ranges.
 
+19 November 2026
+
 **"Port 3000 is already in use" (`EADDRINUSE`) means another process is listening on that port.** On a dev machine it is usually a dev server that kept running after its terminal closed. Find the owner with `netstat -ano | findstr :3000`, check it with `tasklist`, and end it if it is a leftover.
 
 ## 1. Find the process that owns the port
@@ -67,6 +69,8 @@ If your port falls inside a listed range, the simplest fix is to use a port outs
 ## How RigSweep helps
 
 [RigSweep](https://rigsweep.com/)'s Dev Cleanup tab lists every dev server, build daemon, MCP server and agent CLI with its project folder, age, RAM and listening ports, so the process holding `localhost:3000` is visible by name and project. A dev server whose terminal is gone is pre-selected, even when it still holds a port. Processes owned by your editor are locked, the WSL 2 / Docker VM is never pre-selected, and nothing is ended until you click. RigSweep doesn't change reserved port ranges.
+
+![RigSweep Network tab: Who is using it? finds the process that holds a port, next to a list of listening ports per process](https://rigsweep.com/screenshots/network.png)
 
 See also: [Claude Code and MCP servers left running on Windows](https://rigsweep.com/guides/claude-code-leftover-processes-windows/). [Download RigSweep](https://github.com/yobotn/rigsweep/releases/latest) (free, MIT).
 

@@ -23,23 +23,24 @@
 
 ## Perché l'ho creato
 
-Nell'era dell'AI il mio portatile non esegue più *una sola* cosa. In una giornata normale ho diverse sessioni di **Claude Code** in terminali diversi, un dev server per progetto, watcher di build e un browser pieno di documentazione, anteprime e dashboard. Ogni nuova sessione avvia altri processi Node, e quando chiudo un terminale alcuni **restano semplicemente in esecuzione in background**.
+<!-- Generated from docs/locales (story.*, stat.*) by scripts/prerender-site.js. Edit it there. -->
 
-Il PC cominciava a sembrare *intasato*: ventole sempre accese, RAM quasi sempre al limite e nessuna idea chiara di cosa la stesse davvero consumando. Gestione attività mi mostrava solo un muro di `node.exe` e `chrome.exe`, senza dirmi a quale sessione o progetto appartenessero, né se servissero ancora.
+Nell'era dell'AI un portatile da sviluppatore non esegue più una sola cosa. Una giornata normale significa diverse sessioni di Claude Code in terminali diversi, un dev server per progetto, watcher di build e un browser pieno di documentazione e anteprime.
 
-Così ho misurato il mio PC (32 GB di RAM) nel mezzo di una giornata di lavoro:
+Ogni sessione avvia altri processi, e molti restano in esecuzione anche dopo aver chiuso il terminale. Gestione attività mostra solo un muro di node.exe, python.exe e chrome.exe, senza dirti a quale sessione o progetto appartengono.
 
-| 🔎 Cosa ho trovato | Numero | RAM |
-|---|---:|---:|
-| 🌐 Processi di Chrome | 37 | **6,5 GB** |
-| ⬢ Processi Node + Claude (CLI di agenti, dev server, l'app desktop) | 14 | **2,5 GB** |
-| 🧩 Servizi di Windows in esecuzione (telemetria, Xbox, indicizzazione della ricerca…) | ~150 | — |
+- 🌐 Chrome (37 processi): **6.5 GB**
+- ⬢ Node + Claude (14 processi): **2.5 GB**
+- 🧩 Servizi di Windows in esecuzione: **~150**
+- 🦀 Cartelle target di Rust (3 progetti): **~120 GB**
+
+*Misurato sul portatile da 32 GB dell'autore, nel mezzo di una giornata di lavoro.*
 
 Poi ho guardato il disco. Stavo sviluppando tre app Rust in parallelo: RigSweep stesso, [KeepRun](https://github.com/yobotn/keeprun) (mantiene in esecuzione app Node, .NET e Python come servizi di Windows) e [Focuside](https://github.com/yobotn/focuside) (un IDE essenziale per agenti di coding IA). La cartella `target` di ogni progetto era arrivata a circa **40 GB**, quindi **~120 GB** in totale, tutto output di build che Cargo non pulisce mai da solo. La scheda **Disco dev** le ha trovate tutte e tre con una sola scansione.
 
-Niente di tutto questo era "un virus" o "spazzatura". Erano i **normali residui del lavoro con gli agenti AI**, più roba di Windows in background che a un PC di sviluppo non serve. Le app "PC booster" esistenti o fanno cose irreversibili che spaventano, o non sanno nulla dei flussi di lavoro di sviluppo. Così ho creato lo strumento che volevo:
+Niente di tutto questo era un virus o spazzatura. Erano i normali avanzi del lavoro con gli agenti IA, più roba di Windows in background che a un PC da sviluppo non serve. Le app “PC booster” esistenti o fanno cose spaventose e irreversibili, o non sanno niente dei flussi di lavoro di sviluppo, così ho costruito lo strumento che volevo.
 
-> **Vedi cosa sta davvero usando il tuo PC, fai pulizia di ciò che non serve più e rendi ogni modifica reversibile.**
+> **RigSweep mostra cosa sta davvero usando il tuo PC, fa pulizia di ciò che non serve più e rende ogni modifica reversibile.**
 
 ---
 

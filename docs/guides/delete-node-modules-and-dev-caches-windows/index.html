@@ -16,6 +16,7 @@
   <meta name="theme-color" content="#0b0e13" />
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=527e09ea" />
   <link rel="alternate" type="text/plain" href="https://rigsweep.com/llms.txt" title="llms.txt" />
+  <link rel="alternate" type="application/rss+xml" href="https://rigsweep.com/guides/feed.xml" title="RigSweep guides" />
   <style>
     :root { --bg: #0b0e13; --panel: #141922; --border: #262e3f; --text: #e8ebf1; --muted: #a3abbd; --accent: #22c55e; color-scheme: dark; }
     * { box-sizing: border-box; }
@@ -45,6 +46,10 @@
     tbody th { color: var(--text); font-weight: 600; }
     td { color: var(--muted); }
     .note { font-size: 14px; }
+    figure { margin: 20px 0; }
+    figure img { display: block; width: 100%; height: auto; border: 1px solid var(--border); border-radius: 8px; }
+    figcaption { font-size: 14px; color: var(--muted); margin-top: 8px; }
+    .date { font-size: 14px; color: var(--muted); margin: -8px 0 16px; }
     footer { margin-top: 48px; padding: 24px 16px 40px; border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; }
   </style>
   <script type="application/ld+json">
@@ -149,6 +154,7 @@
   <main class="wrap">
     <div class="crumbs"><a href="/">Home</a> › <a href="/guides/">Guides</a> › Delete node_modules and dev caches</div>
     <h1>Delete node_modules, build output and package caches on Windows</h1>
+    <p class="date"><time datetime="2026-11-19">19 November 2026</time></p>
     <p><strong>Dependency folders, build output and package caches are safe to delete when you can rebuild or re-download them.</strong> Delete project folders like <code>node_modules</code>, <code>target</code> or <code>bin/obj</code> for projects you aren't working on, and clean package caches with each tool's own command (<code>npm cache clean --force</code>, <code>pnpm store prune</code>, <code>uv cache prune</code>, <code>go clean -cache</code>). The next install or build brings back what it needs, at the cost of time and bandwidth.</p>
 
     <h2>Project folders</h2>
@@ -196,6 +202,7 @@
 
     <h2>How RigSweep's Dev Disk does it</h2>
     <p><a href="/">RigSweep</a> is a free, open-source Windows app. Its Dev Disk tab scans your user profile and lists project folders, package caches, GPU and ML caches, AI tool caches and leftover git worktrees with their size.</p>
+    <figure><img src="/screenshots/disk.png" alt="RigSweep Dev Disk: build output, dependency folders and package caches per project, with sizes and last-edited dates" width="1240" height="820" loading="lazy" /><figcaption>Dev Disk lists build output and caches per project, with sizes, before anything is deleted.</figcaption></figure>
     <ul>
     <li>A project folder only counts if its project file sits next to it, so a random <code>build</code> folder is never touched.</li>
     <li>Only projects nobody has edited for 30 days (adjustable) are pre-selected. Projects a running process is using are locked.</li>
