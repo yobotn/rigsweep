@@ -161,7 +161,7 @@
     <div class="grid2">
       <div class="card ctl" id="ogCtl">
         <label>Headline, line 1 <input type="text" data-k="h1" /></label>
-        <label>Headline, line 2 (gradient) <input type="text" data-k="h2" /></label>
+        <label>Headline, line 2 (green) <input type="text" data-k="h2" /></label>
         <label>Subline <textarea data-k="sub"></textarea></label>
         <label>Pills, one per line <textarea data-k="pills"></textarea></label>
         <label>Screenshot <select data-k="shot"></select></label>
@@ -174,8 +174,7 @@
   <!-- ============ COLOR ============ -->
   <section id="color">
     <h2>Color</h2>
-    <p class="lead">Dark first. Blue does the work, green confirms it, and the blue-to-green sweep is the signature in both site looks. Click a swatch to copy its hex.</p>
-    <div class="gradbar"></div>
+    <p class="lead">Dark first, flat, one accent: the same zinc, white and green as Focuside and KeepRun. No gradients, no glow. Click a swatch to copy its hex.</p>
     <div class="swatches" id="swatches"></div>
   </section>
 
@@ -226,12 +225,12 @@
 "use strict";
 if (location.protocol === "file:") document.getElementById("offline").style.display = "block";
 
-const BRAND = { blue: "#4f8cff", green: "#34c38f", orange: "#ff5a1f" };
+const BRAND = { blue: "#4f8cff", green: "#34c38f", orange: "#ff5a1f", signal: "#22c55e" };
 const ICON_DEFAULTS = { glyph: "white", bg: "mark", angle: 135, radius: 23, inset: 0, scale: 74, gloss: false, shadow: false, flatSmall: true };
 const OG_DEFAULTS = {
   h1: "Room for your", h2: "agents.",
   sub: "Free up RAM, CPU and disk on Windows dev machines cluttered by AI-agent sessions. Every change is reversible.",
-  pills: "🆓 Free · MIT\n🪟 Windows 10 / 11\n🌍 11 languages",
+  pills: "Free · MIT\nWindows 10 / 11\n11 languages",
   shot: "cleanup.png",
 };
 let icon = { ...ICON_DEFAULTS };
@@ -340,10 +339,7 @@ async function renderOg(target) {
   const c = target || document.getElementById("og"), ctx = c.getContext("2d"), W = 1280, H = 640;
   ctx.clearRect(0, 0, W, H);
   ctx.fillStyle = "#0b0e13"; ctx.fillRect(0, 0, W, H);
-  let g = ctx.createRadialGradient(140, 0, 0, 140, 0, 760); g.addColorStop(0, "rgba(79,140,255,.20)"); g.addColorStop(1, "rgba(79,140,255,0)");
-  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-  g = ctx.createRadialGradient(1100, 700, 0, 1100, 700, 620); g.addColorStop(0, "rgba(52,195,143,.13)"); g.addColorStop(1, "rgba(52,195,143,0)");
-  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  // flat background, no glow: the family look (Focuside, KeepRun)
 
   // logo
   ctx.drawImage(iconCanvas(128), 72, 72, 64, 64);
@@ -354,7 +350,7 @@ async function renderOg(target) {
   ctx.fillStyle = "#e8ebf1"; ctx.fillText(og.h1, 72, 250);
   const h2 = og.h2, dot = /[.!?]$/.test(h2) ? h2.slice(-1) : "", word = dot ? h2.slice(0, -1) : h2;
   const ww = ctx.measureText(word).width;
-  ctx.fillStyle = angleGrad(ctx, 72, 260, ww, 70, 90, [[0, BRAND.blue], [1, BRAND.green]]);
+  ctx.fillStyle = BRAND.signal;
   ctx.fillText(word, 72, 332);
   ctx.fillStyle = "#e8ebf1"; ctx.fillText(dot, 72 + ww, 332);
 
@@ -388,9 +384,9 @@ async function renderOg(target) {
 
 // ---------- color ----------
 const COLORS = [
-  ["Sweep blue", "--accent", "#4f8cff", "Accent, links, the gradient's start"],
-  ["Button blue", "--accent-solid", "#2f6ee0", "Filled buttons with white text"],
-  ["Sweep green", "--accent2 / --safe", "#34c38f", "Freed space, safe, the gradient's end"],
+  ["Signal green", "--accent / --safe", "#22c55e", "The one accent: links, primary buttons, freed space, the mark's square"],
+  ["Button ink", "text on --accent", "#052e16", "Text on green buttons"],
+  ["Info blue", "--info", "#4f8cff", "Information only (charts, notes), never the brand"],
   ["Amber", "--moderate", "#f1b44c", "Moderate risk, warnings"],
   ["Coral", "--caution", "#f46a6a", "Caution, destructive"],
   ["Ink", "--bg", "#0b0e13", "Site background"],

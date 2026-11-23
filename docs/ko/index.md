@@ -86,7 +86,7 @@ Chrome, Edge, Brave, Vivaldi, Opera, Firefox의 캐시를 비웁니다. 로그�
 
 ### 간단 또는 프로
 
-간단 모드는 대시보드와 정리를 쉬운 말로 보여 줍니다. 프로 모드는 프로세스, 네트워크, GPU 엔진, 원시 수치를 더합니다. 깔끔하게 또는 AI 스타일을 고르고, 필요 없는 모니터를 끄면 CPU를 쓰지 않습니다.
+간단 모드는 대시보드와 정리를 쉬운 말로 보여 줍니다. 프로 모드는 프로세스, 네트워크, GPU 엔진, 원시 수치를 더합니다. 필요 없는 모니터를 끄면 CPU를 쓰지 않습니다.
 
 ### 콘솔 창
 
@@ -115,7 +115,7 @@ rigsweep --disk-report --json과 --disk-clean --safe --dry-run은 관리자 권�
 
 RigSweep은 오픈 소스이지만 아직 코드 서명이 되어 있지 않습니다. 서비스를 변경하는 도구는 머신 러닝 휴리스틱에 맬웨어처럼 보이기 때문에 Defender가 실수로 감지할 수 있습니다(예: `Trojan:Win32/Bearfoos!ml`, 여기서 `!ml`은 휴리스틱 추정을 뜻합니다).
 
-설치 프로그램은 자체 폴더만 제외할지 **묻고**, 제거 프로그램은 그 제외 항목을 다시 제거합니다. SignPath Foundation을 통한 코드 서명이 예정되어 있습니다. [전체 FAQ 읽기 →](https://github.com/yobotn/rigsweep/blob/main/README.ko.md#%EF%B8%8F-%EB%B0%94%EC%9D%B4%EB%9F%AC%EC%8A%A4-%EB%B0%B1%EC%8B%A0-%EC%98%A4%ED%83%90%EC%A7%80)
+설치 프로그램은 자체 폴더만 제외할지 **묻고**, 제거 프로그램은 그 제외 항목을 다시 제거합니다. SignPath Foundation을 통한 코드 서명이 예정되어 있습니다. [전체 FAQ 읽기 →](https://github.com/yobotn/rigsweep/blob/main/README.ko.md#%EB%B0%94%EC%9D%B4%EB%9F%AC%EC%8A%A4-%EB%B0%B1%EC%8B%A0-%EC%98%A4%ED%83%90%EC%A7%80)
 
 ## ❓ 개발자들이 자주 묻는 질문
 

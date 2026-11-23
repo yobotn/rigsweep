@@ -35,7 +35,7 @@
   <meta property="og:title" content="RigSweep: room for your agents" />
   <meta property="og:description" content="AI 에이전트 세션으로 어수선해진 개발 PC의 RAM, CPU, 디스크를 확보하는 무료 오픈 소스 Windows 앱입니다. 남아 있는 개발 서버, MCP 서버, 에이전트 CLI를 종료하고, 오래된 node_modules와 패키지·AI 도구 캐시를 삭제하며, 되돌릴 수 있는 Windows 설정과 실제 전후 측정 보고서를 제공합니다." />
   <meta property="og:url" content="https://rigsweep.com/ko/" />
-  <meta property="og:image" content="https://rigsweep.com/social.png?v=7ffbae35" />
+  <meta property="og:image" content="https://rigsweep.com/social.png?v=039d78cc" />
   <meta property="og:image:width" content="1280" />
   <meta property="og:image:height" content="640" />
   <meta property="og:image:alt" content="RigSweep: room for your agents. Free up RAM, CPU and disk on Windows dev machines." />
@@ -43,7 +43,7 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="RigSweep: room for your agents" />
   <meta name="twitter:description" content="AI 에이전트 세션으로 어수선해진 개발 PC의 RAM, CPU, 디스크를 확보하는 무료 오픈 소스 Windows 앱입니다. 남아 있는 개발 서버, MCP 서버, 에이전트 CLI를 종료하고, 오래된 node_modules와 패키지·AI 도구 캐시를 삭제하며, 되돌릴 수 있는 Windows 설정과 실제 전후 측정 보고서를 제공합니다." />
-  <meta name="twitter:image" content="https://rigsweep.com/social.png?v=7ffbae35" />
+  <meta name="twitter:image" content="https://rigsweep.com/social.png?v=039d78cc" />
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=527e09ea" />
   <link rel="icon" type="image/png" sizes="128x128" href="/icon.png?v=86fdcbbe" />
   <link rel="apple-touch-icon" href="/icon.png?v=86fdcbbe" />
@@ -119,18 +119,13 @@
     ]
   }
   </script>
-  <script>
-    // design toggle: "clean" (default, flat with Lucide icons) or "ai" (gradients, glow, emoji); ?look=ai to share one
-    (() => { let l = new URLSearchParams(location.search).get("look"); try { l = l || localStorage.getItem("look"); } catch {}
-      document.documentElement.dataset.style = l === "ai" ? "ai" : "clean"; })();
-  </script>
   <style>
     /* Arabic: Cairo (SIL OFL, docs/fonts), self-hosted and limited to its script */
     @font-face { font-family: "Cairo"; src: url("/fonts/cairo-arabic.woff2") format("woff2"); font-weight: 200 1000; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+FB50-FDFF, U+FE70-FEFF, U+200C-200F; }
     /* ---------- tokens ---------- */
     :root {
       --bg: #0b0e13; --bg2: #0f131a; --panel: #141922; --panel2: #1b2130; --border: #262e3f; --border2: #323c52;
-      --text: #e8ebf1; --muted: #8e97ab; --accent: #4f8cff; --accent2: #34c38f; --warn: #f1b44c;
+      --text: #e8ebf1; --muted: #8e97ab; --accent: #22c55e; --accent2: #22c55e; --warn: #f1b44c;
       --r-sm: 8px; --r: 14px; --r-lg: 18px;
       --s1: 8px; --s2: 16px; --s3: 24px; --s4: 40px; --s5: 72px;
       --shadow: 0 24px 64px rgba(0,0,0,.55);
@@ -160,12 +155,12 @@
     /* ---------- buttons ---------- */
     .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--s1); min-height: 46px; padding: 0 22px;
       border-radius: var(--r-sm); font-weight: 600; border: 1px solid var(--border2); color: var(--text); background: var(--panel); transition: transform .15s, filter .15s; }
-    .btn:hover { text-decoration: none; filter: brightness(1.12); transform: translateY(-1px); }
-    .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn:hover { text-decoration: none; filter: brightness(1.12); }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #052e16; }
     .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 
     /* ---------- screenshot frame: fixed aspect ratio, never stretched ---------- */
-    .frame { background: var(--panel); border: 1px solid var(--border2); border-radius: var(--r-lg); box-shadow: var(--shadow); overflow: hidden; }
+    .frame { background: var(--panel); border: 1px solid var(--border2); border-radius: var(--r-lg); box-shadow: 0 12px 32px rgba(0,0,0,.35); overflow: hidden; }
     .frame .bar { display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px; background: var(--bg2); border-bottom: 1px solid var(--border); }
     .frame .bar i { width: 10px; height: 10px; border-radius: 50%; background: var(--border2); }
     .frame .bar span { margin-inline-start: 10px; font-size: 12px; color: var(--muted); }
@@ -179,7 +174,7 @@
 
     /* ---------- sections ---------- */
     section { padding: var(--s5) 0 0; }
-    .eyebrow { display: inline-block; font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-bottom: var(--s1); }
+    .eyebrow { display: inline-block; font-size: 13px; font-weight: 600; letter-spacing: .02em; color: var(--accent); margin-bottom: var(--s1); }
     h1, h2, h3 { letter-spacing: -0.015em; }
     h2 { font-size: clamp(26px, 3.4vw, 36px); line-height: 1.2; margin: 0 0 var(--s2); }
     .lead { color: var(--muted); font-size: 17px; max-width: 700px; margin: 0 0 var(--s4); }
@@ -190,7 +185,7 @@
     .hero { text-align: center; padding: var(--s5) 0 0; }
     .badge-top { display: inline-flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); border: 1px solid var(--border); border-radius: 999px; padding: 4px 14px; margin-bottom: var(--s3); background: var(--panel); }
     .hero h1 { font-size: clamp(38px, 6.4vw, 66px); line-height: 1.06; margin: 0 0 var(--s3); }
-    .hero h1 span { background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .hero h1 span { color: var(--accent); }
     .hero p.sub { color: var(--muted); font-size: clamp(17px, 2.2vw, 20px); max-width: 700px; margin: 0 auto var(--s4); }
     .hero .meta { margin-top: var(--s2); color: var(--muted); font-size: 13px; }
     .hero .frame { margin: var(--s4) auto 0; max-width: 1000px; }
@@ -199,12 +194,12 @@
     .live-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
     .live-row > div { background: var(--panel); border: 1px solid var(--border2); border-radius: 12px; padding: 14px 10px; min-width: 0; }
     .live-row b { display: block; font-size: clamp(22px, 3.4vw, 30px); font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
-      background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; white-space: nowrap;
+      color: var(--text); white-space: nowrap;
       direction: ltr; unicode-bidi: isolate; }
     .live-row span { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
     .live-note { margin: 10px 0 0; color: var(--muted); font-size: 12px; display: flex; justify-content: center; align-items: center; gap: 6px; }
-    .live-note .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent2); box-shadow: 0 0 0 0 rgba(52,195,143,.6); animation: pulse 2s infinite; }
-    @keyframes pulse { 70% { box-shadow: 0 0 0 7px rgba(52,195,143,0); } 100% { box-shadow: 0 0 0 0 rgba(52,195,143,0); } }
+    .live-note .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent2); box-shadow: 0 0 0 0 rgba(34,197,94,.6); animation: pulse 2s infinite; }
+    @keyframes pulse { 70% { box-shadow: 0 0 0 7px rgba(34,197,94,0); } 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); } }
     @media (prefers-reduced-motion: reduce) { .live-note .dot { animation: none; } }
 
     /* ecosystem strip */
@@ -238,7 +233,7 @@
     .ticks { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
     .ticks li { position: relative; padding-inline-start: 30px; color: var(--muted); }
     .ticks li::before { content: "✓"; position: absolute; inset-inline-start: 0; top: 1px; width: 20px; height: 20px; display: grid; place-items: center;
-      font-size: 12px; font-weight: 700; border-radius: 50%; background: rgba(52,195,143,.15); color: var(--accent2); }
+      font-size: 12px; font-weight: 700; border-radius: 50%; background: rgba(34,197,94,.15); color: var(--accent2); }
     .ticks li b { color: var(--text); }
 
     /* faq */
@@ -253,7 +248,7 @@
     .note.disc { border-inline-start-color: var(--muted); }
 
     .final { text-align: center; padding: var(--s5) var(--s3); margin-top: var(--s5); border-radius: var(--r-lg);
-      background: radial-gradient(ellipse at top, rgba(79,140,255,.16), transparent 70%), var(--panel); border: 1px solid var(--border); }
+      background: var(--panel); border: 1px solid var(--border); }
     .final .lead { margin-bottom: var(--s3); }
 
     .signing { max-width: 680px; margin: var(--s4) auto 0; padding-top: var(--s3); border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; }
@@ -265,23 +260,12 @@
     footer .langs a { color: var(--muted); }
     footer .langs a[aria-current] { color: var(--text); }
 
-    /* ---------- design toggle ---------- */
-    .look { display: inline-flex; border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--panel); padding: 2px; }
-    .look button { background: none; border: 0; border-radius: 6px; color: var(--muted); font: inherit; font-size: 13px; padding: 4px 10px; cursor: pointer; white-space: nowrap; }
-    .look button:hover { color: var(--text); }
-    .look button[aria-pressed="true"] { background: var(--panel2); color: var(--text); }
-    .look button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-    /* icons.js keeps each emoji in a .emo span beside its Lucide .ico twin; the look picks one */
+    /* icons.js keeps each emoji in a .emo span beside its Lucide .ico twin; the page shows the icon */
     .ico { display: inline-flex; width: 1.1em; height: 1.1em; vertical-align: -0.18em; margin-inline-end: 0.4em; flex-shrink: 0; }
     .ico svg { width: 100%; height: 100%; }
     .card .ic .ico { width: 22px; height: 22px; margin: 0; color: var(--accent); }
     .chip .ico { margin: 0; }
-    html:not([data-style="ai"]) .emo { display: none; }
-    html[data-style="ai"] .ico { display: none; }
-    /* clean look: no glow, no lift; the blue-to-green gradients stay in both looks */
-    html:not([data-style="ai"]) .btn:hover { transform: none; }
-    html:not([data-style="ai"]) .frame { box-shadow: 0 12px 32px rgba(0,0,0,.35); }
-    html:not([data-style="ai"]) .eyebrow { letter-spacing: .02em; text-transform: none; }
+    .emo { display: none; }
 
     @media (max-width: 900px) {
       .grid { grid-template-columns: repeat(2, 1fr); }
@@ -294,7 +278,6 @@
       .grid { grid-template-columns: 1fr; }
       .links a.hide-sm { display: none; }
       .links { gap: 10px; }
-      .look button { padding: 4px 8px; }
       .lang { max-width: 104px; }
       .frame .bar { height: 26px; }
       .btn { width: 100%; }
@@ -310,10 +293,6 @@
         <a class="hide-sm" href="#faq" data-t="nav.faq">FAQ</a>
         <a class="hide-sm" href="#trust" data-t="nav.trust">바이러스 백신 FAQ</a>
         <a class="hide-sm" href="https://github.com/yobotn/rigsweep">GitHub</a>
-        <div class="look" id="look" role="group" data-t-aria="look.label" aria-label="Design">
-          <button type="button" data-look="clean" aria-pressed="true" data-t="look.clean">심플</button>
-          <button type="button" data-look="ai" aria-pressed="false" data-t="look.ai">AI</button>
-        </div>
         <select class="lang" id="lang" aria-label="Language"></select>
       </div>
     </div>
@@ -355,7 +334,7 @@
         </div>
         <div class="frame">
           <div class="bar"><i></i><i></i><i></i><span>RigSweep</span></div>
-          <img id="img-hero" src="/screenshots/cleanup-ko.png?v=542d806a" alt="RigSweep Dev Cleanup" />
+          <img id="img-hero" src="/screenshots/cleanup-ko.png?v=54b724d9" alt="RigSweep Dev Cleanup" />
         </div>
       </div>
     </header>
@@ -411,7 +390,7 @@
         <div class="card"><div class="ic">🎮</div><h3 data-t="f12.h">GPU 및 AI</h3><p data-t="f12.p">각 앱이 그래픽 카드와 NPU에서 하는 일을 작업 관리자와 같은 카운터로 보여 주고, 실행 중인 AI 런타임(Ollama, LM Studio, llama.cpp, ComfyUI, PyTorch), 로드된 모델, 사용 중인 비디오 메모리도 보여 줍니다.</p></div>
         <div class="card"><div class="ic">📡</div><h3 data-t="f13.h">네트워크</h3><p data-t="f13.p">어댑터별 트래픽, 어떤 앱이 어떤 연결이나 수신 대기 포트를 쓰는지, 그리고 포트 3000이나 잠긴 파일·폴더를 누가 쓰는지 알려 주는 검색.</p></div>
         <div class="card"><div class="ic">🔎</div><h3 data-t="f14.h">찾기</h3><p data-t="f14.p">드라이브마다 무엇이 공간을 차지하는지 폴더별로 보고, 패키지 캐시를 C:에서 다른 드라이브나 Dev Drive로 옮기고, 제거 프로그램이 없는 프로그램, 다운로드 폴더의 오래된 큰 파일, 서명 없는 시작 프로그램을 Microsoft Defender 검사와 함께 살펴볼 수 있습니다.</p></div>
-        <div class="card"><div class="ic">🎛️</div><h3 data-t="f15.h">간단 또는 프로</h3><p data-t="f15.p">간단 모드는 대시보드와 정리를 쉬운 말로 보여 줍니다. 프로 모드는 프로세스, 네트워크, GPU 엔진, 원시 수치를 더합니다. 깔끔하게 또는 AI 스타일을 고르고, 필요 없는 모니터를 끄면 CPU를 쓰지 않습니다.</p></div>
+        <div class="card"><div class="ic">🎛️</div><h3 data-t="f15.h">간단 또는 프로</h3><p data-t="f15.p">간단 모드는 대시보드와 정리를 쉬운 말로 보여 줍니다. 프로 모드는 프로세스, 네트워크, GPU 엔진, 원시 수치를 더합니다. 필요 없는 모니터를 끄면 CPU를 쓰지 않습니다.</p></div>
         <div class="card wide"><div class="ic">🪟</div><h3 data-t="f17.h">콘솔 창</h3><p data-t="f17.p">번쩍 떴다가 사라지는 그 명령 프롬프트 창. RigSweep이 실제로 실행된 명령, 무엇이 시작했는지(예약된 작업, 서비스 또는 앱), 안에서 무엇이 실행됐는지 기록하고, 그 뒤에 있는 작업을 백업과 함께 끌 수 있습니다.</p></div>
         <div class="card wide"><div class="ic">🤖</div><h3 data-t="f16.h">AI 에이전트용</h3><p data-t="f16.p">rigsweep --disk-report --json과 --disk-clean --safe --dry-run은 관리자 권한 없이 동작하고, rigsweep --mcp는 MCP 서버입니다. Claude Code, Cursor, Codex가 여유 공간을 확인하고, 무엇이 차지하는지 보고, 저절로 다시 만들어지는 캐시를 비울 수 있습니다.</p></div>
       </div>
@@ -432,7 +411,7 @@
         </div>
         <div class="frame">
           <div class="bar"><i></i><i></i><i></i><span data-t="shot.dashboard">대시보드</span></div>
-          <img id="img-dashboard" src="/screenshots/dashboard.png?v=6ddf8bec" alt="RigSweep dashboard" loading="lazy" />
+          <img id="img-dashboard" src="/screenshots/dashboard.png?v=f1db0317" alt="RigSweep dashboard" loading="lazy" />
         </div>
       </div>
     </section>
@@ -451,7 +430,7 @@
         </div>
         <div class="frame">
           <div class="bar"><i></i><i></i><i></i><span data-t="shot.tweaks">시스템 조정</span></div>
-          <img src="/screenshots/tweaks.png?v=894014cb" alt="Reversible tweaks" loading="lazy" />
+          <img src="/screenshots/tweaks.png?v=dbed9977" alt="Reversible tweaks" loading="lazy" />
         </div>
       </div>
     </section>
@@ -461,7 +440,7 @@
       <h2 data-t="trust.h">🛡️ Defender가 삭제했나요?</h2>
       <div class="note">
         <p data-t-html="trust.p1">RigSweep은 오픈 소스이지만 아직 코드 서명이 되어 있지 않습니다. 서비스를 변경하는 도구는 머신 러닝 휴리스틱에 맬웨어처럼 보이기 때문에 Defender가 실수로 감지할 수 있습니다(예: <code>Trojan:Win32/Bearfoos!ml</code>, 여기서 <code>!ml</code>은 휴리스틱 추정을 뜻합니다).</p>
-        <p data-t-html="trust.p2">설치 프로그램은 자체 폴더만 제외할지 <b>묻고</b>, 제거 프로그램은 그 제외 항목을 다시 제거합니다. SignPath Foundation을 통한 코드 서명이 예정되어 있습니다. <a href="https://github.com/yobotn/rigsweep/blob/main/README.ko.md#%EF%B8%8F-%EB%B0%94%EC%9D%B4%EB%9F%AC%EC%8A%A4-%EB%B0%B1%EC%8B%A0-%EC%98%A4%ED%83%90%EC%A7%80">전체 FAQ 읽기 →</a></p>
+        <p data-t-html="trust.p2">설치 프로그램은 자체 폴더만 제외할지 <b>묻고</b>, 제거 프로그램은 그 제외 항목을 다시 제거합니다. SignPath Foundation을 통한 코드 서명이 예정되어 있습니다. <a href="https://github.com/yobotn/rigsweep/blob/main/README.ko.md#%EB%B0%94%EC%9D%B4%EB%9F%AC%EC%8A%A4-%EB%B0%B1%EC%8B%A0-%EC%98%A4%ED%83%90%EC%A7%80">전체 FAQ 읽기 →</a></p>
       </div>
     </section>
 
@@ -488,12 +467,12 @@
       <p class="lead" data-t="start.p">설치하고, 기준값을 측정하고, 정리한 다음, 다시 측정하세요.</p>
       <div class="cta">
         <a class="btn primary" href="https://github.com/yobotn/rigsweep/releases/latest" data-t="cta.download">⬇️ Windows용 다운로드</a>
-        <a class="btn" href="https://github.com/yobotn/rigsweep#-build-from-source" data-t="cta.build">🛠️ 소스에서 빌드</a>
+        <a class="btn" href="https://github.com/yobotn/rigsweep#build-from-source" data-t="cta.build">🛠️ 소스에서 빌드</a>
       </div>
       <div class="signing">
         <h3 data-t="sign.h">🔏 코드 서명</h3>
         <p data-t="sign.p">SignPath.io에서 무료 코드 서명을 제공하며, 인증서는 SignPath Foundation에서 발급합니다(신청 진행 중이며 현재 릴리스는 아직 서명되지 않았습니다). 설치 프로그램은 GitHub Actions가 태그된 소스에서 빌드합니다. 원격 분석과 사용 통계 수집이 없습니다. 유일한 네트워크 요청은 업데이트 확인이며, 사용자가 이를 켜거나 지금 확인을 클릭할 때만 발생합니다.</p>
-        <a href="https://github.com/yobotn/rigsweep#-code-signing-policy" data-t="sign.link">코드 서명 및 개인정보 처리방침 →</a>
+        <a href="https://github.com/yobotn/rigsweep#code-signing-policy" data-t="sign.link">코드 서명 및 개인정보 처리방침 →</a>
       </div>
     </div>
 
@@ -505,17 +484,17 @@
   </main>
 
   <script src="/icons.js?v=27f6c102" defer></script>
-  <script src="/locales/en.js?v=bfed0750"></script>
-  <script src="/locales/de.js?v=a3636ae6"></script>
-  <script src="/locales/es.js?v=3eac224b"></script>
-  <script src="/locales/fr.js?v=74bf8873"></script>
-  <script src="/locales/it.js?v=2b6d22b5"></script>
-  <script src="/locales/pt-BR.js?v=e22bcde9"></script>
-  <script src="/locales/ru.js?v=8b76ee0e"></script>
-  <script src="/locales/ja.js?v=8a1d4ef1"></script>
-  <script src="/locales/ko.js?v=800fc6d5"></script>
-  <script src="/locales/zh-CN.js?v=a2760da3"></script>
-  <script src="/locales/ar.js?v=2e7c2a4e"></script>
+  <script src="/locales/en.js?v=48eb0cc6"></script>
+  <script src="/locales/de.js?v=1c4acb65"></script>
+  <script src="/locales/es.js?v=a365a8ec"></script>
+  <script src="/locales/fr.js?v=58d2ce3a"></script>
+  <script src="/locales/it.js?v=9decc038"></script>
+  <script src="/locales/pt-BR.js?v=534b3e4f"></script>
+  <script src="/locales/ru.js?v=725b2733"></script>
+  <script src="/locales/ja.js?v=b32e31c8"></script>
+  <script src="/locales/ko.js?v=b802e21e"></script>
+  <script src="/locales/zh-CN.js?v=4816b518"></script>
+  <script src="/locales/ar.js?v=ba4d5d83"></script>
   <script>
     const LANGS = { "en": "English", "de": "Deutsch", "es": "Español", "fr": "Français", "it": "Italiano", "pt-BR": "Português (Brasil)", "ru": "Русский", "ja": "日本語", "ko": "한국어", "zh-CN": "简体中文", "ar": "العربية" };
     // the Dashboard shot is a real capture (en/es/fr); the Dev Cleanup shot exists in every language
@@ -552,15 +531,6 @@
       const next = tabs[(i + step + tabs.length) % tabs.length];
       e.preventDefault(); showShot(next.dataset.shot); next.focus();
     });
-
-    const look = document.getElementById("look");
-    function setLook(l, save) {
-      document.documentElement.dataset.style = l;
-      look.querySelectorAll("[data-look]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.look === l)));
-      if (save) try { localStorage.setItem("look", l); } catch {}
-    }
-    look.addEventListener("click", (e) => { const b = e.target.closest("[data-look]"); if (b) setLook(b.dataset.look, true); });
-    setLook(document.documentElement.dataset.style, false);
 
     function apply(lang) {
       if (!T[lang]) lang = "en";

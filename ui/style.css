@@ -11,10 +11,12 @@
   --border: #2a3142;
   --text: #e6e9ef;
   --muted: #8b93a7;
-  --accent: #4f8cff;
-  /* filled buttons: white text needs 4.5:1, which --accent (3.2:1) misses */
-  --accent-solid: #2f6ee0;
-  --safe: #34c38f;
+  /* one accent, the family green (Focuside, KeepRun); blue only for information (--c-cpu, charts) */
+  --accent: #22c55e;
+  /* filled buttons are green with dark text (--on-accent), 9:1 */
+  --accent-solid: #22c55e;
+  --on-accent: #052e16;
+  --safe: #22c55e;
   --moderate: #f1b44c;
   --caution: #f46a6a;
   --radius: var(--r-md);
@@ -26,6 +28,7 @@
   --c-mem: #b392f0;
   --row-hover: #1b202b;
   color-scheme: dark;
+  accent-color: var(--accent);
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; }
@@ -78,7 +81,7 @@ button, .btn {
 }
 button:hover, .btn:hover { border-color: #3b4560; }
 button:disabled { opacity: .5; cursor: default; }
-button.primary { background: var(--accent-solid); border-color: var(--accent-solid); color: #fff; }
+button.primary { background: var(--accent-solid); border-color: var(--accent-solid); color: var(--on-accent); }
 button.danger { background: transparent; border-color: var(--caution); color: var(--caution); }
 button.ghost, .btn.ghost { background: transparent; }
 button.small { padding: var(--s-1) var(--s2); font-size: var(--fs-xs); }
@@ -685,24 +688,9 @@ header .actions .live-sub { margin: 0 var(--s2) 0 0; margin-inline: 0 var(--s2);
 .free-card.ram .big { color: var(--c-mem); }
 .free-card.cpu .big { color: var(--c-cpu, var(--accent)); }
 
-/* ---------- Style: "clean" (flat, Lucide icons) or "ai" (emoji, gradients, glow) ---------- */
-/* icons.js keeps each emoji in a .emo span next to its .ico twin; the style picks which one shows */
-html:not([data-style="ai"]) .emo { display: none; }
-html[data-style="ai"] .ico:not(.solo):not([data-ico]) { display: none; }
-html[data-style="ai"] .emo { margin-inline-end: 0.3em; }
+/* ---------- Icons: icons.js keeps each emoji in a .emo span next to its Lucide .ico twin; the icon shows ---------- */
+.emo { display: none; }
 .ico.solo { color: inherit; }
-html[data-style="ai"] {
-  --glow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent), 0 8px 28px -12px color-mix(in srgb, var(--accent) 60%, transparent);
-}
-html[data-style="ai"] .brand { background: linear-gradient(90deg, #8ab4ff, #c79bff 55%, #ff9bd2); -webkit-background-clip: text; background-clip: text; color: transparent; }
-html[data-style="ai"] .brand .bolt, html[data-style="ai"] .brand .tagline { -webkit-text-fill-color: initial; }
-html[data-style="ai"] .tile, html[data-style="ai"] .card {
-  background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 7%, var(--panel)), var(--panel) 60%);
-  box-shadow: var(--glow);
-}
-html[data-style="ai"] button.primary { background: linear-gradient(90deg, var(--accent-solid), #7b5cff); border-color: transparent; }
-html[data-style="ai"] nav button.active { background: color-mix(in srgb, #a07bff 14%, var(--panel2)); }
-html[data-style="ai"] nav button.active::before { background: linear-gradient(#8ab4ff, #a07bff); }
 
 /* ---------- Mode: Simple hides the expert detail; Pro shows everything ---------- */
 html[data-mode="simple"] .pro-only { display: none !important; }
@@ -718,7 +706,6 @@ html[data-mode="simple"] .pro-only { display: none !important; }
 html.no-heat #t-heat-tile, html.no-heat #live-heat-row { display: none !important; }
 [data-icon]::before { content: ""; display: inline-block; width: 1.1em; height: 1.1em; vertical-align: -0.18em; margin-inline-end: 0.4em;
   background: currentColor; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-size: contain; mask-size: contain; }
-html[data-style="ai"] [data-icon]::before { display: none; }
 html[data-mode="pro"] .simple-only { display: none; }
 .feat code { display: inline-block; margin: 0 2px 2px 0; }
 #tab-network .card.form { max-width: none; gap: var(--s3); }

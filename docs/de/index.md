@@ -86,7 +86,7 @@ Sieh Ordner für Ordner, was auf jedem Laufwerk Platz belegt, verschiebe Paket-C
 
 ### Einfach oder Profi
 
-„Einfach“ zeigt das Dashboard und die Bereinigungen in klaren Worten. „Profi“ ergänzt Prozesse, Netzwerk, GPU-Engines und die Rohwerte. Wähle den Stil „Klar“ oder „KI-Look“ und schalte Monitore ab, die du nicht brauchst. Dann kosten sie keine CPU.
+„Einfach“ zeigt das Dashboard und die Bereinigungen in klaren Worten. „Profi“ ergänzt Prozesse, Netzwerk, GPU-Engines und die Rohwerte. Schalte Monitore ab, die du nicht brauchst. Dann kosten sie keine CPU.
 
 ### Konsolenfenster
 
@@ -115,7 +115,7 @@ rigsweep --disk-report --json und --disk-clean --safe --dry-run laufen ohne Admi
 
 RigSweep ist Open Source, aber noch nicht codesigniert. Tools, die Dienste ändern, sehen für Machine-Learning-Heuristiken wie Schadsoftware aus, daher kann Defender es fälschlicherweise erkennen (z. B. `Trojan:Win32/Bearfoos!ml`, wobei `!ml` für eine heuristische Vermutung steht).
 
-Das Installationsprogramm **fragt**, ob nur sein eigener Ordner ausgeschlossen werden soll, und das Deinstallationsprogramm entfernt diesen Ausschluss wieder. Eine Codesignierung über die SignPath Foundation ist geplant. [Vollständige FAQ lesen →](https://github.com/yobotn/rigsweep/blob/main/README.de.md#%EF%B8%8F-antivirus-fehlalarme)
+Das Installationsprogramm **fragt**, ob nur sein eigener Ordner ausgeschlossen werden soll, und das Deinstallationsprogramm entfernt diesen Ausschluss wieder. Eine Codesignierung über die SignPath Foundation ist geplant. [Vollständige FAQ lesen →](https://github.com/yobotn/rigsweep/blob/main/README.de.md#antivirus-fehlalarme)
 
 ## ❓ Häufige Fragen von Entwicklern
 

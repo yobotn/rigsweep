@@ -86,7 +86,7 @@ Voyez ce qui prend de la place sur chaque disque, dossier par dossier, déplacez
 
 ### Simple ou Pro
 
-Le mode Simple affiche le tableau de bord et les nettoyages en termes clairs. Pro ajoute Processus, Réseau, moteurs GPU et valeurs brutes. Choisissez le style Épuré ou Style IA, et désactivez les moniteurs inutiles : ils ne consomment alors aucun CPU.
+Le mode Simple affiche le tableau de bord et les nettoyages en termes clairs. Pro ajoute Processus, Réseau, moteurs GPU et valeurs brutes. Désactivez les moniteurs inutiles : ils ne consomment alors aucun CPU.
 
 ### Fenêtres de console
 
@@ -115,7 +115,7 @@ rigsweep --disk-report --json et --disk-clean --safe --dry-run fonctionnent sans
 
 RigSweep est open source mais pas encore signé. Les outils qui modifient des services ressemblent à des malwares pour l'heuristique d'apprentissage automatique, donc Defender peut le signaler à tort (ex. `Trojan:Win32/Bearfoos!ml`, où `!ml` désigne une supposition heuristique).
 
-Le programme d'installation **demande** si vous voulez exclure uniquement son propre dossier, et le programme de désinstallation retire ensuite cette exclusion. La signature de code via SignPath Foundation est prévue. [Lire la FAQ complète →](https://github.com/yobotn/rigsweep/blob/main/README.fr.md#%EF%B8%8F-faux-positifs-antivirus)
+Le programme d'installation **demande** si vous voulez exclure uniquement son propre dossier, et le programme de désinstallation retire ensuite cette exclusion. La signature de code via SignPath Foundation est prévue. [Lire la FAQ complète →](https://github.com/yobotn/rigsweep/blob/main/README.fr.md#faux-positifs-antivirus)
 
 ## ❓ Les questions des développeurs
 

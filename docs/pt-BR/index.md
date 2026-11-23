@@ -86,7 +86,7 @@ Veja o que ocupa espaço em cada unidade, pasta por pasta, tire os caches de pac
 
 ### Simples ou Pro
 
-O modo Simples mostra o painel e as limpezas em palavras claras. O Pro adiciona Processos, Rede, mecanismos da GPU e os números brutos. Escolha o estilo Limpo ou Estilo IA e desligue os monitores de que não precisa para que não gastem CPU.
+O modo Simples mostra o painel e as limpezas em palavras claras. O Pro adiciona Processos, Rede, mecanismos da GPU e os números brutos. Desligue os monitores de que não precisa para que não gastem CPU.
 
 ### Janelas de console
 
@@ -115,7 +115,7 @@ rigsweep --disk-report --json e --disk-clean --safe --dry-run funcionam sem dire
 
 O RigSweep é open source, mas ainda não tem assinatura de código. Ferramentas que alteram serviços parecem malware para heurísticas de aprendizado de máquina, então o Defender pode sinalizá-lo por engano (por exemplo, `Trojan:Win32/Bearfoos!ml`, em que `!ml` indica um palpite heurístico).
 
-O instalador **pergunta** se você quer excluir apenas a pasta dele, e o desinstalador remove essa exclusão depois. A assinatura de código pela SignPath Foundation está planejada. [Leia a FAQ completa →](https://github.com/yobotn/rigsweep/blob/main/README.pt-BR.md#%EF%B8%8F-falsos-positivos-do-antiv%C3%ADrus)
+O instalador **pergunta** se você quer excluir apenas a pasta dele, e o desinstalador remove essa exclusão depois. A assinatura de código pela SignPath Foundation está planejada. [Leia a FAQ completa →](https://github.com/yobotn/rigsweep/blob/main/README.pt-BR.md#falsos-positivos-do-antiv%C3%ADrus)
 
 ## ❓ Perguntas que desenvolvedores fazem
 

@@ -6,7 +6,7 @@
 
 **Espacio para tus agentes.** Libera RAM, CPU y disco en equipos Windows de desarrollo saturados por sesiones de agentes de IA.
 
-**[🌐 Sitio web](https://rigsweep.com)** · **[⬇️ Descargar](https://github.com/yobotn/rigsweep/releases/latest)** · **[📖 FAQ antivirus](#%EF%B8%8F-falsos-positivos-del-antivirus)**
+**[🌐 Sitio web](https://rigsweep.com)** · **[⬇️ Descargar](https://github.com/yobotn/rigsweep/releases/latest)** · **[📖 FAQ antivirus](#falsos-positivos-del-antivirus)**
 
 [🇬🇧 English](README.md) · [🇩🇪 Deutsch](README.de.md) · 🇪🇸 Español · [🇫🇷 Français](README.fr.md) · [🇮🇹 Italiano](README.it.md) · [🇧🇷 Português](README.pt-BR.md) · [🇷🇺 Русский](README.ru.md) · [🇯🇵 日本語](README.ja.md) · [🇰🇷 한국어](README.ko.md) · [🇨🇳 简体中文](README.zh-CN.md) · [🇸🇦 العربية](README.ar.md)
 
@@ -21,7 +21,7 @@
 
 ---
 
-## 📖 Por qué lo creé
+## Por qué lo creé
 
 En la era de la IA mi portátil ya no ejecuta *una* sola cosa. En un día normal tengo varias sesiones de **Claude Code** en distintas terminales, un servidor dev por proyecto, watchers de compilación y un navegador lleno de documentación, previsualizaciones y paneles. Cada sesión nueva lanza más procesos de Node, y al cerrar una terminal algunos **siguen ejecutándose en segundo plano**.
 
@@ -43,9 +43,9 @@ Nada de eso era "un virus" ni "basura". Eran los **restos normales de trabajar c
 
 ---
 
-## ✨ Funciones
+## Funciones
 
-### 🧹 Limpieza dev: procesos dev olvidados en cualquier stack
+### Limpieza dev: procesos dev olvidados en cualquier stack
 Encuentra **servidores dev, daemons de compilación y CLI de agentes de IA** y agrupa cada uno con **todo su árbol de procesos**, carpeta del proyecto, antigüedad, RAM y puertos en escucha.
 
 | Stack | Qué encuentra |
@@ -76,7 +76,7 @@ Python y Java también ejecutan apps de escritorio normales, así que en esos ca
 - 🎯 **Una fila o varias**: marca las filas y haz clic en **Finalizar seleccionados**, o usa el botón **Finalizar** de una sola fila. Las dos opciones muestran la misma confirmación, con lo que se va a liberar.
 - ✅ Nada se finaliza sin tu confirmación, y antes de cada cierre se comprueba que el PID no se haya reutilizado.
 
-### 💾 Disco dev: node_modules, cachés y worktrees
+### Disco dev: node_modules, cachés y worktrees
 Los proyectos antiguos conservan gigas de `node_modules`, `.next`, `target`, `bin/obj` y `.venv` mucho después de que dejes de trabajar en ellos, las cachés de paquetes no paran de crecer y las herramientas y agentes de IA van dejando cachés y worktrees por el camino. RigSweep lo encuentra todo y borra lo que elijas.
 
 - 🗂️ **Proyectos**: carpetas de compilación y de dependencias de Node, Rust, .NET, Java/Gradle/Maven y Python. Una carpeta solo cuenta si su archivo de proyecto está al lado (`package.json`, `Cargo.toml`, `*.csproj`, `pyvenv.cfg`…), así que nunca se toca una carpeta `build` cualquiera. Solo se preseleccionan los proyectos que nadie ha editado en 30 días (ajustable), y los que usa un proceso en marcha quedan bloqueados 🔒.
@@ -94,7 +94,7 @@ Los proyectos antiguos conservan gigas de `node_modules`, `.next`, `target`, `bi
 - ⏸️ **Pausa, reanuda o detén** una limpieza larga y síguela con una barra de progreso. Si un reinicio la interrumpe, puede continuar donde se quedó.
 - ✅ Por defecto analiza tu perfil de usuario (Escritorio, Documentos, Descargas, OneDrive…). No se borra nada sin tu confirmación, y cada carpeta se vuelve a comprobar justo antes de borrarla.
 
-### 🖥️ Hardware: una pestaña en lugar de cuatro herramientas
+### Hardware: una pestaña en lugar de cuatro herramientas
 Lo básico para lo que normalmente abrirías CPU-Z, GPU-Z, CrystalDiskInfo y CrystalDiskMark, leído directamente de Windows. No se instala ningún controlador.
 
 - 💽 **Estado de los discos**: En buen estado / Desgastándose / Problema para cada disco, con vida restante, temperatura, horas encendido y errores sin corregir. Si un disco empieza a fallar, aparece un aviso en el panel.
@@ -104,7 +104,7 @@ Lo básico para lo que normalmente abrirías CPU-Z, GPU-Z, CrystalDiskInfo y Cry
 
 <img src="docs/screenshots/hardware.png" alt="Hardware" width="860">
 
-### 🎮 GPU e IA: qué se ejecuta en tu tarjeta gráfica y tu NPU
+### GPU e IA: qué se ejecuta en tu tarjeta gráfica y tu NPU
 Lo que hace cada aplicación en la GPU y la NPU, leído de los mismos contadores que usa el Administrador de tareas. No se instala nada, y mientras la página está cerrada no se consulta nada.
 
 - 🎮 **Por adaptador**: uso, memoria dedicada y compartida en uso y, en modo Pro, un medidor por cada motor activo (3D, Compute, Copy, Video…).
@@ -114,21 +114,21 @@ Lo que hace cada aplicación en la GPU y la NPU, leído de los mismos contadores
 
 <img src="docs/screenshots/gpu.png" alt="GPU e IA" width="860">
 
-### 📊 Informe de mejora: antes y después reales
+### Informe de mejora: antes y después reales
 Nada de cifras falsas como "tu PC es un 87 % más rápido". RigSweep **mide** tu equipo y compara dos capturas: RAM usada/libre, CPU media, número de procesos, servicios en ejecución, RAM de Chrome y RAM de Node/agentes.
 
 - 📸 Se toma una **línea base** automáticamente antes de tu primer ajuste.
 - 🔁 Se toma un par **antes/después** en cada Limpieza dev.
 - 📋 **Copiar como Markdown** para compartir tu resultado en un issue, una publicación o este README.
 
-### 🌐 Asistente de pestañas para Chrome
+### Asistente de pestañas para Chrome
 Una app de escritorio **no puede** cerrar pestañas de Chrome, así que RigSweep incluye una pequeña extensión ([`chrome-extension/`](chrome-extension/)) sin acceso a la red y solo con los permisos `tabs` / `storage` / `alarms`:
 - 💤 **Suspender pestañas inactivas**: libera su memoria, pero la pestaña se queda en la barra de pestañas
 - 🧹 **Cerrar pestañas duplicadas**
 - 🎯 **Cerrar pestañas por patrón**, como `localhost:*` o `*.vercel.app`
 - ⏰ **Suspensión automática** cada 10 minutos (opcional)
 
-### ⚙️ Ajustes de Windows reversibles
+### Ajustes de Windows reversibles
 Un catálogo seleccionado ([`catalog/tweaks.json`](src-tauri/catalog/tweaks.json)) de telemetría, Xbox, indexador de búsqueda, apps en segundo plano, exclusiones de Defender para carpetas dev, plan de energía y más, cada uno con un nivel de riesgo:
 
 | Nivel | Significado |
@@ -145,7 +145,7 @@ Un catálogo seleccionado ([`catalog/tweaks.json`](src-tauri/catalog/tweaks.json
 - 🧭 **Edge no vuelve**: desinstala Edge desde Configuración y un ajuste impide que Edge Update o Windows Update lo reinstalen. No se toca el runtime de WebView2 que necesitan otras aplicaciones.
 - 🚫 Nunca se tocan: Windows Update, el motor de Defender, RPC/DCOM/LSA ni otros ~60 servicios esenciales ([`PROTECTED_SERVICES`](src-tauri/src/catalog.rs)).
 
-### 🔍 Analizador de procesos
+### Analizador de procesos
 CPU / RAM / disco por proceso, y **qué servicios se ejecutan dentro de cada `svchost.exe`**. Deshabilita un servicio o finaliza un proceso directamente desde la lista (los elementos esenciales están bloqueados 🔒). Cada aplicación se muestra con su propio icono.
 
 - ❓ **¿Por qué?**: haz clic en un proceso para ver qué es: CPU, memoria, disco, subprocesos, fabricante, archivo y línea de comandos, qué programa lo inició y qué programas inició él. Los procesos conocidos de Windows (Defender, Windows Search, Windows Update, svchost, WMI…) vienen con una explicación clara de por qué se ponen a trabajar.
@@ -153,7 +153,7 @@ CPU / RAM / disco por proceso, y **qué servicios se ejecutan dentro de cada `sv
 
 <img src="docs/screenshots/processes.png" alt="Procesos" width="860">
 
-### 🚀 Inicio: lo que el Administrador de tareas no muestra
+### Inicio: lo que el Administrador de tareas no muestra
 La lista de aplicaciones de arranque del Administrador de tareas omite casi todo lo que se inicia con Windows. RigSweep lo muestra todo, salvo los componentes del propio Windows:
 
 - 🧩 **Servicios de inicio automático** de aplicaciones y controladores (clientes VPN, utilidades del fabricante, actualizadores). Pasan a Manual: ya no se inician al arrancar, pero la aplicación puede iniciarlos cuando la abres.
@@ -163,7 +163,7 @@ La lista de aplicaciones de arranque del Administrador de tareas omite casi todo
 
 <img src="docs/screenshots/startup.png" alt="Inicio" width="860">
 
-### 🪟 Ventanas de consola: ¿qué era esa ventana?
+### Ventanas de consola: ¿qué era esa ventana?
 Se abre una ventana de Símbolo del sistema o de PowerShell, se cierra un instante después y nunca sabes qué se ejecutó. **Acelerar → 🪟 Ventanas de consola** las registra todas:
 
 - 🪟 Cada ventana de consola que se abre y se cierra sola en menos de un minuto aparece con el **comando exacto que ejecutó**, aunque solo estuviera abierta unos milisegundos.
@@ -173,14 +173,14 @@ Se abre una ventana de Símbolo del sistema o de PowerShell, se cierra un instan
 - ⏹ **Desactivar…** deshabilita la tarea programada de terceros que hay detrás, con copia de seguridad y reversible desde Inicio o Ajustes, como cualquier otro cambio de inicio.
 - 🙈 Los comandos que se ejecutan ocultos no aparecen, solo las ventanas que de verdad podías ver. RigSweep lee los inicios de procesos del propio flujo de eventos del kernel de Windows (ETW) y no cambia nada por observar. Se desactiva en Configuración → Apariencia y funciones.
 
-### 📡 Red: qué aplicación ocupa cada puerto
+### Red: qué aplicación ocupa cada puerto
 - 📶 **Por adaptador**: velocidad de descarga y de subida, velocidad del vínculo y tráfico desde el inicio. Windows solo da el recuento de bytes por aplicación a las herramientas que hacen un seguimiento como administrador, así que el tráfico se muestra por adaptador, no por aplicación.
 - 🔌 **Por aplicación**: puertos en escucha (TCP y UDP), el número de conexiones abiertas y las direcciones remotas con las que se comunica cada aplicación.
 - 🔍 **¿Quién lo está usando?**: escribe un puerto para ver qué proceso lo ocupa, con su línea de comandos, o un archivo o una carpeta para ver qué aplicaciones lo tienen abierto o trabajan dentro. Solo consulta: desde aquí no se finaliza nada.
 
 <img src="docs/screenshots/network.png" alt="Red" width="860">
 
-### 🔎 Buscar: restos y archivos que merecen una segunda mirada
+### Buscar: restos y archivos que merecen una segunda mirada
 A dónde se fue tu espacio, y tres listas para revisar. No se quita nada que no elijas.
 
 - 📊 **Qué ocupa espacio**: las carpetas más grandes de cualquier unidad, nivel a nivel. Haz clic en una para entrar; *Mostrar* la abre en el Explorador. Solo lee.
@@ -191,27 +191,26 @@ A dónde se fue tu espacio, y tres listas para revisar. No se quita nada que no 
 
 <img src="docs/screenshots/finders.png" alt="Buscar" width="860">
 
-### 🎨 Sencillo o Pro, Limpio o Estilo IA
+### Sencillo o Pro
 En **🛠️ Configuración → Apariencia y funciones**:
 
 - 🧭 **Modo**: **Sencillo** muestra el Panel, las limpiezas y un lenguaje claro, y oculta las páginas para expertos (Procesos, Red). **Pro** lo muestra todo, incluidos los motores de la GPU, las conexiones y los datos sin procesar. Las instalaciones nuevas empiezan en Sencillo.
-- 🖌️ **Estilo**: **Limpio** es plano, con iconos de línea; **Estilo IA** añade emoji, degradados y un brillo suave.
 - 📡 **Monitores**: desactiva GPU y VRAM por proceso, Carga de IA, Red, Temperaturas o Alertas de estado del disco. Un monitor desactivado nunca se consulta, así que no gasta CPU.
 
-### 🤖 Para agentes de IA y scripts
+### Para agentes de IA y scripts
 - ⌨️ **Comandos sin interfaz** que **no necesitan permisos de administrador**: `rigsweep --disk-report --json`, `rigsweep --disk-clean --safe [--dry-run] --json` y `rigsweep --port 3000 --json`.
 - 🔌 **Servidor MCP**: `rigsweep --mcp` da a Claude Code, Cursor o Codex las herramientas `drive_space`, `disk_report`, `free_disk_space` (una simulación salvo que se le indique lo contrario) y `port_owner`. Para Claude Code: `claude mcp add rigsweep -- "C:\Program Files\RigSweep\rigsweep.exe" --mcp`.
 - 📖 Referencia completa: [rigsweep.com/cli](https://rigsweep.com/cli/).
 
-### 🔄 Actualizaciones, tú decides
+### Actualizaciones, tú decides
 **🛠️ Configuración → 🔄 Actualizaciones** tiene un botón **Buscar ahora** y la opción *Buscar actualizaciones automáticamente* (al iniciar y después una vez al día), que está **desactivada de forma predeterminada**. Cuando sale una versión nueva, aparece un botón en la barra lateral con las novedades. No se instala nada hasta que haces clic en **Instalar y reiniciar**, y solo si la descarga está firmada con la clave de RigSweep. Tus ajustes, copias de seguridad y configuración se conservan. Consulta la [política de privacidad](#-pol%C3%ADtica-de-privacidad) para saber exactamente qué hace una búsqueda.
 
-### 🌍 11 idiomas
+### 11 idiomas
 La interfaz está en **English, Deutsch, Español, Français, Italiano, Português (Brasil), Русский, 日本語, 한국어, 简体中文 y العربية** (se cambia en la barra lateral), igual que el instalador y la extensión de Chrome. Cada idioma usa los términos oficiales de Windows (Administrador de tareas, Servicios, Programador de tareas…) en lugar de una traducción palabra por palabra. ¿Ves algo raro? Abre un issue o un PR sobre `ui/locales/<código>.js` (app), `docs/locales/<código>.js` (sitio web) o `README.<código>.md`.
 
 ---
 
-## 🏁 Antes y después en tu equipo
+## Antes y después en tu equipo
 
 Instala, abre **📊 Informe de mejora → 📸 Medir ahora**, haz una Limpieza dev y aplica los ajustes seguros, reinicia, vuelve a medir y haz clic en **📋 Copiar como Markdown**. ¡Comparte tus resultados en [Discussions](../../discussions)!
 
@@ -221,7 +220,7 @@ Instala, abre **📊 Informe de mejora → 📸 Medir ahora**, haz una Limpieza 
 
 ---
 
-## 📦 Instalación
+## Instalación
 
 1. Descarga `RigSweep_x.y.z_x64-setup.exe` desde [**Releases**](../../releases).
 2. Ejecútalo. Pide permisos de administrador porque RigSweep gestiona servicios y directivas.
@@ -230,7 +229,7 @@ Instala, abre **📊 Informe de mejora → 📸 Medir ahora**, haz una Limpieza 
 
 🌐 **Asistente de Chrome:** en RigSweep ve a **🛠️ Configuración → 🌐 Asistente de pestañas para Chrome → Abrir carpeta de la extensión**, y en Chrome: `chrome://extensions` → **Modo desarrollador** → **Cargar descomprimida** → elige esa carpeta.
 
-## 🛡️ Falsos positivos del antivirus
+## Falsos positivos del antivirus
 
 RigSweep es de código abierto pero **aún no tiene firma de código**. Las herramientas que cambian servicios y la configuración de Defender se parecen mucho al malware para la heurística de aprendizaje automático, así que **Microsoft Defender puede eliminar el exe por error**. Nos pasó durante el desarrollo como `Trojan:Win32/Bearfoos.B!ml`, donde `!ml` indica una suposición heurística y no una firma de malware conocido.
 
@@ -243,7 +242,7 @@ Si ya se eliminó: **Seguridad de Windows → Protección antivirus y contra ame
 
 ---
 
-## 🛠️ Compilar desde el código fuente
+## Compilar desde el código fuente
 
 ```powershell
 winget install Rustlang.Rustup        # + VS 2022 Build Tools (carga de trabajo C++)
@@ -254,7 +253,7 @@ Ejecución en desarrollo: `npm run dev` (acepta el UAC; la app se vuelve a inici
 
 > 💡 Puede que Defender también ponga en cuarentena tus compilaciones locales recién hechas. Añade la carpeta de tu clon a la lista de *Carpetas dev* de RigSweep (Configuración) y aplica el ajuste **Defender exclusions for dev folders**, o excluye `src-tauri\target` manualmente.
 
-### ⌨️ CLI
+### CLI
 | Comando | Efecto |
 |---|---|
 | `rigsweep.exe` | Interfaz gráfica + área de notificación |
@@ -262,7 +261,7 @@ Ejecución en desarrollo: `npm run dev` (acepta el UAC; la app se vuelve a inici
 | `rigsweep.exe --apply --tray` | Igual, y después se queda en el área de notificación con el vigilante |
 | `rigsweep.exe --restore-all` | Revierte todo a los valores originales guardados |
 
-### 🧪 Pruebas
+### Pruebas
 ```powershell
 cd src-tauri
 cargo test                                          # validez del catálogo, copias de seguridad, capturas, análisis de comandos
@@ -270,13 +269,13 @@ cargo test live_status   -- --ignored --nocapture   # solo lectura: estado detec
 cargo test live_dev_scan -- --ignored --nocapture   # solo lectura: lo que ve la Limpieza dev ahora mismo
 ```
 
-### ➕ Añadir ajustes
+### Añadir ajustes
 Añade una entrada a [`catalog/tweaks.json`](src-tauri/catalog/tweaks.json). Los tipos de acción son `service` (start: disabled|manual), `task` (path), `registry` (HKLM|HKCU, dword|string), `defender_exclusion` y `power_plan`. Los elementos `caution` deben incluir un `warning`. `cargo test` rechaza los servicios protegidos y las entradas mal formadas.
 
-## 🐳 docker-optimize (herramienta aparte)
+## docker-optimize (herramienta aparte)
 No forma parte de la app. [`docker-optimize/`](docker-optimize/) es un script independiente, reversible y de un solo uso que limita la VM WSL2 de Docker Desktop (memoria, CPU, recuperación de RAM, disco disperso) y desactiva extras de Docker Desktop que no necesitas. Nunca elimina contenedores, imágenes ni volúmenes. Consulta su [README](docker-optimize/README.md) (en inglés).
 
-## 🗂️ Dónde se guarda cada cosa
+## Dónde se guarda cada cosa
 | Qué | Dónde |
 |---|---|
 | Base de datos (copias de seguridad, historial, capturas) | `%ProgramData%\RigSweep\rigsweep.db` (+ `.bak.1`–`.bak.5`) |
@@ -285,7 +284,7 @@ No forma parte de la app. [`docker-optimize/`](docker-optimize/) es un script in
 
 ¿Vienes de **aiBoost** (el nombre anterior)? Tu base de datos se migra automáticamente en el primer inicio, y la antigua tarea de inicio se reemplaza.
 
-## 🔏 Política de firma de código
+## Política de firma de código
 
 Firma de código gratuita proporcionada por [SignPath.io](https://about.signpath.io/), certificado de [SignPath Foundation](https://signpath.org/).
 *(Solicitud en curso: las versiones hasta la v0.3.0 aún **no están firmadas**.)*
@@ -294,17 +293,17 @@ Firma de código gratuita proporcionada por [SignPath.io](https://about.signpath
 - **Committers y revisores:** [@yobotn](https://github.com/yobotn)
 - **Aprobadores:** [@yobotn](https://github.com/yobotn)
 
-### 🔒 Política de privacidad
+### Política de privacidad
 Este programa no transferirá ninguna información a otros sistemas en red a menos que lo solicite expresamente el usuario o la persona que lo instala o lo utiliza. RigSweep puede hacer dos tipos de petición de red, cada una solo después de que la elijas. **Búsqueda de actualizaciones**: cuando pulsas *Buscar ahora* en Configuración o activas *Buscar actualizaciones automáticamente* (desactivado de forma predeterminada). Descarga `latest.json` de los GitHub Releases de este repositorio y no envía nada sobre tu PC; una actualización solo se instala cuando pulsas *Instalar*, y solo si su firma coincide con la clave de firma de RigSweep. **Estadísticas de uso anónimas**: la primera vez que abres RigSweep, un diálogo las explica y te pregunta; no se envía nada hasta que respondes, y *Configuración → Estadísticas anónimas* las desactiva en cualquier momento, lo que además borra lo que envió este PC. Aproximadamente una vez por hora, un informe solo contiene lo que se limpió desde el anterior (hora, tipo y espacio liberado, una entrada por tipo), las apps conocidas más exigentes (como Chrome o VS Code), una vez al día el software de hardware y controladores de una lista fija de fabricantes ([discovery.json](server/discovery.json): ASUS, Dell, HP, NVIDIA, Logitech…) indicando si se está ejecutando y cuánto consume, la RAM y los núcleos, la versión de RigSweep y la compilación de Windows, y un ID de instalación aleatorio. Nunca contiene rutas de archivos, nombres de carpetas o proyectos, nombres de procesos fuera de esas dos listas, nombres de usuario o de PC, ni identificadores de hardware; tu dirección IP solo se usa para saber el país y nunca se guarda. *Ver qué se envía* muestra el informe exacto. La extensión de Chrome hace la misma pregunta en su ventana emergente y, si aceptas, solo envía recuentos por hora (pestañas dormidas y cerradas, pestañas y ventanas abiertas), nunca URLs, títulos ni sitios. Todo lo demás que guarda RigSweep (copias de seguridad, historial, mediciones) se queda en `%ProgramData%\RigSweep` en tu PC. Política completa: [rigsweep.com/privacy](https://rigsweep.com/privacy/).
 
-## ⚠️ Aviso legal
+## Aviso legal
 
 RigSweep modifica servicios de Windows, tareas programadas, directivas del registro y la configuración de Microsoft Defender, y puede finalizar procesos en ejecución. Cada ajuste se guarda y se puede restaurar, y nada ocurre sin tu confirmación, pero **lo usas bajo tu propia responsabilidad**. Se proporciona **"tal cual", sin garantía de ningún tipo** (consulta la [licencia MIT](LICENSE)). Revisa cada cambio antes de aplicarlo, guarda tus propias copias de seguridad y no lo uses en equipos administrados por tu empresa o centro educativo sin la aprobación de su equipo de TI.
 
 RigSweep es un proyecto independiente, **sin relación con** Microsoft, Google, Anthropic, OpenAI ni ninguna otra herramienta que mencione. Todas las marcas comerciales pertenecen a sus propietarios.
 
-## 🤝 Contribuir
+## Contribuir
 Los issues y los PR son bienvenidos, sobre todo ajustes nuevos (con un nivel de riesgo claro), más stacks de desarrollo y CLI de agentes para la Limpieza dev, y traducciones.
 
-## 📄 Licencia
+## Licencia
 [MIT](LICENSE): gratis para siempre, haz lo que quieras, sin garantía.

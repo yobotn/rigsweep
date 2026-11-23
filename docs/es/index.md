@@ -86,7 +86,7 @@ Mira qué ocupa espacio en cada unidad carpeta por carpeta, saca las cachés de 
 
 ### Sencillo o Pro
 
-El modo Sencillo muestra el panel y las limpiezas con palabras claras. Pro añade Procesos, Red, motores de GPU y los datos sin procesar. Elige el estilo Limpio o Estilo IA y apaga los monitores que no necesites para que no gasten CPU.
+El modo Sencillo muestra el panel y las limpiezas con palabras claras. Pro añade Procesos, Red, motores de GPU y los datos sin procesar. Apaga los monitores que no necesites para que no gasten CPU.
 
 ### Ventanas de consola
 
@@ -115,7 +115,7 @@ rigsweep --disk-report --json y --disk-clean --safe --dry-run funcionan sin perm
 
 RigSweep es de código abierto pero aún no está firmado. Las herramientas que cambian servicios parecen malware para la heurística de aprendizaje automático, así que Defender puede marcarlo por error (p. ej. `Trojan:Win32/Bearfoos!ml`, donde `!ml` indica una suposición heurística).
 
-El instalador **pregunta** si quieres excluir solo su propia carpeta, y el desinstalador quita esa exclusión. La firma de código con SignPath Foundation está prevista. [Leer la FAQ completa →](https://github.com/yobotn/rigsweep/blob/main/README.es.md#%EF%B8%8F-falsos-positivos-del-antivirus)
+El instalador **pregunta** si quieres excluir solo su propia carpeta, y el desinstalador quita esa exclusión. La firma de código con SignPath Foundation está prevista. [Leer la FAQ completa →](https://github.com/yobotn/rigsweep/blob/main/README.es.md#falsos-positivos-del-antivirus)
 
 ## ❓ Lo que preguntan los desarrolladores
 

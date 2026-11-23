@@ -35,7 +35,7 @@ None of it was a virus or junk. It was the normal leftovers of working with AI a
 - **GPU & AI**: What each app does on your graphics card and NPU, from the counters Task Manager uses, plus the AI runtimes running now (Ollama, LM Studio, llama.cpp, ComfyUI, PyTorch), their loaded models and the video memory they hold.
 - **Network**: Traffic per adapter, which app holds which connection or listening port, and a search that tells you who is using port 3000 or a locked file or folder.
 - **Find**: See what's taking space on each drive folder by folder, move package caches off C: to another drive or a Dev Drive, and review programs whose uninstaller is gone, big old files in Downloads and unsigned startup programs, with a Microsoft Defender scan in one click.
-- **Simple or Pro**: Simple shows the Dashboard and the cleanups in plain words. Pro adds Processes, Network, GPU engines and the raw numbers. Pick the Clean or AI-ish style, and turn off monitors you don't need so they cost no CPU.
+- **Simple or Pro**: Simple shows the Dashboard and the cleanups in plain words. Pro adds Processes, Network, GPU engines and the raw numbers. Turn off monitors you don't need, and they cost no CPU.
 - **For AI agents**: rigsweep --disk-report --json and --disk-clean --safe --dry-run work without admin rights, and rigsweep --mcp is an MCP server, so Claude Code, Cursor or Codex can check free space, see what takes it and free the caches that rebuild themselves.
 - **Console pop-ups**: That Command Prompt window that flashes and vanishes: RigSweep records the exact command it ran, what started it (a scheduled task, a service or an app) and what ran inside it, and can turn off the task behind it, with a backup.
 
@@ -86,7 +86,7 @@ No. RigSweep is built for Windows 10 and 11, because it works with Windows servi
 
 RigSweep is open source but not code-signed yet. Tools that change services look like malware to machine-learning heuristics, so Defender may flag it by mistake (e.g. `Trojan:Win32/Bearfoos!ml`, where `!ml` means a heuristic guess).
 
-The installer **asks** whether to exclude only its own folder, and the uninstaller removes that exclusion again. Code signing through SignPath Foundation is planned. [Read the full FAQ →](https://github.com/yobotn/rigsweep#%EF%B8%8F-antivirus-false-positives)
+The installer **asks** whether to exclude only its own folder, and the uninstaller removes that exclusion again. Code signing through SignPath Foundation is planned. [Read the full FAQ →](https://github.com/yobotn/rigsweep#antivirus-false-positives)
 
 ## Privacy
 

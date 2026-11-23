@@ -58,9 +58,8 @@ function safeGet(k) { try { return localStorage.getItem(k); } catch { return nul
 function safeSet(k, v) { try { localStorage.setItem(k, v); } catch {} }
 
 // ---------- appearance & features (Settings → Appearance & features) ----------
-// Mode: Simple hides expert pages and columns (.pro-only). Style: Lucide icons, flat ("clean") or
-// emoji, gradients ("ai"). Monitors: a switched-off monitor is never polled, so it costs nothing.
-const PREF_DEFAULTS = { style: "clean", mode: "", mon_gpu: true, mon_ai: true, mon_net: true, mon_heat: true, mon_disk_alerts: true, mon_flashes: true };
+// Mode: Simple hides expert pages and columns (.pro-only). One flat style with Lucide icons. Monitors: a switched-off monitor is never polled, so it costs nothing.
+const PREF_DEFAULTS = { mode: "", mon_gpu: true, mon_ai: true, mon_net: true, mon_heat: true, mon_disk_alerts: true, mon_flashes: true };
 const prefs = (() => { try { return { ...PREF_DEFAULTS, ...JSON.parse(safeGet("prefs") || "{}") }; } catch { return { ...PREF_DEFAULTS }; } })();
 if (!prefs.mode) {
   // new installs start in Simple; someone who already used RigSweep keeps the full app
@@ -68,7 +67,6 @@ if (!prefs.mode) {
   safeSet("prefs", JSON.stringify(prefs));
 }
 function applyPrefs() {
-  document.documentElement.dataset.style = prefs.style;
   document.documentElement.dataset.mode = prefs.mode;
   document.documentElement.classList.toggle("no-heat", !prefs.mon_heat);
 }
@@ -2300,13 +2298,11 @@ $("#file-import").addEventListener("change", async (e) => {
 // Settings → Appearance & features: everything applies at once, no restart
 function renderLook() {
   document.querySelectorAll('[name="p-mode"]').forEach((r) => { r.checked = r.value === prefs.mode; });
-  document.querySelectorAll('[name="p-style"]').forEach((r) => { r.checked = r.value === prefs.style; });
   document.querySelectorAll("[data-mon]").forEach((c) => { c.checked = !!prefs[c.dataset.mon]; });
 }
 $("[data-stab-panel=look]").addEventListener("change", async (e) => {
   const el = e.target;
   if (el.name === "p-mode") prefs.mode = el.value;
-  else if (el.name === "p-style") prefs.style = el.value;
   else if (el.dataset.mon) prefs[el.dataset.mon] = el.checked;
   else return;
   safeSet("prefs", JSON.stringify(prefs));

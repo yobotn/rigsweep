@@ -22,7 +22,7 @@ Please don't open a public issue for a vulnerability. Report it privately throug
 
 ## 🛡️ Antivirus false positives
 
-If Microsoft Defender flagged or deleted RigSweep, read the [antivirus FAQ](https://github.com/yobotn/rigsweep#%EF%B8%8F-antivirus-false-positives) first. It explains why this happens and how to restore a download from the official Releases page.
+If Microsoft Defender flagged or deleted RigSweep, read the [antivirus FAQ](https://github.com/yobotn/rigsweep#antivirus-false-positives) first. It explains why this happens and how to restore a download from the official Releases page.
 
 ## 🌍 Translations
 

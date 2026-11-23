@@ -6,7 +6,7 @@
 
 **给你的智能体腾出空间。** Windows 开发机被 AI 智能体会话占满？RigSweep 帮你释放内存、CPU 和磁盘空间。
 
-**[🌐 主页](https://rigsweep.com)** · **[⬇️ 下载](https://github.com/yobotn/rigsweep/releases/latest)** · **[📖 防病毒常见问题](#%EF%B8%8F-防病毒软件误报)**
+**[🌐 主页](https://rigsweep.com)** · **[⬇️ 下载](https://github.com/yobotn/rigsweep/releases/latest)** · **[📖 防病毒常见问题](#防病毒软件误报)**
 
 [🇬🇧 English](README.md) · [🇩🇪 Deutsch](README.de.md) · [🇪🇸 Español](README.es.md) · [🇫🇷 Français](README.fr.md) · [🇮🇹 Italiano](README.it.md) · [🇧🇷 Português](README.pt-BR.md) · [🇷🇺 Русский](README.ru.md) · [🇯🇵 日本語](README.ja.md) · [🇰🇷 한국어](README.ko.md) · 🇨🇳 简体中文 · [🇸🇦 العربية](README.ar.md)
 
@@ -21,7 +21,7 @@
 
 ---
 
-## 📖 我为什么要做这个工具
+## 我为什么要做这个工具
 
 在 AI 时代，我的笔记本电脑早已不只运行*一个*程序。平常的一天里，我会在不同终端中开着好几个 **Claude Code** 会话，每个项目一个开发服务器，还有构建监视程序，以及开满文档、预览页面和仪表板的浏览器。每个新会话都会启动更多 Node 进程，而关闭终端后，其中一些进程**仍在后台继续运行**。
 
@@ -43,9 +43,9 @@
 
 ---
 
-## ✨ 功能
+## 功能
 
-### 🧹 开发清理：清理任意技术栈中闲置的开发进程
+### 开发清理：清理任意技术栈中闲置的开发进程
 找出**开发服务器、构建守护进程和 AI 智能体 CLI**，并将每一项与其**整个进程树**、项目文件夹、运行时长、内存和监听端口归为一组。
 
 | 技术栈 | 能找到什么 |
@@ -76,7 +76,7 @@ Python 和 Java 也会运行普通的桌面应用，因此对于这两者，只�
 - 🎯 **单个或批量**：勾选多行后单击**结束所选项**，或者直接使用某一行的**结束**按钮。两种方式都会显示同样的确认窗口，并列出将释放多少资源。
 - ✅ 未经你确认，不会结束任何进程；每次结束进程前都会检查 PID 是否已被重用。
 
-### 💾 开发磁盘：node_modules、缓存和工作树
+### 开发磁盘：node_modules、缓存和工作树
 旧项目在你不再碰它们之后，仍然留着好几 GB 的 `node_modules`、`.next`、`target`、`bin/obj` 和 `.venv`，包缓存只会越来越大，AI 工具和智能体还会留下缓存和工作树。RigSweep 会把这些都找出来，删除你选中的内容。
 
 - 🗂️ **项目**：Node、Rust、.NET、Java/Gradle/Maven 和 Python 的构建产物与依赖文件夹。只有旁边有项目文件（`package.json`、`Cargo.toml`、`*.csproj`、`pyvenv.cfg` 等）的文件夹才算数，所以随便一个 `build` 文件夹绝不会被动到。只会预先勾选 30 天（可调整）没人编辑过的项目，正被运行中的进程使用的项目会被锁定 🔒。
@@ -94,7 +94,7 @@ Python 和 Java 也会运行普通的桌面应用，因此对于这两者，只�
 - ⏸️ 耗时较长的清理可以**暂停、继续或停止**，并有进度条显示。因重启而中断的清理可以从中断处继续。
 - ✅ 默认扫描你的用户目录（桌面、文档、下载、OneDrive 等）。未经你确认不会删除任何东西，每个文件夹在删除前都会再检查一次。
 
-### 🖥️ 硬件：一个页面代替四个工具
+### 硬件：一个页面代替四个工具
 以前要打开 CPU-Z、GPU-Z、CrystalDiskInfo 和 CrystalDiskMark 才能看到的基本信息，现在直接从 Windows 读取。不安装任何驱动。
 
 - 💽 **硬盘健康**：每块硬盘显示良好 / 磨损中 / 有问题，并附上剩余寿命、温度、通电时间和未纠正错误。硬盘出现故障迹象时，仪表板会发出警告。
@@ -104,7 +104,7 @@ Python 和 Java 也会运行普通的桌面应用，因此对于这两者，只�
 
 <img src="docs/screenshots/hardware.png" alt="硬件" width="860">
 
-### 🎮 GPU 与 AI：显卡和 NPU 上正在运行什么
+### GPU 与 AI：显卡和 NPU 上正在运行什么
 每个应用在 GPU 和 NPU 上做了什么，数据来自任务管理器所用的同一组性能计数器。不安装任何东西，页面关闭时也不会读取任何数据。
 
 - 🎮 **按适配器**：使用率、已用的专用内存和共享内存；在专业模式下，还会为每个正在工作的引擎（3D、Compute、Copy、Video 等）显示一个指示条。
@@ -114,21 +114,21 @@ Python 和 Java 也会运行普通的桌面应用，因此对于这两者，只�
 
 <img src="docs/screenshots/gpu.png" alt="GPU 与 AI" width="860">
 
-### 📊 提速报告：真实的前后对比
+### 提速报告：真实的前后对比
 没有“你的电脑快了 87%”这种虚假数字。RigSweep 会**测量**你的电脑并比较两个快照：已用/可用内存、平均 CPU、进程数、正在运行的服务、Chrome 内存、Node/智能体内存。
 
 - 📸 首次应用优化前会自动记录**基线**。
 - 🔁 每次开发清理前后都会记录一组**前后对比**数据。
 - 📋 **复制为 Markdown**，即可在 issue、帖子或这个 README 中分享你的结果。
 
-### 🌐 Chrome 标签页助手
+### Chrome 标签页助手
 桌面应用**无法**关闭 Chrome 标签页，因此 RigSweep 附带了一个小巧的扩展程序（[`chrome-extension/`](chrome-extension/)），它没有网络访问权限，仅需 `tabs` / `storage` / `alarms` 权限：
 - 💤 **让空闲标签页休眠**：释放其内存，但标签页仍保留在标签栏中
 - 🧹 **关闭重复的标签页**
 - 🎯 **按模式关闭标签页**，例如 `localhost:*` 或 `*.vercel.app`
 - ⏰ 每 10 分钟**自动休眠**（可选）
 
-### ⚙️ 可撤消的 Windows 优化
+### 可撤消的 Windows 优化
 一份精选目录（[`catalog/tweaks.json`](src-tauri/catalog/tweaks.json)），涵盖遥测、Xbox、搜索索引器、后台应用、针对开发文件夹的 Defender 排除项、电源计划等，每项都标有风险等级：
 
 | 等级 | 含义 |
@@ -145,7 +145,7 @@ Python 和 Java 也会运行普通的桌面应用，因此对于这两者，只�
 - 🧭 **不让 Edge 回来**：先在“设置”中卸载 Edge，再用一项优化阻止 Edge Update 和 Windows 更新重新安装它。其他应用需要的 WebView2 运行时不受影响。
 - 🚫 绝不触碰：Windows 更新、Defender 引擎、RPC/DCOM/LSA 以及约 60 项其他核心服务（[`PROTECTED_SERVICES`](src-tauri/src/catalog.rs)）。
 
-### 🔍 进程分析器
+### 进程分析器
 显示每个进程的 CPU / 内存 / 磁盘占用，以及**每个 `svchost.exe` 中托管了哪些服务**。可以直接在列表中禁用服务或结束进程（核心项已锁定 🔒）。每个应用都会显示自己的图标。
 
 - ❓ **为什么？**：单击某个进程即可看到它是什么：CPU、内存、磁盘、线程、发布者、文件和命令行，是哪个程序启动了它，以及它又启动了哪些程序。对常见的 Windows 进程（Defender、Windows Search、Windows 更新、svchost、WMI 等），会用通俗的话解释它为什么忙。
@@ -153,7 +153,7 @@ Python 和 Java 也会运行普通的桌面应用，因此对于这两者，只�
 
 <img src="docs/screenshots/processes.png" alt="进程" width="860">
 
-### 🚀 启动项：任务管理器不显示的内容
+### 启动项：任务管理器不显示的内容
 任务管理器的“启动应用”列表漏掉了大部分随 Windows 启动的内容。RigSweep 会全部列出，只排除 Windows 自带组件：
 
 - 🧩 应用和驱动的**自动启动服务**（VPN 客户端、厂商工具、更新程序）。它们会改为“手动”：不再随开机启动，但打开应用时，应用仍可启动它们。
@@ -163,7 +163,7 @@ Python 和 Java 也会运行普通的桌面应用，因此对于这两者，只�
 
 <img src="docs/screenshots/startup.png" alt="启动项" width="860">
 
-### 🪟 控制台弹窗：刚才那个窗口是什么？
+### 控制台弹窗：刚才那个窗口是什么？
 一个命令提示符或 PowerShell 窗口突然弹出来，转眼又关掉了，你永远不知道它运行了什么。**提速 → 🪟 控制台弹窗**会把每一次都记录下来：
 
 - 🪟 一分钟内自己打开又关闭的每个控制台窗口都会列出来，并显示它**运行的确切命令**，哪怕它只开了几毫秒。
@@ -173,14 +173,14 @@ Python 和 Java 也会运行普通的桌面应用，因此对于这两者，只�
 - ⏹ **关闭…**会禁用背后的第三方计划任务，有备份，也能像其他启动项更改一样在“启动项”或“优化”中撤消。
 - 🙈 隐藏运行的命令不会列出，只列出你真正能看到的窗口。RigSweep 从 Windows 自带的内核事件流（ETW）读取进程启动信息，只看不改。可以在设置 → 外观和功能中关闭。
 
-### 📡 网络：哪个应用占用了哪个端口
+### 网络：哪个应用占用了哪个端口
 - 📶 **按适配器**：下载和上传速度、链接速度，以及开机以来的流量。Windows 只向以管理员身份进行跟踪的工具提供按应用统计的字节数，所以流量按适配器显示，而不是按应用。
 - 🔌 **按应用**：监听端口（TCP 和 UDP）、打开的连接数，以及每个应用通信的远程地址。
 - 🔍 **谁在使用？**：输入一个端口，就能看到占用它的进程及其命令行；输入一个文件或文件夹，就能看到哪些应用打开了它或正在其中工作。这里只查看，不会结束任何东西。
 
 <img src="docs/screenshots/network.png" alt="网络" width="860">
 
-### 🔎 查找：残留项和值得再看一眼的文件
+### 查找：残留项和值得再看一眼的文件
 看看空间都去哪了，外加三份待检查的列表。只会删除你选中的内容。
 
 - 📊 **什么占了空间**：任意驱动器上最大的文件夹，一次看一层。单击某个文件夹即可深入查看；*显示*会在资源管理器中打开它。只读，不做任何更改。
@@ -191,27 +191,26 @@ Python 和 Java 也会运行普通的桌面应用，因此对于这两者，只�
 
 <img src="docs/screenshots/finders.png" alt="查找" width="860">
 
-### 🎨 模式与风格
+### 模式
 在 **🛠️ 设置 → 外观和功能** 中：
 
 - 🧭 **模式**：**简单**模式只显示仪表板、各项清理和通俗的说明，并隐藏面向专家的页面（进程、网络）。**专业**模式显示全部内容，包括 GPU 引擎、连接和原始数值。新安装默认使用简单模式。
-- 🖌️ **风格**：**简洁**风格是扁平的线条图标；**AI 风**会加上表情符号、渐变和柔和的光晕。
 - 📡 **监视器**：可以分别关闭按进程的 GPU 和显存、AI 负载、网络、温度和磁盘健康警报。关闭的监视器从不采样，因此不占用 CPU。
 
-### 🤖 给 AI 智能体和脚本用
+### 给 AI 智能体和脚本用
 - ⌨️ **无界面命令**，**无需管理员权限**：`rigsweep --disk-report --json`、`rigsweep --disk-clean --safe [--dry-run] --json` 和 `rigsweep --port 3000 --json`。
 - 🔌 **MCP 服务器**：`rigsweep --mcp` 为 Claude Code、Cursor 或 Codex 提供 `drive_space`、`disk_report`、`free_disk_space`（除非另行指定，否则只做演练）和 `port_owner` 这几个工具。在 Claude Code 中：`claude mcp add rigsweep -- "C:\Program Files\RigSweep\rigsweep.exe" --mcp`。
 - 📖 完整参考：[rigsweep.com/cli](https://rigsweep.com/cli/)。
 
-### 🔄 更新由你决定
+### 更新由你决定
 **🛠️ 设置 → 🔄 更新**中有一个**立即检查**按钮，以及一个可选的*自动检查更新*（启动时检查，之后每天一次），该选项**默认关闭**。有新版本时，侧边栏中会出现一个按钮，附带发行说明。在你单击**安装并重启**之前，不会安装任何内容，而且只有下载内容使用 RigSweep 的密钥签名时才会安装。你的优化、备份和设置都会保留。检查更新时具体会做什么，请参阅[隐私政策](#-隐私政策)。
 
-### 🌍 11 种语言
+### 11 种语言
 界面提供 **English、Deutsch、Español、Français、Italiano、Português (Brasil)、Русский、日本語、한국어、简体中文 和 العربية**（可在侧边栏中切换），安装程序和 Chrome 扩展程序也是如此。每种语言都使用该语言的 Windows 官方术语（任务管理器、服务、任务计划程序…）进行本地化，而不是逐字翻译。发现哪里读着别扭？欢迎针对 `ui/locales/<code>.js`（应用）、`docs/locales/<code>.js`（主页）或 `README.<code>.md` 提交 issue 或 PR。
 
 ---
 
-## 🏁 在你的电脑上对比前后效果
+## 在你的电脑上对比前后效果
 
 安装后打开 **📊 提速报告 → 📸 立即测量**，执行一次开发清理并应用安全的优化，重启，再测量一次，然后单击 **📋 复制为 Markdown**。欢迎在 [Discussions](../../discussions) 中分享你的结果！
 
@@ -221,7 +220,7 @@ Python 和 Java 也会运行普通的桌面应用，因此对于这两者，只�
 
 ---
 
-## 📦 安装
+## 安装
 
 1. 从 [**Releases**](../../releases) 下载 `RigSweep_x.y.z_x64-setup.exe`。
 2. 运行它。它会请求管理员权限，因为 RigSweep 需要管理服务和策略。
@@ -230,7 +229,7 @@ Python 和 Java 也会运行普通的桌面应用，因此对于这两者，只�
 
 🌐 **Chrome 助手**：在 RigSweep 中转到 **🛠️ 设置 → 🌐 Chrome 标签页助手 → 打开扩展程序文件夹**，然后在 Chrome 中：`chrome://extensions` → **开发者模式** → **加载已解压的扩展程序** → 选择该文件夹。
 
-## 🛡️ 防病毒软件误报
+## 防病毒软件误报
 
 RigSweep 是开源软件，但**目前尚未进行代码签名**。会更改服务和 Defender 设置的工具在机器学习启发式检测看来很像恶意软件，因此 **Microsoft Defender 可能会误删 exe 文件**。开发期间就曾发生过这种情况，检测名称为 `Trojan:Win32/Bearfoos.B!ml`，其中 `!ml` 表示启发式推测，而不是匹配已知恶意软件的特征码。
 
@@ -243,7 +242,7 @@ RigSweep 是开源软件，但**目前尚未进行代码签名**。会更改服�
 
 ---
 
-## 🛠️ 从源代码构建
+## 从源代码构建
 
 ```powershell
 winget install Rustlang.Rustup        # + VS 2022 Build Tools (C++ workload)
@@ -254,7 +253,7 @@ npm run build                         # -> src-tauri/target/release/rigsweep.exe
 
 > 💡 Defender 也可能隔离你刚在本地构建的文件。请将你的克隆文件夹添加到 RigSweep 的*开发文件夹*列表（“设置”中），并应用 **Defender exclusions for dev folders** 优化，或者手动排除 `src-tauri\target`。
 
-### ⌨️ CLI
+### CLI
 | 命令 | 作用 |
 |---|---|
 | `rigsweep.exe` | 图形界面 + 通知区域 |
@@ -262,7 +261,7 @@ npm run build                         # -> src-tauri/target/release/rigsweep.exe
 | `rigsweep.exe --apply --tray` | 同上，然后带着看门狗留在通知区域 |
 | `rigsweep.exe --restore-all` | 将所有更改还原为已备份的原始值 |
 
-### 🧪 测试
+### 测试
 ```powershell
 cd src-tauri
 cargo test                                          # catalog validity, backups, snapshots, command parsing
@@ -270,13 +269,13 @@ cargo test live_status   -- --ignored --nocapture   # read-only: detected status
 cargo test live_dev_scan -- --ignored --nocapture   # read-only: what Dev Cleanup sees right now
 ```
 
-### ➕ 添加优化
+### 添加优化
 在 [`catalog/tweaks.json`](src-tauri/catalog/tweaks.json) 中添加一个条目。操作类型有 `service`（start: disabled|manual）、`task`（path）、`registry`（HKLM|HKCU, dword|string）、`defender_exclusion` 和 `power_plan`。`caution` 项必须包含 `warning`。`cargo test` 会拒绝受保护的服务和格式错误的条目。
 
-## 🐳 docker-optimize（独立工具）
+## docker-optimize（独立工具）
 不属于应用本身。[`docker-optimize/`](docker-optimize/) 是一个独立、可撤消的一次性脚本，用于限制 Docker Desktop 的 WSL2 虚拟机资源（内存、CPU、内存回收、稀疏磁盘），并关闭你用不着的 Docker Desktop 附加功能。它绝不会删除容器、镜像或卷。请参阅它的 [README](docker-optimize/README.md)。
 
-## 🗂️ 文件存放位置
+## 文件存放位置
 | 内容 | 位置 |
 |---|---|
 | 数据库（备份、历史记录、快照） | `%ProgramData%\RigSweep\rigsweep.db`（+ `.bak.1`–`.bak.5`） |
@@ -285,7 +284,7 @@ cargo test live_dev_scan -- --ignored --nocapture   # read-only: what Dev Cleanu
 
 从 **aiBoost**（旧名称）升级而来？首次启动时会自动迁移你的数据库，并替换旧的启动任务。
 
-## 🔏 代码签名政策
+## 代码签名政策
 
 免费代码签名由 [SignPath.io](https://about.signpath.io/) 提供，证书由 [SignPath Foundation](https://signpath.org/) 颁发。
 *（申请处理中：v0.3.0 及之前的版本**尚未签名**。）*
@@ -294,17 +293,17 @@ cargo test live_dev_scan -- --ignored --nocapture   # read-only: what Dev Cleanu
 - **提交者和审阅者**：[@yobotn](https://github.com/yobotn)
 - **审批者**：[@yobotn](https://github.com/yobotn)
 
-### 🔒 隐私政策
+### 隐私政策
 除非用户或安装、操作本程序的人员明确要求，否则本程序不会向其他联网系统传输任何信息。RigSweep 只会发出两类网络请求，而且都要在你选择之后。**检查更新**：在设置中点击*立即检查*，或开启*自动检查更新*（默认关闭）时。它只从本仓库的 GitHub Releases 下载 `latest.json`，不发送任何关于你电脑的信息；只有在你点击*安装*后、且签名与 RigSweep 的签名密钥一致时才会安装更新。**匿名使用统计**：第一次打开 RigSweep 时，会有对话框说明并询问你；在你回答之前不会发送任何内容，并且随时可以在*设置 → 匿名统计*中关闭，关闭时也会删除这台电脑发送过的数据。报告大约每小时发送一次，只包含：自上次报告以来清理的内容（时间、类型和释放量，每种类型一条）、占用最多的常见应用（如 Chrome 或 VS Code）、每天一次来自固定厂商列表（[discovery.json](server/discovery.json)：ASUS、Dell、HP、NVIDIA、Logitech…）的硬件和驱动软件及其是否在运行、占用多少、内存容量和核心数、RigSweep 版本和 Windows 版本号，以及一个随机安装 ID。它绝不包含文件路径、文件夹/项目名称、这两份列表之外的进程名称、用户名或电脑名、硬件 ID；IP 地址只用于判断国家，从不保存。*查看发送内容*会显示确切的报告。Chrome 扩展程序也会在弹窗中询问同样的问题，只有在你同意后才发送每小时计数（休眠和关闭的标签页、打开的标签页和窗口数量），绝不发送网址、标题或网站。RigSweep 存储的其他所有内容（备份、历史、测量数据）都保存在你电脑上的 `%ProgramData%\RigSweep` 中。完整政策：[rigsweep.com/privacy](https://rigsweep.com/privacy/)。
 
-## ⚠️ 免责声明
+## 免责声明
 
 RigSweep 会更改 Windows 服务、计划任务、注册表策略和 Microsoft Defender 设置，并可以结束正在运行的进程。每项优化都会先备份，随时可以还原；未经你确认，不会执行任何操作。但**使用风险由你自行承担**。本软件**按“原样”提供，不附带任何形式的担保**（请参阅 [MIT 许可证](LICENSE)）。应用每项更改前请仔细检查，自行做好备份；未经 IT 部门批准，请勿在工作单位或学校管理的设备上使用。
 
 RigSweep 是独立项目，**与** Microsoft、Google、Anthropic、OpenAI 及文中提到的任何其他工具**均无关联**。所有商标归其各自所有者所有。
 
-## 🤝 参与贡献
+## 参与贡献
 欢迎提交 issue 和 PR，尤其是新的优化（需标明清晰的风险等级）、开发清理支持的更多技术栈和智能体 CLI，以及翻译。
 
-## 📄 许可证
+## 许可证
 [MIT](LICENSE)：永久免费，随意使用，不提供任何担保。

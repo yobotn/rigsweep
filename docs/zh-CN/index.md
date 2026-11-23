@@ -86,7 +86,7 @@ RigSweep 用户迄今释放的资源
 
 ### 简单或专业
 
-简单模式用平实的话显示仪表板和清理。专业模式增加进程、网络、GPU 引擎和原始数据。可选“简洁”或“AI 风”风格，关闭不需要的监视器后就不占 CPU。
+简单模式用平实的话显示仪表板和清理。专业模式增加进程、网络、GPU 引擎和原始数据。关闭不需要的监视器后就不占 CPU。
 
 ### 控制台弹窗
 
@@ -115,7 +115,7 @@ rigsweep --disk-report --json 和 --disk-clean --safe --dry-run 无需管理员�
 
 RigSweep 是开源软件，但目前尚未进行代码签名。会更改服务的工具在机器学习启发式检测看来很像恶意软件，因此 Defender 可能会误报（例如 `Trojan:Win32/Bearfoos!ml`，其中 `!ml` 表示启发式推测）。
 
-安装程序会**询问**你是否仅排除它自己的文件夹，卸载程序会再次删除该排除项。我们计划通过 SignPath Foundation 进行代码签名。[阅读完整常见问题 →](https://github.com/yobotn/rigsweep/blob/main/README.zh-CN.md#%EF%B8%8F-%E9%98%B2%E7%97%85%E6%AF%92%E8%BD%AF%E4%BB%B6%E8%AF%AF%E6%8A%A5)
+安装程序会**询问**你是否仅排除它自己的文件夹，卸载程序会再次删除该排除项。我们计划通过 SignPath Foundation 进行代码签名。[阅读完整常见问题 →](https://github.com/yobotn/rigsweep/blob/main/README.zh-CN.md#%E9%98%B2%E7%97%85%E6%AF%92%E8%BD%AF%E4%BB%B6%E8%AF%AF%E6%8A%A5)
 
 ## ❓ 开发者常问的问题
 

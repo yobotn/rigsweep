@@ -35,7 +35,7 @@
   <meta property="og:title" content="RigSweep: room for your agents" />
   <meta property="og:description" content="Kostenlose Open-Source-App für Windows, die RAM, CPU und Speicherplatz auf Entwickler-PCs freigibt: beendet übrig gebliebene Dev-Server, MCP-Server und Agent-CLIs, löscht alte node_modules, Paket- und KI-Caches, mit umkehrbaren Windows-Optimierungen und echten Vorher/Nachher-Messungen." />
   <meta property="og:url" content="https://rigsweep.com/de/" />
-  <meta property="og:image" content="https://rigsweep.com/social.png?v=7ffbae35" />
+  <meta property="og:image" content="https://rigsweep.com/social.png?v=039d78cc" />
   <meta property="og:image:width" content="1280" />
   <meta property="og:image:height" content="640" />
   <meta property="og:image:alt" content="RigSweep: room for your agents. Free up RAM, CPU and disk on Windows dev machines." />
@@ -43,7 +43,7 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="RigSweep: room for your agents" />
   <meta name="twitter:description" content="Kostenlose Open-Source-App für Windows, die RAM, CPU und Speicherplatz auf Entwickler-PCs freigibt: beendet übrig gebliebene Dev-Server, MCP-Server und Agent-CLIs, löscht alte node_modules, Paket- und KI-Caches, mit umkehrbaren Windows-Optimierungen und echten Vorher/Nachher-Messungen." />
-  <meta name="twitter:image" content="https://rigsweep.com/social.png?v=7ffbae35" />
+  <meta name="twitter:image" content="https://rigsweep.com/social.png?v=039d78cc" />
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=527e09ea" />
   <link rel="icon" type="image/png" sizes="128x128" href="/icon.png?v=86fdcbbe" />
   <link rel="apple-touch-icon" href="/icon.png?v=86fdcbbe" />
@@ -119,18 +119,13 @@
     ]
   }
   </script>
-  <script>
-    // design toggle: "clean" (default, flat with Lucide icons) or "ai" (gradients, glow, emoji); ?look=ai to share one
-    (() => { let l = new URLSearchParams(location.search).get("look"); try { l = l || localStorage.getItem("look"); } catch {}
-      document.documentElement.dataset.style = l === "ai" ? "ai" : "clean"; })();
-  </script>
   <style>
     /* Arabic: Cairo (SIL OFL, docs/fonts), self-hosted and limited to its script */
     @font-face { font-family: "Cairo"; src: url("/fonts/cairo-arabic.woff2") format("woff2"); font-weight: 200 1000; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+FB50-FDFF, U+FE70-FEFF, U+200C-200F; }
     /* ---------- tokens ---------- */
     :root {
       --bg: #0b0e13; --bg2: #0f131a; --panel: #141922; --panel2: #1b2130; --border: #262e3f; --border2: #323c52;
-      --text: #e8ebf1; --muted: #8e97ab; --accent: #4f8cff; --accent2: #34c38f; --warn: #f1b44c;
+      --text: #e8ebf1; --muted: #8e97ab; --accent: #22c55e; --accent2: #22c55e; --warn: #f1b44c;
       --r-sm: 8px; --r: 14px; --r-lg: 18px;
       --s1: 8px; --s2: 16px; --s3: 24px; --s4: 40px; --s5: 72px;
       --shadow: 0 24px 64px rgba(0,0,0,.55);
@@ -160,12 +155,12 @@
     /* ---------- buttons ---------- */
     .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--s1); min-height: 46px; padding: 0 22px;
       border-radius: var(--r-sm); font-weight: 600; border: 1px solid var(--border2); color: var(--text); background: var(--panel); transition: transform .15s, filter .15s; }
-    .btn:hover { text-decoration: none; filter: brightness(1.12); transform: translateY(-1px); }
-    .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn:hover { text-decoration: none; filter: brightness(1.12); }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #052e16; }
     .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 
     /* ---------- screenshot frame: fixed aspect ratio, never stretched ---------- */
-    .frame { background: var(--panel); border: 1px solid var(--border2); border-radius: var(--r-lg); box-shadow: var(--shadow); overflow: hidden; }
+    .frame { background: var(--panel); border: 1px solid var(--border2); border-radius: var(--r-lg); box-shadow: 0 12px 32px rgba(0,0,0,.35); overflow: hidden; }
     .frame .bar { display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px; background: var(--bg2); border-bottom: 1px solid var(--border); }
     .frame .bar i { width: 10px; height: 10px; border-radius: 50%; background: var(--border2); }
     .frame .bar span { margin-inline-start: 10px; font-size: 12px; color: var(--muted); }
@@ -179,7 +174,7 @@
 
     /* ---------- sections ---------- */
     section { padding: var(--s5) 0 0; }
-    .eyebrow { display: inline-block; font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-bottom: var(--s1); }
+    .eyebrow { display: inline-block; font-size: 13px; font-weight: 600; letter-spacing: .02em; color: var(--accent); margin-bottom: var(--s1); }
     h1, h2, h3 { letter-spacing: -0.015em; }
     h2 { font-size: clamp(26px, 3.4vw, 36px); line-height: 1.2; margin: 0 0 var(--s2); }
     .lead { color: var(--muted); font-size: 17px; max-width: 700px; margin: 0 0 var(--s4); }
@@ -190,7 +185,7 @@
     .hero { text-align: center; padding: var(--s5) 0 0; }
     .badge-top { display: inline-flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); border: 1px solid var(--border); border-radius: 999px; padding: 4px 14px; margin-bottom: var(--s3); background: var(--panel); }
     .hero h1 { font-size: clamp(38px, 6.4vw, 66px); line-height: 1.06; margin: 0 0 var(--s3); }
-    .hero h1 span { background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .hero h1 span { color: var(--accent); }
     .hero p.sub { color: var(--muted); font-size: clamp(17px, 2.2vw, 20px); max-width: 700px; margin: 0 auto var(--s4); }
     .hero .meta { margin-top: var(--s2); color: var(--muted); font-size: 13px; }
     .hero .frame { margin: var(--s4) auto 0; max-width: 1000px; }
@@ -199,12 +194,12 @@
     .live-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
     .live-row > div { background: var(--panel); border: 1px solid var(--border2); border-radius: 12px; padding: 14px 10px; min-width: 0; }
     .live-row b { display: block; font-size: clamp(22px, 3.4vw, 30px); font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
-      background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; white-space: nowrap;
+      color: var(--text); white-space: nowrap;
       direction: ltr; unicode-bidi: isolate; }
     .live-row span { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
     .live-note { margin: 10px 0 0; color: var(--muted); font-size: 12px; display: flex; justify-content: center; align-items: center; gap: 6px; }
-    .live-note .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent2); box-shadow: 0 0 0 0 rgba(52,195,143,.6); animation: pulse 2s infinite; }
-    @keyframes pulse { 70% { box-shadow: 0 0 0 7px rgba(52,195,143,0); } 100% { box-shadow: 0 0 0 0 rgba(52,195,143,0); } }
+    .live-note .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent2); box-shadow: 0 0 0 0 rgba(34,197,94,.6); animation: pulse 2s infinite; }
+    @keyframes pulse { 70% { box-shadow: 0 0 0 7px rgba(34,197,94,0); } 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); } }
     @media (prefers-reduced-motion: reduce) { .live-note .dot { animation: none; } }
 
     /* ecosystem strip */
@@ -238,7 +233,7 @@
     .ticks { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
     .ticks li { position: relative; padding-inline-start: 30px; color: var(--muted); }
     .ticks li::before { content: "✓"; position: absolute; inset-inline-start: 0; top: 1px; width: 20px; height: 20px; display: grid; place-items: center;
-      font-size: 12px; font-weight: 700; border-radius: 50%; background: rgba(52,195,143,.15); color: var(--accent2); }
+      font-size: 12px; font-weight: 700; border-radius: 50%; background: rgba(34,197,94,.15); color: var(--accent2); }
     .ticks li b { color: var(--text); }
 
     /* faq */
@@ -253,7 +248,7 @@
     .note.disc { border-inline-start-color: var(--muted); }
 
     .final { text-align: center; padding: var(--s5) var(--s3); margin-top: var(--s5); border-radius: var(--r-lg);
-      background: radial-gradient(ellipse at top, rgba(79,140,255,.16), transparent 70%), var(--panel); border: 1px solid var(--border); }
+      background: var(--panel); border: 1px solid var(--border); }
     .final .lead { margin-bottom: var(--s3); }
 
     .signing { max-width: 680px; margin: var(--s4) auto 0; padding-top: var(--s3); border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; }
@@ -265,23 +260,12 @@
     footer .langs a { color: var(--muted); }
     footer .langs a[aria-current] { color: var(--text); }
 
-    /* ---------- design toggle ---------- */
-    .look { display: inline-flex; border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--panel); padding: 2px; }
-    .look button { background: none; border: 0; border-radius: 6px; color: var(--muted); font: inherit; font-size: 13px; padding: 4px 10px; cursor: pointer; white-space: nowrap; }
-    .look button:hover { color: var(--text); }
-    .look button[aria-pressed="true"] { background: var(--panel2); color: var(--text); }
-    .look button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-    /* icons.js keeps each emoji in a .emo span beside its Lucide .ico twin; the look picks one */
+    /* icons.js keeps each emoji in a .emo span beside its Lucide .ico twin; the page shows the icon */
     .ico { display: inline-flex; width: 1.1em; height: 1.1em; vertical-align: -0.18em; margin-inline-end: 0.4em; flex-shrink: 0; }
     .ico svg { width: 100%; height: 100%; }
     .card .ic .ico { width: 22px; height: 22px; margin: 0; color: var(--accent); }
     .chip .ico { margin: 0; }
-    html:not([data-style="ai"]) .emo { display: none; }
-    html[data-style="ai"] .ico { display: none; }
-    /* clean look: no glow, no lift; the blue-to-green gradients stay in both looks */
-    html:not([data-style="ai"]) .btn:hover { transform: none; }
-    html:not([data-style="ai"]) .frame { box-shadow: 0 12px 32px rgba(0,0,0,.35); }
-    html:not([data-style="ai"]) .eyebrow { letter-spacing: .02em; text-transform: none; }
+    .emo { display: none; }
 
     @media (max-width: 900px) {
       .grid { grid-template-columns: repeat(2, 1fr); }
@@ -294,7 +278,6 @@
       .grid { grid-template-columns: 1fr; }
       .links a.hide-sm { display: none; }
       .links { gap: 10px; }
-      .look button { padding: 4px 8px; }
       .lang { max-width: 104px; }
       .frame .bar { height: 26px; }
       .btn { width: 100%; }
@@ -310,10 +293,6 @@
         <a class="hide-sm" href="#faq" data-t="nav.faq">FAQ</a>
         <a class="hide-sm" href="#trust" data-t="nav.trust">Antivirus-FAQ</a>
         <a class="hide-sm" href="https://github.com/yobotn/rigsweep">GitHub</a>
-        <div class="look" id="look" role="group" data-t-aria="look.label" aria-label="Design">
-          <button type="button" data-look="clean" aria-pressed="true" data-t="look.clean">Schlicht</button>
-          <button type="button" data-look="ai" aria-pressed="false" data-t="look.ai">KI</button>
-        </div>
         <select class="lang" id="lang" aria-label="Language"></select>
       </div>
     </div>
@@ -355,7 +334,7 @@
         </div>
         <div class="frame">
           <div class="bar"><i></i><i></i><i></i><span>RigSweep</span></div>
-          <img id="img-hero" src="/screenshots/cleanup-de.png?v=4ce10635" alt="RigSweep Dev Cleanup" />
+          <img id="img-hero" src="/screenshots/cleanup-de.png?v=263ae8d2" alt="RigSweep Dev Cleanup" />
         </div>
       </div>
     </header>
@@ -411,7 +390,7 @@
         <div class="card"><div class="ic">🎮</div><h3 data-t="f12.h">GPU &amp; KI</h3><p data-t="f12.p">Was jede App auf Grafikkarte und NPU tut, aus denselben Zählern wie der Task-Manager, dazu die laufenden KI-Runtimes (Ollama, LM Studio, llama.cpp, ComfyUI, PyTorch), ihre geladenen Modelle und der belegte Grafikspeicher.</p></div>
         <div class="card"><div class="ic">📡</div><h3 data-t="f13.h">Netzwerk</h3><p data-t="f13.p">Datenverkehr pro Adapter, welche App welche Verbindung oder welchen lauschenden Port hält, und eine Suche, die zeigt, wer Port 3000 oder eine gesperrte Datei bzw. einen Ordner nutzt.</p></div>
         <div class="card"><div class="ic">🔎</div><h3 data-t="f14.h">Finden</h3><p data-t="f14.p">Sieh Ordner für Ordner, was auf jedem Laufwerk Platz belegt, verschiebe Paket-Caches von C: auf ein anderes Laufwerk oder ein Dev Drive und prüfe Programme ohne Deinstallationsprogramm, große alte Dateien in Downloads und unsignierte Autostart-Programme, mit einem Microsoft-Defender-Scan per Klick.</p></div>
-        <div class="card"><div class="ic">🎛️</div><h3 data-t="f15.h">Einfach oder Profi</h3><p data-t="f15.p">„Einfach“ zeigt das Dashboard und die Bereinigungen in klaren Worten. „Profi“ ergänzt Prozesse, Netzwerk, GPU-Engines und die Rohwerte. Wähle den Stil „Klar“ oder „KI-Look“ und schalte Monitore ab, die du nicht brauchst. Dann kosten sie keine CPU.</p></div>
+        <div class="card"><div class="ic">🎛️</div><h3 data-t="f15.h">Einfach oder Profi</h3><p data-t="f15.p">„Einfach“ zeigt das Dashboard und die Bereinigungen in klaren Worten. „Profi“ ergänzt Prozesse, Netzwerk, GPU-Engines und die Rohwerte. Schalte Monitore ab, die du nicht brauchst. Dann kosten sie keine CPU.</p></div>
         <div class="card wide"><div class="ic">🪟</div><h3 data-t="f17.h">Konsolenfenster</h3><p data-t="f17.p">Das Eingabeaufforderungsfenster, das kurz aufblitzt und verschwindet: RigSweep zeichnet den genauen Befehl auf, wer es gestartet hat (eine geplante Aufgabe, ein Dienst oder eine App) und was darin lief, und kann die Aufgabe dahinter abschalten, mit Sicherung.</p></div>
         <div class="card wide"><div class="ic">🤖</div><h3 data-t="f16.h">Für KI-Agents</h3><p data-t="f16.p">rigsweep --disk-report --json und --disk-clean --safe --dry-run laufen ohne Adminrechte, und rigsweep --mcp ist ein MCP-Server: Claude Code, Cursor oder Codex können freien Platz prüfen, sehen, was ihn belegt, und die Caches leeren, die sich selbst neu aufbauen.</p></div>
       </div>
@@ -432,7 +411,7 @@
         </div>
         <div class="frame">
           <div class="bar"><i></i><i></i><i></i><span data-t="shot.dashboard">Übersicht</span></div>
-          <img id="img-dashboard" src="/screenshots/dashboard.png?v=6ddf8bec" alt="RigSweep dashboard" loading="lazy" />
+          <img id="img-dashboard" src="/screenshots/dashboard.png?v=f1db0317" alt="RigSweep dashboard" loading="lazy" />
         </div>
       </div>
     </section>
@@ -451,7 +430,7 @@
         </div>
         <div class="frame">
           <div class="bar"><i></i><i></i><i></i><span data-t="shot.tweaks">Optimierungen</span></div>
-          <img src="/screenshots/tweaks.png?v=894014cb" alt="Reversible tweaks" loading="lazy" />
+          <img src="/screenshots/tweaks.png?v=dbed9977" alt="Reversible tweaks" loading="lazy" />
         </div>
       </div>
     </section>
@@ -461,7 +440,7 @@
       <h2 data-t="trust.h">🛡️ Hat Defender es gelöscht?</h2>
       <div class="note">
         <p data-t-html="trust.p1">RigSweep ist Open Source, aber noch nicht codesigniert. Tools, die Dienste ändern, sehen für Machine-Learning-Heuristiken wie Schadsoftware aus, daher kann Defender es fälschlicherweise erkennen (z. B. <code>Trojan:Win32/Bearfoos!ml</code>, wobei <code>!ml</code> für eine heuristische Vermutung steht).</p>
-        <p data-t-html="trust.p2">Das Installationsprogramm <b>fragt</b>, ob nur sein eigener Ordner ausgeschlossen werden soll, und das Deinstallationsprogramm entfernt diesen Ausschluss wieder. Eine Codesignierung über die SignPath Foundation ist geplant. <a href="https://github.com/yobotn/rigsweep/blob/main/README.de.md#%EF%B8%8F-antivirus-fehlalarme">Vollständige FAQ lesen →</a></p>
+        <p data-t-html="trust.p2">Das Installationsprogramm <b>fragt</b>, ob nur sein eigener Ordner ausgeschlossen werden soll, und das Deinstallationsprogramm entfernt diesen Ausschluss wieder. Eine Codesignierung über die SignPath Foundation ist geplant. <a href="https://github.com/yobotn/rigsweep/blob/main/README.de.md#antivirus-fehlalarme">Vollständige FAQ lesen →</a></p>
       </div>
     </section>
 
@@ -488,12 +467,12 @@
       <p class="lead" data-t="start.p">Installieren, Referenzwert messen, aufräumen, dann erneut messen.</p>
       <div class="cta">
         <a class="btn primary" href="https://github.com/yobotn/rigsweep/releases/latest" data-t="cta.download">⬇️ Für Windows herunterladen</a>
-        <a class="btn" href="https://github.com/yobotn/rigsweep#-build-from-source" data-t="cta.build">🛠️ Aus dem Quellcode kompilieren</a>
+        <a class="btn" href="https://github.com/yobotn/rigsweep#build-from-source" data-t="cta.build">🛠️ Aus dem Quellcode kompilieren</a>
       </div>
       <div class="signing">
         <h3 data-t="sign.h">🔏 Codesignierung</h3>
         <p data-t="sign.p">Kostenlose Codesignierung bereitgestellt von SignPath.io, Zertifikat von der SignPath Foundation (Antrag läuft; aktuelle Releases sind noch nicht signiert). Die Installationsprogramme werden von GitHub Actions aus dem getaggten Quellcode erstellt. Keine Telemetrie, keine Analysen. Die einzige Netzwerkanfrage ist die Suche nach Updates, und nur, wenn Sie sie aktivieren oder auf „Jetzt suchen“ klicken.</p>
-        <a href="https://github.com/yobotn/rigsweep#-code-signing-policy" data-t="sign.link">Codesignierung &amp; Datenschutzerklärung →</a>
+        <a href="https://github.com/yobotn/rigsweep#code-signing-policy" data-t="sign.link">Codesignierung &amp; Datenschutzerklärung →</a>
       </div>
     </div>
 
@@ -505,17 +484,17 @@
   </main>
 
   <script src="/icons.js?v=27f6c102" defer></script>
-  <script src="/locales/en.js?v=bfed0750"></script>
-  <script src="/locales/de.js?v=a3636ae6"></script>
-  <script src="/locales/es.js?v=3eac224b"></script>
-  <script src="/locales/fr.js?v=74bf8873"></script>
-  <script src="/locales/it.js?v=2b6d22b5"></script>
-  <script src="/locales/pt-BR.js?v=e22bcde9"></script>
-  <script src="/locales/ru.js?v=8b76ee0e"></script>
-  <script src="/locales/ja.js?v=8a1d4ef1"></script>
-  <script src="/locales/ko.js?v=800fc6d5"></script>
-  <script src="/locales/zh-CN.js?v=a2760da3"></script>
-  <script src="/locales/ar.js?v=2e7c2a4e"></script>
+  <script src="/locales/en.js?v=48eb0cc6"></script>
+  <script src="/locales/de.js?v=1c4acb65"></script>
+  <script src="/locales/es.js?v=a365a8ec"></script>
+  <script src="/locales/fr.js?v=58d2ce3a"></script>
+  <script src="/locales/it.js?v=9decc038"></script>
+  <script src="/locales/pt-BR.js?v=534b3e4f"></script>
+  <script src="/locales/ru.js?v=725b2733"></script>
+  <script src="/locales/ja.js?v=b32e31c8"></script>
+  <script src="/locales/ko.js?v=b802e21e"></script>
+  <script src="/locales/zh-CN.js?v=4816b518"></script>
+  <script src="/locales/ar.js?v=ba4d5d83"></script>
   <script>
     const LANGS = { "en": "English", "de": "Deutsch", "es": "Español", "fr": "Français", "it": "Italiano", "pt-BR": "Português (Brasil)", "ru": "Русский", "ja": "日本語", "ko": "한국어", "zh-CN": "简体中文", "ar": "العربية" };
     // the Dashboard shot is a real capture (en/es/fr); the Dev Cleanup shot exists in every language
@@ -552,15 +531,6 @@
       const next = tabs[(i + step + tabs.length) % tabs.length];
       e.preventDefault(); showShot(next.dataset.shot); next.focus();
     });
-
-    const look = document.getElementById("look");
-    function setLook(l, save) {
-      document.documentElement.dataset.style = l;
-      look.querySelectorAll("[data-look]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.look === l)));
-      if (save) try { localStorage.setItem("look", l); } catch {}
-    }
-    look.addEventListener("click", (e) => { const b = e.target.closest("[data-look]"); if (b) setLook(b.dataset.look, true); });
-    setLook(document.documentElement.dataset.style, false);
 
     function apply(lang) {
       if (!T[lang]) lang = "en";

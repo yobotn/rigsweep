@@ -6,7 +6,7 @@
 
 **에이전트를 위한 여유 공간.** AI 에이전트 세션으로 가득 찬 Windows 개발 PC의 RAM, CPU, 디스크를 확보하세요.
 
-**[🌐 홈페이지](https://rigsweep.com)** · **[⬇️ 다운로드](https://github.com/yobotn/rigsweep/releases/latest)** · **[📖 바이러스 백신 FAQ](#%EF%B8%8F-바이러스-백신-오탐지)**
+**[🌐 홈페이지](https://rigsweep.com)** · **[⬇️ 다운로드](https://github.com/yobotn/rigsweep/releases/latest)** · **[📖 바이러스 백신 FAQ](#바이러스-백신-오탐지)**
 
 [🇬🇧 English](README.md) · [🇩🇪 Deutsch](README.de.md) · [🇪🇸 Español](README.es.md) · [🇫🇷 Français](README.fr.md) · [🇮🇹 Italiano](README.it.md) · [🇧🇷 Português](README.pt-BR.md) · [🇷🇺 Русский](README.ru.md) · [🇯🇵 日本語](README.ja.md) · 🇰🇷 한국어 · [🇨🇳 简体中文](README.zh-CN.md) · [🇸🇦 العربية](README.ar.md)
 
@@ -21,7 +21,7 @@
 
 ---
 
-## 📖 만든 이유
+## 만든 이유
 
 AI 시대가 되면서 제 노트북은 더 이상 *한 가지*만 실행하지 않습니다. 평범한 하루에도 여러 터미널에서 **Claude Code** 세션 몇 개, 프로젝트마다 개발 서버, 빌드 감시 프로세스, 그리고 문서, 미리 보기, 대시보드로 가득 찬 브라우저가 돌아갑니다. 새 세션을 열 때마다 Node 프로세스가 늘어나고, 터미널을 닫아도 그중 일부는 **백그라운드에서 계속 실행됩니다**.
 
@@ -43,9 +43,9 @@ AI 시대가 되면서 제 노트북은 더 이상 *한 가지*만 실행하지 
 
 ---
 
-## ✨ 기능
+## 기능
 
-### 🧹 개발 정리: 모든 스택의 방치된 개발 프로세스
+### 개발 정리: 모든 스택의 방치된 개발 프로세스
 **개발 서버, 빌드 데몬, AI 에이전트 CLI**를 찾아 각각을 **프로세스 트리 전체**, 프로젝트 폴더, 실행 시간, RAM, 수신 대기 포트와 함께 묶어 보여 줍니다.
 
 | 스택 | 찾는 항목 |
@@ -76,7 +76,7 @@ Python과 Java로는 일반 데스크톱 앱도 실행되므로, 이 두 언어�
 - 🎯 **한 줄씩 또는 한꺼번에**: 행을 선택하고 **선택 항목 종료**를 클릭하거나, 한 행의 **종료** 단추를 사용합니다. 두 방법 모두 확보될 용량과 함께 같은 확인 창을 보여 줍니다.
 - ✅ 사용자가 확인하기 전에는 아무것도 종료되지 않으며, 종료할 때마다 PID 재사용 여부를 확인합니다.
 
-### 💾 개발 디스크: node_modules, 캐시, 워크트리
+### 개발 디스크: node_modules, 캐시, 워크트리
 오래된 프로젝트는 작업을 그만둔 뒤에도 수 GB의 `node_modules`, `.next`, `target`, `bin/obj`, `.venv`를 그대로 갖고 있고, 패키지 캐시는 계속 늘어나기만 하며, AI 도구와 에이전트는 캐시와 워크트리를 남겨 둡니다. RigSweep이 이 모두를 찾아서 선택한 것을 삭제합니다.
 
 - 🗂️ **프로젝트**: Node, Rust, .NET, Java/Gradle/Maven, Python의 빌드 출력과 의존성 폴더. 옆에 프로젝트 파일(`package.json`, `Cargo.toml`, `*.csproj`, `pyvenv.cfg` 등)이 있는 폴더만 대상이라, 아무 `build` 폴더나 건드리는 일은 없습니다. 30일(변경 가능) 동안 아무도 수정하지 않은 프로젝트만 미리 선택되며, 실행 중인 프로세스가 사용하는 프로젝트는 잠깁니다 🔒.
@@ -94,7 +94,7 @@ Python과 Java로는 일반 데스크톱 앱도 실행되므로, 이 두 언어�
 - ⏸️ 오래 걸리는 정리를 **일시 중지, 다시 시작, 중지**할 수 있고 진행률 표시줄로 확인할 수 있습니다. 재시작으로 중단된 정리도 멈춘 곳부터 이어서 진행합니다.
 - ✅ 기본적으로 사용자 프로필(바탕 화면, 문서, 다운로드, OneDrive 등)을 검색합니다. 확인 없이는 아무것도 삭제하지 않으며, 각 폴더는 삭제 직전에 한 번 더 확인합니다.
 
-### 🖥️ 하드웨어: 도구 4개 대신 탭 하나
+### 하드웨어: 도구 4개 대신 탭 하나
 CPU-Z, GPU-Z, CrystalDiskInfo, CrystalDiskMark를 열어 확인하던 기본 정보를 Windows에서 직접 읽어 옵니다. 드라이버는 설치하지 않습니다.
 
 - 💽 **디스크 상태**: 디스크마다 정상 / 마모 중 / 문제 있음을 남은 수명, 온도, 사용 시간, 수정 불가 오류와 함께 보여 줍니다. 고장 나기 시작한 디스크가 있으면 대시보드에 경고가 뜹니다.
@@ -104,7 +104,7 @@ CPU-Z, GPU-Z, CrystalDiskInfo, CrystalDiskMark를 열어 확인하던 기본 정
 
 <img src="docs/screenshots/hardware.png" alt="하드웨어" width="860">
 
-### 🎮 GPU 및 AI: 그래픽 카드와 NPU에서 실행 중인 것
+### GPU 및 AI: 그래픽 카드와 NPU에서 실행 중인 것
 각 앱이 GPU와 NPU에서 하는 일을 작업 관리자와 같은 성능 카운터에서 읽어 옵니다. 아무것도 설치하지 않으며, 페이지가 닫혀 있는 동안에는 아무것도 수집하지 않습니다.
 
 - 🎮 **어댑터별**: 사용률, 사용 중인 전용 메모리와 공유 메모리, 그리고 프로 모드에서는 작동 중인 엔진(3D, Compute, Copy, Video 등)별 막대.
@@ -114,21 +114,21 @@ CPU-Z, GPU-Z, CrystalDiskInfo, CrystalDiskMark를 열어 확인하던 기본 정
 
 <img src="docs/screenshots/gpu.png" alt="GPU 및 AI" width="860">
 
-### 📊 부스트 보고서: 실제 전후 비교
+### 부스트 보고서: 실제 전후 비교
 "PC가 87% 빨라졌습니다" 같은 가짜 숫자는 없습니다. RigSweep은 PC를 **측정**하고 두 스냅샷을 비교합니다: 사용 중/사용 가능한 RAM, 평균 CPU, 프로세스 수, 실행 중인 서비스, Chrome RAM, Node/에이전트 RAM.
 
 - 📸 첫 조정 전에 **기준값**이 자동으로 기록됩니다.
 - 🔁 개발 정리를 할 때마다 **전후** 측정값이 기록됩니다.
 - 📋 **Markdown으로 복사**해 이슈, 게시물 또는 이 README에 결과를 공유하세요.
 
-### 🌐 Chrome 탭 도우미
+### Chrome 탭 도우미
 데스크톱 앱은 Chrome 탭을 닫을 **수 없으므로**, RigSweep에는 네트워크 액세스 없이 `tabs` / `storage` / `alarms` 권한만 사용하는 작은 확장 프로그램([`chrome-extension/`](chrome-extension/))이 포함되어 있습니다.
 - 💤 **유휴 탭 절전**: 메모리를 확보하지만 탭은 탭 표시줄에 그대로 남습니다
 - 🧹 **중복 탭 닫기**
 - 🎯 `localhost:*`나 `*.vercel.app` 같은 **패턴으로 탭 닫기**
 - ⏰ 10분마다 **자동 절전**(선택 사항)
 
-### ⚙️ 되돌릴 수 있는 Windows 시스템 조정
+### 되돌릴 수 있는 Windows 시스템 조정
 원격 분석, Xbox, 검색 인덱서, 백그라운드 앱, 개발 폴더용 Defender 제외, 전원 관리 옵션 등을 위험 수준과 함께 담은 엄선된 카탈로그([`catalog/tweaks.json`](src-tauri/catalog/tweaks.json))입니다.
 
 | 수준 | 의미 |
@@ -145,7 +145,7 @@ CPU-Z, GPU-Z, CrystalDiskInfo, CrystalDiskMark를 열어 확인하던 기본 정
 - 🧭 **Edge가 돌아오지 않게**: 설정에서 Edge를 제거한 뒤, 조정 하나로 Edge Update와 Windows 업데이트가 다시 설치하지 못하게 막습니다. 다른 앱에 필요한 WebView2 런타임은 건드리지 않습니다.
 - 🚫 절대 건드리지 않는 항목: Windows 업데이트, Defender 엔진, RPC/DCOM/LSA 및 그 밖의 약 60개 핵심 서비스([`PROTECTED_SERVICES`](src-tauri/src/catalog.rs)).
 
-### 🔍 프로세스 분석기
+### 프로세스 분석기
 프로세스별 CPU / RAM / 디스크 사용량과 **각 `svchost.exe` 안에서 실행되는 서비스**를 보여 줍니다. 목록에서 바로 서비스를 사용 안 함으로 설정하거나 프로세스를 종료할 수 있습니다(핵심 항목은 잠겨 있음 🔒). 각 앱은 고유 아이콘과 함께 표시됩니다.
 
 - ❓ **이유**: 프로세스를 클릭하면 정체를 알 수 있습니다. CPU, 메모리, 디스크, 스레드, 게시자, 파일과 명령줄, 이 프로세스를 시작한 프로그램과 이 프로세스가 시작한 프로그램이 나옵니다. 잘 알려진 Windows 프로세스(Defender, Windows Search, Windows 업데이트, svchost, WMI 등)는 왜 바쁜지 쉽게 설명해 줍니다.
@@ -153,7 +153,7 @@ CPU-Z, GPU-Z, CrystalDiskInfo, CrystalDiskMark를 열어 확인하던 기본 정
 
 <img src="docs/screenshots/processes.png" alt="프로세스" width="860">
 
-### 🚀 시작 프로그램: 작업 관리자가 보여 주지 않는 것
+### 시작 프로그램: 작업 관리자가 보여 주지 않는 것
 작업 관리자의 시작 앱 목록은 Windows와 함께 시작되는 것 대부분을 빠뜨립니다. RigSweep은 Windows 자체 구성 요소를 제외한 전부를 보여 줍니다.
 
 - 🧩 앱과 드라이버의 **자동 시작 서비스**(VPN 클라이언트, 제조사 유틸리티, 업데이트 프로그램). 수동으로 바꾸므로 부팅 시에는 시작되지 않지만, 앱을 열면 앱이 직접 시작할 수 있습니다.
@@ -163,7 +163,7 @@ CPU-Z, GPU-Z, CrystalDiskInfo, CrystalDiskMark를 열어 확인하던 기본 정
 
 <img src="docs/screenshots/startup.png" alt="시작 프로그램" width="860">
 
-### 🪟 콘솔 창: 방금 그 창은 뭐였을까?
+### 콘솔 창: 방금 그 창은 뭐였을까?
 명령 프롬프트나 PowerShell 창이 떴다가 금세 닫히고, 무엇이 실행됐는지는 끝내 알 수 없습니다. **속도 향상 → 🪟 콘솔 창**이 그런 창을 하나도 빠짐없이 기록합니다.
 
 - 🪟 저절로 열렸다가 1분 안에 닫힌 콘솔 창을 **실제로 실행된 명령 그대로** 목록에 보여 줍니다. 몇 밀리초만 열려 있었어도 기록됩니다.
@@ -173,14 +173,14 @@ CPU-Z, GPU-Z, CrystalDiskInfo, CrystalDiskMark를 열어 확인하던 기본 정
 - ⏹ **끄기…**를 누르면 그 뒤에 있는 타사 예약된 작업을 사용 안 함으로 설정합니다. 다른 시작 프로그램 변경과 마찬가지로 백업되며, 시작 프로그램이나 시스템 조정에서 되돌릴 수 있습니다.
 - 🙈 숨겨진 채 실행되는 명령은 목록에 나오지 않습니다. 실제로 화면에 보였던 창만 나옵니다. RigSweep은 Windows 자체의 커널 이벤트 스트림(ETW)에서 프로세스 시작을 읽기만 하며, 지켜보는 것만으로는 아무것도 바꾸지 않습니다. 설정 → 모양 및 기능에서 끌 수 있습니다.
 
-### 📡 네트워크: 어떤 앱이 어떤 포트를 쓰는지
+### 네트워크: 어떤 앱이 어떤 포트를 쓰는지
 - 📶 **어댑터별**: 다운로드와 업로드 속도, 링크 속도, 부팅 후 전송량. Windows는 앱별 바이트 수를 관리자 권한으로 추적하는 도구에만 제공하므로, 전송량은 앱별이 아니라 어댑터별로 표시합니다.
 - 🔌 **앱별**: 수신 대기 포트(TCP 및 UDP), 열린 연결 수, 각 앱이 통신하는 원격 주소.
 - 🔍 **누가 사용 중인가요?**: 포트 번호를 입력하면 그 포트를 쓰는 프로세스를 명령줄과 함께 보여 주고, 파일이나 폴더를 입력하면 그것을 열어 두었거나 그 안에서 작업 중인 앱을 보여 줍니다. 확인만 할 뿐, 여기서 종료되는 것은 없습니다.
 
 <img src="docs/screenshots/network.png" alt="네트워크" width="860">
 
-### 🔎 찾기: 남은 찌꺼기와 한 번 더 볼 만한 파일
+### 찾기: 남은 찌꺼기와 한 번 더 볼 만한 파일
 공간이 어디로 갔는지, 그리고 검토할 목록 세 가지가 있습니다. 직접 고른 것만 제거됩니다.
 
 - 📊 **공간을 차지하는 것**: 어느 드라이브든 가장 큰 폴더를 한 단계씩 보여 줍니다. 폴더를 클릭하면 더 깊이 들어가고, *보기*를 누르면 파일 탐색기에서 열립니다. 읽기만 합니다.
@@ -191,27 +191,26 @@ CPU-Z, GPU-Z, CrystalDiskInfo, CrystalDiskMark를 열어 확인하던 기본 정
 
 <img src="docs/screenshots/finders.png" alt="찾기" width="860">
 
-### 🎨 간단 또는 프로, 깔끔하게 또는 AI 스타일
+### 간단 또는 프로
 **🛠️ 설정 → 모양 및 기능**에서 고릅니다.
 
 - 🧭 **모드**: **간단**은 대시보드, 정리 기능, 쉬운 설명만 보여 주고 전문가용 페이지(프로세스, 네트워크)는 숨깁니다. **프로**는 GPU 엔진, 연결, 원시 수치까지 모두 보여 줍니다. 새로 설치하면 간단 모드로 시작합니다.
-- 🖌️ **스타일**: **깔끔하게**는 선 아이콘을 쓴 플랫한 모양이고, **AI 스타일**은 이모지, 그라데이션, 은은한 빛이 더해집니다.
 - 📡 **모니터**: 프로세스별 GPU 및 VRAM, AI 작업량, 네트워크, 온도, 디스크 상태 알림을 따로 끌 수 있습니다. 꺼 둔 모니터는 전혀 수집하지 않으므로 CPU를 쓰지 않습니다.
 
-### 🤖 AI 에이전트와 스크립트용
+### AI 에이전트와 스크립트용
 - ⌨️ **관리자 권한이 필요 없는** 헤드리스 명령: `rigsweep --disk-report --json`, `rigsweep --disk-clean --safe [--dry-run] --json`, `rigsweep --port 3000 --json`.
 - 🔌 **MCP 서버**: `rigsweep --mcp`는 Claude Code, Cursor, Codex에 `drive_space`, `disk_report`, `free_disk_space`(따로 지정하지 않으면 시험 실행) 및 `port_owner` 도구를 제공합니다. Claude Code에서는 `claude mcp add rigsweep -- "C:\Program Files\RigSweep\rigsweep.exe" --mcp`.
 - 📖 전체 참조 문서: [rigsweep.com/cli](https://rigsweep.com/cli/).
 
-### 🔄 업데이트는 원할 때만
+### 업데이트는 원할 때만
 **🛠️ 설정 → 🔄 업데이트**에는 **지금 확인** 단추와, 선택 사항인 *자동으로 업데이트 확인*(시작할 때, 이후 하루에 한 번)이 있으며 이 옵션은 **기본적으로 꺼져 있습니다**. 새 버전이 나오면 사이드바에 릴리스 정보와 함께 단추가 나타납니다. **설치 후 다시 시작**을 클릭하기 전에는 아무것도 설치되지 않으며, 다운로드한 파일이 RigSweep의 키로 서명된 경우에만 설치됩니다. 시스템 조정, 백업, 설정은 그대로 유지됩니다. 확인할 때 정확히 무엇을 하는지는 [개인정보 처리방침](#-개인정보-처리방침)을 참조하세요.
 
-### 🌍 12개 언어
+### 12개 언어
 UI는 **English, Deutsch, Español, Français, Italiano, Português (Brasil), Русский, 日本語, 한국어, 简体中文, العربية**을 지원하며(사이드바에서 전환), 설치 프로그램과 Chrome 확장 프로그램도 마찬가지입니다. 각 언어는 단어 그대로 번역하지 않고 해당 언어의 공식 Windows 용어(작업 관리자, 서비스, 작업 스케줄러…)로 현지화했습니다. 어색한 표현을 발견하셨나요? `ui/locales/<code>.js`(앱), `docs/locales/<code>.js`(홈페이지) 또는 `README.<code>.md`에 이슈나 PR을 올려 주세요.
 
 ---
 
-## 🏁 내 PC에서 비교한 전후 결과
+## 내 PC에서 비교한 전후 결과
 
 설치한 다음 **📊 부스트 보고서 → 📸 지금 측정**을 열고, 개발 정리를 실행하고 안전한 조정을 적용한 후 다시 시작하고, 다시 측정한 다음 **📋 Markdown으로 복사**를 클릭하세요. 결과는 [Discussions](../../discussions)에 언제든 공유해 주세요!
 
@@ -221,7 +220,7 @@ UI는 **English, Deutsch, Español, Français, Italiano, Português (Brasil), Р
 
 ---
 
-## 📦 설치
+## 설치
 
 1. [**Releases**](../../releases)에서 `RigSweep_x.y.z_x64-setup.exe`를 다운로드합니다.
 2. 실행합니다. RigSweep은 서비스와 정책을 관리하므로 관리자 권한을 요청합니다.
@@ -230,7 +229,7 @@ UI는 **English, Deutsch, Español, Français, Italiano, Português (Brasil), Р
 
 🌐 **Chrome 도우미:** RigSweep에서 **🛠️ 설정 → 🌐 Chrome 탭 도우미 → 확장 프로그램 폴더 열기**로 이동한 다음, Chrome에서 `chrome://extensions` → **개발자 모드** → **압축해제된 확장 프로그램을 로드합니다** → 해당 폴더를 선택합니다.
 
-## 🛡️ 바이러스 백신 오탐지
+## 바이러스 백신 오탐지
 
 RigSweep은 오픈 소스이지만 **아직 코드 서명이 되어 있지 않습니다**. 서비스와 Defender 설정을 변경하는 도구는 머신 러닝 휴리스틱에 맬웨어와 매우 비슷하게 보이므로, **Microsoft Defender가 실수로 exe를 삭제할 수 있습니다**. 실제로 개발 중에 `Trojan:Win32/Bearfoos.B!ml`로 감지된 적이 있으며, 여기서 `!ml`은 알려진 맬웨어 서명이 아니라 휴리스틱 추정을 뜻합니다.
 
@@ -243,7 +242,7 @@ RigSweep은 오픈 소스이지만 **아직 코드 서명이 되어 있지 않�
 
 ---
 
-## 🛠️ 소스에서 빌드
+## 소스에서 빌드
 
 ```powershell
 winget install Rustlang.Rustup        # + VS 2022 Build Tools(C++ 워크로드)
@@ -254,7 +253,7 @@ npm run build                         # -> src-tauri/target/release/rigsweep.exe
 
 > 💡 Defender가 새로 빌드한 로컬 빌드도 격리할 수 있습니다. 클론한 폴더를 RigSweep의 *개발 폴더* 목록(설정)에 추가하고 **Defender exclusions for dev folders** 조정을 적용하거나, `src-tauri\target`을 직접 제외하세요.
 
-### ⌨️ CLI
+### CLI
 | 명령 | 동작 |
 |---|---|
 | `rigsweep.exe` | GUI + 알림 영역 |
@@ -262,7 +261,7 @@ npm run build                         # -> src-tauri/target/release/rigsweep.exe
 | `rigsweep.exe --apply --tray` | 위와 같으며, 이후 감시 기능과 함께 알림 영역에 유지 |
 | `rigsweep.exe --restore-all` | 모든 항목을 백업된 원래 값으로 되돌림 |
 
-### 🧪 테스트
+### 테스트
 ```powershell
 cd src-tauri
 cargo test                                          # 카탈로그 유효성, 백업, 스냅샷, 명령 구문 분석
@@ -270,13 +269,13 @@ cargo test live_status   -- --ignored --nocapture   # 읽기 전용: 모든 조�
 cargo test live_dev_scan -- --ignored --nocapture   # 읽기 전용: 현재 개발 정리에서 감지되는 항목
 ```
 
-### ➕ 조정 추가
+### 조정 추가
 [`catalog/tweaks.json`](src-tauri/catalog/tweaks.json)에 항목을 추가하세요. 작업 유형은 `service`(start: disabled|manual), `task`(path), `registry`(HKLM|HKCU, dword|string), `defender_exclusion`, `power_plan`입니다. `caution` 항목에는 반드시 `warning`이 있어야 합니다. `cargo test`는 보호된 서비스와 잘못된 형식의 항목을 거부합니다.
 
-## 🐳 docker-optimize(별도 도구)
+## docker-optimize(별도 도구)
 앱의 일부가 아닙니다. [`docker-optimize/`](docker-optimize/)는 Docker Desktop의 WSL2 VM을 제한하고(메모리, CPU, RAM 회수, 스파스 디스크) 필요 없는 Docker Desktop 부가 기능을 끄는, 되돌릴 수 있는 독립 실행형 일회성 스크립트입니다. 컨테이너, 이미지, 볼륨은 절대 삭제하지 않습니다. 해당 [README](docker-optimize/README.md)를 참조하세요.
 
-## 🗂️ 파일 위치
+## 파일 위치
 | 항목 | 위치 |
 |---|---|
 | 데이터베이스(백업, 기록, 스냅샷) | `%ProgramData%\RigSweep\rigsweep.db`(+ `.bak.1`–`.bak.5`) |
@@ -285,7 +284,7 @@ cargo test live_dev_scan -- --ignored --nocapture   # 읽기 전용: 현재 개�
 
 **aiBoost**(이전 이름)에서 업그레이드하셨나요? 처음 시작할 때 데이터베이스가 자동으로 마이그레이션되고, 이전 시작 작업은 교체됩니다.
 
-## 🔏 코드 서명 정책
+## 코드 서명 정책
 
 [SignPath.io](https://about.signpath.io/)에서 무료 코드 서명을 제공하며, 인증서는 [SignPath Foundation](https://signpath.org/)에서 발급합니다.
 *(신청 진행 중: v0.3.0까지의 릴리스는 아직 **서명되지 않았습니다**.)*
@@ -294,17 +293,17 @@ cargo test live_dev_scan -- --ignored --nocapture   # 읽기 전용: 현재 개�
 - **커미터 및 검토자:** [@yobotn](https://github.com/yobotn)
 - **승인자:** [@yobotn](https://github.com/yobotn)
 
-### 🔒 개인정보 처리방침
+### 개인정보 처리방침
 이 프로그램은 사용자 또는 이 프로그램을 설치하거나 운영하는 사람이 명시적으로 요청하지 않는 한, 어떠한 정보도 네트워크로 연결된 다른 시스템에 전송하지 않습니다. RigSweep의 네트워크 요청은 두 가지뿐이며, 둘 다 사용자가 선택한 뒤에만 이루어집니다. **업데이트 확인**: 설정에서 *지금 확인*을 클릭하거나 *자동으로 업데이트 확인*(기본값 꺼짐)을 켰을 때입니다. 이 저장소의 GitHub Releases에서 `latest.json`을 내려받을 뿐 PC에 관한 정보는 보내지 않으며, 업데이트는 *설치*를 클릭한 뒤에만, 서명이 RigSweep 서명 키와 일치할 때만 설치됩니다. **익명 사용 통계**: RigSweep을 처음 열면 대화 상자가 내용을 설명하고 묻습니다. 답하기 전에는 아무것도 보내지 않으며, *설정 → 익명 통계*에서 언제든 끌 수 있고 그러면 이 PC가 보낸 데이터도 삭제됩니다. 보고서는 약 1시간에 한 번 보내며 다음 내용만 담깁니다: 지난 보고 이후 정리한 내용(시각, 유형, 확보한 양, 유형별 1건), 자원을 가장 많이 쓰는 잘 알려진 앱(Chrome, VS Code 등), 하루 한 번 고정된 제조사 목록([discovery.json](server/discovery.json): ASUS, Dell, HP, NVIDIA, Logitech…)에 있는 하드웨어·드라이버 소프트웨어와 그 실행 여부 및 사용량, RAM 용량과 코어 수, RigSweep 버전과 Windows 빌드, 임의 설치 ID. 파일 경로, 폴더·프로젝트 이름, 이 두 목록에 없는 프로세스 이름, 사용자 이름이나 PC 이름, 하드웨어 ID는 절대 담기지 않으며, IP 주소는 국가 확인에만 쓰이고 저장되지 않습니다. *보내는 내용 보기*에서 실제 보고서를 볼 수 있습니다. Chrome 확장 프로그램도 팝업에서 같은 질문을 하고, 동의한 경우에만 시간별 수치(절전·닫은 탭, 열린 탭과 창 수)를 보내며 URL, 제목, 사이트는 절대 보내지 않습니다. 그 밖에 RigSweep이 저장하는 모든 것(백업, 기록, 측정값)은 PC의 `%ProgramData%\RigSweep`에 남습니다. 전체 방침: [rigsweep.com/privacy](https://rigsweep.com/privacy/).
 
-## ⚠️ 고지 사항
+## 고지 사항
 
 RigSweep은 Windows 서비스, 예약된 작업, 레지스트리 정책, Microsoft Defender 설정을 변경하며 실행 중인 프로세스를 종료할 수 있습니다. 모든 조정 항목은 백업되어 복원할 수 있고 사용자가 확인하기 전에는 아무것도 변경되지 않지만, **사용에 따른 책임은 사용자에게 있습니다**. 이 소프트웨어는 **어떠한 종류의 보증도 없이 "있는 그대로"** 제공됩니다([MIT 라이선스](LICENSE) 참조). 각 변경 사항을 적용하기 전에 검토하고, 별도로 백업을 유지하며, 회사나 학교에서 관리하는 장치에서는 IT 팀의 승인 없이 사용하지 마세요.
 
 RigSweep은 독립 프로젝트로, Microsoft, Google, Anthropic, OpenAI 및 언급된 다른 어떤 도구와도 **관련이 없습니다**. 모든 상표는 해당 소유자의 자산입니다.
 
-## 🤝 기여
+## 기여
 이슈와 PR을 환영합니다. 특히 새로운 조정 항목(명확한 위험 수준 포함), 개발 정리에서 지원할 더 많은 개발 스택과 에이전트 CLI, 그리고 번역을 기다립니다.
 
-## 📄 라이선스
+## 라이선스
 [MIT](LICENSE): 영원히 무료이며, 자유롭게 사용할 수 있고, 보증은 없습니다.
