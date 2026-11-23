@@ -200,7 +200,7 @@ Python 和 Java 也会运行普通的桌面应用，因此对于这两者，只�
 
 ### 给 AI 智能体和脚本用
 - ⌨️ **无界面命令**，**无需管理员权限**：`rigsweep --disk-report --json`、`rigsweep --disk-clean --safe [--dry-run] --json` 和 `rigsweep --port 3000 --json`。
-- 🔌 **MCP 服务器**：`rigsweep --mcp` 为 Claude Code、Cursor 或 Codex 提供 `drive_space`、`disk_report`、`free_disk_space`（除非另行指定，否则只做演练）和 `port_owner` 这几个工具。在 Claude Code 中：`claude mcp add rigsweep -- "C:\Program Files\RigSweep\rigsweep.exe" --mcp`。
+- 🔌 **MCP 服务器**：`rigsweep --mcp` 为 Claude Code、Cursor 或 Codex 提供 `drive_space`、`disk_report`、`free_disk_space`（除非另行指定，否则只做演练）和 `port_owner` 这几个工具。在 Claude Code 中：`claude mcp add rigsweep -- "C:\Program Files\RigSweep\rigsweep.exe" --mcp`。 Claude Desktop：从[最新版本](https://github.com/yobotn/rigsweep/releases/latest)安装 `rigsweep-<版本>.mcpb`。它也以 `io.github.yobotn/rigsweep` 收录在 [MCP Registry](https://registry.modelcontextprotocol.io/) 中。
 - 📖 完整参考：[rigsweep.com/cli](https://rigsweep.com/cli/)。
 
 ### 更新由你决定

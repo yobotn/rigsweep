@@ -202,7 +202,7 @@
 
 ### لوكلاء الذكاء الاصطناعي والسكربتات
 - ⌨️ **أوامر بلا واجهة رسومية** **لا تحتاج إلى صلاحيات المسؤول**: `rigsweep --disk-report --json` و`rigsweep --disk-clean --safe [--dry-run] --json` و`rigsweep --port 3000 --json`.
-- 🔌 **خادم MCP**: يمنح `rigsweep --mcp` كلًّا من Claude Code وCursor وCodex الأدوات `drive_space` و`disk_report` و`free_disk_space` (تشغيل تجريبي ما لم يُطلب غير ذلك) و`port_owner`. في Claude Code: `claude mcp add rigsweep -- "C:\Program Files\RigSweep\rigsweep.exe" --mcp`.
+- 🔌 **خادم MCP**: يمنح `rigsweep --mcp` كلًّا من Claude Code وCursor وCodex الأدوات `drive_space` و`disk_report` و`free_disk_space` (تشغيل تجريبي ما لم يُطلب غير ذلك) و`port_owner`. في Claude Code: `claude mcp add rigsweep -- "C:\Program Files\RigSweep\rigsweep.exe" --mcp`. Claude Desktop: ثبّت `rigsweep-<الإصدار>.mcpb` من [أحدث إصدار](https://github.com/yobotn/rigsweep/releases/latest). وهو مُدرج أيضًا في [MCP Registry](https://registry.modelcontextprotocol.io/) باسم `io.github.yobotn/rigsweep`.
 - 📖 المرجع الكامل: [rigsweep.com/cli](https://rigsweep.com/cli/).
 
 ### التحديثات باختيارك

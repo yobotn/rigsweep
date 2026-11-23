@@ -200,7 +200,7 @@
 
 ### Для ИИ-агентов и скриптов
 - ⌨️ **Команды без интерфейса**, которым **не нужны права администратора**: `rigsweep --disk-report --json`, `rigsweep --disk-clean --safe [--dry-run] --json` и `rigsweep --port 3000 --json`.
-- 🔌 **MCP-сервер**: `rigsweep --mcp` даёт Claude Code, Cursor или Codex инструменты `drive_space`, `disk_report`, `free_disk_space` (пробный запуск, если явно не указано иное) и `port_owner`. Для Claude Code: `claude mcp add rigsweep -- "C:\Program Files\RigSweep\rigsweep.exe" --mcp`.
+- 🔌 **MCP-сервер**: `rigsweep --mcp` даёт Claude Code, Cursor или Codex инструменты `drive_space`, `disk_report`, `free_disk_space` (пробный запуск, если явно не указано иное) и `port_owner`. Для Claude Code: `claude mcp add rigsweep -- "C:\Program Files\RigSweep\rigsweep.exe" --mcp`. Claude Desktop: установите `rigsweep-<версия>.mcpb` из [последнего релиза](https://github.com/yobotn/rigsweep/releases/latest). Он также есть в [MCP Registry](https://registry.modelcontextprotocol.io/) как `io.github.yobotn/rigsweep`.
 - 📖 Полная справка: [rigsweep.com/cli](https://rigsweep.com/cli/).
 
 ### Обновления на ваш выбор

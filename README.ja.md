@@ -200,7 +200,7 @@ CPU-Z、GPU-Z、CrystalDiskInfo、CrystalDiskMark を開いて確認していた
 
 ### AI エージェントとスクリプト向け
 - ⌨️ **管理者権限が不要な**ヘッドレス コマンド: `rigsweep --disk-report --json`、`rigsweep --disk-clean --safe [--dry-run] --json`、`rigsweep --port 3000 --json`。
-- 🔌 **MCP サーバー**: `rigsweep --mcp` で、Claude Code、Cursor、Codex に `drive_space`、`disk_report`、`free_disk_space` (指定しない限りドライ ラン) と `port_owner` のツールを提供します。Claude Code の場合: `claude mcp add rigsweep -- "C:\Program Files\RigSweep\rigsweep.exe" --mcp`。
+- 🔌 **MCP サーバー**: `rigsweep --mcp` で、Claude Code、Cursor、Codex に `drive_space`、`disk_report`、`free_disk_space` (指定しない限りドライ ラン) と `port_owner` のツールを提供します。Claude Code の場合: `claude mcp add rigsweep -- "C:\Program Files\RigSweep\rigsweep.exe" --mcp`。 Claude Desktop では [最新リリース](https://github.com/yobotn/rigsweep/releases/latest) の `rigsweep-<バージョン>.mcpb` をインストールします。[MCP Registry](https://registry.modelcontextprotocol.io/) にも `io.github.yobotn/rigsweep` として登録されています。
 - 📖 詳しいリファレンス: [rigsweep.com/cli](https://rigsweep.com/cli/)。
 
 ### 更新は自分で選択

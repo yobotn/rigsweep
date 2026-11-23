@@ -200,7 +200,7 @@ CPU-Z, GPU-Z, CrystalDiskInfo, CrystalDiskMark를 열어 확인하던 기본 정
 
 ### AI 에이전트와 스크립트용
 - ⌨️ **관리자 권한이 필요 없는** 헤드리스 명령: `rigsweep --disk-report --json`, `rigsweep --disk-clean --safe [--dry-run] --json`, `rigsweep --port 3000 --json`.
-- 🔌 **MCP 서버**: `rigsweep --mcp`는 Claude Code, Cursor, Codex에 `drive_space`, `disk_report`, `free_disk_space`(따로 지정하지 않으면 시험 실행) 및 `port_owner` 도구를 제공합니다. Claude Code에서는 `claude mcp add rigsweep -- "C:\Program Files\RigSweep\rigsweep.exe" --mcp`.
+- 🔌 **MCP 서버**: `rigsweep --mcp`는 Claude Code, Cursor, Codex에 `drive_space`, `disk_report`, `free_disk_space`(따로 지정하지 않으면 시험 실행) 및 `port_owner` 도구를 제공합니다. Claude Code에서는 `claude mcp add rigsweep -- "C:\Program Files\RigSweep\rigsweep.exe" --mcp`. Claude Desktop에서는 [최신 릴리스](https://github.com/yobotn/rigsweep/releases/latest)의 `rigsweep-<버전>.mcpb`를 설치하세요. [MCP Registry](https://registry.modelcontextprotocol.io/)에도 `io.github.yobotn/rigsweep`(으)로 등록되어 있습니다.
 - 📖 전체 참조 문서: [rigsweep.com/cli](https://rigsweep.com/cli/).
 
 ### 업데이트는 원할 때만

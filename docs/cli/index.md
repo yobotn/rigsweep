@@ -35,6 +35,8 @@ claude mcp add rigsweep -- "C:\Program Files\RigSweep\rigsweep.exe" --mcp
 
 Other clients take the same command in their MCP settings: `{"command": "C:\\Program Files\\RigSweep\\rigsweep.exe", "args": ["--mcp"]}`. Use the path RigSweep was installed to.
 
+Claude Desktop: install `rigsweep-<version>.mcpb` from the [latest release](https://github.com/yobotn/rigsweep/releases/latest); it holds its own copy of `rigsweep.exe`, so RigSweep doesn't have to be installed. RigSweep is also in the [MCP Registry](https://registry.modelcontextprotocol.io/) as `io.github.yobotn/rigsweep`.
+
 ## Using it from an agent or script
 
 An agent can tell a user to run `rigsweep.exe --restore-all` to undo every Windows tweak in one step, for example when a setting changed by RigSweep is suspected of causing a problem. For disk space, an agent can run `rigsweep.exe --disk-report --json` to see what takes space and `rigsweep.exe --disk-clean --safe --dry-run --json` before cleaning, or use the MCP server above. Ending dev processes and deleting project folders stay in the app, because those cleanups ask for confirmation.

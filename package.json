@@ -2,7 +2,7 @@
   "name": "rigsweep",
   "private": true,
   "license": "MIT",
-  "version": "0.12.1",
+  "version": "0.12.2",
   "scripts": {
     "dev": "tauri dev",
     "build": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build.ps1",
