@@ -375,7 +375,7 @@ I18N["pt-BR"] = {
     "chrome.title": "🌐 Assistente de guias do Chrome",
     "chrome.hint": "Um aplicativo da área de trabalho não consegue fechar guias do Chrome, por isso o RigSweep inclui uma pequena extensão (sem acesso à rede, apenas as permissões tabs/storage/alarms): 💤 suspende guias ociosas (libera a RAM delas, a guia continua lá), 🧹 fecha duplicadas, 🎯 fecha guias por padrão, como localhost:*.",
     "chrome.open": "Abrir pasta da extensão",
-    "chrome.steps": "<ol><li>Abra <code>chrome://extensions</code></li><li>Ative o <b>Modo do desenvolvedor</b> (canto superior direito)</li><li>Clique em <b>Carregar sem compactação</b> e escolha a pasta que acabou de abrir</li><li>Fixe o 🧹 RigSweep Tabs na barra de ferramentas</li></ol>",
+    "chrome.steps": "<ol><li>Abra <code>chrome://extensions</code></li><li>Ative o <b>Modo do desenvolvedor</b> (canto superior direito)</li><li>Clique em <b>Carregar sem compactação</b> e escolha a pasta que acabou de abrir</li><li>Fixe o RigSweep Tabs na barra de ferramentas</li></ol>",
     "chrome.opened": "Pasta aberta: {p}",
     "nav.browser": "🌐 Limpeza de navegador",
     "bc.title": "Limpeza de navegador",

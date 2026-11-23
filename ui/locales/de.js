@@ -375,7 +375,7 @@ I18N["de"] = {
     "chrome.title": "🌐 Chrome-Tab-Helfer",
     "chrome.hint": "Eine Desktop-App kann keine Chrome-Tabs schließen. Deshalb liefert RigSweep eine winzige Erweiterung mit (kein Netzwerkzugriff, nur die Berechtigungen tabs/storage/alarms): 💤 inaktive Tabs in den Ruhezustand versetzen (gibt deren RAM frei, der Tab bleibt), 🧹 Duplikate schließen, 🎯 Tabs nach Muster wie localhost:* schließen.",
     "chrome.open": "Erweiterungsordner öffnen",
-    "chrome.steps": "<ol><li>Öffnen Sie <code>chrome://extensions</code></li><li>Aktivieren Sie den <b>Entwicklermodus</b> (oben rechts)</li><li>Klicken Sie auf <b>Entpackte Erweiterung laden</b> und wählen Sie den gerade geöffneten Ordner aus</li><li>Heften Sie 🧹 RigSweep Tabs an die Symbolleiste an</li></ol>",
+    "chrome.steps": "<ol><li>Öffnen Sie <code>chrome://extensions</code></li><li>Aktivieren Sie den <b>Entwicklermodus</b> (oben rechts)</li><li>Klicken Sie auf <b>Entpackte Erweiterung laden</b> und wählen Sie den gerade geöffneten Ordner aus</li><li>Heften Sie RigSweep Tabs an die Symbolleiste an</li></ol>",
     "chrome.opened": "Ordner geöffnet: {p}",
     "nav.browser": "🌐 Browser-Bereinigung",
     "bc.title": "Browser-Bereinigung",

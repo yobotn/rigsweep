@@ -1,6 +1,8 @@
 <div align="center">
 
-# 🧹 RigSweep
+<img src="docs/icon.png" width="80" alt="" />
+
+# RigSweep
 
 **エージェントにもっと余裕を。** AI エージェントのセッションで埋まった Windows 開発マシンの RAM、CPU、ディスクを解放します。
 

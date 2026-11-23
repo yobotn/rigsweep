@@ -1,6 +1,8 @@
 <div align="center">
 
-# 🧹 RigSweep
+<img src="docs/icon.png" width="80" alt="" />
+
+# RigSweep
 
 **Espaço para seus agentes.** Libere RAM, CPU e disco em PCs Windows de desenvolvimento lotados de sessões de agentes de IA.
 

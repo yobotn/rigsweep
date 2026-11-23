@@ -1,6 +1,8 @@
 <div align="center">
 
-# 🧹 RigSweep
+<img src="docs/icon.png" width="80" alt="" />
+
+# RigSweep
 
 **Место для ваших агентов.** Освобождает ОЗУ, ЦП и диск на компьютерах разработчиков с Windows, забитых сеансами ИИ-агентов.
 

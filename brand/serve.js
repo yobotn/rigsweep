@@ -1,5 +1,5 @@
 // RigSweep brand studio: a local-only page that renders the app icon, installer icons, favicon,
-// Chrome extension icons and the Open Graph card from one 🧹 mark, and writes them into the repo.
+// Chrome extension icons and the Open Graph card from one mark, and writes them into the repo.
 //
 // Usage: npm run brand   (then open http://127.0.0.1:4747)
 //

@@ -53,7 +53,7 @@ T["en"] = {
     "disc.h": "⚠️ Disclaimer",
     "disc.p": "RigSweep changes Windows services, scheduled tasks, registry policies and Microsoft Defender settings, and it can end running processes. Every tweak is backed up and can be restored, and nothing happens without your confirmation, but you use it at your own risk. It is provided \"as is\", without warranty of any kind (MIT license). Review each change before applying it, keep your own backups, and don't use it on work- or school-managed devices without your IT team's approval. RigSweep is an independent project, not affiliated with Microsoft, Google, Anthropic, OpenAI or any other tool it mentions; all trademarks belong to their owners.",
     "sign.h": "🔏 Code signing", "sign.p": "Free code signing provided by SignPath.io, certificate by SignPath Foundation (application in progress; current releases are not signed yet). Installers are built from the tagged source by GitHub Actions. No telemetry, no analytics. The only network request is the update check, and only if you turn it on or click Check now.", "sign.link": "Code signing & privacy policy →", "start.h": "🚀 Give your agents some room", "start.p": "Install, take a baseline measurement, sweep, then measure again.",
-    "foot.l": "🧹 RigSweep · free forever under the MIT license", "foot.issues": "Report an issue", "foot.disc": "Disclaimer",
+    "foot.l": "RigSweep · free forever under the MIT license", "foot.issues": "Report an issue", "foot.disc": "Disclaimer",
     "foot.cli": "CLI", "nav.faq": "FAQ", "foot.vote": "Vote on features", "foot.about": "About", "foot.privacy": "Privacy", "foot.contact": "Contact",
     "faq.eyebrow": "FAQ", "faq.h": "❓ Questions developers ask",
     "faq.q1": "What does RigSweep do?",

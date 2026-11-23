@@ -375,7 +375,7 @@ I18N["fr"] = {
     "chrome.title": "🌐 Assistant d'onglets Chrome",
     "chrome.hint": "Une application de bureau ne peut pas fermer les onglets Chrome : RigSweep fournit donc une petite extension (aucun accès réseau, uniquement les autorisations tabs/storage/alarms) : 💤 mettre en veille les onglets inactifs (leur RAM est libérée, l'onglet reste ouvert), 🧹 fermer les doublons, 🎯 fermer les onglets par motif, comme localhost:*.",
     "chrome.open": "Ouvrir le dossier de l'extension",
-    "chrome.steps": "<ol><li>Ouvrez <code>chrome://extensions</code></li><li>Activez le <b>Mode développeur</b> (en haut à droite)</li><li>Cliquez sur <b>Charger l'extension non empaquetée</b> et choisissez le dossier qui vient de s'ouvrir</li><li>Épinglez 🧹 RigSweep Tabs à la barre d'outils</li></ol>",
+    "chrome.steps": "<ol><li>Ouvrez <code>chrome://extensions</code></li><li>Activez le <b>Mode développeur</b> (en haut à droite)</li><li>Cliquez sur <b>Charger l'extension non empaquetée</b> et choisissez le dossier qui vient de s'ouvrir</li><li>Épinglez RigSweep Tabs à la barre d'outils</li></ol>",
     "chrome.opened": "Dossier ouvert : {p}",
     "nav.browser": "🌐 Nettoyage navigateurs",
     "bc.title": "Nettoyage des navigateurs",

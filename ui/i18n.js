@@ -295,7 +295,7 @@ const I18N = {
     "chrome.title": "🌐 Chrome tab helper",
     "chrome.hint": "A desktop app can't close Chrome tabs, so RigSweep ships a tiny extension (no network access, only tabs/storage/alarms permissions): 💤 sleep idle tabs (frees their RAM, tab stays), 🧹 close duplicates, 🎯 close tabs by pattern like localhost:*.",
     "chrome.open": "Open extension folder",
-    "chrome.steps": "<ol><li>Open <code>chrome://extensions</code></li><li>Turn on <b>Developer mode</b> (top right)</li><li>Click <b>Load unpacked</b> and pick the folder that just opened</li><li>Pin 🧹 RigSweep Tabs to the toolbar</li></ol>",
+    "chrome.steps": "<ol><li>Open <code>chrome://extensions</code></li><li>Turn on <b>Developer mode</b> (top right)</li><li>Click <b>Load unpacked</b> and pick the folder that just opened</li><li>Pin RigSweep Tabs to the toolbar</li></ol>",
     "chrome.opened": "Folder opened: {p}",
     "nav.browser": "🌐 Browser Cleanup",
     "bc.title": "Browser Cleanup",

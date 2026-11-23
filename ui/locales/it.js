@@ -375,7 +375,7 @@ I18N["it"] = {
     "chrome.title": "🌐 Helper schede per Chrome",
     "chrome.hint": "Un'app desktop non può chiudere le schede di Chrome, quindi RigSweep include una piccola estensione (nessun accesso alla rete, solo le autorizzazioni tabs/storage/alarms): 💤 sospende le schede inattive (libera la RAM, la scheda resta), 🧹 chiude i duplicati, 🎯 chiude le schede in base a un pattern come localhost:*.",
     "chrome.open": "Apri cartella estensione",
-    "chrome.steps": "<ol><li>Apri <code>chrome://extensions</code></li><li>Attiva <b>Modalità sviluppatore</b> (in alto a destra)</li><li>Fai clic su <b>Carica estensione non pacchettizzata</b> e scegli la cartella appena aperta</li><li>Fissa 🧹 RigSweep Tabs sulla barra degli strumenti</li></ol>",
+    "chrome.steps": "<ol><li>Apri <code>chrome://extensions</code></li><li>Attiva <b>Modalità sviluppatore</b> (in alto a destra)</li><li>Fai clic su <b>Carica estensione non pacchettizzata</b> e scegli la cartella appena aperta</li><li>Fissa RigSweep Tabs sulla barra degli strumenti</li></ol>",
     "chrome.opened": "Cartella aperta: {p}",
     "nav.browser": "🌐 Pulizia browser",
     "bc.title": "Pulizia browser",

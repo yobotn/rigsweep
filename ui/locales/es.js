@@ -375,7 +375,7 @@ I18N["es"] = {
     "chrome.title": "🌐 Asistente de pestañas para Chrome",
     "chrome.hint": "Una aplicación de escritorio no puede cerrar pestañas de Chrome, así que RigSweep incluye una pequeña extensión (sin acceso a la red; solo permisos tabs/storage/alarms): 💤 suspender las pestañas inactivas (libera su RAM y la pestaña se conserva), 🧹 cerrar duplicadas y 🎯 cerrar pestañas por patrón, como localhost:*.",
     "chrome.open": "Abrir carpeta de la extensión",
-    "chrome.steps": "<ol><li>Abre <code>chrome://extensions</code></li><li>Activa el <b>Modo desarrollador</b> (arriba a la derecha)</li><li>Haz clic en <b>Cargar descomprimida</b> y elige la carpeta que se acaba de abrir</li><li>Fija 🧹 RigSweep Tabs en la barra de herramientas</li></ol>",
+    "chrome.steps": "<ol><li>Abre <code>chrome://extensions</code></li><li>Activa el <b>Modo desarrollador</b> (arriba a la derecha)</li><li>Haz clic en <b>Cargar descomprimida</b> y elige la carpeta que se acaba de abrir</li><li>Fija RigSweep Tabs en la barra de herramientas</li></ol>",
     "chrome.opened": "Carpeta abierta: {p}",
     "nav.browser": "🌐 Limpieza de navegadores",
     "bc.title": "Limpieza de navegadores",

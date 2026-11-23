@@ -1,6 +1,6 @@
 # Brand studio
 
-A local-only page that renders every RigSweep icon and the social card from one 🧹 mark.
+A local-only page that renders every RigSweep icon and the social card from one mark (`assets/mark.svg`, the R with a green square).
 
 ```
 npm run brand        # then open http://127.0.0.1:4747

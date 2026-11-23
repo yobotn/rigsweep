@@ -375,7 +375,7 @@ I18N["zh-CN"] = {
     "chrome.title": "🌐 Chrome 标签页助手",
     "chrome.hint": "桌面应用无法关闭 Chrome 标签页，因此 RigSweep 附带了一个小巧的扩展程序（无网络访问权限，仅需 tabs/storage/alarms 权限）：💤 让空闲标签页休眠（释放其内存，标签页仍保留），🧹 关闭重复的标签页，🎯 按模式关闭标签页，例如 localhost:*。",
     "chrome.open": "打开扩展程序文件夹",
-    "chrome.steps": "<ol><li>打开 <code>chrome://extensions</code></li><li>开启右上角的<b>开发者模式</b></li><li>单击<b>加载已解压的扩展程序</b>，然后选择刚刚打开的文件夹</li><li>将 🧹 RigSweep Tabs 固定到工具栏</li></ol>",
+    "chrome.steps": "<ol><li>打开 <code>chrome://extensions</code></li><li>开启右上角的<b>开发者模式</b></li><li>单击<b>加载已解压的扩展程序</b>，然后选择刚刚打开的文件夹</li><li>将 RigSweep Tabs 固定到工具栏</li></ol>",
     "chrome.opened": "已打开文件夹：{p}",
     "nav.browser": "🌐 浏览器清理",
     "bc.title": "浏览器清理",

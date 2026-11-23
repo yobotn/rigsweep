@@ -1,6 +1,8 @@
 <div align="center">
 
-# 🧹 RigSweep
+<img src="docs/icon.png" width="80" alt="" />
+
+# RigSweep
 
 **에이전트를 위한 여유 공간.** AI 에이전트 세션으로 가득 찬 Windows 개발 PC의 RAM, CPU, 디스크를 확보하세요.
 

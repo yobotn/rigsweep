@@ -1,6 +1,8 @@
 <div align="center">
 
-# 🧹 RigSweep
+<img src="docs/icon.png" width="80" alt="" />
+
+# RigSweep
 
 **Room for your agents.** Free up RAM, CPU and disk on Windows dev machines cluttered by AI-agent sessions.
 

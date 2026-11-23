@@ -375,7 +375,7 @@ I18N["ko"] = {
     "chrome.title": "🌐 Chrome 탭 도우미",
     "chrome.hint": "데스크톱 앱은 Chrome 탭을 닫을 수 없으므로 RigSweep에는 작은 확장 프로그램이 포함되어 있습니다(네트워크 액세스 없음, tabs/storage/alarms 권한만 사용): 💤 유휴 탭 절전(RAM을 확보하고 탭은 유지), 🧹 중복 탭 닫기, 🎯 localhost:* 같은 패턴으로 탭 닫기.",
     "chrome.open": "확장 프로그램 폴더 열기",
-    "chrome.steps": "<ol><li><code>chrome://extensions</code>를 엽니다.</li><li>오른쪽 위의 <b>개발자 모드</b>를 켭니다.</li><li><b>압축해제된 확장 프로그램을 로드합니다</b>를 클릭하고 방금 열린 폴더를 선택합니다.</li><li>🧹 RigSweep Tabs를 도구 모음에 고정합니다.</li></ol>",
+    "chrome.steps": "<ol><li><code>chrome://extensions</code>를 엽니다.</li><li>오른쪽 위의 <b>개발자 모드</b>를 켭니다.</li><li><b>압축해제된 확장 프로그램을 로드합니다</b>를 클릭하고 방금 열린 폴더를 선택합니다.</li><li>RigSweep Tabs를 도구 모음에 고정합니다.</li></ol>",
     "chrome.opened": "폴더를 열었습니다: {p}",
     "nav.browser": "🌐 브라우저 정리",
     "bc.title": "브라우저 정리",

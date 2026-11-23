@@ -44,6 +44,7 @@ body {
 .brand .bolt { display: inline-flex; font-size: var(--fs-2xl); }
 .brand .bolt .ico, .brand .bolt .emo { margin: 0; }
 .brand .tagline { grid-column: 2; }
+.brand .mark { width: 28px; height: 28px; display: block; }
 .bolt { color: #ffd640; }
 /* the nav scrolls when the window is too short; brand and footer stay put */
 nav { display: flex; flex-direction: column; gap: var(--s-1); flex: 1 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }

@@ -1,6 +1,8 @@
 <div align="center">
 
-# 🧹 RigSweep
+<img src="docs/icon.png" width="80" alt="" />
+
+# RigSweep
 
 **Platz für Ihre Agents.** Geben Sie RAM, CPU und Speicherplatz auf Windows-Entwicklerrechnern frei, die von KI-Agent-Sitzungen überladen sind.
 

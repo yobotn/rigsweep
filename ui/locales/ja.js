@@ -375,7 +375,7 @@ I18N["ja"] = {
     "chrome.title": "🌐 Chrome タブ ヘルパー",
     "chrome.hint": "デスクトップ アプリからは Chrome のタブを閉じられないため、RigSweep には小さな拡張機能が付属しています (ネットワーク アクセスなし、権限は tabs/storage/alarms のみ): 💤 アイドル状態のタブをスリープ (タブは残したまま RAM を解放)、🧹 重複タブを閉じる、🎯 localhost:* などのパターンに一致するタブを閉じる。",
     "chrome.open": "拡張機能のフォルダーを開く",
-    "chrome.steps": "<ol><li><code>chrome://extensions</code> を開きます</li><li>右上の <b>デベロッパー モード</b> をオンにします</li><li><b>パッケージ化されていない拡張機能を読み込む</b> をクリックし、開いたフォルダーを選択します</li><li>🧹 RigSweep Tabs をツール バーに固定します</li></ol>",
+    "chrome.steps": "<ol><li><code>chrome://extensions</code> を開きます</li><li>右上の <b>デベロッパー モード</b> をオンにします</li><li><b>パッケージ化されていない拡張機能を読み込む</b> をクリックし、開いたフォルダーを選択します</li><li>RigSweep Tabs をツール バーに固定します</li></ol>",
     "chrome.opened": "フォルダーを開きました: {p}",
     "nav.browser": "🌐 ブラウザー クリーンアップ",
     "bc.title": "ブラウザー クリーンアップ",

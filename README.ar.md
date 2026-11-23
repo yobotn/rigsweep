@@ -1,6 +1,8 @@
 <div align="center">
 
-# 🧹 RigSweep
+<img src="docs/icon.png" width="80" alt="" />
+
+# RigSweep
 
 **مساحة لوكلائك.** حرّر ذاكرة RAM وموارد CPU ومساحة القرص على أجهزة التطوير العاملة بنظام Windows التي تزدحم بجلسات وكلاء الذكاء الاصطناعي.
 
