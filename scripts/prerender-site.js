@@ -49,7 +49,10 @@ const faqLd = (dict) => faqKeys.map((q) => "          " + JSON.stringify({
 // cache buster: ?v=<content hash> on scripts and screenshots, so returning visitors get new files without a hard reload
 const crypto = require("crypto");
 const hash = (rel) => crypto.createHash("sha1").update(fs.readFileSync(p("docs" + rel)).toString("latin1").replace(/\r\n/g, "\n"), "latin1").digest("hex").slice(0, 8);
-const bust = (h) => h.replace(/src="(\/(?:locales\/[\w-]+\.js|icons\.js|screenshots\/[\w-]+\.png))(?:\?v=\w+)?"/g, (m, rel) => `src="${rel}?v=${hash(rel)}"`);
+// brand files (favicon, icon, mark, social card) too, on every page: browsers and Cloudflare cache them for hours
+const BRAND_FILES = /((?:src|href|content)=")((?:https:\/\/rigsweep\.com)?\/(favicon-32\.png|icon\.png|mark\.svg|social\.png))(?:\?v=\w+)?"/g;
+const bustBrand = (h) => h.replace(BRAND_FILES, (m, a, url, file) => `${a}${url}?v=${hash("/" + file)}"`);
+const bust = (h) => bustBrand(h.replace(/src="(\/(?:locales\/[\w-]+\.js|icons\.js|screenshots\/[\w-]+\.png))(?:\?v=\w+)?"/g, (m, rel) => `src="${rel}?v=${hash(rel)}"`));
 const hreflang = ["<!--hreflang-->", ...LANGS.map((l) => `  <link rel="alternate" hreflang="${l}" href="${urlFor(l)}" />`),
   `  <link rel="alternate" hreflang="x-default" href="${urlFor("en")}" />`, "  <!--/hreflang-->"].join("\n");
 const langNav = (cur) => LANGS.map((l) => `<a href="${l === "en" ? "/" : "/" + l + "/"}" hreflang="${l}" lang="${l}"${l === cur ? ' aria-current="page"' : ""}>${LANG_NAMES[l]}</a>`).join(" ");
@@ -182,8 +185,10 @@ for (const [l, h] of Object.entries(langPages)) { out[`docs/${l}/index.html`] = 
 const walk = (dir) => fs.readdirSync(p(dir), { withFileTypes: true }).filter((e) => e.isDirectory()).sort((a, b) => a.name.localeCompare(b.name))
   .flatMap((e) => [`${dir}/${e.name}`, ...walk(`${dir}/${e.name}`)]);
 for (const d of walk("docs")) {
+  if (!(`${d}/index.html` in out) && fs.existsSync(p(`${d}/index.html`))) out[`${d}/index.html`] = bustBrand(read(`${d}/index.html`));
   if (!(`${d}/index.md` in out) && fs.existsSync(p(`${d}/index.html`))) out[`${d}/index.md`] = pageMd(read(`${d}/index.html`));
 }
+out["docs/404.html"] = bustBrand(read("docs/404.html"));
 let stale = 0;
 for (const [f, s] of Object.entries(out)) {
   // compare without line endings: Windows CI checks files out with CRLF

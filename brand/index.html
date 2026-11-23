@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="robots" content="noindex" />
 <title>RigSweep Brand Studio</title>
-<link rel="icon" href="assets/broom-color.svg" />
+<link rel="icon" href="assets/mark.svg" />
 <style>
   @font-face { font-family: "Cairo"; src: url("/docs/fonts/cairo-arabic.woff2") format("woff2"); font-weight: 200 1000; font-display: swap;
     unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+FB50-FDFF, U+FE70-FEFF, U+200C-200F; }
@@ -115,7 +115,7 @@
 </div></header>
 
 <main class="wrap">
-  <h1>One mark: <img src="assets/broom-color.svg" alt="🧹" style="width:.9em;height:.9em;vertical-align:-.08em" /> <span>the sweep.</span></h1>
+  <h1><img src="assets/mark.svg" alt="" style="width:.9em;height:.9em;vertical-align:-.1em" /> One mark, every size.</h1>
   <p class="lead">Everything RigSweep ships with a face: the app and installer icon, the site favicon, the Chrome extension and the social card. Tune it here, check it at every size, and write it all into the repo in one click. The broom comes from Microsoft's Fluent Emoji (MIT), so it matches the emoji Windows already shows next to the name.</p>
 
   <!-- ============ MARK ============ -->
@@ -201,13 +201,13 @@
         <li><b>Hype:</b> "supercharge", "blazing", "ultimate".</li>
         <li><b>Fear:</b> no fake warnings or scare counts.</li>
         <li><b>Boost-era leftovers:</b> no ⚡, no "aiBoost".</li>
-        <li><b>Redrawing the broom:</b> use the Fluent art as is.</li>
+        <li><b>A broom as the logo:</b> the mark is the R with the green square.</li>
       </ul></div>
       <div class="card"><h3>Mark usage</h3><ul>
         <li><b>Clear space:</b> a quarter of the tile on every side.</li>
-        <li><b>Minimum:</b> 16 px (Flat broom).</li>
+        <li><b>Minimum:</b> 16 px; 32 px and below use the bold small R (assets/mark-small.svg).</li>
         <li><b>Next to the name:</b> broom first, then "RigSweep" in 700 weight.</li>
-        <li><b>In text:</b> the 🧹 emoji is fine; Windows draws the same Fluent broom.</li>
+        <li><b>In text:</b> the name alone; the 🧹 emoji only labels the cleanup feature, never the brand.</li>
       </ul></div>
     </div>
   </section>
@@ -242,8 +242,8 @@ const glyphs = {};
 function loadImg(src) { return new Promise((ok, fail) => { const i = new Image(); i.onload = () => ok(i); i.onerror = fail; i.src = src; }); }
 // SVGs are re-rasterized per size: drawing the Image at the target size keeps edges sharp
 async function loadGlyphs() {
-  const [color, flat, d3, mark] = await Promise.all([loadImg("assets/broom-color.svg"), loadImg("assets/broom-flat.svg"), loadImg("assets/broom-3d.png"), loadImg("assets/mark.svg")]);
-  Object.assign(glyphs, { color, flat, "3d": d3, mark });
+  const [color, flat, d3, mark, markSmall] = await Promise.all([loadImg("assets/broom-color.svg"), loadImg("assets/broom-flat.svg"), loadImg("assets/broom-3d.png"), loadImg("assets/mark.svg"), loadImg("assets/mark-small.svg")]);
+  Object.assign(glyphs, { color, flat, "3d": d3, mark, markSmall });
 }
 
 // ---------- icon renderer ----------
@@ -261,7 +261,8 @@ function drawIcon(ctx, S, o = icon) {
   ctx.clearRect(0, 0, S, S);
   const pad = S * o.inset / 100, w = S - pad * 2, r = w * o.radius / 100;
   // "mark": the R mark (assets/mark.svg) is the whole icon, tile included, in the Focuside / KeepRun style
-  if (o.bg === "mark") { if (glyphs.mark) ctx.drawImage(glyphs.mark, pad, pad, w, w); return; }
+  // at 32 px and below, a bolder R that fills the tile (assets/mark-small.svg) stays readable on dark taskbars and tabs
+  if (o.bg === "mark") { const m = o.flatSmall && S <= 32 ? glyphs.markSmall : glyphs.mark; if (m) ctx.drawImage(m, pad, pad, w, w); return; }
   if (o.bg !== "none") {
     ctx.save();
     rr(ctx, pad, pad, w, w, r);
@@ -471,7 +472,9 @@ async function writeAll() {
     const files = { "brand-config": { icon, og } };
     for (const [key, , make] of EXPORTS) files[key] = (await make()).toDataURL("image/png");
     status("Writing and running tauri icon…");
-    const r = await fetch("/api/save", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ files, tauri: true }) });
+    // the Windows .ico is rebuilt from native renders, so its 16-32 px frames use the small mark
+    const ico = Object.fromEntries([16, 20, 24, 32, 40, 48, 64, 256].map((n) => [n, iconCanvas(n).toDataURL("image/png")]));
+    const r = await fetch("/api/save", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ files, tauri: true, ico }) });
     const j = await r.json();
     log.style.display = "block"; log.textContent = (j.written || []).map((p) => "wrote " + p).join("\n") + (j.log ? "\n\n" + j.log : "") + (j.error ? "\n\nERROR: " + j.error : "");
     if (!r.ok) throw new Error(j.error || r.status);

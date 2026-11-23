@@ -73,6 +73,21 @@ async function tauriIcons() {
   return r;
 }
 
+// ICO with PNG frames (Windows Vista and later): 6-byte header, a 16-byte entry per frame, then the PNGs
+function icoFile(frames) {
+  const head = Buffer.alloc(6 + 16 * frames.length);
+  head.writeUInt16LE(0, 0); head.writeUInt16LE(1, 2); head.writeUInt16LE(frames.length, 4);
+  let offset = head.length;
+  frames.forEach(([n, png], i) => {
+    const e = 6 + 16 * i;
+    head.writeUInt8(n >= 256 ? 0 : n, e); head.writeUInt8(n >= 256 ? 0 : n, e + 1);
+    head.writeUInt16LE(1, e + 4); head.writeUInt16LE(32, e + 6);
+    head.writeUInt32LE(png.length, e + 8); head.writeUInt32LE(offset, e + 12);
+    offset += png.length;
+  });
+  return Buffer.concat([head, ...frames.map(([, png]) => png)]);
+}
+
 const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, `http://${req.headers.host}`);
@@ -92,7 +107,7 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === "POST" && url.pathname === "/api/save") {
       if (!/^application\/json/.test(req.headers["content-type"] || "")) return send(res, 415, { error: "json only" });
-      const { files = {}, tauri = false } = JSON.parse(await readBody(req));
+      const { files = {}, tauri = false, ico = null } = JSON.parse(await readBody(req));
       const written = [];
       for (const [key, data] of Object.entries(files)) {
         const t = TARGETS[key];
@@ -108,6 +123,15 @@ const server = http.createServer(async (req, res) => {
         log = r.out;
         if (r.code !== 0) return send(res, 500, { error: "tauri icon failed", written, log });
         written.push("src-tauri/icons/*");
+        // tauri icon downscales the 1024 master for every .ico frame; replace them with the page's
+        // native renders so 16-32 px use the small mark, and 32x32.png (tray) with it too
+        if (ico) {
+          const frames = Object.entries(ico).map(([n, d]) => [Number(n), pngFromDataUrl(d)]).filter(([n]) => n >= 16 && n <= 256).sort((a, b) => a[0] - b[0]);
+          fs.writeFileSync(path.join(ROOT, "src-tauri/icons/icon.ico"), icoFile(frames));
+          const f32 = frames.find(([n]) => n === 32);
+          if (f32) fs.writeFileSync(path.join(ROOT, "src-tauri/icons/32x32.png"), f32[1]);
+          written.push("src-tauri/icons/icon.ico (native frames)");
+        }
       }
       return send(res, 200, { written, log });
     }
