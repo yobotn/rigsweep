@@ -1,0 +1,28 @@
+{
+  "manifest_version": "0.3",
+  "name": "rigsweep",
+  "display_name": "RigSweep",
+  "version": "0.0.0",
+  "description": "Frees disk space on Windows developer PCs: drive space, a disk report, safe cache cleanup and who holds a port.",
+  "long_description": "RigSweep's MCP server lets an agent see what takes disk space on a Windows developer PC (package and tool caches, old build and dependency folders, git worktrees left by agents, Docker/WSL disks) and empty only the caches that rebuild themselves. Cleaning is a dry run unless the agent passes dry_run=false. No administrator rights needed. The full RigSweep desktop app (leftover dev servers and agent CLIs, reversible tweaks) is at https://rigsweep.com.",
+  "author": { "name": "yobotn", "url": "https://github.com/yobotn" },
+  "homepage": "https://rigsweep.com/",
+  "documentation": "https://github.com/yobotn/rigsweep#readme",
+  "support": "https://github.com/yobotn/rigsweep/issues",
+  "repository": { "type": "git", "url": "https://github.com/yobotn/rigsweep" },
+  "icon": "icon.png",
+  "license": "MIT",
+  "keywords": ["windows", "disk space", "cache", "node_modules", "port", "developer tools"],
+  "server": {
+    "type": "binary",
+    "entry_point": "server/rigsweep.exe",
+    "mcp_config": { "command": "${__dirname}/server/rigsweep.exe", "args": ["--mcp"] }
+  },
+  "tools": [
+    { "name": "drive_space", "description": "Size and free space of every drive." },
+    { "name": "disk_report", "description": "What takes disk space: caches, old build and dependency folders, agent worktrees, Docker/WSL disks. Read-only." },
+    { "name": "free_disk_space", "description": "Empty only caches that rebuild themselves. A dry run unless dry_run=false." },
+    { "name": "port_owner", "description": "Which processes hold a local TCP/UDP port, with PID and command line." }
+  ],
+  "compatibility": { "platforms": ["win32"] }
+}

@@ -33,6 +33,8 @@ Format: none. **Never run `cargo fmt` in `src-tauri/`**: the code isn't rustfmt-
 
 - `src-tauri/`: the app (Rust, Tauri 2). `src/cli.rs` is the headless CLI and MCP server. `catalog/tweaks.json`
   is the reversible tweak catalog.
+- `mcp/`: the MCP bundle manifest (`manifest.json`, keep its `tools` in step with `cli.rs`) and the MCP Registry
+  entry (`server.json`). `release.yml` fills in the version and hash, attaches `rigsweep-<version>.mcpb` and publishes.
 - `ui/`: the app UI, plain JS, no bundler. `ui/locales/*.js` are the 12 app languages.
 - `chrome-extension/`: tab helper, `_locales/*` for its languages.
 - `server/`: stats collector + site server (Rust, axum, Postgres). `server/deploy/README.md` is the runbook.
