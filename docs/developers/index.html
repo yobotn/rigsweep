@@ -48,7 +48,7 @@
     <p><strong>RigSweep is a free, open-source Windows app; this page is for developers and AI agents that want to work with it programmatically.</strong> It covers the RigSweep API (the public impact counters and the anonymous usage-stats endpoints), the command-line interface, and the machine-readable files on rigsweep.com. The API is small and open: no account, no API key and no sandbox are needed to read the counters.</p>
     <h2>Quickstart</h2>
     <p>Read the live impact totals (bytes of disk freed, RAM recovered, processes ended) with one request:</p>
-    <pre><code>curl https://stats.rigsweep.com/v1/totals</code></pre>
+    <pre tabindex="0"><code>curl https://stats.rigsweep.com/v1/totals</code></pre>
     <p>The full API is described by the OpenAPI 3.1 spec at <a href="/openapi.json"><code>https://rigsweep.com/openapi.json</code></a>: every operation has an <code>operationId</code>, a description and typed request and response schemas, so it can be loaded straight into an API client or turned into LLM function-calling tools.</p>
     <h2>Base URL and authentication</h2>
     <ul>
@@ -60,19 +60,19 @@
     <h2>Endpoints</h2>
     <h3>GET /v1/totals</h3>
     <p>Operation <code>getImpactTotals</code>. All-time totals across every install that shares anonymous stats: <code>disk_freed</code> and <code>ram_recovered</code> in bytes, <code>processes_ended</code>, <code>cpu_freed</code> and <code>cpu_peak</code> (the CPU the ended processes were using, in percent of each PC's whole CPU: summed, and the most in one cleanup), <code>cleanups</code>, <code>tabs_slept</code>, <code>tabs_closed</code>, install counts and the ten biggest cleanup categories in <code>top</code>. Cached for five minutes.</p>
-    <pre><code>{"installs":1,"active_installs_30d":1,"disk_freed":141408233058,"ram_recovered":2537816064,"processes_ended":42,"cleanups":25,"top":[{"area":"memory","kind":"server","bytes":2532392960}],"updated_at":"2026-11-17T18:58:51Z", ...}</code></pre>
+    <pre tabindex="0"><code>{"installs":1,"active_installs_30d":1,"disk_freed":141408233058,"ram_recovered":2537816064,"processes_ended":42,"cleanups":25,"top":[{"area":"memory","kind":"server","bytes":2532392960}],"updated_at":"2026-11-17T18:58:51Z", ...}</code></pre>
     <h3>POST /v1/report</h3>
     <p>Operation <code>sendAppReport</code>. The RigSweep app sends this about once an hour, only after the user agreed to share anonymous stats: each cleanup since the previous report (category, size, time), RAM size, core count, versions and a random install ID. Anything that isn't a category, a number or a known app name is refused, and so are unknown fields. Answers <code>204 No Content</code>.</p>
     <h3>POST /v1/ext/report</h3>
     <p>Operation <code>sendExtensionReport</code>. The same for the RigSweep Tabs browser extension: tabs slept and closed since its last report, and how many tabs and windows are open.</p>
     <h3>DELETE /v1/install/{installId}</h3>
     <p>Operation <code>deleteInstallData</code>. Deletes everything stored under an install ID. The app and the extension call it when the user turns sharing off. Answers <code>204</code> whether or not anything was stored.</p>
-    <pre><code>curl -X DELETE https://stats.rigsweep.com/v1/install/0123456789abcdef0123456789abcdef</code></pre>
+    <pre tabindex="0"><code>curl -X DELETE https://stats.rigsweep.com/v1/install/0123456789abcdef0123456789abcdef</code></pre>
     <h3>GET /healthz</h3>
     <p>Operation <code>getHealth</code>. Returns <code>ok</code> while the service is up.</p>
     <h2 id="errors">Errors</h2>
     <p>Every API error is an <a href="https://www.rfc-editor.org/rfc/rfc9457">RFC 9457</a> problem details object with two extra members: a stable <code>code</code> to branch on and a <code>hint</code> that says how to fix the request.</p>
-    <pre><code>HTTP/1.1 400 Bad Request
+    <pre tabindex="0"><code>HTTP/1.1 400 Bad Request
 Content-Type: application/problem+json
 
 {"type":"https://rigsweep.com/developers/#error-invalid_field","title":"Bad Request","status":400,
@@ -93,7 +93,7 @@ Content-Type: application/problem+json
     </ul>
     <h2 id="rate-limits">Rate limits</h2>
     <p>The report endpoints allow 30 reports per IP address per 10 minutes. Every answer from them carries the IETF <a href="https://datatracker.ietf.org/doc/draft-ietf-httpapi-ratelimit-headers/">RateLimit header fields</a>, so a client can slow down before it hits the limit, and a <code>429</code> adds <code>Retry-After</code> in seconds:</p>
-    <pre><code>RateLimit-Policy: "reports";q=30;w=600
+    <pre tabindex="0"><code>RateLimit-Policy: "reports";q=30;w=600
 RateLimit: "reports";r=29;t=600</code></pre>
     <p><code>q</code> is the quota, <code>w</code> the window in seconds, <code>r</code> the requests left and <code>t</code> the seconds until the window starts over. <code>/v1/totals</code> isn't limited but is cached for five minutes, so polling it more often gains nothing.</p>
     <h2>Command-line interface</h2>

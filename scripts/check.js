@@ -1,7 +1,8 @@
 // One command for everything CI checks (G7): JS syntax, translations, the site, the extension stats
 // test, and the Rust tests of the app (src-tauri) and the stats server (server/).
-// Usage: npm run check            everything (the server tests download Postgres the first time)
-//        npm run check -- --fast  skip the two Rust test suites (seconds instead of minutes)
+// Usage: npm run check            everything (the server tests download Postgres the first time; the
+//                                accessibility check needs `npx playwright install chromium` once)
+//        npm run check -- --fast  skip the Rust tests and the accessibility check (seconds instead of minutes)
 const { spawnSync } = require("child_process");
 const fs = require("fs"), path = require("path");
 const repo = path.join(__dirname, "..");
@@ -28,6 +29,7 @@ step("Translations in sync", process.execPath, ["scripts/check-i18n.js"]);
 step("Site prerender up to date", process.execPath, ["scripts/prerender-site.js", "--check"]);
 step("Site links, JSON-LD, OpenAPI", process.execPath, ["scripts/check-site.js"]);
 step("Extension stats", process.execPath, ["scripts/test-extension-stats.js"]);
+if (!fast) step("Site accessibility (axe)", process.execPath, ["scripts/check-a11y.js", "--all"]);
 if (!fast) {
   step("App tests (src-tauri)", "cargo", ["test", "--locked"], path.join(repo, "src-tauri"));
   if (fs.existsSync(path.join(repo, "server", "Cargo.toml"))) step("Server tests (server)", "cargo", ["test", "--locked"], path.join(repo, "server"));

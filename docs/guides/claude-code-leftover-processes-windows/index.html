@@ -172,23 +172,23 @@
     <h3>Task Manager</h3>
     <p>Open Task Manager (Ctrl+Shift+Esc), go to <strong>Details</strong>, and sort by name. Right-click a column header, choose <strong>Select columns</strong> and add <strong>Command line</strong>. Look for <code>node.exe</code>, <code>python.exe</code>, <code>uv.exe</code>, <code>bun.exe</code> or <code>claude.exe</code> rows whose command line names an MCP server, a dev server or a project you closed.</p>
     <h3>tasklist</h3>
-<pre><code>tasklist /FI "IMAGENAME eq node.exe"</code></pre>
+<pre tabindex="0"><code>tasklist /FI "IMAGENAME eq node.exe"</code></pre>
     <h3>PowerShell: list orphans</h3>
     <p>Each process records the ID of its parent. When that parent is gone, the process is an orphan. This lists Node and Python processes whose parent no longer exists, with their command line:</p>
-<pre><code>$all = Get-CimInstance Win32_Process
+<pre tabindex="0"><code>$all = Get-CimInstance Win32_Process
 $alive = @{}; foreach ($p in $all) { $alive[$p.ProcessId] = $true }
 $all | Where-Object { $_.Name -in 'node.exe','python.exe','uv.exe','bun.exe' -and -not $alive[$_.ParentProcessId] } |
   Select-Object ProcessId, Name, CreationDate, CommandLine | Format-List</code></pre>
     <p>Windows reuses process IDs, so a parent ID can point to an unrelated newer process. If a row looks wrong, compare the <code>CreationDate</code> of the parent and the child: a real parent started first.</p>
     <h3>Which process holds a port</h3>
-<pre><code>netstat -ano | findstr :3000</code></pre>
+<pre tabindex="0"><code>netstat -ano | findstr :3000</code></pre>
     <p>The last column is the PID. The <a href="/guides/port-already-in-use-windows/">port 3000 guide</a> covers this in more detail.</p>
 
     <h2>The manual fix</h2>
     <p>First check what the process is. Ending the wrong <code>node.exe</code> can close an editor's language server or a tool you still use.</p>
-<pre><code>Get-CimInstance Win32_Process -Filter "ProcessId = 12345" | Select-Object Name, ParentProcessId, CommandLine</code></pre>
+<pre tabindex="0"><code>Get-CimInstance Win32_Process -Filter "ProcessId = 12345" | Select-Object Name, ParentProcessId, CommandLine</code></pre>
     <p>If the command line shows a leftover MCP server or dev server, end it together with its children:</p>
-<pre><code>taskkill /PID 12345 /T /F</code></pre>
+<pre tabindex="0"><code>taskkill /PID 12345 /T /F</code></pre>
     <p><code>/T</code> ends the whole tree below that PID and <code>/F</code> forces it. Unsaved state in that process is lost, and there is no undo. Skip processes whose command line points into VS Code, Cursor or another editor's folder, and processes run by pm2 or forever on purpose.</p>
 
     <h2>How RigSweep does it</h2>

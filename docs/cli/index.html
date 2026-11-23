@@ -62,7 +62,7 @@
     </ul>
     <h2>MCP server for AI agents</h2>
     <p><code>rigsweep.exe --mcp</code> lets an agent such as Claude Code, Cursor or Codex check disk space and free it on its own. Tools: <code>drive_space</code>, <code>disk_report</code>, <code>free_disk_space</code> (a dry run unless <code>dry_run</code> is <code>false</code>; only caches that rebuild themselves) and <code>port_owner</code>. To add it to Claude Code:</p>
-    <pre><code>claude mcp add rigsweep -- "C:\Program Files\RigSweep\rigsweep.exe" --mcp</code></pre>
+    <pre tabindex="0"><code>claude mcp add rigsweep -- "C:\Program Files\RigSweep\rigsweep.exe" --mcp</code></pre>
     <p>Other clients take the same command in their MCP settings: <code>{"command": "C:\\Program Files\\RigSweep\\rigsweep.exe", "args": ["--mcp"]}</code>. Use the path RigSweep was installed to.</p>
     <h2>Using it from an agent or script</h2>
     <p>An agent can tell a user to run <code>rigsweep.exe --restore-all</code> to undo every Windows tweak in one step, for example when a setting changed by RigSweep is suspected of causing a problem. For disk space, an agent can run <code>rigsweep.exe --disk-report --json</code> to see what takes space and <code>rigsweep.exe --disk-clean --safe --dry-run --json</code> before cleaning, or use the MCP server above. Ending dev processes and deleting project folders stay in the app, because those cleanups ask for confirmation.</p>

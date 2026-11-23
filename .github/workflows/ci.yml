@@ -51,3 +51,26 @@ jobs:
           # postgresql_embedded downloads Postgres from GitHub releases; anonymous calls get rate limited
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: cargo test --locked
+
+  site:
+    # the website: WCAG 2.2 AA with axe in headless Chromium, and no breaking change to the public API spec
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0 # the API check compares with the commit before
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Accessibility (axe, every page)
+        run: node scripts/check-a11y.js --all
+      - name: OpenAPI breaking changes (oasdiff)
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          if [ -z "$BASE" ] || ! git cat-file -e "$BASE:docs/openapi.json" 2>/dev/null; then echo "no earlier spec to compare"; exit 0; fi
+          git show "$BASE:docs/openapi.json" > "$RUNNER_TEMP/base.json"
+          docker run --rm -v "$RUNNER_TEMP:/base:ro" -v "$PWD/docs:/head:ro"             tufin/oasdiff:v1.38.0@sha256:d8e4cfbd36234af05c0d48f679005bace2a0253a93e5064158b720bf24ec4bd6             breaking /base/base.json /head/openapi.json --fail-on ERR

@@ -153,20 +153,20 @@
 
     <h2>1. Find the process that owns the port</h2>
     <h3>Command Prompt</h3>
-<pre><code>netstat -ano | findstr :3000</code></pre>
+<pre tabindex="0"><code>netstat -ano | findstr :3000</code></pre>
     <p>Look for a line in the <code>LISTENING</code> state. The last number is the process ID (PID).</p>
     <h3>PowerShell</h3>
-<pre><code>Get-NetTCPConnection -LocalPort 3000 -State Listen | Select-Object LocalAddress, LocalPort, OwningProcess</code></pre>
+<pre tabindex="0"><code>Get-NetTCPConnection -LocalPort 3000 -State Listen | Select-Object LocalAddress, LocalPort, OwningProcess</code></pre>
     <h3>What is that PID?</h3>
-<pre><code>tasklist /FI "PID eq 12345"
+<pre tabindex="0"><code>tasklist /FI "PID eq 12345"
 Get-CimInstance Win32_Process -Filter "ProcessId = 12345" | Select-Object Name, ParentProcessId, CommandLine</code></pre>
     <p>The command line tells you which project and tool it is, for example <code>node ... next dev</code> or <code>python -m uvicorn ...</code>.</p>
 
     <h2>2. End it safely</h2>
     <p>If it is a dev server you no longer need, end it and its child processes:</p>
-<pre><code>taskkill /PID 12345 /T /F</code></pre>
+<pre tabindex="0"><code>taskkill /PID 12345 /T /F</code></pre>
     <p>Or in PowerShell, for a single process:</p>
-<pre><code>Stop-Process -Id 12345</code></pre>
+<pre tabindex="0"><code>Stop-Process -Id 12345</code></pre>
     <p>Don't end a process you can't identify. If the owner is <code>svchost.exe</code>, <code>System</code> or a database you run on purpose, pick another port for your app instead.</p>
 
     <h2>Common causes</h2>
@@ -182,7 +182,7 @@ Get-CimInstance Win32_Process -Filter "ProcessId = 12345" | Select-Object Name, 
 
     <h2>Reserved port ranges (Hyper-V, WSL 2, Docker)</h2>
     <p>Windows can reserve blocks of ports for Hyper-V and related features. A port inside a reserved block can't be used even though no process owns it. Node reports this as <code>listen EACCES: permission denied</code> instead of <code>EADDRINUSE</code>. List the reserved ranges:</p>
-<pre><code>netsh interface ipv4 show excludedportrange protocol=tcp</code></pre>
+<pre tabindex="0"><code>netsh interface ipv4 show excludedportrange protocol=tcp</code></pre>
     <p>If your port falls inside a listed range, the simplest fix is to use a port outside it. Restarting the WinNAT service (<code>net stop winnat</code>, then <code>net start winnat</code>, as administrator) often releases the reservation until the next restart. It briefly interrupts networking for WSL and containers.</p>
 
     <h2>How RigSweep helps</h2>

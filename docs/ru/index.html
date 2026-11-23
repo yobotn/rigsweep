@@ -136,6 +136,8 @@
     html { scroll-behavior: smooth; }
     body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.65 var(--font); -webkit-font-smoothing: antialiased; }
     a { color: var(--accent); text-decoration: none; }
+    /* inside running text a link needs more than color to stand out (WCAG 1.4.1) */
+    p a, li a, .note a { text-decoration: underline; text-underline-offset: .15em; }
     a:hover { text-decoration: underline; }
     img { max-width: 100%; }
     code { font-family: Consolas, ui-monospace, monospace; font-size: .9em; background: var(--panel2); border-radius: 5px; padding: 1px 6px; }

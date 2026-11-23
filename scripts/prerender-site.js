@@ -162,7 +162,7 @@ const pageMd = (page) => {
   const desc = page.match(/<meta name="description" content="([^"]+)"/);
   const blocks = [];
   // pre blocks keep their text verbatim; everything else is one block element per match
-  const re = /<pre><code>([\s\S]*?)<\/code><\/pre>|<h([1-6])[^>]*>([\s\S]*?)<\/h\2>|<p[^>]*>([\s\S]*?)<\/p>|<ul[^>]*>([\s\S]*?)<\/ul>|<table[^>]*>([\s\S]*?)<\/table>/g;
+  const re = /<pre[^>]*><code>([\s\S]*?)<\/code><\/pre>|<h([1-6])[^>]*>([\s\S]*?)<\/h\2>|<p[^>]*>([\s\S]*?)<\/p>|<ul[^>]*>([\s\S]*?)<\/ul>|<table[^>]*>([\s\S]*?)<\/table>/g;
   for (const m of main.matchAll(re)) {
     if (m[1] !== undefined) blocks.push("```\n" + decode(m[1]) + "\n```");
     else if (m[6] !== undefined) {
