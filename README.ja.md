@@ -228,6 +228,13 @@ UI は **English、Deutsch、Español、Français、Italiano、Português (Brasi
 3. インストーラーで、Microsoft Defender で RigSweep を許可するかどうかを尋ねられます (下記参照)。どうするかはユーザーが選択できます。
 4. 以降のバージョンは **🛠️ 設定 → 🔄 更新** からインストールできます (0.5.0 以降)。
 
+[Scoop](https://scoop.sh) を使う場合:
+
+```powershell
+scoop bucket add yobotn https://github.com/yobotn/scoop-bucket
+scoop install yobotn/rigsweep
+```
+
 🌐 **Chrome ヘルパー:** RigSweep で **🛠️ 設定 → 🌐 Chrome タブ ヘルパー → 拡張機能のフォルダーを開く** に移動し、Chrome で `chrome://extensions` → **デベロッパー モード** → **パッケージ化されていない拡張機能を読み込む** → そのフォルダーを選択します。
 
 ## ウイルス対策ソフトの誤検知

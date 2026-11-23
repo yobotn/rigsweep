@@ -228,6 +228,13 @@ UI는 **English, Deutsch, Español, Français, Italiano, Português (Brasil), Р
 3. 설치 프로그램이 Microsoft Defender에서 RigSweep을 허용할지 묻습니다(아래 참조). 선택은 사용자의 몫입니다.
 4. 이후 버전은 **🛠️ 설정 → 🔄 업데이트**에서 설치할 수 있습니다(0.5.0부터).
 
+[Scoop](https://scoop.sh)을 사용하는 경우:
+
+```powershell
+scoop bucket add yobotn https://github.com/yobotn/scoop-bucket
+scoop install yobotn/rigsweep
+```
+
 🌐 **Chrome 도우미:** RigSweep에서 **🛠️ 설정 → 🌐 Chrome 탭 도우미 → 확장 프로그램 폴더 열기**로 이동한 다음, Chrome에서 `chrome://extensions` → **개발자 모드** → **압축해제된 확장 프로그램을 로드합니다** → 해당 폴더를 선택합니다.
 
 ## 바이러스 백신 오탐지

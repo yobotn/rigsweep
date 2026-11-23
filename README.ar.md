@@ -230,6 +230,17 @@
 3. يسألك برنامج التثبيت ما إذا كنت تريد السماح بـ RigSweep في Microsoft Defender (انظر أدناه). القرار لك.
 4. يمكن تثبيت الإصدارات اللاحقة من **🛠️ الإعدادات ← 🔄 التحديثات** (بدءًا من الإصدار 0.5.0).
 
+أو باستخدام [Scoop](https://scoop.sh):
+
+<div dir="ltr">
+
+```powershell
+scoop bucket add yobotn https://github.com/yobotn/scoop-bucket
+scoop install yobotn/rigsweep
+```
+
+</div>
+
 🌐 **مساعد Chrome:** في RigSweep انتقل إلى **🛠️ الإعدادات ← 🌐 مساعد علامات التبويب في Chrome ← فتح مجلد الإضافة**، ثم في Chrome: `chrome://extensions` ← **وضع مطوّر البرامج** ← **تحميل الإضافة غير المضغوطة** ← اختر ذلك المجلد.
 
 ## الإنذارات الكاذبة من برامج مكافحة الفيروسات

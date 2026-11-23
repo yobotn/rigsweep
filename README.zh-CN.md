@@ -228,6 +228,13 @@ Python 和 Java 也会运行普通的桌面应用，因此对于这两者，只�
 3. 安装程序会询问是否在 Microsoft Defender 中允许 RigSweep（见下文）。是否允许由你决定。
 4. 之后的版本可以通过 **🛠️ 设置 → 🔄 更新**安装（从 0.5.0 开始）。
 
+也可以用 [Scoop](https://scoop.sh) 安装：
+
+```powershell
+scoop bucket add yobotn https://github.com/yobotn/scoop-bucket
+scoop install yobotn/rigsweep
+```
+
 🌐 **Chrome 助手**：在 RigSweep 中转到 **🛠️ 设置 → 🌐 Chrome 标签页助手 → 打开扩展程序文件夹**，然后在 Chrome 中：`chrome://extensions` → **开发者模式** → **加载已解压的扩展程序** → 选择该文件夹。
 
 ## 防病毒软件误报

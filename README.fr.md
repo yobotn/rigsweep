@@ -228,6 +228,13 @@ Installez, ouvrez **📊 Rapport de gains → 📸 Mesurer maintenant**, faites 
 3. Le programme d'installation vous demande si vous voulez autoriser RigSweep dans Microsoft Defender (voir plus bas). C'est votre choix.
 4. Les versions suivantes peuvent être installées depuis **🛠️ Paramètres → 🔄 Mises à jour** (à partir de la 0.5.0).
 
+Ou avec [Scoop](https://scoop.sh) :
+
+```powershell
+scoop bucket add yobotn https://github.com/yobotn/scoop-bucket
+scoop install yobotn/rigsweep
+```
+
 🌐 **Assistant Chrome :** dans RigSweep, allez dans **🛠️ Paramètres → 🌐 Assistant d'onglets Chrome → Ouvrir le dossier de l'extension**, puis dans Chrome : `chrome://extensions` → **Mode développeur** → **Charger l'extension non empaquetée** → choisissez ce dossier.
 
 ## Faux positifs antivirus

@@ -228,6 +228,13 @@ Installieren Sie RigSweep, öffnen Sie **📊 Boost-Bericht → 📸 Jetzt messe
 3. Das Installationsprogramm fragt, ob RigSweep in Microsoft Defender zugelassen werden soll (siehe unten). Das entscheiden Sie.
 4. Neuere Versionen lassen sich unter **🛠️ Einstellungen → 🔄 Updates** installieren (ab 0.5.0).
 
+Oder mit [Scoop](https://scoop.sh):
+
+```powershell
+scoop bucket add yobotn https://github.com/yobotn/scoop-bucket
+scoop install yobotn/rigsweep
+```
+
 🌐 **Chrome-Helfer:** Gehen Sie in RigSweep zu **🛠️ Einstellungen → 🌐 Chrome-Tab-Helfer → Erweiterungsordner öffnen**, dann in Chrome: `chrome://extensions` → **Entwicklermodus** → **Entpackte Erweiterung laden** → diesen Ordner auswählen.
 
 ## Antivirus-Fehlalarme

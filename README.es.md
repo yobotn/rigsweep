@@ -228,6 +228,13 @@ Instala, abre **📊 Informe de mejora → 📸 Medir ahora**, haz una Limpieza 
 3. El instalador te pregunta si quieres permitir RigSweep en Microsoft Defender (ver abajo). Tú decides.
 4. Las versiones posteriores se pueden instalar desde **🛠️ Configuración → 🔄 Actualizaciones** (a partir de la 0.5.0).
 
+O con [Scoop](https://scoop.sh):
+
+```powershell
+scoop bucket add yobotn https://github.com/yobotn/scoop-bucket
+scoop install yobotn/rigsweep
+```
+
 🌐 **Asistente de Chrome:** en RigSweep ve a **🛠️ Configuración → 🌐 Asistente de pestañas para Chrome → Abrir carpeta de la extensión**, y en Chrome: `chrome://extensions` → **Modo desarrollador** → **Cargar descomprimida** → elige esa carpeta.
 
 ## Falsos positivos del antivirus

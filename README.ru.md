@@ -228,6 +228,13 @@
 3. Установщик спросит, разрешить ли RigSweep в Microsoft Defender (см. ниже). Решать вам.
 4. Следующие версии можно устанавливать через **🛠️ Параметры → 🔄 Обновления** (начиная с 0.5.0).
 
+Или через [Scoop](https://scoop.sh):
+
+```powershell
+scoop bucket add yobotn https://github.com/yobotn/scoop-bucket
+scoop install yobotn/rigsweep
+```
+
 🌐 **Помощник Chrome:** в RigSweep откройте **🛠️ Параметры → 🌐 Помощник вкладок Chrome → Открыть папку расширения**, затем в Chrome: `chrome://extensions` → **Режим разработчика** → **Загрузить распакованное расширение** → выберите эту папку.
 
 ## Ложные срабатывания антивируса

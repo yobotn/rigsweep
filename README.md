@@ -228,6 +228,13 @@ Install, open **📊 Boost Report → 📸 Measure now**, do a Dev Cleanup and a
 3. The installer asks whether to allow RigSweep in Microsoft Defender (see below). This is your choice.
 4. Later versions can be installed from **🛠️ Settings → 🔄 Updates** (from 0.5.0 on).
 
+Or with [Scoop](https://scoop.sh):
+
+```powershell
+scoop bucket add yobotn https://github.com/yobotn/scoop-bucket
+scoop install yobotn/rigsweep
+```
+
 🌐 **Chrome helper:** in RigSweep go to **🛠️ Settings → 🌐 Chrome tab helper → Open extension folder**, then in Chrome: `chrome://extensions` → **Developer mode** → **Load unpacked** → pick that folder.
 
 ## Antivirus false positives
