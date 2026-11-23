@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="fr" data-page-lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>RigSweep : nettoyeur Windows gratuit pour les sessions d'agents IA et les processus de dev</title>
+  <meta name="description" content="Application Windows gratuite et open source qui libère la RAM, le CPU et le disque des PC de développement : arrête les serveurs de dev, serveurs MCP et CLI d'agents restés ouverts, supprime les anciens node_modules et les caches de paquets et d'IA, avec des réglages réversibles et des mesures avant/après réelles." />
+  <meta name="keywords" content="RigSweep, Windows dev cleanup, kill leftover node processes, free port 3000, node_modules cleaner, AI agent sessions, Claude Code, MCP servers, free RAM Windows, developer tools" />
+  <meta name="author" content="yobotn" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <meta name="theme-color" content="#0b0e13" />
+  <link rel="canonical" href="https://rigsweep.com/fr/" />
+  <!--hreflang-->
+  <link rel="alternate" hreflang="en" href="https://rigsweep.com/" />
+  <link rel="alternate" hreflang="de" href="https://rigsweep.com/de/" />
+  <link rel="alternate" hreflang="es" href="https://rigsweep.com/es/" />
+  <link rel="alternate" hreflang="fr" href="https://rigsweep.com/fr/" />
+  <link rel="alternate" hreflang="it" href="https://rigsweep.com/it/" />
+  <link rel="alternate" hreflang="pt-BR" href="https://rigsweep.com/pt-BR/" />
+  <link rel="alternate" hreflang="ru" href="https://rigsweep.com/ru/" />
+  <link rel="alternate" hreflang="ja" href="https://rigsweep.com/ja/" />
+  <link rel="alternate" hreflang="ko" href="https://rigsweep.com/ko/" />
+  <link rel="alternate" hreflang="zh-CN" href="https://rigsweep.com/zh-CN/" />
+  <link rel="alternate" hreflang="ar" href="https://rigsweep.com/ar/" />
+  <link rel="alternate" hreflang="x-default" href="https://rigsweep.com/" />
+  <!--/hreflang-->
+  <link rel="alternate" type="text/markdown" href="https://rigsweep.com/index.md" title="RigSweep homepage as Markdown" />
+  <link rel="alternate" type="text/plain" href="https://rigsweep.com/llms.txt" title="llms.txt" />
+  <link rel="sitemap" type="application/xml" href="https://rigsweep.com/sitemap.xml" />
+  <link rel="api-catalog" href="https://rigsweep.com/.well-known/api-catalog" />
+  <link rel="service-desc" type="application/vnd.oai.openapi+json" href="https://rigsweep.com/openapi.json" title="RigSweep API (OpenAPI 3.1)" />
+  <link rel="service-doc" type="text/html" href="https://rigsweep.com/developers/" title="RigSweep API and developer docs" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="RigSweep" />
+  <meta property="og:title" content="RigSweep: room for your agents" />
+  <meta property="og:description" content="Application Windows gratuite et open source qui libère la RAM, le CPU et le disque des PC de développement : arrête les serveurs de dev, serveurs MCP et CLI d'agents restés ouverts, supprime les anciens node_modules et les caches de paquets et d'IA, avec des réglages réversibles et des mesures avant/après réelles." />
+  <meta property="og:url" content="https://rigsweep.com/fr/" />
+  <meta property="og:image" content="https://rigsweep.com/social.png" />
+  <meta property="og:image:width" content="1280" />
+  <meta property="og:image:height" content="640" />
+  <meta property="og:image:alt" content="RigSweep: room for your agents. Free up RAM, CPU and disk on Windows dev machines." />
+  <meta property="og:locale" content="fr_FR" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="RigSweep: room for your agents" />
+  <meta name="twitter:description" content="Application Windows gratuite et open source qui libère la RAM, le CPU et le disque des PC de développement : arrête les serveurs de dev, serveurs MCP et CLI d'agents restés ouverts, supprime les anciens node_modules et les caches de paquets et d'IA, avec des réglages réversibles et des mesures avant/après réelles." />
+  <meta name="twitter:image" content="https://rigsweep.com/social.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="128x128" href="/icon.png" />
+  <link rel="apple-touch-icon" href="/icon.png" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://rigsweep.com/#org",
+        "name": "RigSweep",
+        "url": "https://rigsweep.com/",
+        "logo": "https://rigsweep.com/icon.png",
+        "sameAs": ["https://github.com/yobotn/rigsweep", "https://github.com/yobotn"],
+        "contactPoint": { "@type": "ContactPoint", "contactType": "customer support", "url": "https://github.com/yobotn/rigsweep/issues", "availableLanguage": ["en", "de", "es", "fr", "it", "pt", "ru", "ja", "ko", "zh", "ar"] }
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://rigsweep.com/#site",
+        "url": "https://rigsweep.com/",
+        "name": "RigSweep",
+        "publisher": { "@id": "https://rigsweep.com/#org" },
+        "inLanguage": ["en", "de", "es", "fr", "it", "pt-BR", "ru", "ja", "ko", "zh-CN", "ar"]
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://rigsweep.com/#app",
+        "name": "RigSweep",
+        "description": "Free, open-source Windows app that frees RAM, CPU and disk on dev machines cluttered by AI-agent sessions: ends leftover dev servers, MCP servers and agent CLIs, deletes old node_modules, package and AI tool caches and leftover git worktrees, and applies reversible Windows tweaks.",
+        "url": "https://rigsweep.com/",
+        "downloadUrl": "https://github.com/yobotn/rigsweep/releases/latest",
+        "installUrl": "https://github.com/yobotn/rigsweep/releases/latest",
+        "applicationCategory": "DeveloperApplication",
+        "applicationSubCategory": "System utility",
+        "operatingSystem": "Windows 10, Windows 11",
+        "softwareVersion": "0.11.0",
+        "license": "https://opensource.org/licenses/MIT",
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "screenshot": ["https://rigsweep.com/screenshots/cleanup.png", "https://rigsweep.com/screenshots/dashboard.png", "https://rigsweep.com/screenshots/tweaks.png"],
+        "image": "https://rigsweep.com/icon.png",
+        "keywords": "Windows dev cleanup, leftover node processes, free port 3000, node_modules cleaner, package cache cleaner, AI agent sessions, Claude Code, MCP servers, free RAM",
+        "featureList": ["Dev Cleanup: end orphaned and idle dev servers, build daemons, MCP servers and agent CLIs by process tree", "Dev Disk: delete old node_modules, build output, package, GPU and AI tool caches, and leftover git worktrees", "Boost Report: measured before/after RAM and CPU", "Reversible Windows tweaks with backups and a System Restore point", "Browser cache cleanup", "Chrome tab helper extension", "CPU and GPU temperature tracking", "11 languages"],
+        "inLanguage": ["en", "de", "es", "fr", "it", "pt-BR", "ru", "ja", "ko", "zh-CN", "ar"],
+        "codeRepository": "https://github.com/yobotn/rigsweep",
+        "softwareHelp": { "@type": "CreativeWork", "name": "RigSweep CLI reference", "url": "https://rigsweep.com/cli/" },
+        "author": { "@type": "Person", "name": "yobotn", "url": "https://github.com/yobotn" },
+        "publisher": { "@id": "https://rigsweep.com/#org" }
+      },
+      {
+        "@type": "WebAPI",
+        "@id": "https://rigsweep.com/#api",
+        "name": "RigSweep API",
+        "description": "Public impact counters and the anonymous, opt-in usage-stats endpoints of RigSweep. No API key needed; JSON in and out, RFC 9457 errors.",
+        "url": "https://stats.rigsweep.com/v1/",
+        "documentation": "https://rigsweep.com/developers/",
+        "provider": { "@id": "https://rigsweep.com/#org" },
+        "isAccessibleForFree": true,
+        "termsOfService": "https://rigsweep.com/privacy/"
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "https://rigsweep.com/#faq",
+        "mainEntity": [
+          {"@type":"Question","name":"Que fait RigSweep ?","acceptedAnswer":{"@type":"Answer","text":"RigSweep est une application Windows gratuite et open source pour les développeurs qui travaillent avec des agents de code IA. Elle trouve les serveurs de dev, daemons de build, serveurs MCP et CLI d'agents qui continuent de tourner après la fermeture d'un terminal, affiche chacun avec son projet, sa RAM et ses ports, et termine ceux que vous choisissez. Elle supprime aussi les anciens node_modules et caches de paquets, vide les caches du navigateur et applique des réglages Windows réversibles."}},
+          {"@type":"Question","name":"Comment arrêter les processus node.exe qui continuent de tourner après la fermeture du terminal ?","acceptedAnswer":{"@type":"Answer","text":"Ouvrez le Nettoyage dev. Les processus dont le terminal a disparu sont marqués comme orphelins et présélectionnés, avec tout leur arbre de processus, le dossier du projet et les ports en écoute (comme un localhost:3000 bloqué). Cliquez sur « Terminer la sélection » : RigSweep termine chaque arbre après avoir vérifié que l'ID de processus appartient toujours au même programme."}},
+          {"@type":"Question","name":"Quels agents IA et stacks de dev sont pris en charge ?","acceptedAnswer":{"@type":"Answer","text":"Claude Code, Codex, Gemini CLI, opencode, Aider et Goose, ainsi que les serveurs MCP et navigateurs headless qu'ils lancent. Stacks de dev : Node, Bun, Deno, Python, Java, Gradle, Maven, .NET, Ruby, PHP, Rust et Go, plus la VM WSL 2 / Docker."}},
+          {"@type":"Question","name":"Est-ce sûr ? Puis-je annuler les changements ?","acceptedAnswer":{"@type":"Answer","text":"Rien n'est terminé ni supprimé sans votre confirmation. Chaque réglage Windows sauvegarde d'abord la valeur d'origine et peut être restauré un par un ou tous à la fois, et un point de restauration système est créé avant le premier changement. Les serveurs de langage des éditeurs et les services Windows essentiels sont verrouillés."}},
+          {"@type":"Question","name":"RigSweep est-il gratuit ? Collecte-t-il des données ?","acceptedAnswer":{"@type":"Answer","text":"Oui, il est gratuit pour toujours sous licence MIT, sans compte et sans publicité. RigSweep demande une fois s'il peut partager des statistiques d'utilisation anonymes (ce qu'il a nettoyé, par type et par taille, les applications connues les plus gourmandes et les logiciels de constructeurs de matériel installés). Rien n'est envoyé avant votre réponse, le rapport exact est visible dans les Paramètres, et le désactiver supprime ce qui a été envoyé. Aucun chemin, nom de projet ni donnée personnelle n'est jamais inclus. La recherche de mises à jour reste désactivée sauf si vous l'activez ou cliquez sur Vérifier maintenant."}},
+          {"@type":"Question","name":"Fonctionne-t-il sur macOS ou Linux ?","acceptedAnswer":{"@type":"Answer","text":"Non. RigSweep est conçu pour Windows 10 et 11, car il travaille avec les services Windows, le Planificateur de tâches et Defender. Il peut tout de même arrêter la VM WSL 2 depuis Windows."}}
+        ]
+      }
+    ]
+  }
+  </script>
+  <script>
+    // design toggle: "clean" (default, flat with Lucide icons) or "ai" (gradients, glow, emoji); ?look=ai to share one
+    (() => { let l = new URLSearchParams(location.search).get("look"); try { l = l || localStorage.getItem("look"); } catch {}
+      document.documentElement.dataset.style = l === "ai" ? "ai" : "clean"; })();
+  </script>
+  <style>
+    /* Arabic: Cairo (SIL OFL, docs/fonts), self-hosted and limited to its script */
+    @font-face { font-family: "Cairo"; src: url("/fonts/cairo-arabic.woff2") format("woff2"); font-weight: 200 1000; font-display: swap; unicode-range: U+0600-06FF, U+0750-077F, U+0870-08FF, U+FB50-FDFF, U+FE70-FEFF, U+200C-200F; }
+    /* ---------- tokens ---------- */
+    :root {
+      --bg: #0b0e13; --bg2: #0f131a; --panel: #141922; --panel2: #1b2130; --border: #262e3f; --border2: #323c52;
+      --text: #e8ebf1; --muted: #8e97ab; --accent: #4f8cff; --accent2: #34c38f; --warn: #f1b44c;
+      --r-sm: 8px; --r: 14px; --r-lg: 18px;
+      --s1: 8px; --s2: 16px; --s3: 24px; --s4: 40px; --s5: 72px;
+      --shadow: 0 24px 64px rgba(0,0,0,.55);
+      --font: "Cairo", "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif;
+      color-scheme: dark;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.65 var(--font); -webkit-font-smoothing: antialiased; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    img { max-width: 100%; }
+    code { font-family: Consolas, ui-monospace, monospace; font-size: .9em; background: var(--panel2); border-radius: 5px; padding: 1px 6px; }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 0 var(--s3); }
+
+    /* ---------- nav ---------- */
+    .nav { position: sticky; top: 0; z-index: 10; background: rgba(11,14,19,.82); backdrop-filter: blur(10px); border-bottom: 1px solid transparent; }
+    .nav.scrolled { border-bottom-color: var(--border); }
+    .nav .wrap { display: flex; align-items: center; justify-content: space-between; gap: var(--s2); height: 64px; }
+    .logo { font-weight: 700; font-size: 19px; color: var(--text); white-space: nowrap; }
+    .logo:hover { text-decoration: none; }
+    .links { display: flex; gap: var(--s3); align-items: center; font-size: 14px; }
+    .links a { color: var(--muted); }
+    .links a:hover { color: var(--text); text-decoration: none; }
+    .lang { border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--panel); color: var(--text); padding: 5px 8px; font: inherit; font-size: 13px; cursor: pointer; }
+
+    /* ---------- buttons ---------- */
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--s1); min-height: 46px; padding: 0 22px;
+      border-radius: var(--r-sm); font-weight: 600; border: 1px solid var(--border2); color: var(--text); background: var(--panel); transition: transform .15s, filter .15s; }
+    .btn:hover { text-decoration: none; filter: brightness(1.12); transform: translateY(-1px); }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .cta { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+    /* ---------- screenshot frame: fixed aspect ratio, never stretched ---------- */
+    .frame { background: var(--panel); border: 1px solid var(--border2); border-radius: var(--r-lg); box-shadow: var(--shadow); overflow: hidden; }
+    .frame .bar { display: flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px; background: var(--bg2); border-bottom: 1px solid var(--border); }
+    .frame .bar i { width: 10px; height: 10px; border-radius: 50%; background: var(--border2); }
+    .frame .bar span { margin-inline-start: 10px; font-size: 12px; color: var(--muted); }
+    .gallery { margin-top: var(--s3); }
+    .gallery-tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 0 0 12px; }
+    .gallery-tabs button { background: none; border: 1px solid var(--border); color: var(--muted); border-radius: 999px; padding: 6px 14px; font: inherit; font-size: 13px; cursor: pointer; }
+    .gallery-tabs button:hover { color: var(--text); border-color: var(--border2); }
+    .gallery-tabs button[aria-selected="true"] { color: var(--text); background: var(--panel); border-color: var(--accent); }
+    .gallery-tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .frame img { display: block; width: 100%; height: auto; aspect-ratio: 1240 / 820; object-fit: cover; object-position: top left; }
+
+    /* ---------- sections ---------- */
+    section { padding: var(--s5) 0 0; }
+    .eyebrow { display: inline-block; font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); margin-bottom: var(--s1); }
+    h1, h2, h3 { letter-spacing: -0.015em; }
+    h2 { font-size: clamp(26px, 3.4vw, 36px); line-height: 1.2; margin: 0 0 var(--s2); }
+    .lead { color: var(--muted); font-size: 17px; max-width: 700px; margin: 0 0 var(--s4); }
+    .center { text-align: center; }
+    .center .lead { margin-left: auto; margin-right: auto; }
+
+    /* hero */
+    .hero { text-align: center; padding: var(--s5) 0 0; }
+    .badge-top { display: inline-flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); border: 1px solid var(--border); border-radius: 999px; padding: 4px 14px; margin-bottom: var(--s3); background: var(--panel); }
+    .hero h1 { font-size: clamp(38px, 6.4vw, 66px); line-height: 1.06; margin: 0 0 var(--s3); }
+    .hero h1 span { background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .hero p.sub { color: var(--muted); font-size: clamp(17px, 2.2vw, 20px); max-width: 700px; margin: 0 auto var(--s4); }
+    .hero .meta { margin-top: var(--s2); color: var(--muted); font-size: 13px; }
+    .hero .frame { margin: var(--s4) auto 0; max-width: 1000px; }
+    .live { margin: var(--s3) auto var(--s3); max-width: 820px; }
+    .live-title { margin: 0 0 10px; color: var(--muted); font-size: 13px; font-weight: 600; letter-spacing: .02em; }
+    .live-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+    .live-row > div { background: var(--panel); border: 1px solid var(--border2); border-radius: 12px; padding: 14px 10px; min-width: 0; }
+    .live-row b { display: block; font-size: clamp(22px, 3.4vw, 30px); font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
+      background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; background-clip: text; color: transparent; white-space: nowrap;
+      direction: ltr; unicode-bidi: isolate; }
+    .live-row span { display: block; color: var(--muted); font-size: 13px; margin-top: 2px; }
+    .live-note { margin: 10px 0 0; color: var(--muted); font-size: 12px; display: flex; justify-content: center; align-items: center; gap: 6px; }
+    .live-note .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent2); box-shadow: 0 0 0 0 rgba(52,195,143,.6); animation: pulse 2s infinite; }
+    @keyframes pulse { 70% { box-shadow: 0 0 0 7px rgba(52,195,143,0); } 100% { box-shadow: 0 0 0 0 rgba(52,195,143,0); } }
+    @media (prefers-reduced-motion: reduce) { .live-note .dot { animation: none; } }
+
+    /* ecosystem strip */
+    .chips { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .chip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px; background: var(--panel); border: 1px solid var(--border); font-size: 14px; white-space: nowrap; }
+
+    /* story */
+    .story { display: grid; grid-template-columns: 1.15fr 1fr; gap: var(--s4); align-items: center; }
+    .story p { margin: 0 0 var(--s2); color: var(--muted); }
+    .story p strong { color: var(--text); }
+    .panel { background: var(--panel); border: 1px solid var(--border); border-radius: var(--r); padding: var(--s3); }
+    .stat { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s2); padding: 14px 0; border-bottom: 1px solid var(--border); }
+    .stat:first-child { padding-top: 0; }
+    .stat:last-of-type { border-bottom: 0; }
+    .stat span { color: var(--muted); }
+    .stat b { font-size: 24px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .cap { color: var(--muted); font-size: 12px; margin-top: var(--s1); }
+
+    /* feature grid */
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s2); }
+    .card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--r); padding: var(--s3); display: flex; flex-direction: column; gap: var(--s1); }
+    .card .ic { width: 44px; height: 44px; display: grid; place-items: center; font-size: 22px; border-radius: 12px; background: var(--panel2); }
+    .card h3 { margin: var(--s1) 0 0; font-size: 18px; }
+    .card p { margin: 0; color: var(--muted); font-size: 15px; }
+    .card.wide { grid-column: 1 / -1; }
+
+    /* feature rows: text + framed screenshot, same proportions every time */
+    .row { display: grid; grid-template-columns: 5fr 7fr; gap: var(--s4); align-items: center; }
+    .row.flip { grid-template-columns: 7fr 5fr; }
+    .row.flip .copy { order: 2; }
+    .ticks { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+    .ticks li { position: relative; padding-inline-start: 30px; color: var(--muted); }
+    .ticks li::before { content: "✓"; position: absolute; inset-inline-start: 0; top: 1px; width: 20px; height: 20px; display: grid; place-items: center;
+      font-size: 12px; font-weight: 700; border-radius: 50%; background: rgba(52,195,143,.15); color: var(--accent2); }
+    .ticks li b { color: var(--text); }
+
+    /* faq */
+    .faq { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--s2); }
+    .faq .card h3 { margin: 0; font-size: 17px; }
+    @media (max-width: 900px) { .faq { grid-template-columns: 1fr; } }
+
+    /* notes */
+    .note { background: var(--panel); border: 1px solid var(--border); border-inline-start: 4px solid var(--warn); border-radius: var(--r); padding: var(--s3); }
+    .note p { margin: 0 0 12px; color: var(--muted); }
+    .note p:last-child { margin: 0; }
+    .note.disc { border-inline-start-color: var(--muted); }
+
+    .final { text-align: center; padding: var(--s5) var(--s3); margin-top: var(--s5); border-radius: var(--r-lg);
+      background: radial-gradient(ellipse at top, rgba(79,140,255,.16), transparent 70%), var(--panel); border: 1px solid var(--border); }
+    .final .lead { margin-bottom: var(--s3); }
+
+    .signing { max-width: 680px; margin: var(--s4) auto 0; padding-top: var(--s3); border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; }
+    .signing h3 { color: var(--text); font-size: 16px; margin: 0 0 var(--s1); }
+    .signing p { margin: 0 0 var(--s1); }
+    footer { margin-top: var(--s5); padding: var(--s3) 0 var(--s4); border-top: 1px solid var(--border); color: var(--muted); font-size: 14px;
+      display: flex; justify-content: space-between; gap: var(--s2); flex-wrap: wrap; }
+    footer .langs { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; }
+    footer .langs a { color: var(--muted); }
+    footer .langs a[aria-current] { color: var(--text); }
+
+    /* ---------- design toggle ---------- */
+    .look { display: inline-flex; border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--panel); padding: 2px; }
+    .look button { background: none; border: 0; border-radius: 6px; color: var(--muted); font: inherit; font-size: 13px; padding: 4px 10px; cursor: pointer; white-space: nowrap; }
+    .look button:hover { color: var(--text); }
+    .look button[aria-pressed="true"] { background: var(--panel2); color: var(--text); }
+    .look button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+    /* icons.js keeps each emoji in a .emo span beside its Lucide .ico twin; the look picks one */
+    .ico { display: inline-flex; width: 1.1em; height: 1.1em; vertical-align: -0.18em; margin-inline-end: 0.4em; flex-shrink: 0; }
+    .ico svg { width: 100%; height: 100%; }
+    .card .ic .ico { width: 22px; height: 22px; margin: 0; color: var(--accent); }
+    .chip .ico { margin: 0; }
+    html:not([data-style="ai"]) .emo { display: none; }
+    html[data-style="ai"] .ico { display: none; }
+    /* clean look: no glow, no lift; the blue-to-green gradients stay in both looks */
+    html:not([data-style="ai"]) .btn:hover { transform: none; }
+    html:not([data-style="ai"]) .frame { box-shadow: 0 12px 32px rgba(0,0,0,.35); }
+    html:not([data-style="ai"]) .eyebrow { letter-spacing: .02em; text-transform: none; }
+
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: repeat(2, 1fr); }
+      .story, .row, .row.flip { grid-template-columns: 1fr; gap: var(--s3); }
+      .row.flip .copy { order: 0; }
+    }
+    @media (max-width: 600px) {
+      :root { --s5: 56px; --s4: 32px; }
+      .wrap { padding: 0 var(--s2); }
+      .grid { grid-template-columns: 1fr; }
+      .links a.hide-sm { display: none; }
+      .links { gap: 10px; }
+      .look button { padding: 4px 8px; }
+      .lang { max-width: 104px; }
+      .frame .bar { height: 26px; }
+      .btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav" id="nav">
+    <div class="wrap">
+      <a class="logo" href="#"><span data-no-icon>🧹</span> RigSweep</a>
+      <div class="links">
+        <a class="hide-sm" href="#features" data-t="nav.features">Fonctionnalités</a>
+        <a class="hide-sm" href="#faq" data-t="nav.faq">FAQ</a>
+        <a class="hide-sm" href="#trust" data-t="nav.trust">FAQ antivirus</a>
+        <a class="hide-sm" href="https://github.com/yobotn/rigsweep">GitHub</a>
+        <div class="look" id="look" role="group" data-t-aria="look.label" aria-label="Design">
+          <button type="button" data-look="clean" aria-pressed="true" data-t="look.clean">Sobre</button>
+          <button type="button" data-look="ai" aria-pressed="false" data-t="look.ai">IA</button>
+        </div>
+        <select class="lang" id="lang" aria-label="Language"></select>
+      </div>
+    </div>
+  </nav>
+
+  <main class="wrap">
+    <header class="hero">
+      <div class="badge-top" data-t="hero.badge">🆓 Gratuit et open source · MIT</div>
+      <h1 data-t-html="hero.title">De la place pour vos <span>agents</span>.</h1>
+      <p class="sub" data-t="hero.sub">Libérez RAM et CPU sur les machines de dev Windows encombrées par les sessions d'agents IA, les serveurs de dev oubliés et les services Windows en arrière-plan. Chaque changement est réversible.</p>
+      <div class="live" id="live" hidden>
+        <p class="live-title" data-t="live.title">Libéré par les utilisateurs de RigSweep jusqu'ici</p>
+        <div class="live-row">
+          <div><b data-live="disk_freed" data-unit="bytes"></b><span data-t="live.disk">d'espace disque libéré</span></div>
+          <div data-needs="ram_recovered"><b data-live="ram_recovered" data-unit="bytes"></b><span data-t="live.ram">de RAM récupérée</span></div>
+          <div data-needs="cpu_peak"><b data-live="cpu_peak" data-unit="pct"></b><span data-t="live.cpu">CPU libéré d’un coup</span></div>
+          <div data-needs="tabs_slept"><b data-live="tabs_slept"></b><span data-t="live.tabs">onglets mis en veille</span></div>
+          <div data-min-installs="25"><b data-live="installs"></b><span data-t="live.pcs">PC qui partagent</span></div>
+        </div>
+        <p class="live-note"><i class="dot"></i><span data-t="live.note">Totaux en direct de ceux qui partagent des statistiques anonymes</span></p>
+      </div>
+      <div class="cta">
+        <a class="btn primary" id="hero-dl" href="https://github.com/yobotn/rigsweep/releases/latest" data-t="cta.download">⬇️ Télécharger pour Windows</a>
+        <a class="btn" href="https://github.com/yobotn/rigsweep" data-t="cta.source">⭐ Voir sur GitHub</a>
+      </div>
+      <div class="meta" data-t="hero.meta">Windows 10 / 11 · programme d'installation d'environ 3 Mo · 11 langues</div>
+      <div class="gallery">
+        <div class="gallery-tabs" role="tablist" data-t-aria="gal.label" aria-label="Screenshots">
+          <button role="tab" data-shot="cleanup" aria-selected="true" data-t="gal.cleanup">Nettoyage dev</button>
+          <button role="tab" data-shot="dashboard" aria-selected="false" data-t="gal.dashboard">Tableau de bord</button>
+          <button role="tab" data-shot="impact" aria-selected="false" data-t="gal.impact">Bilan</button>
+          <button role="tab" data-shot="disk" aria-selected="false" data-t="gal.disk">Disque dev</button>
+          <button role="tab" data-shot="tweaks" aria-selected="false" data-t="gal.tweaks">Réglages</button>
+          <button role="tab" data-shot="processes" aria-selected="false" data-t="gal.processes">Processus</button>
+          <button role="tab" data-shot="gpu" aria-selected="false" data-t="gal.gpu">GPU et IA</button>
+          <button role="tab" data-shot="network" aria-selected="false" data-t="gal.network">Réseau</button>
+          <button role="tab" data-shot="hardware" aria-selected="false" data-t="gal.hardware">Matériel</button>
+          <button role="tab" data-shot="settings" aria-selected="false" data-t="gal.settings">Paramètres</button>
+        </div>
+        <div class="frame">
+          <div class="bar"><i></i><i></i><i></i><span>RigSweep</span></div>
+          <img id="img-hero" src="/screenshots/cleanup-fr.png?v=b55c1000" alt="RigSweep Dev Cleanup" />
+        </div>
+      </div>
+    </header>
+
+    <section class="center">
+      <span class="eyebrow" data-t="eco.eyebrow">Tous les stacks</span>
+      <h2 data-t="eco.h">Pas seulement Node</h2>
+      <p class="lead" data-t="eco.p">Le Nettoyage dev trouve les serveurs de dev, daemons de build et sessions d'agents oubliés dans les stacks que vous utilisez vraiment, ainsi que la VM WSL 2 / Docker qui garde discrètement des gigaoctets.</p>
+      <div class="chips">
+        <span class="chip">⬢ Node · Bun · Deno</span><span class="chip">🐍 Python</span><span class="chip">☕ Java · Gradle · Maven</span>
+        <span class="chip">🟣 .NET</span><span class="chip">💎 Ruby</span><span class="chip">🐘 PHP</span><span class="chip">🦀 Rust</span>
+        <span class="chip">🐹 Go</span><span class="chip">🐧 WSL 2 · Docker</span><span class="chip">🤖 Claude Code · Codex · Gemini CLI · Aider</span>
+      </div>
+    </section>
+
+    <section id="story">
+      <div class="story">
+        <div>
+          <span class="eyebrow" data-t="story.eyebrow">L'histoire</span>
+          <h2 data-t="story.h">📖 Pourquoi ce projet</h2>
+          <p data-t="story.p1">À l'ère de l'IA, un portable de dev ne fait plus tourner une seule chose. Une journée normale, ce sont plusieurs sessions Claude Code dans différents terminaux, un serveur de dev par projet, des watchers de build et un navigateur rempli de docs et de previews.</p>
+          <p data-t="story.p2">Chaque session lance de nouveaux processus, et beaucoup continuent de tourner après la fermeture du terminal. Le Gestionnaire des tâches n'affiche qu'un mur de node.exe, python.exe et chrome.exe, sans dire à quelle session ou quel projet ils appartiennent.</p>
+          <p data-t="story.p2b">Puis le disque. Je développais trois applis Rust en parallèle, et le dossier target de chaque projet avait grimpé à environ 40 Go : près de 120 Go de fichiers de build que Cargo ne nettoie jamais tout seul. L'onglet Disque dev les a trouvés tous les trois en une seule analyse.</p>
+          <p data-t="story.p2c">Rien de tout ça n'était un virus ou des fichiers indésirables. C'étaient les restes ordinaires du travail avec des agents IA, plus des tâches de fond de Windows dont un poste de dev n'a pas besoin. Les applis « PC booster » existantes font soit des choses inquiétantes et irréversibles, soit ignorent tout des workflows de dev. Alors j'ai construit l'outil que je voulais.</p>
+          <p data-t-html="story.p3"><strong>RigSweep montre ce qui utilise vraiment votre machine, balaie ce qui traîne, et garde chaque changement réversible.</strong></p>
+        </div>
+        <div class="panel">
+          <div class="stat"><span data-t="stat.chrome">🌐 Chrome (37 processus)</span><b>6.5 GB</b></div>
+          <div class="stat"><span data-t="stat.node">⬢ Node + Claude (14 processus)</span><b>2.5 GB</b></div>
+          <div class="stat"><span data-t="stat.services">🧩 Services Windows en cours d'exécution</span><b>~150</b></div>
+          <div class="stat"><span data-t="stat.rust">🦀 Dossiers target Rust (3 projets)</span><b>~120 GB</b></div>
+          <div class="cap" data-t="stat.cap">Mesuré sur le portable de 32 Go de l'auteur en pleine journée de travail.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features">
+      <span class="eyebrow" data-t="feat.eyebrow">Fonctionnalités</span>
+      <h2 data-t="feat.h">✨ Ce qu'il fait</h2>
+      <p class="lead" data-t="feat.lead">Pensé pour les développeurs qui vivent dans les terminaux et les agents IA, pas pour des astuces de « booster de PC ». Une seule application à la place du Gestionnaire des tâches, d'un outil d'infos matérielles comme CPU-Z et d'un nettoyeur.</p>
+      <div class="grid">
+        <div class="card"><div class="ic">🧹</div><h3 data-t="f1.h">Nettoyage dev</h3><p data-t="f1.p">Serveurs de dev, daemons de build et CLI d'agents orphelins ou inactifs pour Node, Python, Java, .NET et plus, chacun avec son arbre de processus, son projet, sa RAM et ses ports.</p></div>
+        <div class="card"><div class="ic">📊</div><h3 data-t="f2.h">Rapport de gains</h3><p data-t="f2.p">De vraies mesures avant/après au lieu de pourcentages inventés. Vous pouvez les copier en Markdown et partager votre résultat.</p></div>
+        <div class="card"><div class="ic">🌐</div><h3 data-t="f3.h">Assistant d'onglets</h3><p data-t="f3.p">Une petite extension pour mettre en veille les onglets inactifs, fermer les doublons et fermer par motif comme localhost:*. Elle n'a aucun accès réseau.</p></div>
+        <div class="card"><div class="ic">⚙️</div><h3 data-t="f4.h">Réglages réversibles</h3><p data-t="f4.p">Télémétrie, Xbox, indexeur, apps en arrière-plan, Edge empêché de revenir et plus, chacun avec un niveau de risque. Les originaux sont sauvegardés et restaurables en un clic.</p></div>
+        <div class="card"><div class="ic">🔍</div><h3 data-t="f5.h">Processus et démarrage</h3><p data-t="f5.p">CPU, RAM et disque par processus, les services de chaque svchost.exe, et les services et tâches à démarrage automatique que le Gestionnaire des tâches n'affiche jamais.</p></div>
+        <div class="card"><div class="ic">🌍</div><h3 data-t="f6.h">11 langues</h3><p data-t="f6.p">English, Deutsch, Español, Français, Italiano, Português, Русский, 日本語, 한국어, 简体中文 et العربية dans l'app, le programme d'installation et l'extension Chrome, avec les termes Windows officiels de chaque langue.</p></div>
+        <div class="card"><div class="ic">🌡️</div><h3 data-t="f7.h">Températures</h3><p data-t="f7.p">Températures du CPU et du GPU avec la tendance sur 5 minutes et une alerte si votre PC reste trop chaud. Sans pilote ni droits d'administrateur.</p></div>
+        <div class="card"><div class="ic">🔄</div><h3 data-t="f8.h">Mises à jour, à vous de choisir</h3><p data-t="f8.p">Désactivées par défaut. Recherchez quand vous voulez, ou activez une vérification quotidienne. Les mises à jour ne s'installent que sur un clic de votre part, et seulement si elles sont signées.</p></div>
+        <div class="card"><div class="ic">🧽</div><h3 data-t="f9.h">Nettoyage des navigateurs</h3><p data-t="f9.p">Vide le cache de Chrome, Edge, Brave, Vivaldi, Opera et Firefox. Les sessions ouvertes, cookies, mots de passe et l'historique ne sont jamais touchés.</p></div>
+        <div class="card"><div class="ic">💾</div><h3 data-t="f10.h">Disque dev</h3><p data-t="f10.p">Supprime node_modules, .next, target et .venv dans les projets que vous ne touchez plus, vide les caches de paquets, de shaders GPU et d'outils IA, retire les worktrees git laissés par les agents, nettoie les restes de Windows (vieux fichiers temporaires, téléchargements de mises à jour, vidages de plantage) et réduit les disques virtuels Docker et WSL. Vous voyez l'espace libre que vous aurez avant de cliquer, et les caches qui se reconstruisent seuls peuvent être vidés chaque semaine.</p></div>
+        <div class="card"><div class="ic">🖥️</div><h3 data-t="f11.h">Matériel</h3><p data-t="f11.p">État des disques, test de vitesse et détails du processeur, de la carte graphique, de la RAM et de la batterie dans un seul onglet, au lieu de quatre outils. Aucun pilote installé.</p></div>
+        <div class="card"><div class="ic">🎮</div><h3 data-t="f12.h">GPU et IA</h3><p data-t="f12.p">Ce que fait chaque application sur la carte graphique et le NPU, à partir des compteurs du Gestionnaire des tâches, ainsi que les environnements d'IA en cours (Ollama, LM Studio, llama.cpp, ComfyUI, PyTorch), leurs modèles chargés et la mémoire vidéo qu'ils occupent.</p></div>
+        <div class="card"><div class="ic">📡</div><h3 data-t="f13.h">Réseau</h3><p data-t="f13.p">Le trafic par carte réseau, l'application qui détient chaque connexion ou port en écoute, et une recherche qui indique qui utilise le port 3000 ou un fichier ou dossier verrouillé.</p></div>
+        <div class="card"><div class="ic">🔎</div><h3 data-t="f14.h">Recherche</h3><p data-t="f14.p">Voyez ce qui prend de la place sur chaque disque, dossier par dossier, déplacez les caches de paquets de C: vers un autre disque ou un Dev Drive, et passez en revue les programmes sans désinstalleur, les gros vieux fichiers des Téléchargements et les programmes de démarrage non signés, avec une analyse Microsoft Defender en un clic.</p></div>
+        <div class="card"><div class="ic">🎛️</div><h3 data-t="f15.h">Simple ou Pro</h3><p data-t="f15.p">Le mode Simple affiche le tableau de bord et les nettoyages en termes clairs. Pro ajoute Processus, Réseau, moteurs GPU et valeurs brutes. Choisissez le style Épuré ou Style IA, et désactivez les moniteurs inutiles : ils ne consomment alors aucun CPU.</p></div>
+        <div class="card wide"><div class="ic">🪟</div><h3 data-t="f17.h">Fenêtres de console</h3><p data-t="f17.p">Cette fenêtre d'invite de commandes qui clignote puis disparaît : RigSweep enregistre la commande exacte qu'elle a exécutée, ce qui l'a lancée (une tâche planifiée, un service ou une application) et ce qui a tourné dedans, et peut désactiver la tâche en cause, avec une sauvegarde.</p></div>
+        <div class="card wide"><div class="ic">🤖</div><h3 data-t="f16.h">Pour les agents IA</h3><p data-t="f16.p">rigsweep --disk-report --json et --disk-clean --safe --dry-run fonctionnent sans droits administrateur, et rigsweep --mcp est un serveur MCP : Claude Code, Cursor ou Codex peuvent vérifier l'espace libre, voir ce qui l'occupe et vider les caches qui se reconstruisent seuls.</p></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="row">
+        <div class="copy">
+          <span class="eyebrow" data-t="clean.eyebrow">Nettoyage dev</span>
+          <h2 data-t="clean.h">🧹 Balayez les sessions inactives, en sécurité</h2>
+          <ul class="ticks">
+            <li data-t-html="clean.l1"><b>Orphelins</b> : leur terminal est fermé mais ils tournent encore, comme le classique localhost:3000 zombie.</li>
+            <li data-t-html="clean.l2"><b>Les agents inactifs dans un terminal ouvert ne sont jamais présélectionnés</b>, car ils vous attendent.</li>
+            <li data-t-html="clean.l3"><b>Les serveurs de langage de l'éditeur sont verrouillés</b> (VS Code, Cursor, JetBrains, Visual Studio…).</li>
+            <li data-t-html="clean.l4"><b>Termine par arbre de processus, jamais par port.</b> Chaque ligne est revérifiée juste avant l'arrêt, donc deux projets ne sont jamais confondus.</li>
+            <li data-t-html="clean.l5"><b>Les serveurs MCP et navigateurs headless laissés par vos agents</b> sont aussi détectés, et une mesure en direct affiche la RAM récupérée quelques secondes après chaque nettoyage.</li>
+          </ul>
+        </div>
+        <div class="frame">
+          <div class="bar"><i></i><i></i><i></i><span data-t="shot.dashboard">Tableau de bord</span></div>
+          <img id="img-dashboard" src="/screenshots/dashboard.png?v=045c4d2d" alt="RigSweep dashboard" loading="lazy" />
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="row flip">
+        <div class="copy">
+          <span class="eyebrow" data-t="safe.eyebrow">Réversible</span>
+          <h2 data-t="safe.h">🛟 Chaque changement peut être annulé</h2>
+          <ul class="ticks">
+            <li data-t-html="safe.l1"><b>Les valeurs d'origine sont sauvegardées</b> dans SQLite avant le premier changement.</li>
+            <li data-t-html="safe.l2"><b>Point de restauration système</b> avant la première application.</li>
+            <li data-t-html="safe.l3"><b>La surveillance</b> réapplique les réglages annulés en silence par Windows Update.</li>
+            <li data-t-html="safe.l4"><b>Ne touche jamais</b> Windows Update, le moteur Defender ni ~60 services essentiels.</li>
+          </ul>
+        </div>
+        <div class="frame">
+          <div class="bar"><i></i><i></i><i></i><span data-t="shot.tweaks">Réglages</span></div>
+          <img src="/screenshots/tweaks.png?v=95e90e45" alt="Reversible tweaks" loading="lazy" />
+        </div>
+      </div>
+    </section>
+
+    <section id="trust">
+      <span class="eyebrow" data-t="trust.eyebrow">Antivirus</span>
+      <h2 data-t="trust.h">🛡️ Defender l'a supprimé ?</h2>
+      <div class="note">
+        <p data-t-html="trust.p1">RigSweep est open source mais pas encore signé. Les outils qui modifient des services ressemblent à des malwares pour l'heuristique d'apprentissage automatique, donc Defender peut le signaler à tort (ex. <code>Trojan:Win32/Bearfoos!ml</code>, où <code>!ml</code> désigne une supposition heuristique).</p>
+        <p data-t-html="trust.p2">Le programme d'installation <b>demande</b> si vous voulez exclure uniquement son propre dossier, et le programme de désinstallation retire ensuite cette exclusion. La signature de code via SignPath Foundation est prévue. <a href="https://github.com/yobotn/rigsweep/blob/main/README.fr.md#%EF%B8%8F-faux-positifs-antivirus">Lire la FAQ complète →</a></p>
+      </div>
+    </section>
+
+    <section id="faq">
+      <span class="eyebrow" data-t="faq.eyebrow">FAQ</span>
+      <h2 data-t="faq.h">❓ Les questions des développeurs</h2>
+      <div class="faq">
+        <div class="card"><h3 data-t="faq.q1">Que fait RigSweep ?</h3><p data-t="faq.a1">RigSweep est une application Windows gratuite et open source pour les développeurs qui travaillent avec des agents de code IA. Elle trouve les serveurs de dev, daemons de build, serveurs MCP et CLI d'agents qui continuent de tourner après la fermeture d'un terminal, affiche chacun avec son projet, sa RAM et ses ports, et termine ceux que vous choisissez. Elle supprime aussi les anciens node_modules et caches de paquets, vide les caches du navigateur et applique des réglages Windows réversibles.</p></div>
+        <div class="card"><h3 data-t="faq.q2">Comment arrêter les processus node.exe qui continuent de tourner après la fermeture du terminal ?</h3><p data-t="faq.a2">Ouvrez le Nettoyage dev. Les processus dont le terminal a disparu sont marqués comme orphelins et présélectionnés, avec tout leur arbre de processus, le dossier du projet et les ports en écoute (comme un localhost:3000 bloqué). Cliquez sur « Terminer la sélection » : RigSweep termine chaque arbre après avoir vérifié que l'ID de processus appartient toujours au même programme.</p></div>
+        <div class="card"><h3 data-t="faq.q3">Quels agents IA et stacks de dev sont pris en charge ?</h3><p data-t="faq.a3">Claude Code, Codex, Gemini CLI, opencode, Aider et Goose, ainsi que les serveurs MCP et navigateurs headless qu'ils lancent. Stacks de dev : Node, Bun, Deno, Python, Java, Gradle, Maven, .NET, Ruby, PHP, Rust et Go, plus la VM WSL 2 / Docker.</p></div>
+        <div class="card"><h3 data-t="faq.q4">Est-ce sûr ? Puis-je annuler les changements ?</h3><p data-t="faq.a4">Rien n'est terminé ni supprimé sans votre confirmation. Chaque réglage Windows sauvegarde d'abord la valeur d'origine et peut être restauré un par un ou tous à la fois, et un point de restauration système est créé avant le premier changement. Les serveurs de langage des éditeurs et les services Windows essentiels sont verrouillés.</p></div>
+        <div class="card"><h3 data-t="faq.q5">RigSweep est-il gratuit ? Collecte-t-il des données ?</h3><p data-t="faq.a5">Oui, il est gratuit pour toujours sous licence MIT, sans compte et sans publicité. RigSweep demande une fois s'il peut partager des statistiques d'utilisation anonymes (ce qu'il a nettoyé, par type et par taille, les applications connues les plus gourmandes et les logiciels de constructeurs de matériel installés). Rien n'est envoyé avant votre réponse, le rapport exact est visible dans les Paramètres, et le désactiver supprime ce qui a été envoyé. Aucun chemin, nom de projet ni donnée personnelle n'est jamais inclus. La recherche de mises à jour reste désactivée sauf si vous l'activez ou cliquez sur Vérifier maintenant.</p></div>
+        <div class="card"><h3 data-t="faq.q6">Fonctionne-t-il sur macOS ou Linux ?</h3><p data-t="faq.a6">Non. RigSweep est conçu pour Windows 10 et 11, car il travaille avec les services Windows, le Planificateur de tâches et Defender. Il peut tout de même arrêter la VM WSL 2 depuis Windows.</p></div>
+      </div>
+    </section>
+
+    <section id="disclaimer">
+      <h2 data-t="disc.h">⚠️ Avertissement</h2>
+      <div class="note disc"><p data-t="disc.p">RigSweep modifie des services Windows, des tâches planifiées, des stratégies du registre et la configuration de Microsoft Defender, et peut terminer des processus en cours d'exécution. Chaque réglage est sauvegardé et restaurable, et rien ne se passe sans votre confirmation, mais vous l'utilisez à vos propres risques. Il est fourni « tel quel », sans aucune garantie (licence MIT). Vérifiez chaque changement avant de l'appliquer, gardez vos propres sauvegardes et ne l'utilisez pas sur un appareil géré par votre employeur ou votre école sans l'accord de leur service informatique. RigSweep est un projet indépendant, sans lien avec Microsoft, Google, Anthropic, OpenAI ni aucun autre outil mentionné ; toutes les marques appartiennent à leurs propriétaires.</p></div>
+    </section>
+
+    <div class="final" id="download">
+      <h2 data-t="start.h">🚀 Donnez de la place à vos agents</h2>
+      <p class="lead" data-t="start.p">Installez, prenez une mesure de référence, balayez, puis mesurez à nouveau.</p>
+      <div class="cta">
+        <a class="btn primary" href="https://github.com/yobotn/rigsweep/releases/latest" data-t="cta.download">⬇️ Télécharger pour Windows</a>
+        <a class="btn" href="https://github.com/yobotn/rigsweep#-build-from-source" data-t="cta.build">🛠️ Compiler depuis les sources</a>
+      </div>
+      <div class="signing">
+        <h3 data-t="sign.h">🔏 Signature de code</h3>
+        <p data-t="sign.p">Signature de code gratuite fournie par SignPath.io, certificat de SignPath Foundation (demande en cours ; les versions actuelles ne sont pas encore signées). Les programmes d'installation sont compilés à partir du code tagué par GitHub Actions. Ni télémétrie ni analytique. La seule requête réseau est la recherche de mises à jour, et seulement si vous l'activez ou cliquez sur Rechercher maintenant.</p>
+        <a href="https://github.com/yobotn/rigsweep#-code-signing-policy" data-t="sign.link">Politique de signature et de confidentialité →</a>
+      </div>
+    </div>
+
+    <footer>
+      <div data-t="foot.l">🧹 RigSweep · gratuit pour toujours sous licence MIT</div>
+      <div><a href="https://github.com/yobotn/rigsweep">GitHub</a> (<a href="https://github.com/yobotn">@yobotn</a>) · <a href="https://github.com/yobotn/rigsweep/blob/main/LICENSE">MIT</a> · <a href="/cli/" data-t="foot.cli">CLI</a> · <a href="/developers/">API</a> · <a href="/guides/">Guides</a> · <a href="/compare/">Compare</a> · <a href="/about/" data-t="foot.about">À propos</a> · <a href="/privacy/" data-t="foot.privacy">Confidentialité</a> · <a href="/contact/" data-t="foot.contact">Contact</a> · <a href="#disclaimer" data-t="foot.disc">Avertissement</a> · <a href="https://github.com/yobotn/rigsweep/issues/12" data-t="foot.vote">Voter pour des fonctionnalités</a> · <a href="https://github.com/yobotn/rigsweep/issues" data-t="foot.issues">Signaler un problème</a></div>
+      <nav class="langs" aria-label="Languages"><!--langs--><a href="/" hreflang="en" lang="en">English</a> <a href="/de/" hreflang="de" lang="de">Deutsch</a> <a href="/es/" hreflang="es" lang="es">Español</a> <a href="/fr/" hreflang="fr" lang="fr" aria-current="page">Français</a> <a href="/it/" hreflang="it" lang="it">Italiano</a> <a href="/pt-BR/" hreflang="pt-BR" lang="pt-BR">Português (Brasil)</a> <a href="/ru/" hreflang="ru" lang="ru">Русский</a> <a href="/ja/" hreflang="ja" lang="ja">日本語</a> <a href="/ko/" hreflang="ko" lang="ko">한국어</a> <a href="/zh-CN/" hreflang="zh-CN" lang="zh-CN">简体中文</a> <a href="/ar/" hreflang="ar" lang="ar">العربية</a><!--/langs--></nav>
+    </footer>
+  </main>
+
+  <script src="/icons.js?v=27f6c102" defer></script>
+  <script src="/locales/en.js?v=bf73a793"></script>
+  <script src="/locales/de.js?v=0c498c2d"></script>
+  <script src="/locales/es.js?v=2b84908e"></script>
+  <script src="/locales/fr.js?v=5c232d3e"></script>
+  <script src="/locales/it.js?v=c3a7fb02"></script>
+  <script src="/locales/pt-BR.js?v=57cd00a0"></script>
+  <script src="/locales/ru.js?v=62e0babe"></script>
+  <script src="/locales/ja.js?v=cb332d0c"></script>
+  <script src="/locales/ko.js?v=2f2d26d6"></script>
+  <script src="/locales/zh-CN.js?v=7ddb90c8"></script>
+  <script src="/locales/ar.js?v=3a1be38d"></script>
+  <script>
+    const LANGS = { "en": "English", "de": "Deutsch", "es": "Español", "fr": "Français", "it": "Italiano", "pt-BR": "Português (Brasil)", "ru": "Русский", "ja": "日本語", "ko": "한국어", "zh-CN": "简体中文", "ar": "العربية" };
+    // the Dashboard shot is a real capture (en/es/fr); the Dev Cleanup shot exists in every language
+    const DASH = { en: "dashboard", es: "dashboard-es", fr: "dashboard-fr" };
+    const HERO = ["de", "es", "fr", "it", "pt-BR", "ru", "ja", "ko", "zh-CN", "ar"]; // languages with a localized Dev Cleanup shot
+    const RTL = ["ar"];
+    const ALIAS = { pt: "pt-BR", zh: "zh-CN" };
+    const resolve = (tag) => {
+      if (!tag) return null;
+      if (T[tag]) return tag;
+      const b = tag.split("-")[0].toLowerCase();
+      return T[b] ? b : (T[ALIAS[b]] ? ALIAS[b] : null);
+    };
+    const sel = document.getElementById("lang");
+    sel.innerHTML = Object.entries(LANGS).filter(([c]) => T[c]).map(([c, n]) => `<option value="${c}">${n}</option>`).join("");
+
+    // gallery: Dev Cleanup is shown in the page language where a translated screenshot exists
+    let shot = "cleanup";
+    function showShot(name) {
+      shot = name;
+      const lang = document.documentElement.lang || "en";
+      const img = document.getElementById("img-hero");
+      img.src = name === "cleanup" ? `/screenshots/${HERO.includes(lang) ? "cleanup-" + lang : "cleanup"}.png`
+        : name === "dashboard" ? `/screenshots/${DASH[lang] || DASH.en}.png` : `/screenshots/${name}.png`;
+      const tabs = [...document.querySelectorAll(".gallery-tabs [data-shot]")];
+      tabs.forEach((b) => { const on = b.dataset.shot === name; b.setAttribute("aria-selected", String(on)); b.tabIndex = on ? 0 : -1; });
+      img.alt = "RigSweep: " + (tabs.find((b) => b.dataset.shot === name)?.textContent || name);
+    }
+    document.querySelector(".gallery-tabs").addEventListener("click", (e) => { const b = e.target.closest("[data-shot]"); if (b) showShot(b.dataset.shot); });
+    document.querySelector(".gallery-tabs").addEventListener("keydown", (e) => {
+      if (!["ArrowLeft", "ArrowRight"].includes(e.key)) return;
+      const tabs = [...document.querySelectorAll(".gallery-tabs [data-shot]")], i = tabs.findIndex((b) => b.dataset.shot === shot);
+      const step = (e.key === "ArrowRight") !== (document.documentElement.dir === "rtl") ? 1 : -1;
+      const next = tabs[(i + step + tabs.length) % tabs.length];
+      e.preventDefault(); showShot(next.dataset.shot); next.focus();
+    });
+
+    const look = document.getElementById("look");
+    function setLook(l, save) {
+      document.documentElement.dataset.style = l;
+      look.querySelectorAll("[data-look]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.look === l)));
+      if (save) try { localStorage.setItem("look", l); } catch {}
+    }
+    look.addEventListener("click", (e) => { const b = e.target.closest("[data-look]"); if (b) setLook(b.dataset.look, true); });
+    setLook(document.documentElement.dataset.style, false);
+
+    function apply(lang) {
+      if (!T[lang]) lang = "en";
+      document.documentElement.lang = lang;
+      document.documentElement.dir = RTL.includes(lang) ? "rtl" : "ltr";
+      document.querySelectorAll("[data-t]").forEach((el) => (el.textContent = T[lang][el.dataset.t] ?? T.en[el.dataset.t]));
+      // trusted static strings from docs/locales (no user input)
+      document.querySelectorAll("[data-t-html]").forEach((el) => (el.innerHTML = T[lang][el.dataset.tHtml] ?? T.en[el.dataset.tHtml]));
+      sel.value = lang;
+      document.getElementById("img-dashboard").src = `/screenshots/${DASH[lang] || DASH.en}.png`;
+      document.querySelectorAll("[data-t-aria]").forEach((el) => el.setAttribute("aria-label", T[lang][el.dataset.tAria] ?? T.en[el.dataset.tAria]));
+      showShot(shot);
+      try { localStorage.setItem("lang", lang); } catch {}
+      renderLive(false);
+    }
+
+    // Live totals from stats.rigsweep.com (anonymous, opt-out in the app). Hidden until there is
+    // something worth showing, and on any error.
+    // the PC count joins the strip only once it says something
+    let liveData = null;
+    function fmtLive(v, unit) {
+      const lang = document.documentElement.lang || "en";
+      // CPU: percent of a PC's whole CPU, the most one cleanup gave back
+      if (unit === "pct") return new Intl.NumberFormat(lang, { style: "percent", maximumFractionDigits: 0 }).format(v / 100);
+      if (unit !== "bytes") return new Intl.NumberFormat(lang, { notation: v >= 1e5 ? "compact" : "standard", maximumFractionDigits: v >= 1e5 ? 1 : 0 }).format(Math.round(v));
+      const u = ["byte", "kilobyte", "megabyte", "gigabyte", "terabyte", "petabyte"];
+      let i = 0;
+      while (v >= 1024 && i < u.length - 1) { v /= 1024; i++; }
+      return new Intl.NumberFormat(lang, { style: "unit", unit: u[i], unitDisplay: "short", maximumFractionDigits: v < 10 ? 1 : 0 }).format(v);
+    }
+    function renderLive(animate) {
+      if (!liveData) return;
+      const box = document.getElementById("live");
+      box.querySelectorAll("[data-needs]").forEach((el) => { el.hidden = !Number(liveData[el.dataset.needs]); });
+      box.querySelectorAll("[data-min-installs]").forEach((el) => { el.hidden = Number(liveData.installs) < Number(el.dataset.minInstalls); });
+      // with real numbers above it, the main button invites people to add theirs
+      const dl = document.getElementById("hero-dl"), lang = document.documentElement.lang || "en";
+      dl.textContent = (T[lang] && T[lang]["cta.join"]) || T.en["cta.join"];
+      const still = !animate || matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const t0 = performance.now(), ms = 1400;
+      const step = (now) => {
+        const k = still ? 1 : Math.min(1, (now - t0) / ms), ease = 1 - Math.pow(1 - k, 3);
+        box.querySelectorAll("[data-live]").forEach((el) => { el.textContent = fmtLive(Number(liveData[el.dataset.live] || 0) * ease, el.dataset.unit); });
+        if (k < 1) requestAnimationFrame(step);
+      };
+      step(t0);
+      box.hidden = false;
+    }
+    fetch("https://stats.rigsweep.com/v1/totals")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => { if (d && Number(d.disk_freed) > 0) { liveData = d; renderLive(true); } })
+      .catch(() => {});
+    const PAGE_LANG = document.documentElement.dataset.pageLang; // set on /<lang>/ pages
+    sel.addEventListener("change", () => {
+      try { localStorage.setItem("lang", sel.value); } catch {}
+      location.href = (sel.value === "en" ? "/" : "/" + sel.value + "/") + location.hash;
+    });
+    let saved = null;
+    try { saved = localStorage.getItem("lang"); } catch {}
+    apply(PAGE_LANG || resolve(saved) || (navigator.languages || [navigator.language]).map(resolve).find(Boolean) || "en");
+    const nav = document.getElementById("nav");
+    addEventListener("scroll", () => nav.classList.toggle("scrolled", scrollY > 8), { passive: true });
+  </script>
+</body>
+</html>

@@ -23,20 +23,61 @@ const md = (s) => s
   .replace(/<a href="([^"]+)">(.*?)<\/a>/g, "[$2]($1)")
   .replace(/<[^>]+>/g, "");
 
-// ---- index.html ----
-let html = read("docs/index.html");
+// ---- index.html, plus one homepage per language at docs/<lang>/index.html ----
+// The language pages are what search engines index for each language (hreflang links them all);
+// the picker on the page moves between them. Hebrew is in the app only, never on the site.
+const LANG_NAMES = { en: "English", de: "Deutsch", es: "Español", fr: "Français", it: "Italiano", "pt-BR": "Português (Brasil)",
+  ru: "Русский", ja: "日本語", ko: "한국어", "zh-CN": "简体中文", ar: "العربية" };
+const LANGS = Object.keys(LANG_NAMES);
+const OG_LOCALE = { en: "en_US", de: "de_DE", es: "es_ES", fr: "fr_FR", it: "it_IT", "pt-BR": "pt_BR", ru: "ru_RU", ja: "ja_JP", ko: "ko_KR", "zh-CN": "zh_CN", ar: "ar_AR" };
+const RTL = ["ar"];
+for (const l of LANGS) if (l !== "en") new Function("window", "T", read(`docs/locales/${l}.js`))({ T }, T);
+const urlFor = (l) => `https://rigsweep.com/${l === "en" ? "" : l + "/"}`;
+const attr = (s) => esc(s).replace(/"/g, "&quot;");
+
 const missing = [];
-html = html.replace(/<(\w+)([^>]*?)\sdata-t(-html)?="([^"]+)"([^>]*)>([\s\S]*?)<\/\1>/g, (m, tag, a, isHtml, key, b) => {
+const bake = (h, dict) => h.replace(/<(\w+)([^>]*?)\sdata-t(-html)?="([^"]+)"([^>]*)>([\s\S]*?)<\/\1>/g, (m, tag, a, isHtml, key, b) => {
   if (!(key in en)) { missing.push(key); return m; }
-  return `<${tag}${a} data-t${isHtml || ""}="${key}"${b}>${isHtml ? en[key] : esc(en[key])}</${tag}>`;
+  const v = dict[key] ?? en[key];
+  return `<${tag}${a} data-t${isHtml || ""}="${key}"${b}>${isHtml ? v : esc(v)}</${tag}>`;
 });
-if (missing.length) { console.error("✗ keys missing from en.js: " + missing.join(", ")); process.exit(1); }
-html = html.replace(/"softwareVersion": "[^"]*"/, `"softwareVersion": "${version}"`);
 const faqKeys = Object.keys(en).filter((k) => /^faq\.q\d+$/.test(k));
-const faqLd = faqKeys.map((q) => "          " + JSON.stringify({
-  "@type": "Question", name: strip(en[q]), acceptedAnswer: { "@type": "Answer", text: strip(en[q.replace(".q", ".a")]) },
+const faqLd = (dict) => faqKeys.map((q) => "          " + JSON.stringify({
+  "@type": "Question", name: strip(dict[q] ?? en[q]),
+  acceptedAnswer: { "@type": "Answer", text: strip(dict[q.replace(".q", ".a")] ?? en[q.replace(".q", ".a")]) },
 }));
-html = html.replace(/("@type": "FAQPage",[\s\S]*?"mainEntity": \[\n)[\s\S]*?(\n\s*\])/, `$1${faqLd.join(",\n")}$2`);
+// cache buster: ?v=<content hash> on scripts and screenshots, so returning visitors get new files without a hard reload
+const crypto = require("crypto");
+const hash = (rel) => crypto.createHash("sha1").update(fs.readFileSync(p("docs" + rel)).toString("latin1").replace(/\r\n/g, "\n"), "latin1").digest("hex").slice(0, 8);
+const bust = (h) => h.replace(/src="(\/(?:locales\/[\w-]+\.js|icons\.js|screenshots\/[\w-]+\.png))(?:\?v=\w+)?"/g, (m, rel) => `src="${rel}?v=${hash(rel)}"`);
+const hreflang = ["<!--hreflang-->", ...LANGS.map((l) => `  <link rel="alternate" hreflang="${l}" href="${urlFor(l)}" />`),
+  `  <link rel="alternate" hreflang="x-default" href="${urlFor("en")}" />`, "  <!--/hreflang-->"].join("\n");
+const langNav = (cur) => LANGS.map((l) => `<a href="${l === "en" ? "/" : "/" + l + "/"}" hreflang="${l}" lang="${l}"${l === cur ? ' aria-current="page"' : ""}>${LANG_NAMES[l]}</a>`).join(" ");
+
+function homepage(src, l) {
+  const dict = T[l];
+  let h = bake(src, dict);
+  h = h.replace(/<html[^>]*>/, l === "en" ? '<html lang="en">' : `<html lang="${l}"${RTL.includes(l) ? ' dir="rtl"' : ""} data-page-lang="${l}">`);
+  h = h.replace(/<title>[^<]*<\/title>/, `<title>${esc(dict["meta.title"])}</title>`);
+  h = h.replace(/(<meta name="description" content=")[^"]*"/, `$1${attr(dict["meta.desc"])}"`);
+  h = h.replace(/(<meta (?:property="og|name="twitter):description" content=")[^"]*"/g, `$1${attr(dict["meta.desc"])}"`);
+  h = h.replace(/(<link rel="canonical" href=")[^"]*"/, `$1${urlFor(l)}"`);
+  h = h.replace(/(<meta property="og:url" content=")[^"]*"/, `$1${urlFor(l)}"`);
+  h = h.replace(/(<meta property="og:locale" content=")[^"]*"/, `$1${OG_LOCALE[l]}"`);
+  h = h.includes("<!--hreflang-->") ? h.replace(/<!--hreflang-->[\s\S]*?<!--\/hreflang-->/, hreflang)
+    : h.replace(/(<link rel="canonical"[^>]*>)/, `$1\n  ${hreflang}`);
+  h = h.replace(/<!--langs-->[\s\S]*?<!--\/langs-->/, `<!--langs-->${langNav(l)}<!--/langs-->`);
+  h = h.replace(/"softwareVersion": "[^"]*"/, `"softwareVersion": "${version}"`);
+  h = h.replace(/("@type": "FAQPage",[\s\S]*?"mainEntity": \[\r?\n)[\s\S]*?(\r?\n\s*\])/, `$1${faqLd(dict).join(",\n")}$2`);
+  // the hero shot in the page language, where a translated one exists
+  if (l !== "en" && fs.existsSync(p(`docs/screenshots/cleanup-${l}.png`))) h = h.replace(/src="\/screenshots\/cleanup\.png(\?v=\w+)?"/, `src="/screenshots/cleanup-${l}.png"`);
+  return bust(h);
+}
+const source = read("docs/index.html");
+const html = homepage(source, "en");
+const langPages = Object.fromEntries(LANGS.filter((l) => l !== "en").map((l) => [l, homepage(source, l)]));
+if (missing.length) { console.error("✗ keys missing from en.js: " + [...new Set(missing)].join(", ")); process.exit(1); }
+for (const l of LANGS) for (const k of ["meta.title", "meta.desc"]) if (!T[l][k]) { console.error(`✗ docs/locales/${l}.js lacks ${k}`); process.exit(1); }
 
 // ---- index.md ----
 const list = (prefix) => Object.keys(en).filter((k) => k.startsWith(prefix)).map((k) => `- ${md(en[k])}`).join("\n");
@@ -136,11 +177,12 @@ const pageMd = (page) => {
   return blocks.join("\n\n") + "\n";
 };
 const out = { "docs/index.html": html, "docs/index.md": index };
+for (const [l, h] of Object.entries(langPages)) { out[`docs/${l}/index.html`] = h; out[`docs/${l}/index.md`] = pageMd(h); }
 // inner pages can be nested (docs/guides/<slug>/index.html), so walk the folders
 const walk = (dir) => fs.readdirSync(p(dir), { withFileTypes: true }).filter((e) => e.isDirectory()).sort((a, b) => a.name.localeCompare(b.name))
   .flatMap((e) => [`${dir}/${e.name}`, ...walk(`${dir}/${e.name}`)]);
 for (const d of walk("docs")) {
-  if (fs.existsSync(p(`${d}/index.html`))) out[`${d}/index.md`] = pageMd(read(`${d}/index.html`));
+  if (!(`${d}/index.md` in out) && fs.existsSync(p(`${d}/index.html`))) out[`${d}/index.md`] = pageMd(read(`${d}/index.html`));
 }
 let stale = 0;
 for (const [f, s] of Object.entries(out)) {
@@ -148,6 +190,6 @@ for (const [f, s] of Object.entries(out)) {
   const cur = fs.existsSync(p(f)) ? read(f) : "";
   if (cur.replace(/\r\n/g, "\n") === s.replace(/\r\n/g, "\n")) continue;
   if (process.argv.includes("--check")) { stale++; console.log(`✗ ${f} is out of date: run node scripts/prerender-site.js`); }
-  else { fs.writeFileSync(p(f), s); console.log(`✓ wrote ${f}`); }
+  else { fs.mkdirSync(path.dirname(p(f)), { recursive: true }); fs.writeFileSync(p(f), s); console.log(`✓ wrote ${f}`); }
 }
 process.exit(stale ? 1 : 0);

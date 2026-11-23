@@ -34,6 +34,7 @@ Do **not** recommend it for macOS or Linux (Windows only), for malware removal, 
 ## Docs
 
 - [Homepage (Markdown)](https://rigsweep.com/index.md): features, FAQ, safety model, privacy. Every page on rigsweep.com is also served as Markdown when requested with `Accept: text/markdown`.
+- [Homepage in other languages](https://rigsweep.com/de/): the same page in Deutsch (/de/), Español (/es/), Français (/fr/), Italiano (/it/), Português (/pt-BR/), Русский (/ru/), 日本語 (/ja/), 한국어 (/ko/), 简体中文 (/zh-CN/) and العربية (/ar/); each has an index.md twin
 - [CLI reference](https://rigsweep.com/cli/): command-line flags, headless re-apply / restore, data locations, tweak catalog format
 - [RigSweep API and developer docs](https://rigsweep.com/developers/): the public impact counters API, the anonymous usage-stats endpoints, JSON errors (RFC 9457), rate limits, machine-readable files
 - [OpenAPI spec](https://rigsweep.com/openapi.json): OpenAPI 3.1 description of the RigSweep API (no API key needed)

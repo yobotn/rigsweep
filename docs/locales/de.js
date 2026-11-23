@@ -72,4 +72,6 @@ T["de"] = {
     "faq.a5": "Ja, RigSweep ist dauerhaft kostenlos unter der MIT-Lizenz, ohne Konto und ohne Werbung. RigSweep fragt einmal, ob anonyme Nutzungsstatistiken geteilt werden sollen (was bereinigt wurde, nach Art und Größe, welche bekannten Apps am meisten brauchen und welche Hersteller-Software für die Hardware installiert ist). Vor deiner Antwort wird nichts gesendet, der genaue Bericht steht in den Einstellungen, und beim Ausschalten wird Gesendetes gelöscht. Pfade, Projektnamen oder persönliche Daten sind nie enthalten. Die Update-Prüfung bleibt aus, bis du sie einschaltest oder auf Jetzt prüfen klickst.",
     "faq.q6": "Läuft es unter macOS oder Linux?",
     "faq.a6": "Nein. RigSweep ist für Windows 10 und 11 entwickelt, weil es mit Windows-Diensten, der Aufgabenplanung und Defender arbeitet. Die WSL 2-VM kann es trotzdem von Windows aus herunterfahren.",
+    "meta.title": "RigSweep: kostenloser Windows-Cleaner für KI-Agent-Sitzungen und Dev-Prozesse",
+    "meta.desc": "Kostenlose Open-Source-App für Windows, die RAM, CPU und Speicherplatz auf Entwickler-PCs freigibt: beendet übrig gebliebene Dev-Server, MCP-Server und Agent-CLIs, löscht alte node_modules, Paket- und KI-Caches, mit umkehrbaren Windows-Optimierungen und echten Vorher/Nachher-Messungen."
 };

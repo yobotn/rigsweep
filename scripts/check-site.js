@@ -36,7 +36,7 @@ for (const f of pages) {
     if (!html.includes(`property="${prop}"`)) fail(f, `missing ${prop}`);
   }
   if ((html.match(/<h1[\s>]/g) || []).length !== 1) fail(f, "needs exactly one <h1>");
-  if (f !== "index.html") {
+  if (!/^([a-z]{2}(-[A-Z]{2})?\/)?index\.html$/.test(f)) { // homepages: FAQ is checked by prerender-site.js
     for (const [, json] of html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)) {
       try {
         const nodes = JSON.parse(json)["@graph"] || [];

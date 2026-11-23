@@ -22,6 +22,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # IndexNow compares with the commit before this push
 
       - uses: dtolnay/rust-toolchain@stable
 
@@ -66,3 +68,8 @@ jobs:
             mv -f /opt/rigsweep/bin/rigsweep-stats.new /opt/rigsweep/bin/rigsweep-stats &&
             pm2 startOrReload /opt/rigsweep/ecosystem.config.js && pm2 save &&
             sleep 2 && curl -fsS http://127.0.0.1:2000/healthz'
+
+      - name: IndexNow (ask Bing and the engines built on it to recrawl changed pages)
+        if: github.event_name == 'push'
+        continue-on-error: true
+        run: node scripts/indexnow.js "${{ github.event.before }}"
