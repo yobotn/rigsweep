@@ -23,6 +23,7 @@ These print to the terminal they were started from, or to a file or pipe, and ne
 - `rigsweep.exe --disk-clean --safe [--json]`: empties exactly that list and reports the space freed and the system drive's free space before and after. Projects, worktrees, the Recycle Bin, virtual disks and caches that are slow to download again are never touched from the command line; clean those in the app, where each step is confirmed.
 - `rigsweep.exe --port 3000 [--json]`: which processes hold a local port, with PID and command line.
 - `rigsweep.exe --mcp`: a [Model Context Protocol](https://modelcontextprotocol.io/) server on stdin / stdout (see below).
+- `rigsweep.exe --help` and `--version` (since 0.12.1): the command list and the installed version. Exit codes: 0 ok, 2 bad usage.
 
 ## MCP server for AI agents
 

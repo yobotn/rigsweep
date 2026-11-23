@@ -43,7 +43,7 @@ Working with pm2 (as `yobotn`, the alias runs it as `apps`):
 pm2 ls                        # every app, status, memory, restarts
 pm2 logs rigsweep             # live logs (errors only; client IPs are never logged)
 pm2 reload rigsweep           # restart without dropping requests
-pm2 startOrReload /opt/rigsweep/ecosystem.config.js && pm2 save   # after changing env or config
+pm2 startOrReload /opt/rigsweep/ecosystem.config.js --update-env && pm2 save   # after changing env or config
 ```
 
 ## Secrets
@@ -54,7 +54,7 @@ copied over SSH without being printed:
 ```sh
 bash ~/.yobotn/server/push-secret.sh rigsweep-stats apps   # ./rigsweep-stats.env -> /etc/yobotn/rigsweep-stats.env (root:apps 640)
 bash ~/.yobotn/server/push-secret.sh cloudflared           # ./cloudflared.env   -> /etc/yobotn/cloudflared.env (root 600)
-pm2 startOrReload /opt/rigsweep/ecosystem.config.js        # on the server, so the app picks up the change
+pm2 startOrReload /opt/rigsweep/ecosystem.config.js --update-env   # on the server, so the app picks up the change
 ```
 
 `rigsweep-stats.env` (see `rigsweep-stats.env.example`): `DATABASE_URL`, `ADMIN_USER`, `ADMIN_PASSWORD`,
@@ -148,6 +148,35 @@ with the pages that changed. **So a push to `main` is a production deploy.** Rep
 | `DEPLOY_SSH_KEY` | secret | a private key made just for this (`ssh-keygen -t ed25519`); its `.pub` goes in `/home/apps/.ssh/authorized_keys` |
 | `DEPLOY_KNOWN_HOSTS` | secret | output of `ssh-keyscan 159.89.102.105` |
 | `DEPLOY_ENABLED` | variable | `true` |
+
+## Runbooks
+
+**Roll back a bad deploy.** Revert the commit on `main` and push (`git revert <sha> && git push`): `deploy.yml`
+tests, builds and reloads the previous code. Faster, from a checkout of the last good commit:
+`bash scripts/deploy.sh server` (or `site`). Migrations run forward only (`server/migrations/`): if the bad deploy added one,
+check that the older binary still works with the new schema before rolling back, and fix forward if it doesn't.
+Never edit an applied migration.
+
+**Service down** (uptime.yml fails or `/healthz` isn't 200). On the server: `sudo -iu apps pm2 ls`, then
+`sudo -iu apps pm2 logs rigsweep --lines 200` (JSON lines; `--raw | jq .` to read them). Restart with
+`sudo -iu apps pm2 restart rigsweep`. If every yobotn site is down, check `systemctl status cloudflared` and
+the tunnel in the Cloudflare dashboard. The site keeps serving while the database is unreachable.
+
+**Rotate a secret.**
+- *Admin password or database password*: change it (DigitalOcean → Databases → Users for the database), update
+  `rigsweep-stats.env` in the project root, run `push-secret.sh rigsweep-stats apps` and
+  `pm2 startOrReload` (see Secrets).
+- *Deploy SSH key*: make a new key pair, put the `.pub` in `/home/apps/.ssh/authorized_keys`, replace the
+  `DEPLOY_SSH_KEY` secret in GitHub, then remove the old line from `authorized_keys`.
+- *Tunnel token*: rotate it in Cloudflare Zero Trust, then `push-secret.sh cloudflared` and
+  `sudo systemctl restart cloudflared`.
+- *Updater signing key*: can't be swapped in place (its public key is compiled into the app). Ship a release
+  signed with the old key that contains the new public key, then sign with the new key. See ADR 0003.
+
+**Restore the database.** DigitalOcean managed Postgres keeps daily backups and point-in-time recovery: in the
+DigitalOcean control panel, open the database cluster → Backups → restore to a **new** cluster at the time you
+need, check the data there, then point `DATABASE_URL` at it (Secrets) and reload. Never restore over the live
+cluster.
 
 ## Checking it
 

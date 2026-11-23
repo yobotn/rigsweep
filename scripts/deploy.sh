@@ -48,7 +48,7 @@ if [ "$WHAT" != site ]; then
     sudo install -o apps -g apps -m 755 /tmp/rigsweep-stats /opt/rigsweep/bin/rigsweep-stats
     sudo install -o apps -g apps -m 644 /tmp/rigsweep-ecosystem.config.js /opt/rigsweep/ecosystem.config.js
     rm -f /tmp/rigsweep-stats /tmp/rigsweep-ecosystem.config.js
-    sudo -iu apps pm2 startOrReload /opt/rigsweep/ecosystem.config.js >/dev/null
+    sudo -iu apps pm2 startOrReload /opt/rigsweep/ecosystem.config.js --update-env >/dev/null
     sudo -iu apps pm2 save >/dev/null
     sleep 2; curl -fsS http://127.0.0.1:2000/healthz; echo " (local health)"'
 fi

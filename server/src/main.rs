@@ -19,7 +19,13 @@ fn env(k: &str, default: &str) -> String {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    tracing_subscriber::fmt().with_env_filter(tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into())).init();
+    // LOG_FORMAT=json gives one JSON object per line (production, see deploy/ecosystem.config.js); plain text otherwise
+    let filter = tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into());
+    if env("LOG_FORMAT", "") == "json" {
+        tracing_subscriber::fmt().json().with_env_filter(filter).init();
+    } else {
+        tracing_subscriber::fmt().with_env_filter(filter).init();
+    }
     let url = std::env::var("DATABASE_URL").map_err(|_| anyhow::anyhow!("DATABASE_URL is not set"))?;
     // connect lazily, so the site keeps serving even while the database is unreachable
     let pool = PgPoolOptions::new().max_connections(5).acquire_timeout(Duration::from_secs(5)).connect_lazy(&url)?;

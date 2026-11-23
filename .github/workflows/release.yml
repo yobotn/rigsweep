@@ -2,9 +2,11 @@ name: Release
 
 # Builds the Windows installer from the tagged source on GitHub-hosted runners.
 # The unsigned installer is kept as a workflow artifact (the input for SignPath code signing)
-# and attached to the GitHub Release for that tag, together with its updater signature (.sig)
-# and latest.json, the file RigSweep's opt-in update check reads.
+# and attached to the GitHub Release for that tag, together with its updater signature (.sig),
+# latest.json (the file RigSweep's opt-in update check reads), a CycloneDX SBOM and a build
+# provenance attestation (`gh attestation verify <exe> -R yobotn/rigsweep`).
 # Needs repo secrets TAURI_SIGNING_PRIVATE_KEY and TAURI_SIGNING_PRIVATE_KEY_PASSWORD.
+# No build caches here: a release is built from scratch, so a poisoned cache can't reach it.
 on:
   push:
     tags: ["v*"]
@@ -18,18 +20,16 @@ jobs:
     runs-on: windows-latest
     permissions:
       contents: write # create the release and upload the installer
+      id-token: write # sign the provenance attestation
+      attestations: write
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
       - uses: dtolnay/rust-toolchain@39008827e6b4319a349e9a42dfc90579dd25f1ca # stable
-      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
-        with:
-          workspaces: src-tauri
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4 (caches only with `cache:`, unset) # zizmor: ignore[cache-poisoning]
         with:
           node-version: 20
-          cache: npm
       - run: npm ci
       - name: Test
         working-directory: src-tauri
@@ -47,6 +47,18 @@ jobs:
           "path=$($f.FullName)" >> $env:GITHUB_OUTPUT
           "name=$($f.Name)" >> $env:GITHUB_OUTPUT
           (Get-FileHash $f.FullName -Algorithm SHA256).Hash | Tee-Object -FilePath "$($f.FullName).sha256"
+      - name: SBOM (CycloneDX, from Cargo.lock and package-lock.json)
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
+        with:
+          path: .
+          format: cyclonedx-json
+          output-file: rigsweep-sbom.cdx.json
+          upload-artifact: false
+          upload-release-assets: false
+      - name: Provenance attestation (SLSA build level 2)
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: ${{ steps.find.outputs.path }}
       - name: Upload unsigned installer (artifact for code signing)
         id: upload
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -61,13 +73,17 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          EXE: ${{ steps.find.outputs.path }}
+          EXE_NAME: ${{ steps.find.outputs.name }}
+          REPO: ${{ github.repository }}
         run: |
-          $tag = "${{ github.ref_name }}"
+          $tag = $env:TAG
           gh release view $tag 2>$null
           if ($LASTEXITCODE -ne 0) { gh release create $tag --title "RigSweep $($tag.TrimStart('v'))" --notes "Built by GitHub Actions from $tag." }
-          $exe = "${{ steps.find.outputs.path }}"
+          $exe = $env:EXE
           if (-not (Test-Path "$exe.sig")) { throw "No updater signature: set the TAURI_SIGNING_PRIVATE_KEY(_PASSWORD) secrets" }
-          $name = "${{ steps.find.outputs.name }}"
+          $name = $env:EXE_NAME
           # latest.json for the updater: version, notes from the release text, signed installer URL
           $notes = gh release view $tag --json body --jq .body
           $latest = [ordered]@{
@@ -76,9 +92,9 @@ jobs:
             pub_date = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
             platforms = @{ "windows-x86_64" = @{
               signature = (Get-Content "$exe.sig" -Raw).Trim()
-              url       = "https://github.com/${{ github.repository }}/releases/download/$tag/$([uri]::EscapeDataString($name))"
+              url       = "https://github.com/$($env:REPO)/releases/download/$tag/$([uri]::EscapeDataString($name))"
             } }
           }
           $json = Join-Path $env:RUNNER_TEMP "latest.json"
           [IO.File]::WriteAllText($json, ($latest | ConvertTo-Json -Depth 5), (New-Object Text.UTF8Encoding $false))
-          gh release upload $tag $exe "$exe.sha256" "$exe.sig" $json --clobber
+          gh release upload $tag $exe "$exe.sha256" "$exe.sig" $json rigsweep-sbom.cdx.json --clobber

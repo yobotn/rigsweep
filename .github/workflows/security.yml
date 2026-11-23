@@ -1,0 +1,45 @@
+name: Security
+
+# Supply-chain and workflow checks (engineering standard SC-12, SEC-03):
+# - zizmor lints the workflows (template injection, cache poisoning, credential persistence)
+# - cargo audit checks both Cargo.lock files against the RustSec advisory database
+# CodeQL (SAST) runs separately through GitHub's default setup.
+on:
+  push:
+    branches: [main]
+    paths: [".github/workflows/**", "**/Cargo.lock", "**/Cargo.toml"]
+  pull_request:
+  schedule:
+    - cron: "17 6 * * 1" # Mondays: new advisories against unchanged code
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  zizmor:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: zizmor
+        run: |
+          pipx run zizmor==1.33.1 --min-severity medium --format github .github/workflows
+
+  cargo-audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@39008827e6b4319a349e9a42dfc90579dd25f1ca # stable
+      - name: Install cargo-audit
+        run: cargo install cargo-audit --locked --version 0.23.0
+      - name: Audit the app (src-tauri)
+        working-directory: src-tauri
+        run: cargo audit
+      - name: Audit the stats server (server)
+        if: always()
+        working-directory: server
+        run: cargo audit

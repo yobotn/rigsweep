@@ -7,6 +7,7 @@
 //!                                             set as the weekly automatic cleanup)
 //!   rigsweep --port <n> [--json]              which processes hold a local port
 //!   rigsweep --mcp                            Model Context Protocol server on stdin/stdout
+//!   rigsweep --help | --version
 //!
 //! Output goes to stdout (redirected, piped, or the console the command was started from).
 
@@ -15,7 +16,19 @@ use std::io::{BufRead, Write};
 
 use crate::{devdisk, hardware, netmon};
 
-const FLAGS: &[&str] = &["--disk-report", "--disk-clean", "--port", "--mcp"];
+const FLAGS: &[&str] = &["--disk-report", "--disk-clean", "--port", "--mcp", "--help", "-h", "/?", "--version", "-V"];
+
+const HELP: &str = "RigSweep: free up RAM, CPU and disk on Windows dev machines.
+Run without arguments to open the app. Headless commands (no administrator rights needed):
+
+  rigsweep --disk-report [--json]                  what Dev Disk would find, plus free space per drive
+  rigsweep --disk-clean --safe [--dry-run] [--json]
+                                                   empty the caches that rebuild themselves
+  rigsweep --port <n> [--json]                     which processes hold a local port
+  rigsweep --mcp                                   Model Context Protocol server on stdin/stdout
+  rigsweep --help | --version
+
+Exit codes: 0 ok, 2 bad usage. Docs: https://rigsweep.com/cli/";
 
 /// Run a headless command if `args` asks for one. Returns false when the GUI should start.
 pub fn try_run(args: &[String]) -> bool {
@@ -25,7 +38,14 @@ pub fn try_run(args: &[String]) -> bool {
     }
     attach_console();
     let json_out = has("--json");
-    let code = if has("--mcp") {
+    let code = if has("--help") || has("-h") || has("/?") {
+        print!("{HELP}
+");
+        0
+    } else if has("--version") || has("-V") {
+        println!("rigsweep {}", env!("CARGO_PKG_VERSION"));
+        0
+    } else if has("--mcp") {
         mcp();
         0
     } else if has("--disk-report") {

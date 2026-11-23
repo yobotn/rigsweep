@@ -58,6 +58,7 @@
     <li><code>rigsweep.exe --disk-clean --safe [--json]</code>: empties exactly that list and reports the space freed and the system drive's free space before and after. Projects, worktrees, the Recycle Bin, virtual disks and caches that are slow to download again are never touched from the command line; clean those in the app, where each step is confirmed.</li>
     <li><code>rigsweep.exe --port 3000 [--json]</code>: which processes hold a local port, with PID and command line.</li>
     <li><code>rigsweep.exe --mcp</code>: a <a href="https://modelcontextprotocol.io/">Model Context Protocol</a> server on stdin / stdout (see below).</li>
+    <li><code>rigsweep.exe --help</code> and <code>--version</code> (since 0.12.1): the command list and the installed version. Exit codes: 0 ok, 2 bad usage.</li>
     </ul>
     <h2>MCP server for AI agents</h2>
     <p><code>rigsweep.exe --mcp</code> lets an agent such as Claude Code, Cursor or Codex check disk space and free it on its own. Tools: <code>drive_space</code>, <code>disk_report</code>, <code>free_disk_space</code> (a dry run unless <code>dry_run</code> is <code>false</code>; only caches that rebuild themselves) and <code>port_owner</code>. To add it to Claude Code:</p>
