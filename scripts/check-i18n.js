@@ -60,6 +60,8 @@ for (const l of ["en", ...PUBLIC_LANGS]) {
 for (const l of PUBLIC_LANGS) compareTables(`docs/locales/${l}.js`, T.en, T[l], { placeholders: false, newlines: false });
 const site = read("docs/index.html");
 for (const l of PUBLIC_LANGS) if (!site.includes(`locales/${l}.js`)) fail("docs/index.html", `doesn't load locales/${l}.js`);
+for (const [, l] of site.matchAll(/locales\/([\w-]+)\.js/g))
+  if (!["en", ...PUBLIC_LANGS].includes(l) || !fs.existsSync(path.join(repo, `docs/locales/${l}.js`))) fail("docs/index.html", `loads locales/${l}.js, which isn't a public language`);
 for (const l of PUBLIC_LANGS) if (!fs.existsSync(path.join(repo, `docs/screenshots/cleanup-${l}.png`))) fail("docs/screenshots", `cleanup-${l}.png missing`);
 
 // ---- READMEs ----
