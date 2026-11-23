@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "tauri dev",
     "build": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build.ps1",
+    "check": "node scripts/check.js",
     "brand": "node brand/serve.js",
     "tauri": "tauri"
   },

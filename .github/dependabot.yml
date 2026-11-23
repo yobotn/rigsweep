@@ -1,0 +1,39 @@
+# Dependency updates as PRs; CI must pass on them (ruleset on main). The cooldown waits out the first days
+# of a new release, when most malicious or broken versions are caught and pulled.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      actions:
+        patterns: ["*"]
+  - package-ecosystem: cargo
+    directory: /src-tauri
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      app-crates:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+  - package-ecosystem: cargo
+    directory: /server
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      server-crates:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7

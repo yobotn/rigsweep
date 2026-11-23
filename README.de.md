@@ -263,6 +263,7 @@ Entwicklungsmodus: `npm run dev` (UAC bestätigen; die App startet sich selbst m
 
 ### Tests
 ```powershell
+npm run check                                       # alles, was die CI prüft; mit -- --fast ohne die Rust-Tests
 cd src-tauri
 cargo test                                          # Katalog-Gültigkeit, Sicherungen, Momentaufnahmen, Befehlsanalyse
 cargo test live_status   -- --ignored --nocapture   # schreibgeschützt: erkannter Status jeder Optimierung

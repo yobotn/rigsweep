@@ -263,6 +263,7 @@ Dev run: `npm run dev` (accept UAC; the app relaunches itself elevated).
 
 ### Tests
 ```powershell
+npm run check                                       # everything CI runs; add -- --fast to skip the Rust tests
 cd src-tauri
 cargo test                                          # catalog validity, backups, snapshots, command parsing
 cargo test live_status   -- --ignored --nocapture   # read-only: detected status of every tweak

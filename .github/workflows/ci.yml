@@ -12,15 +12,17 @@ jobs:
   test:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@39008827e6b4319a349e9a42dfc90579dd25f1ca # stable
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
         with:
           workspaces: src-tauri
       - name: Rust tests
         working-directory: src-tauri
         run: cargo test --locked
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 20
       - name: JS syntax + translation keys
@@ -29,3 +31,23 @@ jobs:
           node scripts/check-i18n.js
           node scripts/prerender-site.js --check
           node scripts/check-site.js
+      - name: Extension stats test
+        run: node scripts/test-extension-stats.js
+
+  server:
+    # the stats collector, against a real Postgres (postgresql_embedded, no Docker)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@39008827e6b4319a349e9a42dfc90579dd25f1ca # stable
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
+        with:
+          workspaces: server
+      - name: Server tests
+        working-directory: server
+        env:
+          # postgresql_embedded downloads Postgres from GitHub releases; anonymous calls get rate limited
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: cargo test --locked

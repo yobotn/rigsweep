@@ -263,6 +263,7 @@ Exécution en dev : `npm run dev` (acceptez l'UAC ; l'app se relance elle-mêm
 
 ### Tests
 ```powershell
+npm run check                                       # tout ce que vérifie la CI ; avec -- --fast, sans les tests Rust
 cd src-tauri
 cargo test                                          # validité du catalogue, sauvegardes, relevés, analyse des commandes
 cargo test live_status   -- --ignored --nocapture   # lecture seule : état détecté de chaque réglage

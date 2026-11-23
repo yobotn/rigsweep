@@ -124,7 +124,7 @@ sudo -iu apps pm2 install pm2-logrotate
 
 ## Deploys
 
-**By hand over `ssh yobotn`** (how it's done today), from Git Bash in the repo root:
+**By hand over `ssh yobotn`** (fallback, e.g. when GitHub Actions is down), from Git Bash in the repo root:
 
 ```sh
 bash scripts/deploy.sh          # site + server
@@ -137,9 +137,9 @@ It runs the site checks, copies `docs/` exactly (`tar` over ssh, then `rsync --d
 the pm2 config, reloads pm2 **as `apps`** (`sudo -iu apps pm2 …`; the `pm2` alias only exists in an interactive
 login), and finally checks the public URLs through Cloudflare, including the Markdown and agent checks.
 
-**From GitHub** (`.github/workflows/deploy.yml`): set up but not active yet. The secrets and `DEPLOY_ENABLED`
-are in place; it starts running once the workflow is on `main`, and from then on every push to `main` that touches
-`docs/` or `server/` tests, builds, uploads and reloads. Repository settings → Secrets and variables → Actions:
+**From GitHub** (`.github/workflows/deploy.yml`, the normal way): live. Every push to `main` that touches `docs/`,
+`server/` or the workflow runs the site checks and the server tests, builds, uploads and reloads, then pings IndexNow
+with the pages that changed. **So a push to `main` is a production deploy.** Repository settings → Secrets and variables → Actions:
 
 | Name | Kind | Value |
 | --- | --- | --- |

@@ -1,0 +1,40 @@
+name: 🐞 Bug report
+description: Something in RigSweep is broken or behaves wrong
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! Antivirus flagged the installer? That's a known false positive, see the [Antivirus FAQ](https://github.com/yobotn/rigsweep#antivirus-false-positives). Security problem? Please [report it privately](https://github.com/yobotn/rigsweep/security/advisories/new) instead.
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: "1. Open Dev Disk\n2. Tick the Cargo cache\n3. Click Clean"
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs actual
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: RigSweep version
+      description: Settings → About
+      placeholder: "0.12.0"
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Windows version
+      placeholder: "Windows 11 24H2"
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or screenshots
+      description: Remove personal data first (user names, paths, project names you don't want public).
+      render: text

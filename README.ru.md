@@ -263,6 +263,7 @@ npm run build                         # -> src-tauri/target/release/rigsweep.exe
 
 ### Тесты
 ```powershell
+npm run check                                       # всё, что проверяет CI; с -- --fast без тестов Rust
 cd src-tauri
 cargo test                                          # корректность каталога, резервные копии, снимки, разбор команд
 cargo test live_status   -- --ignored --nocapture   # только чтение: обнаруженное состояние каждой настройки

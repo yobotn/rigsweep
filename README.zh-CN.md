@@ -263,6 +263,7 @@ npm run build                         # -> src-tauri/target/release/rigsweep.exe
 
 ### 测试
 ```powershell
+npm run check                                       # CI 运行的全部检查；加 -- --fast 跳过 Rust 测试
 cd src-tauri
 cargo test                                          # catalog validity, backups, snapshots, command parsing
 cargo test live_status   -- --ignored --nocapture   # read-only: detected status of every tweak
