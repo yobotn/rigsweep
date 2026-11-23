@@ -17,6 +17,8 @@
   --accent-solid: #22c55e;
   --on-accent: #052e16;
   --safe: #22c55e;
+  /* information only, never the brand: neutral "after" bars, Windows-reverted tweaks */
+  --info: #4f8cff;
   --moderate: #f1b44c;
   --caution: #f46a6a;
   --radius: var(--r-md);
@@ -185,7 +187,7 @@ th[aria-sort="ascending"] .th-sort::after { content: "↑"; opacity: 1; color: v
 .st { font-size: var(--fs-xs); border-radius: var(--r-sm); padding: 1px var(--s2); background: var(--panel2); color: var(--muted); white-space: nowrap; }
 .st.applied { color: var(--safe); }
 .st.partial, .st.error { color: var(--moderate); }
-.st.drift { color: var(--accent); }
+.st.drift { color: var(--info); }
 .loading { color: var(--muted); padding: var(--s7); text-align: center; }
 
 .form { display: flex; flex-direction: column; gap: var(--s4); max-width: 760px; }
@@ -241,7 +243,7 @@ code { font-family: Consolas, monospace; font-size: var(--fs-xs); background: va
 .barcol { width: 32%; }
 .bar { height: 6px; border-radius: var(--r-sm); margin: var(--s-1) 0; min-width: 2px; }
 .bar.b { background: var(--border); }
-.bar.a { background: var(--accent); }
+.bar.a { background: var(--info); }
 .bar.a.good { background: var(--safe); }
 .bar.a.bad { background: var(--caution); }
 
@@ -347,7 +349,8 @@ tr.group td { background: var(--panel2); padding-top: var(--s2); padding-bottom:
 [dir="rtl"] .space-arrow { transform: scaleX(-1); }
 .space-bar { display: flex; height: 10px; background: var(--panel2); border-radius: var(--r-pill); overflow: hidden; }
 .space-bar > i { display: block; height: 100%; }
-.space-bar .used { background: var(--accent); }
+/* used space is neutral, so the green "freed after cleanup" part always stands out */
+.space-bar .used { background: var(--muted); }
 .space-bar .used.warn { background: var(--moderate); }
 .space-bar .used.bad { background: var(--caution); }
 .space-bar .gain { background: var(--safe); }
