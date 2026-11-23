@@ -95,7 +95,6 @@ input[type=search] { width: 260px; }
 textarea { width: 100%; font-family: Consolas, monospace; font-size: var(--fs-sm); margin-top: var(--s1); resize: vertical; }
 .chk { display: inline-flex; gap: var(--s2); align-items: center; cursor: pointer; }
 
-.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: var(--s4); margin-bottom: var(--s4); }
 .tile, .card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: var(--s4) var(--s4); }
 .tile .label { color: var(--muted); font-size: var(--fs-xs); }
 .tile .value { white-space: nowrap; font-size: var(--fs-2xl); font-weight: 600; margin-top: var(--s0); font-variant-numeric: tabular-nums; }
@@ -210,7 +209,7 @@ th[aria-sort="ascending"] .th-sort::after { content: "↑"; opacity: 1; color: v
 /* a hint belongs to the field above it: pull it up, and don't add its own bottom margin to the form's gap */
 .card.form > .hint { margin: calc(-1 * var(--s2)) 0 0; }
 /* stacked blocks on a page always keep the same gap (block margins collapse, so nothing doubles) */
-.tab > :is(.card, .hw-grid, .grid2, .charts, .tiles, .callouts, .live) + :is(.card, .hw-grid, .grid2, .charts, .tiles, .live) { margin-top: var(--s4); }
+.tab > :is(.card, .hw-grid, .grid2, .charts, .callouts, .live) + :is(.card, .hw-grid, .grid2, .charts, .live) { margin-top: var(--s4); }
 .warn-text { color: var(--caution); font-size: var(--fs-sm); }
 
 .callouts { display: flex; flex-direction: column; gap: var(--s2); margin-bottom: var(--s4); }
@@ -408,14 +407,14 @@ button { transition: border-color .12s, background-color .12s; }
 button, .sidebar, .pagetabs, .subtabs, .seg, label:has(> input[type="checkbox"]) { user-select: none; -webkit-user-select: none; }
 button.primary:hover:not(:disabled) { filter: brightness(1.08); }
 button.danger:hover:not(:disabled) { background: color-mix(in srgb, var(--caution) 8%, transparent); }
-button:focus-visible, .tile.link:focus-visible, .tile.heat:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button:focus-visible, .tile.heat:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* dashboard */
 .live-sub { display: flex; align-items: center; gap: var(--s1); margin-top: var(--s-1); }
 /* a static dot: an endless box-shadow animation repainted the window ~60 times a second */
 .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--safe); box-shadow: 0 0 0 3px color-mix(in srgb, var(--safe) 20%, transparent); }
 @keyframes pulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--safe) 53%, transparent); } 70%, 100% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--safe) 0%, transparent); } }
-.charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--s4); margin-bottom: var(--s4); }
+.charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--s4); margin-bottom: var(--s4); }
 .chart { display: flex; flex-direction: column; min-width: 0; }
 .chart-head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s3); }
 .chart-head .sub { font-variant-numeric: tabular-nums; text-align: end; }
@@ -440,12 +439,10 @@ button:focus-visible, .tile.link:focus-visible, .tile.heat:focus-visible { outli
 .chart-empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: var(--s2); }
 .tile { display: flex; flex-direction: column; min-width: 0; }
 .tile .sub { margin-top: var(--s-1); }
-.tile .meter { margin-top: var(--s2); }
-.tile .meter > i { background: var(--accent); transition: width .4s; }
-.tile.link { cursor: pointer; }
-.tile.link, .tile.heat { transition: border-color .12s, background-color .12s; }
-.tile.link:hover, .tile.heat:hover { border-color: #3b4560; background: #1a1f29; }
-.tiles { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+.tile.heat { transition: border-color .12s, background-color .12s; }
+.tile.heat:hover { border-color: #3b4560; background: #1a1f29; }
+/* the heat tile sits in the chart row: its sparkline takes the height the charts give it */
+.charts > .tile.heat .heat-spark { flex: 1 1 28px; min-height: 28px; height: auto; }
 .feed li { display: flex; gap: var(--s3); align-items: flex-start; padding: var(--s2) 0; }
 .feed li:last-child { border-bottom: 0; }
 .feed li.skel-row { display: block; }
@@ -524,6 +521,10 @@ span.ico[data-ico] { background: var(--panel2); }
 }
 .subtabs button:hover { color: var(--text); background: var(--panel2); }
 .subtabs button.active { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
+/* live count on a page tab: processes running, tweaks applied */
+.tab-count { margin-inline-start: var(--s1); padding: 0 var(--s1); border-radius: var(--r-pill); background: var(--panel2); color: var(--muted);
+  font-size: var(--fs-xs); font-weight: 500; font-variant-numeric: tabular-nums; }
+.subtabs button.active .tab-count { color: var(--text); }
 .subtabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .stab { max-width: 760px; }
 .stab .card.form + .card.form { margin-top: var(--s4); }
@@ -626,7 +627,7 @@ span.ico[data-ico] { background: var(--panel2); }
 #tab-dashboard .tbl tbody tr:hover td { background: var(--row-hover); }
 #tab-dashboard .feed li { border-bottom: 0; padding: var(--s2) var(--s3); border-radius: var(--r-md); }
 #tab-dashboard .feed li:nth-child(even) { background: #ffffff05; }
-#tab-dashboard .grid2 > .card, #tab-dashboard .tiles > .tile, #tab-dashboard .charts > .card { border-radius: var(--r-lg); }
+#tab-dashboard .grid2 > .card, #tab-dashboard .charts > :is(.card, .tile) { border-radius: var(--r-lg); }
 
 /* Ready to free: calm states */
 .ready-tile.none .ready-big { color: var(--safe); }

@@ -405,9 +405,32 @@ function renderPageTabs() {
       }
       strip.setAttribute("aria-label", noIcon(t("nav." + (g === "home" ? "dashboard" : g))));
       strip.innerHTML = pages.map((p) => `<button role="tab" data-page="${p}" aria-selected="${p === name}" tabindex="${p === name ? 0 : -1}"
-        class="${p === name ? "active" : ""}">${esc(noIcon(t("nav." + (p === "dashboard" ? "overview" : p))))}</button>`).join("");
+        class="${p === name ? "active" : ""}">${esc(noIcon(t("nav." + (p === "dashboard" ? "overview" : p))))}${countHtml(p)}</button>`).join("");
     }
   }
+}
+// A few pages carry a live count on their tab (processes running, tweaks applied), so the
+// numbers need no dashboard tile of their own.
+const tabCounts = {};
+const countHtml = (p) => tabCounts[p] ? ` <span class="tab-count" title="${esc(tabCounts[p].title)}">${esc(tabCounts[p].text)}</span>` : "";
+function setTabCount(page, text, title) {
+  if (tabCounts[page]?.text === text && tabCounts[page]?.title === title) return;
+  tabCounts[page] = { text, title };
+  document.querySelectorAll(`.pagetabs [data-page="${page}"]`).forEach((b) => {
+    b.querySelector(".tab-count")?.remove();
+    b.insertAdjacentHTML("beforeend", countHtml(page));
+  });
+}
+function setProcCount(snap) {
+  setTabCount("processes", ltr(String(snap.process_count)), `${t("dash.procs")}: ${snap.process_count} / ${snap.service_running}`);
+}
+function setTweakCount() {
+  // tweaks for software that isn't on this PC (PC maker services, for example) don't count
+  const here = state.tweaks.filter((x) => x.status.overall !== "not_present");
+  const applied = here.filter((x) => x.status.overall === "applied").length;
+  // how often Windows undid a tweak (and RigSweep put it back) goes in the tooltip
+  const drift = state.tweaks.reduce((n, x) => n + x.drift_count, 0);
+  setTabCount("tweaks", ltr(`${applied}/${here.length}`), `${t("dash.tweaks")}: ${applied} / ${here.length}` + (drift ? ` · ${t("dash.drift")}: ${drift}` : ""));
 }
 document.addEventListener("click", (e) => { const b = e.target.closest(".pagetabs [data-page]"); if (b) showTab(b.dataset.page); });
 document.addEventListener("keydown", (e) => {
@@ -462,6 +485,7 @@ function showTab(name) {
 // ---------- state ----------
 async function loadState() {
   state = await call("get_state");
+  setTweakCount();
   if (selected.size === 0) {
     // default selection: whatever is already in the profile, otherwise all safe tweaks
     const prof = state.tweaks.filter((x) => x.in_profile).map((x) => x.id);
@@ -1562,6 +1586,7 @@ $("#btn-clear-snaps").onclick = async () => {
 // ---------- processes ----------
 async function loadProcesses() {
   try { snapshot = await invoke("get_processes"); } catch (e) { return toast(`${t("err.failed")}\n${e}`, "err"); }
+  setProcCount(snapshot);
   renderProcesses();
 }
 
@@ -1952,7 +1977,7 @@ async function renderDashboard() {
   ]);
   if (snap) {
     snapshot = snap;
-    $("#t-procs").textContent = ltr(`${snap.process_count} / ${snap.service_running}`);
+    setProcCount(snap);
     // Chrome runs as many processes; when together they hold a lot of RAM, show them as one row
     // (with the tab-helper link) instead of a callout above the page
     const chrome = snap.processes.filter((p) => p.name.toLowerCase() === "chrome.exe");
@@ -1983,21 +2008,10 @@ async function renderDashboard() {
   }
   if (devr) dev = devr;
   renderReady(); // stale processes now; disk and browser caches from the background scans
-  // drop the loading skeletons even if a call failed; "–" then stands for "no data"
-  ["#t-procs", "#t-tweaks"].forEach((id) => $(id).classList.remove("skel"));
   renderDashCharts();
   renderHeat();
   hardwareCallout();
-  if (state) {
-    // tweaks for software that isn't on this PC (PC maker services, for example) don't count
-    const here = state.tweaks.filter((x) => x.status.overall !== "not_present");
-    const applied = here.filter((x) => x.status.overall === "applied").length;
-    $("#t-tweaks").textContent = ltr(`${applied} / ${here.length}`);
-    $("#t-tweaks-bar").style.width = `${here.length ? (applied / here.length) * 100 : 0}%`;
-    // how often Windows undid a tweak (and RigSweep put it back): a footnote under the tweak count
-    const drift = state.tweaks.reduce((n, x) => n + x.drift_count, 0);
-    $("#t-drift").textContent = drift ? `${t("dash.drift")}: ${drift}` : "";
-  }
+  if (state) setTweakCount();
   const rows = hist.filter((h) => !quietRow(h)).slice(0, 8);
   $("#dash-history").innerHTML = rows.length ? rows.map(feedItem).join("")
     : `<li class="empty-state">${esc(t("dash.empty"))}</li>`;
@@ -2079,20 +2093,6 @@ Object.keys(CHARTS).forEach((id) => {
   plot.addEventListener("pointerleave", () => { plot._hover = null; chartHover(id); });
 });
 
-// a tile links to its page only while that page is shown (Simple mode hides Processes, for one)
-function syncTileLinks() {
-  document.querySelectorAll(".tile[data-go]").forEach((el) => {
-    const on = pageOn(el.dataset.go);
-    el.classList.toggle("link", on);
-    if (on) { el.setAttribute("role", "button"); el.tabIndex = 0; } else { el.removeAttribute("role"); el.removeAttribute("tabindex"); }
-  });
-}
-document.querySelectorAll(".tile[data-go]").forEach((el) => {
-  const go = () => { if (pageOn(el.dataset.go)) showTab(el.dataset.go); };
-  el.onclick = go;
-  el.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } };
-});
-syncTileLinks();
 
 $("#btn-refresh-dash").onclick = async (e) => {
   busy(e.target.closest("button"), true);
@@ -2308,7 +2308,6 @@ $("[data-stab-panel=look]").addEventListener("change", async (e) => {
   safeSet("prefs", JSON.stringify(prefs));
   applyPrefs();
   GROUPS = visibleGroups();
-  syncTileLinks();
   renderPageTabs();
   if (["mon_heat", "mon_disk_alerts", "mon_flashes"].includes(el.dataset.mon)) {
     try { await call("set_monitors", { heat: prefs.mon_heat, diskAlerts: prefs.mon_disk_alerts, flashes: prefs.mon_flashes }); } catch {} // call() already showed the error
