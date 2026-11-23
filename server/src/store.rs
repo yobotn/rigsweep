@@ -169,7 +169,9 @@ pub async fn delete_install(pool: &PgPool, id: &str) -> sqlx::Result<bool> {
 }
 
 async fn json(pool: &PgPool, sql: &str) -> sqlx::Result<Value> {
-    sqlx::query_scalar::<_, Value>(sql).fetch_one(pool).await
+    // Built only from constants in this file plus `days` (a u32 we parsed) and a fixed `step`; no request
+    // text ever reaches it, so it is safe to run as dynamic SQL.
+    sqlx::query_scalar::<_, Value>(sqlx::AssertSqlSafe(sql.to_owned())).fetch_one(pool).await
 }
 
 /// `SELECT … ` rows as a JSON array.

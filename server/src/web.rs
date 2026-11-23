@@ -52,8 +52,8 @@ impl Geo {
             }
         }
         if let (Some(r), Some(ip)) = (&self.reader, ip) {
-            if let Ok(c) = r.lookup::<maxminddb::geoip2::Country>(ip) {
-                if let Some(code) = c.country.and_then(|c| c.iso_code) {
+            if let Some(c) = r.lookup(ip).ok().and_then(|res| res.decode::<maxminddb::geoip2::Country>().ok().flatten()) {
+                if let Some(code) = c.country.iso_code {
                     if ok(code) {
                         return code.to_string();
                     }

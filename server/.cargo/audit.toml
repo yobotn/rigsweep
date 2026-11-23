@@ -1,5 +1,5 @@
 # cargo audit exceptions for the stats server, each checked by hand (see engineering/threat-model.md).
-# Re-check when sqlx or maxminddb is upgraded; remove an entry as soon as it no longer applies.
+# Re-check when sqlx is upgraded; remove an entry as soon as it no longer applies.
 [advisories]
 ignore = [
   # rsa (Marvin attack): only in Cargo.lock through sqlx-mysql, a driver this server doesn't enable or compile
@@ -7,6 +7,4 @@ ignore = [
   "RUSTSEC-2023-0071",
   # libsqlite3-sys (SQLite CVE): only in Cargo.lock through sqlx-sqlite, not enabled or compiled.
   "RUSTSEC-2026-0459",
-  # maxminddb Reader::open_mmap unsoundness: the server uses Reader::open_readfile (src/web.rs), never open_mmap.
-  "RUSTSEC-2025-0132",
 ]
