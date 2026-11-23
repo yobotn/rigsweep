@@ -125,7 +125,7 @@
     <div class="grid2">
       <div class="card ctl" id="iconCtl">
         <label>Broom style <div class="seg" data-k="glyph"><button data-v="white">White</button><button data-v="color">Color</button><button data-v="flat">Flat</button><button data-v="3d">3D</button></div></label>
-        <label>Tile <div class="seg" data-k="bg"><button data-v="orange">Orange</button><button data-v="gradient">Gradient</button><button data-v="dark">Dark</button><button data-v="light">Light</button><button data-v="none">None</button></div></label>
+        <label>Tile <div class="seg" data-k="bg"><button data-v="mark">R mark</button><button data-v="orange">Orange</button><button data-v="gradient">Gradient</button><button data-v="dark">Dark</button><button data-v="light">Light</button><button data-v="none">None</button></div></label>
         <label>Gradient angle <span class="val" data-show="angle"></span><input type="range" min="0" max="360" step="5" data-k="angle" /></label>
         <label>Corner radius <span class="val" data-show="radius"></span><input type="range" min="0" max="50" step="1" data-k="radius" /></label>
         <label>Tile inset <span class="val" data-show="inset"></span><input type="range" min="0" max="16" step="1" data-k="inset" /></label>
@@ -227,7 +227,7 @@
 if (location.protocol === "file:") document.getElementById("offline").style.display = "block";
 
 const BRAND = { blue: "#4f8cff", green: "#34c38f", orange: "#ff5a1f" };
-const ICON_DEFAULTS = { glyph: "white", bg: "orange", angle: 135, radius: 23, inset: 0, scale: 74, gloss: false, shadow: false, flatSmall: true };
+const ICON_DEFAULTS = { glyph: "white", bg: "mark", angle: 135, radius: 23, inset: 0, scale: 74, gloss: false, shadow: false, flatSmall: true };
 const OG_DEFAULTS = {
   h1: "Room for your", h2: "agents.",
   sub: "Free up RAM, CPU and disk on Windows dev machines cluttered by AI-agent sessions. Every change is reversible.",
@@ -242,8 +242,8 @@ const glyphs = {};
 function loadImg(src) { return new Promise((ok, fail) => { const i = new Image(); i.onload = () => ok(i); i.onerror = fail; i.src = src; }); }
 // SVGs are re-rasterized per size: drawing the Image at the target size keeps edges sharp
 async function loadGlyphs() {
-  const [color, flat, d3] = await Promise.all([loadImg("assets/broom-color.svg"), loadImg("assets/broom-flat.svg"), loadImg("assets/broom-3d.png")]);
-  Object.assign(glyphs, { color, flat, "3d": d3 });
+  const [color, flat, d3, mark] = await Promise.all([loadImg("assets/broom-color.svg"), loadImg("assets/broom-flat.svg"), loadImg("assets/broom-3d.png"), loadImg("assets/mark.svg")]);
+  Object.assign(glyphs, { color, flat, "3d": d3, mark });
 }
 
 // ---------- icon renderer ----------
@@ -260,6 +260,8 @@ function angleGrad(ctx, x, y, w, h, deg, stops, r = 0) {
 function drawIcon(ctx, S, o = icon) {
   ctx.clearRect(0, 0, S, S);
   const pad = S * o.inset / 100, w = S - pad * 2, r = w * o.radius / 100;
+  // "mark": the R mark (assets/mark.svg) is the whole icon, tile included, in the Focuside / KeepRun style
+  if (o.bg === "mark") { if (glyphs.mark) ctx.drawImage(glyphs.mark, pad, pad, w, w); return; }
   if (o.bg !== "none") {
     ctx.save();
     rr(ctx, pad, pad, w, w, r);
