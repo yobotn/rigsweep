@@ -276,7 +276,7 @@ I18N["zh-CN"] = {
     "common.refresh": "刷新", "common.cancel": "取消", "common.ok": "确定", "common.save": "保存", "common.working": "正在处理…",
 
     "dash.title": "仪表板", "dash.cpu": "CPU", "dash.mem": "内存", "dash.procs": "进程 / 正在运行的服务",
-    "dash.tweaks": "已启用的优化", "dash.drift": "被 Windows 还原（已修复）", "dash.top": "资源占用最高",
+    "dash.tweaks": "已启用的优化", "dash.drift": "被 Windows 还原（已修复）", "dash.driftCallout": "自上次查看以来，Windows 还原了 {n} 项优化。RigSweep 已重新应用。", "dash.driftGo": "查看优化", "dash.driftOk": "知道了", "dash.top": "资源占用最高",
     "dash.recent": "最近活动", "dash.empty": "暂无活动。可以先从 🧹 开发清理或 ⚙️ 优化开始。",
     "dash.stale": "🧟 {n} 个闲置的开发进程树占用了 {mem}", "dash.stale.go": "在开发清理中查看 →",
     "dash.chrome": "🌐 Chrome：{n} 个进程占用了 {mem}", "dash.chrome.go": "获取标签页助手 →",

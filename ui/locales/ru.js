@@ -276,7 +276,7 @@ I18N["ru"] = {
     "common.refresh": "Обновить", "common.cancel": "Отмена", "common.ok": "ОК", "common.save": "Сохранить", "common.working": "Выполняется…",
 
     "dash.title": "Обзор", "dash.cpu": "ЦП", "dash.mem": "Память", "dash.procs": "Процессы / запущенные службы",
-    "dash.tweaks": "Активные настройки", "dash.drift": "Отменено Windows (исправлено)", "dash.top": "Больше всего ресурсов",
+    "dash.tweaks": "Активные настройки", "dash.drift": "Отменено Windows (исправлено)", "dash.driftCallout": "С вашего последнего просмотра Windows отменила настроек: {n}. RigSweep вернул их.", "dash.driftGo": "Показать настройки", "dash.driftOk": "Понятно", "dash.top": "Больше всего ресурсов",
     "dash.recent": "Последние действия", "dash.empty": "Действий пока нет. Начните с раздела 🧹 Очистка dev или ⚙️ Настройки ОС.",
     "dash.stale": "🧟 Зависшие деревья dev-процессов: {n}, занято {mem}", "dash.stale.go": "Открыть «Очистку dev» →",
     "dash.chrome": "🌐 Chrome: процессов — {n}, занято {mem}", "dash.chrome.go": "Установить помощник вкладок →",

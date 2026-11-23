@@ -276,7 +276,7 @@ I18N["ar"] = {
     "common.refresh": "تحديث", "common.cancel": "إلغاء", "common.ok": "موافق", "common.save": "حفظ", "common.working": "جارٍ العمل…",
 
     "dash.title": "لوحة المعلومات", "dash.cpu": "CPU", "dash.mem": "الذاكرة", "dash.procs": "العمليات / الخدمات قيد التشغيل",
-    "dash.tweaks": "التحسينات النشطة", "dash.drift": "أعادها Windows (تم إصلاحها)", "dash.top": "الأكثر استهلاكًا للموارد",
+    "dash.tweaks": "التحسينات النشطة", "dash.drift": "أعادها Windows (تم إصلاحها)", "dash.driftCallout": "منذ آخر مرة تحققت فيها، أعاد Windows {n} من التحسينات إلى وضعها السابق. أعاد RigSweep تطبيقها.", "dash.driftGo": "عرض التحسينات", "dash.driftOk": "حسنًا", "dash.top": "الأكثر استهلاكًا للموارد",
     "dash.recent": "النشاط الأخير", "dash.empty": "لا يوجد نشاط بعد. ابدأ بـ 🧹 تنظيف التطوير أو ⚙️ التحسينات.",
     "dash.stale": "🧟 {n} من أشجار عمليات التطوير المتروكة تستهلك {mem}", "dash.stale.go": "المراجعة في تنظيف التطوير ←",
     "dash.chrome": "🌐 متصفح Chrome: {n} عملية تستخدم {mem}", "dash.chrome.go": "احصل على مساعد علامات التبويب ←",

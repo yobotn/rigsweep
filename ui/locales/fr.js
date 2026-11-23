@@ -276,7 +276,7 @@ I18N["fr"] = {
     "common.refresh": "Actualiser", "common.cancel": "Annuler", "common.ok": "OK", "common.save": "Enregistrer", "common.working": "En cours…",
 
     "dash.title": "Tableau de bord", "dash.cpu": "CPU", "dash.mem": "Mémoire", "dash.procs": "Processus / services en cours d'exécution",
-    "dash.tweaks": "Réglages actifs", "dash.drift": "Annulés par Windows (corrigés)", "dash.top": "Plus gros consommateurs",
+    "dash.tweaks": "Réglages actifs", "dash.drift": "Annulés par Windows (corrigés)", "dash.driftCallout": "Windows a annulé {n} réglage(s) depuis votre dernière visite. RigSweep les a rétablis.", "dash.driftGo": "Voir les réglages", "dash.driftOk": "Compris", "dash.top": "Plus gros consommateurs",
     "dash.recent": "Activité récente", "dash.empty": "Aucune activité pour l'instant. Commencez par 🧹 Nettoyage dev ou ⚙️ Réglages.",
     "dash.stale": "🧟 {n} arbre(s) de processus dev inactifs occupent {mem}", "dash.stale.go": "Voir dans Nettoyage dev →",
     "dash.chrome": "🌐 Chrome : {n} processus utilisent {mem}", "dash.chrome.go": "Installer l'assistant d'onglets →",

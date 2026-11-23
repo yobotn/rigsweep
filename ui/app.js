@@ -431,7 +431,34 @@ function setTweakCount() {
   // how often Windows undid a tweak (and RigSweep put it back) goes in the tooltip
   const drift = state.tweaks.reduce((n, x) => n + x.drift_count, 0);
   setTabCount("tweaks", ltr(`${applied}/${here.length}`), `${t("dash.tweaks")}: ${applied} / ${here.length}` + (drift ? ` · ${t("dash.drift")}: ${drift}` : ""));
+  renderDrift();
 }
+
+// When Windows undoes a tweak (an update, usually) and the watchdog puts it back, say so once:
+// a callout on the Dashboard and a dot on "Speed up" until it's seen. Seen = the drift count per
+// tweak at the last "Got it" / "Show tweaks". The first run takes the current counts as seen.
+const driftNow = () => Object.fromEntries(state.tweaks.filter((x) => x.drift_count).map((x) => [x.id, x.drift_count]));
+let driftSeen = (() => { try { return JSON.parse(safeGet("driftSeen")); } catch { return null; } })();
+function renderDrift() {
+  if (!driftSeen) { driftSeen = driftNow(); safeSet("driftSeen", JSON.stringify(driftSeen)); }
+  const n = state.tweaks.filter((x) => x.drift_count > (driftSeen[x.id] || 0)).length;
+  $("#drift-callout").innerHTML = n ? `<div class="callout hot">${esc(t("dash.driftCallout", { n }))}
+    <span class="callout-acts"><button class="small" data-drift="go">${esc(t("dash.driftGo"))}</button><button class="small ghost" data-drift="ok">${esc(t("dash.driftOk"))}</button></span></div>` : "";
+  const nav = document.querySelector('nav button[data-group="tune"]');
+  nav.classList.toggle("attn", !!n);
+  if (n) nav.setAttribute("aria-description", t("dash.driftCallout", { n })); else nav.removeAttribute("aria-description");
+}
+function markDriftSeen() {
+  driftSeen = driftNow();
+  safeSet("driftSeen", JSON.stringify(driftSeen));
+  renderDrift();
+}
+$("#drift-callout").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-drift]");
+  if (!b) return;
+  markDriftSeen();
+  if (b.dataset.drift === "go") showTab("tweaks");
+});
 document.addEventListener("click", (e) => { const b = e.target.closest(".pagetabs [data-page]"); if (b) showTab(b.dataset.page); });
 document.addEventListener("keydown", (e) => {
   const strip = e.target.closest?.(".pagetabs");
@@ -470,6 +497,7 @@ function showTab(name) {
   if (LIVE_TABS.has(name) && !document.hidden) queueMicrotask(renderLive); // after the script has loaded (renderLive uses later bindings)
   if (name === "dashboard") { loadDashboard(); procTimer = setInterval(() => document.visibilityState === "visible" && loadDashboard(), liveMs() * 2); }
   if (name === "disk") renderDiskAuto();
+  if (name === "tweaks" && state) markDriftSeen(); // the ↻ counts on the page show what Windows reverted
   refreshTab(name, "open"); // cleanup, browser, startup, disk: rescan if the last scan is old
   if (name === "report") loadSnapshots();
   if (name === "impact") loadImpact();

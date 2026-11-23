@@ -652,6 +652,9 @@ span.ico[data-ico] { background: var(--panel2); }
 .attention .callout.hot { border-color: color-mix(in srgb, var(--moderate) 40%, transparent); }
 .attention .callout.vhot { border-color: color-mix(in srgb, var(--caution) 47%, transparent); }
 .attention .callout button { border-radius: var(--r-pill); }
+.callout-acts { display: flex; gap: var(--s2); flex-shrink: 0; }
+/* a sidebar entry with something to look at (Windows reverted a tweak): a dot at the end */
+nav button.attn::after { content: ""; width: 7px; height: 7px; margin-inline-start: auto; border-radius: 50%; background: var(--moderate); flex-shrink: 0; }
 
 /* Why is this busy? */
 button.linkish { background: none; border: 0; padding: 0; color: inherit; font: inherit; cursor: pointer; text-align: start; }

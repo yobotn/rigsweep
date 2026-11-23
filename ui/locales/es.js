@@ -276,7 +276,7 @@ I18N["es"] = {
     "common.refresh": "Actualizar", "common.cancel": "Cancelar", "common.ok": "Aceptar", "common.save": "Guardar", "common.working": "Procesando…",
 
     "dash.title": "Panel", "dash.cpu": "CPU", "dash.mem": "Memoria", "dash.procs": "Procesos / servicios en ejecución",
-    "dash.tweaks": "Ajustes activos", "dash.drift": "Revertidos por Windows (corregidos)", "dash.top": "Procesos que más consumen",
+    "dash.tweaks": "Ajustes activos", "dash.drift": "Revertidos por Windows (corregidos)", "dash.driftCallout": "Windows revirtió {n} ajuste(s) desde la última vez que miraste. RigSweep los volvió a aplicar.", "dash.driftGo": "Ver ajustes", "dash.driftOk": "Entendido", "dash.top": "Procesos que más consumen",
     "dash.recent": "Actividad reciente", "dash.empty": "Aún no hay actividad. Empieza por 🧹 Limpieza dev o ⚙️ Ajustes.",
     "dash.stale": "🧟 {n} árbol(es) de procesos dev inactivos ocupan {mem}", "dash.stale.go": "Revisar en Limpieza dev →",
     "dash.chrome": "🌐 Chrome: {n} procesos usan {mem}", "dash.chrome.go": "Instalar el asistente de pestañas →",

@@ -276,7 +276,7 @@ I18N["ko"] = {
     "common.refresh": "새로 고침", "common.cancel": "취소", "common.ok": "확인", "common.save": "저장", "common.working": "처리 중…",
 
     "dash.title": "대시보드", "dash.cpu": "CPU", "dash.mem": "메모리", "dash.procs": "프로세스 / 실행 중인 서비스",
-    "dash.tweaks": "적용된 조정", "dash.drift": "Windows가 되돌린 항목(수정됨)", "dash.top": "리소스 사용량 상위",
+    "dash.tweaks": "적용된 조정", "dash.drift": "Windows가 되돌린 항목(수정됨)", "dash.driftCallout": "마지막으로 확인한 뒤 Windows가 조정 {n}개를 되돌렸습니다. RigSweep이 다시 적용했습니다.", "dash.driftGo": "조정 보기", "dash.driftOk": "확인", "dash.top": "리소스 사용량 상위",
     "dash.recent": "최근 활동", "dash.empty": "아직 활동이 없습니다. 🧹 개발 정리나 ⚙️ 시스템 조정부터 시작해 보세요.",
     "dash.stale": "🧟 방치된 개발 프로세스 트리 {n}개가 {mem} 사용 중", "dash.stale.go": "개발 정리에서 검토 →",
     "dash.chrome": "🌐 Chrome: 프로세스 {n}개가 {mem} 사용 중", "dash.chrome.go": "탭 도우미 받기 →",

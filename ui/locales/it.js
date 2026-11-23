@@ -276,7 +276,7 @@ I18N["it"] = {
     "common.refresh": "Aggiorna", "common.cancel": "Annulla", "common.ok": "OK", "common.save": "Salva", "common.working": "Operazione in corso…",
 
     "dash.title": "Dashboard", "dash.cpu": "CPU", "dash.mem": "Memoria", "dash.procs": "Processi / servizi in esecuzione",
-    "dash.tweaks": "Ottimizzazioni attive", "dash.drift": "Annullate da Windows (ripristinate)", "dash.top": "Processi che usano più risorse",
+    "dash.tweaks": "Ottimizzazioni attive", "dash.drift": "Annullate da Windows (ripristinate)", "dash.driftCallout": "Windows ha annullato {n} ottimizzazione/i dall'ultima volta che hai controllato. RigSweep le ha ripristinate.", "dash.driftGo": "Mostra ottimizzazioni", "dash.driftOk": "Ho capito", "dash.top": "Processi che usano più risorse",
     "dash.recent": "Attività recenti", "dash.empty": "Nessuna attività. Inizia da 🧹 Pulizia dev o ⚙️ Ottimizzazioni.",
     "dash.stale": "🧟 {n} alberi di processi dev inutilizzati occupano {mem}", "dash.stale.go": "Controlla in Pulizia dev →",
     "dash.chrome": "🌐 Chrome: {n} processi usano {mem}", "dash.chrome.go": "Installa l'helper per le schede →",

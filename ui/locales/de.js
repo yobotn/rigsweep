@@ -276,7 +276,7 @@ I18N["de"] = {
     "common.refresh": "Aktualisieren", "common.cancel": "Abbrechen", "common.ok": "OK", "common.save": "Speichern", "common.working": "Wird ausgeführt…",
 
     "dash.title": "Übersicht", "dash.cpu": "CPU", "dash.mem": "Arbeitsspeicher", "dash.procs": "Prozesse / laufende Dienste",
-    "dash.tweaks": "Aktive Optimierungen", "dash.drift": "Von Windows zurückgesetzt (korrigiert)", "dash.top": "Größte Ressourcenverbraucher",
+    "dash.tweaks": "Aktive Optimierungen", "dash.drift": "Von Windows zurückgesetzt (korrigiert)", "dash.driftCallout": "Windows hat seit Ihrem letzten Blick {n} Optimierung(en) zurückgesetzt. RigSweep hat sie wiederhergestellt.", "dash.driftGo": "Optimierungen anzeigen", "dash.driftOk": "Verstanden", "dash.top": "Größte Ressourcenverbraucher",
     "dash.recent": "Letzte Aktivitäten", "dash.empty": "Noch keine Aktivitäten. Beginnen Sie mit 🧹 Dev-Bereinigung oder ⚙️ Optimierungen.",
     "dash.stale": "🧟 {n} liegen gebliebene Dev-Prozessbäume belegen {mem}", "dash.stale.go": "In Dev-Bereinigung prüfen →",
     "dash.chrome": "🌐 Chrome: {n} Prozesse belegen {mem}", "dash.chrome.go": "Tab-Helfer holen →",

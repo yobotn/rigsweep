@@ -276,7 +276,7 @@ I18N["ja"] = {
     "common.refresh": "最新の情報に更新", "common.cancel": "キャンセル", "common.ok": "OK", "common.save": "保存", "common.working": "処理中…",
 
     "dash.title": "ダッシュボード", "dash.cpu": "CPU", "dash.mem": "メモリ", "dash.procs": "プロセス / 実行中のサービス",
-    "dash.tweaks": "有効な最適化", "dash.drift": "Windows による巻き戻し (修正済み)", "dash.top": "リソース使用量の上位",
+    "dash.tweaks": "有効な最適化", "dash.drift": "Windows による巻き戻し (修正済み)", "dash.driftCallout": "前回の確認以降、Windows が {n} 件の最適化を元に戻しました。RigSweep が再適用しました。", "dash.driftGo": "最適化を表示", "dash.driftOk": "OK", "dash.top": "リソース使用量の上位",
     "dash.recent": "最近のアクティビティ", "dash.empty": "まだアクティビティはありません。🧹 開発クリーンアップまたは ⚙️ 最適化から始めましょう。",
     "dash.stale": "🧟 放置された開発プロセス ツリー {n} 個が {mem} を使用中", "dash.stale.go": "開発クリーンアップで確認 →",
     "dash.chrome": "🌐 Chrome: {n} 個のプロセスが {mem} を使用中", "dash.chrome.go": "タブ ヘルパーを入手 →",

@@ -276,7 +276,7 @@ I18N["he"] = {
     "common.refresh": "רענן", "common.cancel": "ביטול", "common.ok": "אישור", "common.save": "שמור", "common.working": "מעבד…",
 
     "dash.title": "לוח מחוונים", "dash.cpu": "CPU", "dash.mem": "זיכרון", "dash.procs": "תהליכים / שירותים פועלים",
-    "dash.tweaks": "כוונונים פעילים", "dash.drift": "בוטלו על ידי Windows (תוקנו)", "dash.top": "הצרכנים הגדולים של משאבים",
+    "dash.tweaks": "כוונונים פעילים", "dash.drift": "בוטלו על ידי Windows (תוקנו)", "dash.driftCallout": "מאז הבדיקה האחרונה Windows ביטל {n} כוונונים. RigSweep החיל אותם מחדש.", "dash.driftGo": "הצג כוונונים", "dash.driftOk": "הבנתי", "dash.top": "הצרכנים הגדולים של משאבים",
     "dash.recent": "פעילות אחרונה", "dash.empty": "אין עדיין פעילות. אפשר להתחיל עם 🧹 ניקוי פיתוח או ⚙️ כוונונים.",
     "dash.stale": "🧟 עצי תהליכי פיתוח נטושים ({n}) תופסים {mem}", "dash.stale.go": "לבדיקה בניקוי פיתוח ←",
     "dash.chrome": "🌐 Chrome: {n} תהליכים תופסים {mem}", "dash.chrome.go": "להתקנת עוזר הכרטיסיות ←",
