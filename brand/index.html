@@ -124,8 +124,8 @@
     <p class="lead">One source, every size. The 1024 px master feeds <code>tauri icon</code> (installer, .ico, taskbar); the small sizes are drawn natively so 16 and 32 px stay sharp.</p>
     <div class="grid2">
       <div class="card ctl" id="iconCtl">
-        <label>Broom style <div class="seg" data-k="glyph"><button data-v="color">Color</button><button data-v="flat">Flat</button><button data-v="3d">3D</button></div></label>
-        <label>Tile <div class="seg" data-k="bg"><button data-v="gradient">Gradient</button><button data-v="dark">Dark</button><button data-v="light">Light</button><button data-v="none">None</button></div></label>
+        <label>Broom style <div class="seg" data-k="glyph"><button data-v="white">White</button><button data-v="color">Color</button><button data-v="flat">Flat</button><button data-v="3d">3D</button></div></label>
+        <label>Tile <div class="seg" data-k="bg"><button data-v="orange">Orange</button><button data-v="gradient">Gradient</button><button data-v="dark">Dark</button><button data-v="light">Light</button><button data-v="none">None</button></div></label>
         <label>Gradient angle <span class="val" data-show="angle"></span><input type="range" min="0" max="360" step="5" data-k="angle" /></label>
         <label>Corner radius <span class="val" data-show="radius"></span><input type="range" min="0" max="50" step="1" data-k="radius" /></label>
         <label>Tile inset <span class="val" data-show="inset"></span><input type="range" min="0" max="16" step="1" data-k="inset" /></label>
@@ -226,8 +226,8 @@
 "use strict";
 if (location.protocol === "file:") document.getElementById("offline").style.display = "block";
 
-const BRAND = { blue: "#4f8cff", green: "#34c38f" };
-const ICON_DEFAULTS = { glyph: "color", bg: "gradient", angle: 135, radius: 23, inset: 0, scale: 74, gloss: false, shadow: true, flatSmall: true };
+const BRAND = { blue: "#4f8cff", green: "#34c38f", orange: "#ff5a1f" };
+const ICON_DEFAULTS = { glyph: "white", bg: "orange", angle: 135, radius: 23, inset: 0, scale: 74, gloss: false, shadow: false, flatSmall: true };
 const OG_DEFAULTS = {
   h1: "Room for your", h2: "agents.",
   sub: "Free up RAM, CPU and disk on Windows dev machines cluttered by AI-agent sessions. Every change is reversible.",
@@ -263,7 +263,8 @@ function drawIcon(ctx, S, o = icon) {
   if (o.bg !== "none") {
     ctx.save();
     rr(ctx, pad, pad, w, w, r);
-    if (o.bg === "gradient") ctx.fillStyle = angleGrad(ctx, pad, pad, w, w, o.angle, [[0, BRAND.blue], [1, BRAND.green]], r);
+    if (o.bg === "orange") ctx.fillStyle = BRAND.orange;
+    else if (o.bg === "gradient") ctx.fillStyle = angleGrad(ctx, pad, pad, w, w, o.angle, [[0, BRAND.blue], [1, BRAND.green]], r);
     else if (o.bg === "dark") ctx.fillStyle = angleGrad(ctx, pad, pad, w, w, o.angle, [[0, "#1d2433"], [1, "#11151d"]]);
     else ctx.fillStyle = angleGrad(ctx, pad, pad, w, w, o.angle, [[0, "#ffffff"], [1, "#e9eef7"]]);
     ctx.fill();
@@ -280,15 +281,21 @@ function drawIcon(ctx, S, o = icon) {
     }
     ctx.restore();
   }
-  const kind = (o.flatSmall && S <= 32) ? "flat" : o.glyph;
-  const img = glyphs[kind];
+  // "white": the flat broom as a white silhouette, the same at every size
+  const kind = o.glyph === "white" ? "white" : (o.flatSmall && S <= 32) ? "flat" : o.glyph;
+  const img = kind === "white" ? glyphs.flat : glyphs[kind];
   if (!img) return;
   const gs = (o.bg === "none" ? Math.min(100, o.scale + 18) : o.scale) / 100 * w;
   ctx.save();
   if (o.shadow && S > 32) {
     ctx.shadowColor = "rgba(0,0,0,.28)"; ctx.shadowBlur = S * .035; ctx.shadowOffsetY = S * .02;
   }
-  ctx.drawImage(img, (S - gs) / 2, (S - gs) / 2, gs, gs);
+  if (kind === "white") {
+    const c = document.createElement("canvas"); c.width = c.height = Math.ceil(gs);
+    const g = c.getContext("2d"); g.drawImage(img, 0, 0, gs, gs);
+    g.globalCompositeOperation = "source-in"; g.fillStyle = "#ffffff"; g.fillRect(0, 0, c.width, c.height);
+    ctx.drawImage(c, (S - gs) / 2, (S - gs) / 2);
+  } else ctx.drawImage(img, (S - gs) / 2, (S - gs) / 2, gs, gs);
   ctx.restore();
 }
 function iconCanvas(S, o) { const c = document.createElement("canvas"); c.width = c.height = S; drawIcon(c.getContext("2d"), S, o); return c; }
