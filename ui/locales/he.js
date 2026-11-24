@@ -601,7 +601,6 @@ I18N["he"] = {
     "disk.wt.orphanWarn": "Worktrees שהמאגר שלהם חסר עוברים לסל המחזור, לא דרך git. אפשר לשחזר משם את הקבצים שלהם, כולל עבודה שלא נשמרה ב-commit.",
     "disk.wt.orphanTip": "המאגר שלו הועבר או נמחק, ולכן git לא יכול להסיר אותו. עדיין אפשר להעביר אותו לסל המחזור.",
     "disk.wt.branch": "ענף {b}",
-    "disk.wt.repo": "מתוך {p}",
     "disk.wt.ask": "לשאול את ה-AI",
     "disk.wt.askTip": "מעתיק פרומפט לסוכן ה-AI שלך (Claude Code,‏ Cursor,‏ Codex…) שבודק אם משהו ילך לאיבוד",
     "disk.wt.askAll": "להעתיק פרומפט בדיקה לסוכן ה-AI",

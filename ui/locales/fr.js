@@ -601,7 +601,6 @@ I18N["fr"] = {
     "disk.wt.orphanWarn": "Les worktrees sans dépôt vont dans la Corbeille, sans passer par git. Leurs fichiers, y compris le travail non commité, peuvent être restaurés depuis la Corbeille.",
     "disk.wt.orphanTip": "Son dépôt a été déplacé ou supprimé, donc git ne peut pas le retirer. Vous pouvez quand même le placer dans la Corbeille.",
     "disk.wt.branch": "branche {b}",
-    "disk.wt.repo": "de {p}",
     "disk.wt.ask": "Demander à votre IA",
     "disk.wt.askTip": "Copie un prompt pour votre agent IA (Claude Code, Cursor, Codex…) qui vérifie si quelque chose serait perdu",
     "disk.wt.askAll": "Copier un prompt de vérification pour votre agent IA",

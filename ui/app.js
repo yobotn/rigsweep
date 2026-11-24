@@ -1035,7 +1035,8 @@ function pathPill(path, name) {
 function wtPrompt(ws) {
   const one = ws.length === 1;
   const lines = [
-    one ? "I'm about to delete this git worktree to free disk space." : `I'm about to delete these ${ws.length} git worktrees to free disk space.`,
+    one ? `I'm about to delete this git worktree to free ${fmtBytes(ws[0].bytes)} of disk space.`
+      : `I'm about to delete these ${ws.length} git worktrees to free ${fmtBytes(ws.reduce((a, w) => a + w.bytes, 0))} of disk space.`,
     "Before I do, check whether anything would be lost. Don't delete, commit, push or change anything: only inspect and report.",
     "",
   ];
@@ -1221,13 +1222,10 @@ function renderDisk() {
       </tr>`).join("");
   }
   if (disk.worktrees?.length) {
-    // the group's own "Ask your AI": one prompt that checks every worktree listed
-    const allWt = disk.worktrees.map((w) => w.path).join("\n");
-    html += `<tr class="group"><td colspan="5"><b>${esc(t("disk.worktrees"))}</b> <span class="sub">${fmtBytes(disk.worktree_total)}</span></td>
-      <td><button class="small ghost" data-icon="copy" data-wt-ask="${esc(allWt)}" title="${esc(t("disk.wt.askTip"))}">${esc(t("disk.wt.ask"))}</button></td></tr>`;
     const wtOrder = sorter("disk", (w, k) => k === "what" ? shortPath(w.path) : k === "idle" ? w.idle_days : k === "type" ? w.tool : w.bytes);
     const TOOL = { claude: "Claude Code", cursor: "Cursor", codex: "Codex", windsurf: "Windsurf", git: "Git", temp: "%TEMP%" };
-    html += [...disk.worktrees].sort(wtOrder).map((w) => {
+    const askBtn = (ws) => `<button class="small ghost" data-icon="copy" data-wt-ask="${esc(ws.map((w) => w.path).join("\n"))}" title="${esc(t("disk.wt.askTip"))}">${esc(t("disk.wt.ask"))}</button>`;
+    const wtRow = (w) => {
       const badges = [
         w.busy ? `<span class="badge serving">${esc(t("disk.inUse"))}</span>` : "",
         w.orphan ? `<span class="badge orphan" title="${esc(t("disk.wt.orphanTip"))}">${esc(t("disk.wt.orphan"))}</span>` : "",
@@ -1235,15 +1233,34 @@ function renderDisk() {
         w.idle_days >= diskAuto().days ? `<span class="badge idle">${esc(t("disk.untouched", { d: w.idle_days }))}</span>`
           : `<span class="badge active">${esc(w.idle_days === 0 ? t("disk.today") : t("disk.recent", { d: w.idle_days }))}</span>`,
       ].join("");
-      const notes = [t("disk.wt.branch", { b: w.branch || "?" }), w.repo ? t("disk.wt.repo", { p: shortPath(w.repo) }) : ""];
+      // the repository is in the sub-group header above
+      const notes = [t("disk.wt.branch", { b: w.branch || "?" })];
       if (w.ignored.length) notes.push(t("disk.wt.ignored", { list: w.ignored.join(", ") }));
       return `<tr class="${wLocked(w) ? "locked" : ""}" title="${esc(w.path)}">
         <td>${chk(wKey(w), wLocked(w))}</td>
         <td><b><bdi dir="ltr">${pathPill(w.path, baseName(w.repo))}</bdi></b> <span class="sub">${esc(TOOL[w.tool] || w.tool)}</span></td>
         <td>${tier("worktree")}</td><td class="num">${fmtBytes(w.bytes)}</td>
-        <td>${badges} <span class="sub">${esc(notes.filter(Boolean).join(" · "))}</span></td>
-        <td><button class="small ghost" data-icon="copy" data-wt-ask="${esc(w.path)}" title="${esc(t("disk.wt.askTip"))}">${esc(t("disk.wt.ask"))}</button></td>
+        <td>${badges} <span class="sub">${esc(notes.join(" · "))}</span></td>
+        <td>${askBtn([w])}</td>
       </tr>`;
+    };
+    // worktrees of the same repository together, the biggest repository first, each with its own
+    // "Ask your AI" that checks all of that repository's worktrees in one prompt
+    const byRepo = new Map();
+    for (const w of disk.worktrees) {
+      const k = (w.repo || "").toLowerCase();
+      if (!byRepo.has(k)) byRepo.set(k, []);
+      byRepo.get(k).push(w);
+    }
+    const wtSum = (ws) => ws.reduce((a, w) => a + w.bytes, 0);
+    // the whole section's "Ask your AI": every worktree listed, in one prompt
+    html += `<tr class="group"><td colspan="5"><b>${esc(t("disk.worktrees"))}</b> <span class="sub">${fmtBytes(disk.worktree_total)}</span></td><td>${askBtn(disk.worktrees)}</td></tr>`;
+    html += [...byRepo.values()].sort((x, y) => wtSum(y) - wtSum(x)).map((ws) => {
+      const repo = ws[0].repo;
+      const name = repo ? `<b title="${esc(repo)}"><bdi dir="ltr">${pathPill(repo, baseName(repo))}</bdi></b>`
+        : `<span class="badge orphan" title="${esc(t("disk.wt.orphanTip"))}">${esc(t("disk.wt.orphan"))}</span>`;
+      return `<tr class="group"><td></td><td colspan="2">${name}</td><td class="num sub">${fmtBytes(wtSum(ws))}</td><td></td><td>${askBtn(ws)}</td></tr>`
+        + [...ws].sort(wtOrder).map(wtRow).join("");
     }).join("");
   }
   html += `<tr class="group"><td colspan="6"><b>${esc(t("disk.projects"))}</b> <span class="sub">${fmtBytes(disk.project_total)}</span></td></tr>`;

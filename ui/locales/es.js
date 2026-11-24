@@ -601,7 +601,6 @@ I18N["es"] = {
     "disk.wt.orphanWarn": "Los worktrees sin repositorio van a la Papelera de reciclaje, no se quitan con git. Sus archivos, incluido el trabajo sin confirmar, se pueden restaurar desde allí.",
     "disk.wt.orphanTip": "Su repositorio se movió o se eliminó, así que git no puede quitarlo. Aun así puedes moverlo a la Papelera de reciclaje.",
     "disk.wt.branch": "rama {b}",
-    "disk.wt.repo": "de {p}",
     "disk.wt.ask": "Pregúntale a tu IA",
     "disk.wt.askTip": "Copia un prompt para tu agente de IA (Claude Code, Cursor, Codex…) que comprueba si se perdería algo",
     "disk.wt.askAll": "Copiar un prompt de revisión para tu agente de IA",

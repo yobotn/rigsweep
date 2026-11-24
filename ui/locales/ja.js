@@ -601,7 +601,6 @@ I18N["ja"] = {
     "disk.wt.orphanWarn": "リポジトリのないワークツリーは git ではなくごみ箱に移されます。未コミットの作業を含むファイルは、ごみ箱から復元できます。",
     "disk.wt.orphanTip": "リポジトリが移動または削除されたため、git では削除できません。ごみ箱に移すことはできます。",
     "disk.wt.branch": "ブランチ {b}",
-    "disk.wt.repo": "{p} から",
     "disk.wt.ask": "AI に確認",
     "disk.wt.askTip": "AI エージェント（Claude Code、Cursor、Codex など）に、失われるものがないか確認させるプロンプトをコピーします",
     "disk.wt.askAll": "AI エージェント用の確認プロンプトをコピー",

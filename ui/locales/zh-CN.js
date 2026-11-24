@@ -601,7 +601,6 @@ I18N["zh-CN"] = {
     "disk.wt.orphanWarn": "仓库已不存在的工作树会移到回收站，而不是通过 git 移除。其中的文件（包括未提交的工作）可以从回收站还原。",
     "disk.wt.orphanTip": "它的仓库已被移动或删除，因此 git 无法移除它。你仍可以把它移到回收站。",
     "disk.wt.branch": "分支 {b}",
-    "disk.wt.repo": "来自 {p}",
     "disk.wt.ask": "问问你的 AI",
     "disk.wt.askTip": "复制一段提示词，让你的 AI 代理（Claude Code、Cursor、Codex 等）检查删除后会不会丢东西",
     "disk.wt.askAll": "复制给 AI 代理的检查提示词",

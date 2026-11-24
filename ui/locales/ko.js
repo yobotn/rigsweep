@@ -601,7 +601,6 @@ I18N["ko"] = {
     "disk.wt.orphanWarn": "저장소가 없는 워크트리는 git이 아니라 휴지통으로 옮겨집니다. 커밋하지 않은 작업을 포함한 파일은 휴지통에서 복원할 수 있습니다.",
     "disk.wt.orphanTip": "저장소가 이동되거나 삭제되어 git으로 제거할 수 없습니다. 휴지통으로 옮길 수는 있습니다.",
     "disk.wt.branch": "브랜치 {b}",
-    "disk.wt.repo": "{p}에서",
     "disk.wt.ask": "AI에게 물어보기",
     "disk.wt.askTip": "AI 에이전트(Claude Code, Cursor, Codex 등)가 잃게 되는 것이 있는지 확인하도록 하는 프롬프트를 복사합니다",
     "disk.wt.askAll": "AI 에이전트용 확인 프롬프트 복사",

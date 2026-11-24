@@ -601,7 +601,6 @@ I18N["it"] = {
     "disk.wt.orphanWarn": "I worktree senza repository vanno nel Cestino, non vengono rimossi con git. I loro file, compreso il lavoro non sottoposto a commit, si possono ripristinare da lì.",
     "disk.wt.orphanTip": "Il suo repository è stato spostato o eliminato, quindi git non può rimuoverlo. Puoi comunque spostarlo nel Cestino.",
     "disk.wt.branch": "branch {b}",
-    "disk.wt.repo": "da {p}",
     "disk.wt.ask": "Chiedi alla tua IA",
     "disk.wt.askTip": "Copia un prompt per il tuo agente IA (Claude Code, Cursor, Codex…) che controlla se andrebbe perso qualcosa",
     "disk.wt.askAll": "Copia un prompt di verifica per il tuo agente IA",

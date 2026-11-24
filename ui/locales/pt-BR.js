@@ -601,7 +601,6 @@ I18N["pt-BR"] = {
     "disk.wt.orphanWarn": "Worktrees sem repositório vão para a Lixeira, sem passar pelo git. Os arquivos, inclusive trabalho sem commit, podem ser restaurados de lá.",
     "disk.wt.orphanTip": "O repositório foi movido ou excluído, então o git não consegue removê-lo. Você ainda pode movê-lo para a Lixeira.",
     "disk.wt.branch": "branch {b}",
-    "disk.wt.repo": "de {p}",
     "disk.wt.ask": "Pergunte à sua IA",
     "disk.wt.askTip": "Copia um prompt para o seu agente de IA (Claude Code, Cursor, Codex…) verificar se algo seria perdido",
     "disk.wt.askAll": "Copiar um prompt de verificação para o seu agente de IA",

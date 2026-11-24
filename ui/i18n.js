@@ -543,7 +543,6 @@ const I18N = {
     "disk.wt.orphanWarn": "Worktrees whose repository is gone go to the Recycle Bin, not through git. Their files, including any uncommitted work, can be restored from there.",
     "disk.wt.orphanTip": "Its repository was moved or deleted, so git can't remove it. You can still move it to the Recycle Bin.",
     "disk.wt.branch": "branch {b}",
-    "disk.wt.repo": "from {p}",
     "disk.wt.ask": "Ask your AI",
     "disk.wt.askTip": "Copies a prompt for your AI agent (Claude Code, Cursor, Codex…) to check whether anything would be lost",
     "disk.wt.askAll": "Copy a check prompt for your AI agent",

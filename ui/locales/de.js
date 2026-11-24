@@ -601,7 +601,6 @@ I18N["de"] = {
     "disk.wt.orphanWarn": "Worktrees ohne Repository kommen in den Papierkorb statt über git entfernt zu werden. Ihre Dateien, auch nicht committete Arbeit, lassen sich dort wiederherstellen.",
     "disk.wt.orphanTip": "Das Repository wurde verschoben oder gelöscht, daher kann git das Worktree nicht entfernen. In den Papierkorb verschieben geht trotzdem.",
     "disk.wt.branch": "Branch {b}",
-    "disk.wt.repo": "aus {p}",
     "disk.wt.ask": "KI fragen",
     "disk.wt.askTip": "Kopiert einen Prompt für deinen KI-Agenten (Claude Code, Cursor, Codex …), der prüft, ob etwas verloren ginge",
     "disk.wt.askAll": "Prüf-Prompt für deinen KI-Agenten kopieren",
