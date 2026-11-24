@@ -3149,21 +3149,68 @@ async function scanFinder(k, btn) {
   [...fdSel].filter((x) => x.startsWith(k + "|")).forEach((x) => fdSel.delete(x));
   renderFinder(k);
 }
+// "Ask your AI" for programs without an uninstaller: a prompt that has the agent find out what each
+// entry or folder is and whether something still needs it. Read-only on purpose.
+const progKey = (p) => p.kind === "dead_entry" ? `progs|e|${p.reg_key}` : `progs|f|${p.path}`;
+function progPrompt(ps) {
+  const one = ps.length === 1;
+  const lines = [
+    one ? "RigSweep (a Windows cleanup tool) found this leftover of a program that may no longer be installed, and I don't know what it is."
+      : `RigSweep (a Windows cleanup tool) found these ${ps.length} leftovers of programs that may no longer be installed, and I don't know what they are.`,
+    "Find out what each one is and whether it is safe to remove. Don't delete, uninstall, stop or change anything: only inspect and report.",
+    "",
+  ];
+  for (const p of ps) {
+    if (p.kind === "dead_entry") {
+      lines.push(`Installed apps entry: ${p.name}${p.version ? ` ${p.version}` : ""}`);
+      if (p.publisher) lines.push(`Publisher: ${p.publisher}`);
+      lines.push(`Its uninstaller is missing: ${p.missing_file}`, `Registry key: ${p.reg_key}`);
+      if (p.install_location) lines.push(`Install folder: ${p.install_location}`);
+      lines.push("RigSweep would remove only the registry entry (after backing it up).");
+    } else {
+      lines.push(`Folder: ${p.path}`, `Size: ${fmtBytes(p.bytes)}`, `Last change: ${fmtDate(p.modified)}`);
+      if (p.has_exe) lines.push("It contains a program (.exe), so it may be a portable app.");
+      lines.push("No uninstall entry, service, Run key, App Paths entry, PATH entry, scheduled task or shortcut points into it, and nothing running was started from it. RigSweep would move it to the Recycle Bin.");
+    }
+    lines.push("");
+  }
+  lines.push(
+    "Check, for each one:",
+    "1. Which product and company it belongs to: look at the files' version info and digital signature (Get-AuthenticodeSignature, Get-Item <exe> | Select-Object -ExpandProperty VersionInfo), and the folder's contents",
+    "2. Whether it is a management, security, backup, VPN or monitoring agent (an employer's or a PC maker's): those can matter even when nothing obvious points to them",
+    "3. Whether anything still uses it: services, drivers, scheduled tasks, startup entries, other programs' settings, running processes",
+    "4. Whether the product is still installed under another name or folder",
+    "",
+    "Then answer SAFE TO REMOVE, KEEP or NOT SURE for each one, say what it is in one line, and what would stop working if it went.",
+  );
+  if (LANG !== "en") lines.push(`Reply in ${LANGS[LANG]}.`);
+  return lines.join("\n");
+}
+const progAskBtn = (ps, label) => `<button class="small ghost" data-icon="copy" data-prog-ask="${esc(ps.map(progKey).join("\n"))}" title="${esc(t("disk.wt.askTip"))}">${esc(label)}</button>`;
+document.addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-prog-ask]");
+  if (!b) return;
+  const ks = new Set(b.dataset.progAsk.split("\n"));
+  const ps = (fd.progs || []).filter((p) => ks.has(progKey(p)));
+  if (!ps.length) return;
+  await copyText(progPrompt(ps));
+  toast(t("disk.wt.asked"), "ok");
+});
 const fdChk = (key, label) => `<input type="checkbox" data-fd="${esc(key)}" ${fdSel.has(key) ? "checked" : ""} aria-label="${esc(label)}" />`;
 function renderFinder(k) {
   const out = $(`#fd-${k}-out`), d = fd[k];
   if (!d) { out.innerHTML = ""; return; }
   if (k === "progs") {
     if (!d.length) { out.innerHTML = `<p class="sub">✅ ${esc(t("fd.progs.none"))}</p>`; return; }
-    out.innerHTML = `<table class="tbl"><thead><tr><th></th><th>${esc(t("fd.col.name"))}</th><th>${esc(t("fd.col.what"))}</th><th class="num">${esc(t("fd.col.size"))}</th></tr></thead><tbody>${d.map((p) => {
-      const key = p.kind === "dead_entry" ? `progs|e|${p.reg_key}` : `progs|f|${p.path}`;
+    out.innerHTML = `<table class="tbl"><thead><tr><th></th><th>${esc(t("fd.col.name"))}</th><th>${esc(t("fd.col.what"))}</th><th class="num">${esc(t("fd.col.size"))}</th><th></th></tr></thead><tbody>${d.map((p) => {
+      const key = progKey(p);
       const what = p.kind === "dead_entry"
         ? `${esc(t("fd.progs.dead"))}<div class="sub"><bdi dir="ltr">${esc(p.missing_file)}</bdi></div>`
         : `${esc(t(p.has_exe ? "fd.progs.portable" : "fd.progs.leftover"))}<div class="sub"><bdi dir="ltr">${esc(shortPath(p.path))}</bdi> · ${esc(t("fd.changed", { d: fmtDate(p.modified) }))}</div>`;
       return `<tr><td>${fdChk(key, p.name)}</td><td><b>${esc(p.name)}</b>${p.publisher ? `<div class="sub">${esc(p.publisher)}</div>` : ""}</td><td>${what}</td>
-        <td class="num">${p.kind === "dead_entry" ? "—" : fmtBytes(p.bytes)}</td></tr>`;
+        <td class="num">${p.kind === "dead_entry" ? "—" : fmtBytes(p.bytes)}</td><td>${progAskBtn([p], t("disk.wt.ask"))}</td></tr>`;
     }).join("")}</tbody></table>
-    <div class="fd-actions"><button class="danger" data-fd-act="progs" data-icon="trash-2">${esc(t("fd.progs.act"))}</button></div>`;
+    <div class="fd-actions">${progAskBtn(d, t("disk.wt.askAll"))}<button class="danger" data-fd-act="progs" data-icon="trash-2">${esc(t("fd.progs.act"))}</button></div>`;
   } else if (k === "old") {
     if (!d.files.length) { out.innerHTML = `<p class="sub">✅ ${esc(t("fd.old.none"))}</p>`; return; }
     out.innerHTML = `<p class="summary">${esc(t("fd.old.summary", { n: d.total_found, size: fmtBytes(d.total_bytes) }))}</p>
