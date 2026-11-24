@@ -3181,6 +3181,7 @@ function progPrompt(ps) {
     "2. Whether it is a management, security, backup, VPN or monitoring agent (an employer's or a PC maker's): those can matter even when nothing obvious points to them",
     "3. Whether anything still uses it: services, drivers, scheduled tasks, startup entries, other programs' settings, running processes",
     "4. Whether the product is still installed under another name or folder",
+    "5. For a folder: scan it with Microsoft Defender without removing anything (& \"$env:ProgramFiles\\Windows Defender\\MpCmdRun.exe\" -Scan -ScanType 3 -File \"<folder>\" -DisableRemediation) and check its .exe and .dll signatures; say if anything is unsigned or flagged",
     "",
     "Then answer SAFE TO REMOVE, KEEP or NOT SURE for each one, say what it is in one line, and what would stop working if it went.",
   );
@@ -3226,7 +3227,7 @@ function renderFinder(k) {
         ? `${esc(t("fd.progs.dead"))}<div class="sub"><bdi dir="ltr">${esc(p.missing_file)}</bdi></div>`
         : `${esc(t(p.has_exe ? "fd.progs.portable" : "fd.progs.leftover"))}<div class="sub"><bdi dir="ltr">${esc(shortPath(p.path))}</bdi> · ${esc(t("fd.changed", { d: fmtDate(p.modified) }))}</div>`;
       return `<tr><td>${fdChk(key, p.name)}</td><td><b>${esc(p.name)}</b>${p.publisher ? `<div class="sub">${esc(p.publisher)}</div>` : ""}</td><td>${what}</td>
-        <td class="num">${p.kind === "dead_entry" ? "—" : fmtBytes(p.bytes)}</td><td><div class="row-acts">${(p.kind === "dead_entry" ? p.install_location : p.path) ? `<button class="small ghost" data-show-path="${esc((p.kind === "dead_entry" ? p.install_location : p.path))}" data-icon="folder-open">${esc(t("fd.space.show"))}</button>` : ""}${progAskBtn([p], t("disk.wt.ask"))}</div></td></tr>`;
+        <td class="num">${p.kind === "dead_entry" ? "—" : fmtBytes(p.bytes)}</td><td><div class="row-acts">${(p.kind === "dead_entry" ? p.install_location : p.path) ? `<button class="small ghost" data-show-path="${esc((p.kind === "dead_entry" ? p.install_location : p.path))}" data-icon="folder-open">${esc(t("fd.space.show"))}</button>` : ""}${progAskBtn([p], t("disk.wt.ask"))}${p.kind === "dead_entry" ? "" : `<button class="small ghost" data-fd-scan-file="${esc(p.path)}" data-icon="shield-check">${esc(t("fd.look.defender"))}</button>`}</div>${p.kind === "dead_entry" ? "" : `<div class="sub" data-fd-verdict="${esc(p.path)}"></div>`}</td></tr>`;
     }).join("")}</tbody></table>
     <div class="fd-actions">${progAskBtn(d, t("disk.wt.askAll"))}<button class="danger" data-fd-act="progs" data-icon="trash-2">${esc(t("fd.progs.act"))}</button></div>`;
   } else if (k === "old") {

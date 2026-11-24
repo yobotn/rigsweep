@@ -1586,13 +1586,15 @@ fn mpcmdrun() -> Option<PathBuf> {
 
 const DEFENDER_TIMEOUT: Duration = Duration::from_secs(120);
 
-/// Ask Microsoft Defender about one file (custom scan, no remediation: it reports, it doesn't quarantine).
+/// Ask Microsoft Defender about one file or folder (custom scan, no remediation: it reports, it doesn't quarantine).
 /// Exit code 0 = no threats, 2 = threats found. Nothing leaves the PC.
 pub fn defender_scan(path: &str) -> DefenderResult {
     use std::os::windows::process::CommandExt;
     use std::process::{Command, Stdio};
     let fail = |d: String| DefenderResult { verdict: "error", detail: d, exit_code: None };
-    let Some(p) = absolute(path).filter(|p| p.is_file()) else { return fail("the file no longer exists".into()) };
+    let Some(p) = absolute(path).filter(|p| p.exists()) else { return fail("it no longer exists".into()) };
+    // a folder (a program leftover) has many files to read
+    let limit = if p.is_dir() { DEFENDER_TIMEOUT * 5 } else { DEFENDER_TIMEOUT };
     let Some(exe) = mpcmdrun() else { return fail("Microsoft Defender's command-line scanner was not found".into()) };
     let child = Command::new(&exe)
         .args(["-Scan", "-ScanType", "3", "-File"])
@@ -1626,7 +1628,7 @@ pub fn defender_scan(path: &str) -> DefenderResult {
     let status = loop {
         match child.try_wait() {
             Ok(Some(s)) => break Some(s),
-            Ok(None) if start.elapsed() > DEFENDER_TIMEOUT => {
+            Ok(None) if start.elapsed() > limit => {
                 let _ = child.kill();
                 let _ = child.wait();
                 break None;
@@ -1642,7 +1644,7 @@ pub fn defender_scan(path: &str) -> DefenderResult {
         Some(0) => DefenderResult { verdict: "clean", detail, exit_code: Some(0) },
         Some(2) => DefenderResult { verdict: "threat", detail, exit_code: Some(2) },
         Some(c) => DefenderResult { verdict: "error", detail, exit_code: Some(c) },
-        None => fail(if status.is_none() { format!("the scan took longer than {} s and was stopped", DEFENDER_TIMEOUT.as_secs()) } else { detail }),
+        None => fail(if status.is_none() { format!("the scan took longer than {} s and was stopped", limit.as_secs()) } else { detail }),
     }
 }
 
