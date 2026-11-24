@@ -703,6 +703,14 @@ document.addEventListener("click", (e) => {
 
 // a shell-leftovers row has no folder: show which commands are stuck instead
 const devWhere = (p) => p.eco === "shell" ? p.cmd : p.project;
+// the project as "shop/apps/web" with its root folder (the repository) as a pill, like Dev Disk
+const devRoot = (p) => p.project_path && p.eco !== "shell" && p.eco !== "wsl" && p.kind !== "vm" ? p.project.split("/")[0] : "";
+function devWhereHtml(p) {
+  const root = devRoot(p);
+  if (!root) return esc(devWhere(p) || "—");
+  const rest = p.project.slice(root.length);
+  return `<span class="path-pill">${esc(root)}</span>${esc(rest)}`;
+}
 
 // a button press or an action asks for a fresh scan; a tab switch or timer shares one in flight
 async function loadDev(btn, fresh = !!btn) {
@@ -748,7 +756,7 @@ function renderDev() {
       <td>${p.protected ? "🔒" : `<input type="checkbox" data-dev="${esc(k)}" aria-label="${esc(`${p.label} · ${devWhere(p) || p.pid}`)}" ${devSel.has(k) ? "checked" : ""} />`}</td>
       <td><b>${esc(p.label)}</b> <span class="eco ${esc(p.eco)}">${esc(ecoLabel(p))}</span>
         <div class="sub" title="${esc(p.cmd)}">PID ${p.pid} · ${esc(p.parent_name || "—")} · ${esc(t("clean.procs", { n: p.tree_count }))}</div></td>
-      <td title="${esc(p.eco === "shell" ? p.cmd : p.project_path)}" class="${p.eco === "shell" || p.eco === "wsl" ? "mono-cut" : ""}"><bdi dir="ltr">${esc(devWhere(p) || "—")}</bdi></td>
+      <td title="${esc(p.eco === "shell" ? p.cmd : p.project_path)}" class="${p.eco === "shell" || p.eco === "wsl" ? "mono-cut" : ""}"><bdi dir="ltr">${devWhereHtml(p)}</bdi></td>
       <td class="num">${p.age_secs ? fmtAge(p.age_secs) : "—"}</td>
       <td class="num">${p.tree_mem ? fmtBytes(p.tree_mem) : "—"}</td>
       <td class="num ${p.cpu > 25 ? "vhot" : p.cpu > 5 ? "hot" : ""}">${p.cpu >= 0.1 ? `${p.cpu.toFixed(1)}%` : "—"}</td>
@@ -811,7 +819,7 @@ async function endDev(picked, btn) {
     cpu >= 0.5 ? stat("clean.free.cpu", `${cpu.toFixed(0)}%`, "cpu") : ""}${ports ? stat("clean.free.ports", ltr(String(ports))) : ""}${
     cpuSecs >= 1 ? stat("clean.free.cpuTime", fmtDur(cpuSecs), "cpu") : ""}${runSecs >= 60 ? stat("clean.free.runTime", fmtDur(runSecs)) : ""}</div>`;
   const html = `${cards}<p>${esc(t("clean.confirm.body"))}</p><ul>${picked.map((p) =>
-    `<li><b>${esc(p.label)}</b> <span class="sub"><bdi dir="ltr">${esc(p.project_path || devWhere(p) || "—")}</bdi>${p.ports.length ? " · :" + p.ports.slice(0, 3).join(", :") : ""} · ${fmtBytes(p.tree_mem)} · PID ${p.pid} (+${p.tree_count - 1})</span></li>`).join("")}</ul>
+    `<li><b>${esc(p.label)}</b> <span class="sub"><bdi dir="ltr">${p.project_path && devRoot(p) ? pathPill(p.project_path, devRoot(p)) : esc(p.project_path || devWhere(p) || "—")}</bdi>${p.ports.length ? " · :" + p.ports.slice(0, 3).join(", :") : ""} · ${fmtBytes(p.tree_mem)} · PID ${p.pid} (+${p.tree_count - 1})</span></li>`).join("")}</ul>
     ${serving ? `<p class="warn-text">${esc(t("clean.serving.warn", { n: serving }))}</p>` : ""}
     ${picked.some((p) => p.kind === "vm") ? `<p class="warn-text">${esc(t("clean.vm.warn"))}</p>` : ""}
     ${picked.some((p) => p.eco === "wsl" && p.kind !== "vm") ? `<p class="warn-text">${esc(t("clean.wsl.warn"))}</p>` : ""}
