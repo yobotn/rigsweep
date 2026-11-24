@@ -1182,7 +1182,9 @@ function renderDisk() {
   });
   renderDiskSpace();
   // one row's own Clean button: the same confirm and backend job as "Delete selected", for just that row
-  const oneBtn = (k) => `<button class="small ghost" data-icon="trash-2" data-disk-one="${esc(k)}" ${jobActive(diskJob) ? "disabled" : ""}>${esc(t("ready.clean"))}</button>`;
+  const oneBtn = (k) => diskCleaning.has(k)
+    ? `<button class="small ghost is-busy" data-icon="trash-2" disabled aria-busy="true">${esc(t("disk.cleaning"))}</button>`
+    : `<button class="small ghost" data-icon="trash-2" data-disk-one="${esc(k)}" ${jobActive(diskJob) ? "disabled" : ""}>${esc(t("ready.clean"))}</button>`;
   const chk = (k, locked) => locked ? "🔒" : `<input type="checkbox" data-disk="${esc(k)}" ${diskSel.has(k) ? "checked" : ""} />`;
   const tier = (x) => `<span class="risk ${x === "safe" || x === "build" ? "safe" : x === "history" || x === "bin" || x === "leftover" ? "caution" : x === "shown" ? "" : "moderate"}">${esc(t("disk.tier." + x))}</span>`;
   let html = "";
@@ -1403,6 +1405,10 @@ $("#btn-disk-clean").onclick = async (e, only) => {
     ${wts.length ? `<p><button class="small ghost" data-icon="copy" data-wt-ask="${esc(wts.map((r) => r.w.path).join("\n"))}">${esc(t("disk.wt.askAll"))}</button> <span class="sub">${esc(t("disk.wt.askTip"))}</span></p>` : ""}
     ${od ? `<p class="warn-text">${esc(t("disk.od.warn"))}</p>` : ""}`;
   if (!(await modal(t("disk.confirm.title", { size: fmtBytes(size) }), html, { okText: t("disk.clean"), danger: true }))) return;
+  // show it at once on the rows themselves: the job bar is at the top, often scrolled out of view
+  picked.forEach((r) => diskCleaning.add(r.k));
+  busy($("#btn-disk-clean"), true, t("disk.cleaning"));
+  renderDisk();
   const targets = picked.map((r) => r.c
     ? { kind: "cache", id: r.c.id, name: "", bytes: r.bytes }
     : r.w ? { kind: "worktree", id: r.w.path, name: r.w.orphan ? "recycle" : "", bytes: r.bytes }
@@ -1414,6 +1420,8 @@ $("#btn-disk-clean").onclick = async (e, only) => {
 
 // ---------- dev disk cleanup job (lives in the backend; this side only polls and draws it) ----------
 let diskJob = null, diskJobTimer = null, diskRate = null;
+// row keys of the cleanup just confirmed: they say "Deleting…" until the job is over
+const diskCleaning = new Set();
 const JOB_ACTIVE = ["running", "paused", "stopping"];
 const jobActive = (j) => !!j && JOB_ACTIVE.includes(j.state);
 
@@ -1436,6 +1444,11 @@ function applyDiskJob(j) {
       const bps = Math.max(0, (j.freed - diskRate.freed) / ((now - diskRate.t) / 1000));
       diskRate = { id: j.id, t: now, freed: j.freed, bps: diskRate.bps ? diskRate.bps * 0.6 + bps * 0.4 : bps };
     }
+  }
+  if (!jobActive(j) && diskCleaning.size) {
+    diskCleaning.clear();
+    busy($("#btn-disk-clean"), false);
+    if (disk) renderDisk();
   }
   // it ended while this page watched it: report, drop what's gone, rescan
   if (prev && prev.id === j.id && jobActive(prev) && !jobActive(j) && j.result) onDiskJobEnd(j);
