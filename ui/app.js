@@ -1185,6 +1185,14 @@ function renderDisk() {
   const oneBtn = (k) => diskCleaning.has(k)
     ? `<button class="small ghost is-busy" data-icon="trash-2" disabled aria-busy="true">${esc(t("disk.cleaning"))}</button>`
     : `<button class="small ghost" data-icon="trash-2" data-disk-one="${esc(k)}" ${jobActive(diskJob) ? "disabled" : ""}>${esc(t("ready.clean"))}</button>`;
+  // a group header's Clean: every cleanable row of the group, through the same confirm
+  const dRows = diskRows();
+  const groupBtn = (rows) => {
+    const ks = rows.map((r) => r.k);
+    if (!ks.length || !rows.some((r) => r.bytes)) return "";
+    if (ks.some((k) => diskCleaning.has(k))) return `<button class="small ghost is-busy" data-icon="trash-2" disabled aria-busy="true">${esc(t("disk.cleaning"))}</button>`;
+    return `<button class="small ghost" data-icon="trash-2" data-disk-group="${esc(ks.join("\n"))}" ${jobActive(diskJob) ? "disabled" : ""}>${esc(t("ready.clean"))}</button>`;
+  };
   const chk = (k, locked) => locked ? "🔒" : `<input type="checkbox" data-disk="${esc(k)}" ${diskSel.has(k) ? "checked" : ""} />`;
   const tier = (x) => `<span class="risk ${x === "safe" || x === "build" ? "safe" : x === "history" || x === "bin" || x === "leftover" ? "caution" : x === "shown" ? "" : "moderate"}">${esc(t("disk.tier." + x))}</span>`;
   let html = "";
@@ -1195,7 +1203,8 @@ function renderDisk() {
     const list = disk.caches.filter((c) => cacheGroup(c) === g && !(diskView === "active" && c.disabled));
     if (!list.length) continue;
     const freeable = list.filter((c) => !c.disabled && !c.show_only).reduce((a, c) => a + c.bytes, 0);
-    html += `<tr class="group"><td colspan="6"><b>${esc(t(title))}</b> <span class="sub">${fmtBytes(freeable)}</span></td></tr>`;
+    html += `<tr class="group"><td colspan="5"><b>${esc(t(title))}</b> <span class="sub">${fmtBytes(freeable)}</span></td>
+      <td>${groupBtn(dRows.filter((r) => r.c && list.includes(r.c)))}</td></tr>`;
     html += [...list].sort(cacheOrder).map((c) => {
       const info = [];
       if (c.show_only) info.push(esc(t("disk.showOnly")));
@@ -1256,12 +1265,12 @@ function renderDisk() {
     }
     const wtSum = (ws) => ws.reduce((a, w) => a + w.bytes, 0);
     // the whole section's "Ask your AI": every worktree listed, in one prompt
-    html += `<tr class="group"><td colspan="5"><b>${esc(t("disk.worktrees"))}</b> <span class="sub">${fmtBytes(disk.worktree_total)}</span></td><td>${askBtn(disk.worktrees)}</td></tr>`;
+    html += `<tr class="group"><td colspan="5"><b>${esc(t("disk.worktrees"))}</b> <span class="sub">${fmtBytes(disk.worktree_total)}</span></td><td><div class="row-acts">${groupBtn(dRows.filter((r) => r.w))}${askBtn(disk.worktrees)}</div></td></tr>`;
     html += [...byRepo.values()].sort((x, y) => wtSum(y) - wtSum(x)).map((ws) => {
       const repo = ws[0].repo;
       const name = repo ? `<b title="${esc(repo)}"><bdi dir="ltr">${pathPill(repo, baseName(repo))}</bdi></b>`
         : `<span class="badge orphan" title="${esc(t("disk.wt.orphanTip"))}">${esc(t("disk.wt.orphan"))}</span>`;
-      return `<tr class="group"><td></td><td colspan="2">${name}</td><td class="num sub">${fmtBytes(wtSum(ws))}</td><td></td><td>${askBtn(ws)}</td></tr>`
+      return `<tr class="group"><td></td><td colspan="2">${name}</td><td class="num sub">${fmtBytes(wtSum(ws))}</td><td></td><td><div class="row-acts">${groupBtn(dRows.filter((r) => r.w && ws.includes(r.w)))}${askBtn(ws)}</div></td></tr>`
         + [...ws].sort(wtOrder).map(wtRow).join("");
     }).join("");
   }
@@ -1282,7 +1291,7 @@ function renderDisk() {
     ].join("");
     const head = `<tr class="group"><td></td><td colspan="2"><b title="${esc(p.path)}"><bdi dir="ltr">${pathPill(p.path, baseName(p.path))}</bdi></b></td>
       <td class="num sub">${fmtBytes(total)}</td><td>${badges}</td>
-      <td><button class="small ghost" data-disk-exclude="${esc(p.path)}">${esc(t("disk.exclude"))}</button></td></tr>`;
+      <td><div class="row-acts">${groupBtn(dRows.filter((r) => r.p === p))}<button class="small ghost" data-disk-exclude="${esc(p.path)}">${esc(t("disk.exclude"))}</button></div></td></tr>`;
     return head + [...p.items].sort(itemOrder).map((a) => {
       const note = a.eco === "leftover" ? t("disk.leftover") : a.pnpm ? t("disk.pnpm") : a.eco === "python" && a.tier === "deps" ? t("disk.venv") : "";
       return `<tr class="${p.busy ? "locked" : ""}">
@@ -1324,6 +1333,12 @@ $("#disk-body").addEventListener("click", async (e) => {
   const tg = e.target.closest("[data-disk-toggle]"), ex = e.target.closest("[data-disk-exclude]"), inc = e.target.closest("[data-disk-include]");
   const vd = e.target.closest("[data-vd]"), one = e.target.closest("[data-disk-one]");
   if (vd) return compactVdisk(vd);
+  const grp = e.target.closest("[data-disk-group]");
+  if (grp) {
+    const ks = new Set(grp.dataset.diskGroup.split("\n"));
+    const rows = diskRows().filter((r) => ks.has(r.k) && r.bytes);
+    return rows.length ? $("#btn-disk-clean").onclick({ target: grp }, rows) : undefined;
+  }
   if (one) {
     const row = diskRows().find((r) => r.k === one.dataset.diskOne);
     return row ? $("#btn-disk-clean").onclick({ target: one }, [row]) : undefined;
