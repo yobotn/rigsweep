@@ -388,7 +388,6 @@ const pageOn = (p) => !(prefs.mode === "simple" && PRO_PAGES.has(p)) && !(p === 
 const visibleGroups = () => Object.fromEntries(Object.entries(ALL_GROUPS).map(([g, ps]) => [g, ps.filter(pageOn)]));
 let GROUPS = visibleGroups();
 const groupOf = (name) => Object.keys(GROUPS).find((g) => GROUPS[g].includes(name));
-const lastInGroup = JSON.parse(safeGet("lastInGroup") || "{}");
 const noIcon = (s) => s.replace(/^\P{L}+/u, ""); // drops the leading icon: "Dev Cleanup" from the sidebar label
 function renderPageTabs() {
   for (const [g, pages] of Object.entries(GROUPS)) {
@@ -471,16 +470,21 @@ document.addEventListener("keydown", (e) => {
   document.querySelector(`#tab-${tabs[next].dataset.page} .pagetabs [data-page="${tabs[next].dataset.page}"]`)?.focus();
 });
 renderPageTabs();
+// a sidebar item always opens its first page, not the one last seen there: every visit starts the same way
 document.querySelectorAll("nav button").forEach((b) =>
-  b.addEventListener("click", () => showTab(b.dataset.group ? (lastInGroup[b.dataset.group] || b.dataset.tab) : b.dataset.tab)));
+  b.addEventListener("click", () => showTab(b.dataset.group ? (GROUPS[b.dataset.group]?.[0] || b.dataset.tab) : b.dataset.tab)));
 
 function showTab(name) {
   if (!document.getElementById(`tab-${name}`)) name = "dashboard";
   if (!pageOn(name)) name = Object.entries(ALL_GROUPS).find(([, ps]) => ps.includes(name))?.[1].find(pageOn) || "dashboard";
+  // another page: it starts at the top, and Settings on its first tab (a link to a settings tab sets it after this)
+  if (name !== currentTab) {
+    $("main").scrollTop = 0;
+    if (name === "settings") showSettingsTab("general");
+  }
   currentTab = name;
   tabGen++;
   const group = groupOf(name);
-  if (group) { lastInGroup[group] = name; safeSet("lastInGroup", JSON.stringify(lastInGroup)); }
   document.querySelectorAll("nav button").forEach((b) => {
     const on = b.dataset.group ? b.dataset.group === group : b.dataset.tab === name;
     b.classList.toggle("active", on);
@@ -490,7 +494,6 @@ function showTab(name) {
   // the window title names the page (taskbar, Alt+Tab, screen readers)
   const pageName = noIcon(t("nav." + name));
   document.title = pageName && !pageName.startsWith("nav.") ? `${pageName} · RigSweep` : "RigSweep";
-  safeSet("tab", name);
   clearInterval(procTimer);
   if (name === "startup" && startup) renderStartup();
   if (name === "processes") { loadProcesses(); procTimer = setInterval(() => $("#proc-auto").checked && document.visibilityState === "visible" && loadProcesses(), liveMs()); }
@@ -2450,7 +2453,7 @@ $("#btn-chrome").onclick = async () => {
 function liveMs() { return Math.min(60, Math.max(2, Number(state?.settings?.live_refresh_secs) || 5)) * 1000; }
 
 // ---------- settings: tabs and autosave ----------
-let settingsTab = safeGet("settingsTab") || "general";
+let settingsTab = "general";
 function showSettingsTab(name) {
   if (!document.querySelector(`[data-stab-panel="${name}"]`)) name = "general";
   settingsTab = name;
@@ -2461,7 +2464,6 @@ function showSettingsTab(name) {
     b.tabIndex = on ? 0 : -1;
   });
   document.querySelectorAll("[data-stab-panel]").forEach((p) => { p.hidden = p.dataset.stabPanel !== name; });
-  safeSet("settingsTab", name);
 }
 document.querySelectorAll("[data-stab]").forEach((b) => b.addEventListener("click", () => showSettingsTab(b.dataset.stab)));
 $("#tab-settings .subtabs").addEventListener("keydown", (e) => {
@@ -3023,7 +3025,7 @@ async function ensureShareNotice() {
   applyI18n();
   await loadState().catch(() => {});
   pollDiskJob(); // a cleanup may still be running from before a reload
-  currentTab = safeGet("tab") || "dashboard";
+  currentTab = "dashboard";
   rerender();
   ensureDisclaimer().then(ensureShareNotice);
   // the heat tile waits for the first live sample; never let a skeleton spin forever
