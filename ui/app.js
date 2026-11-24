@@ -1188,6 +1188,7 @@ function renderDisk() {
   const oneBtn = (k) => diskCleaning.has(k)
     ? `<button class="small ghost is-busy" data-icon="trash-2" disabled aria-busy="true">${esc(t("disk.cleaning"))}</button>`
     : `<button class="small ghost" data-icon="trash-2" data-disk-one="${esc(k)}" ${jobActive(diskJob) ? "disabled" : ""}>${esc(t("ready.clean"))}</button>`;
+  const showBtn = (path) => `<button class="small ghost" data-show-path="${esc(path)}" data-icon="folder-open" title="${esc(path)}">${esc(t("fd.space.show"))}</button>`;
   // a group header's Clean: every cleanable row of the group, through the same confirm
   const dRows = diskRows();
   const groupBtn = (rows) => {
@@ -1222,7 +1223,7 @@ function renderDisk() {
         <td>${c.show_only ? `<span aria-label="${esc(t("disk.showOnly"))}">👁</span>` : c.disabled ? "🚫" : chk(cKey(c), c.busy || c.bytes === 0)}</td>
         <td>${esc(t("disk.cache." + c.id))}</td><td>${tier(c.show_only ? "shown" : c.tier)}</td>
         <td class="num">${fmtBytes(size)}</td><td class="sub">${info.join(" · ")}</td>
-        <td><div class="row-acts">${c.show_only || c.disabled || c.busy || !c.bytes ? "" : oneBtn(cKey(c))}${c.show_only ? "" : `<button class="small ghost" data-disk-toggle="${esc(c.id)}" data-on="${c.disabled ? 1 : 0}">${esc(t(c.disabled ? "disk.enable" : "disk.disable"))}</button>`}</div></td>
+        <td><div class="row-acts">${c.paths[0] ? showBtn(c.paths[0]) : ""}${c.show_only || c.disabled || c.busy || !c.bytes ? "" : oneBtn(cKey(c))}${c.show_only ? "" : `<button class="small ghost" data-disk-toggle="${esc(c.id)}" data-on="${c.disabled ? 1 : 0}">${esc(t(c.disabled ? "disk.enable" : "disk.disable"))}</button>`}</div></td>
       </tr>`;
     }).join("");
   }
@@ -1255,7 +1256,7 @@ function renderDisk() {
         <td><b><bdi dir="ltr">${pathPill(w.path, baseName(w.repo))}</bdi></b> <span class="sub">${esc(TOOL[w.tool] || w.tool)}</span></td>
         <td>${tier("worktree")}</td><td class="num">${fmtBytes(w.bytes)}</td>
         <td>${badges} <span class="sub">${esc(notes.join(" · "))}</span></td>
-        <td>${askBtn([w])}</td>
+        <td><div class="row-acts">${showBtn(w.path)}${askBtn([w])}</div></td>
       </tr>`;
     };
     // worktrees of the same repository together, the biggest repository first, each with its own
@@ -1294,7 +1295,7 @@ function renderDisk() {
     ].join("");
     const head = `<tr class="group"><td></td><td colspan="2"><b title="${esc(p.path)}"><bdi dir="ltr">${pathPill(p.path, baseName(p.path))}</bdi></b></td>
       <td class="num sub">${fmtBytes(total)}</td><td>${badges}</td>
-      <td><div class="row-acts">${groupBtn(dRows.filter((r) => r.p === p))}<button class="small ghost" data-disk-exclude="${esc(p.path)}">${esc(t("disk.exclude"))}</button></div></td></tr>`;
+      <td><div class="row-acts">${showBtn(p.path)}${groupBtn(dRows.filter((r) => r.p === p))}<button class="small ghost" data-disk-exclude="${esc(p.path)}">${esc(t("disk.exclude"))}</button></div></td></tr>`;
     return head + [...p.items].sort(itemOrder).map((a) => {
       const note = a.eco === "leftover" ? t("disk.leftover") : a.pnpm ? t("disk.pnpm") : a.eco === "python" && a.tier === "deps" ? t("disk.venv") : "";
       return `<tr class="${p.busy ? "locked" : ""}">
@@ -3196,6 +3197,23 @@ document.addEventListener("click", async (e) => {
   await copyText(progPrompt(ps));
   toast(t("disk.wt.asked"), "ok");
 });
+// what the ticked rows of a list add up to, shown on its action button: "Remove selected · 1.0 GB"
+function fdPickedBytes(k) {
+  const picked = new Set([...fdSel].filter((x) => x.startsWith(k + "|")));
+  if (k === "old") return (fd.old?.files || []).filter((f) => picked.has(`old|${f.path}`)).reduce((a, f) => a + f.bytes, 0);
+  return (fd.progs || []).filter((p) => picked.has(progKey(p))).reduce((a, p) => a + (p.bytes || 0), 0);
+}
+function fdUpdateTotal(k) {
+  const b = document.querySelector(`[data-fd-act="${k}"]`);
+  if (!b || b.getAttribute("aria-busy")) return;
+  const label = t(k === "old" ? "fd.old.act" : "fd.progs.act"), size = fdPickedBytes(k);
+  b.textContent = size ? `${label} · ${fmtBytes(size)}` : label;
+}
+// "Show": the folder in Explorer (a file is shown selected in its folder)
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-show-path]");
+  if (b) call("show_in_explorer", { path: b.dataset.showPath }).catch(() => {});
+});
 const fdChk = (key, label) => `<input type="checkbox" data-fd="${esc(key)}" ${fdSel.has(key) ? "checked" : ""} aria-label="${esc(label)}" />`;
 function renderFinder(k) {
   const out = $(`#fd-${k}-out`), d = fd[k];
@@ -3208,17 +3226,17 @@ function renderFinder(k) {
         ? `${esc(t("fd.progs.dead"))}<div class="sub"><bdi dir="ltr">${esc(p.missing_file)}</bdi></div>`
         : `${esc(t(p.has_exe ? "fd.progs.portable" : "fd.progs.leftover"))}<div class="sub"><bdi dir="ltr">${esc(shortPath(p.path))}</bdi> · ${esc(t("fd.changed", { d: fmtDate(p.modified) }))}</div>`;
       return `<tr><td>${fdChk(key, p.name)}</td><td><b>${esc(p.name)}</b>${p.publisher ? `<div class="sub">${esc(p.publisher)}</div>` : ""}</td><td>${what}</td>
-        <td class="num">${p.kind === "dead_entry" ? "—" : fmtBytes(p.bytes)}</td><td>${progAskBtn([p], t("disk.wt.ask"))}</td></tr>`;
+        <td class="num">${p.kind === "dead_entry" ? "—" : fmtBytes(p.bytes)}</td><td><div class="row-acts">${(p.kind === "dead_entry" ? p.install_location : p.path) ? `<button class="small ghost" data-show-path="${esc((p.kind === "dead_entry" ? p.install_location : p.path))}" data-icon="folder-open">${esc(t("fd.space.show"))}</button>` : ""}${progAskBtn([p], t("disk.wt.ask"))}</div></td></tr>`;
     }).join("")}</tbody></table>
     <div class="fd-actions">${progAskBtn(d, t("disk.wt.askAll"))}<button class="danger" data-fd-act="progs" data-icon="trash-2">${esc(t("fd.progs.act"))}</button></div>`;
   } else if (k === "old") {
     if (!d.files.length) { out.innerHTML = `<p class="sub">✅ ${esc(t("fd.old.none"))}</p>`; return; }
     out.innerHTML = `<p class="summary">${esc(t("fd.old.summary", { n: d.total_found, size: fmtBytes(d.total_bytes) }))}</p>
-    <table class="tbl"><thead><tr><th></th><th>${esc(t("fd.col.name"))}</th><th>${esc(t("fd.col.changed"))}</th><th class="num">${esc(t("fd.col.size"))}</th></tr></thead><tbody>${d.files.map((f) => {
+    <table class="tbl"><thead><tr><th></th><th>${esc(t("fd.col.name"))}</th><th>${esc(t("fd.col.changed"))}</th><th class="num">${esc(t("fd.col.size"))}</th><th></th></tr></thead><tbody>${d.files.map((f) => {
       const key = `old|${f.path}`;
       return `<tr><td>${fdChk(key, f.path)}</td><td><bdi dir="ltr">${esc(shortPath(f.path))}</bdi>
         ${f.category === "old_installer" ? ` <span class="badge idle">${esc(t("fd.old.installer"))}</span>` : f.category === "old_archive" ? ` <span class="badge idle">${esc(t("fd.old.archive"))}</span>` : ""}${f.onedrive ? ` <span class="badge orphan" title="${esc(t("fd.old.onedriveTip"))}">OneDrive</span>` : ""}</td>
-        <td>${esc(fmtDate(f.modified))}</td><td class="num">${fmtBytes(f.bytes)}</td></tr>`;
+        <td>${esc(fmtDate(f.modified))}</td><td class="num">${fmtBytes(f.bytes)}</td><td>${f.path ? `<button class="small ghost" data-show-path="${esc(f.path)}" data-icon="folder-open">${esc(t("fd.space.show"))}</button>` : ""}</td></tr>`;
     }).join("")}</tbody></table>
     <div class="fd-actions"><button class="danger" data-fd-act="old" data-icon="trash-2">${esc(t("fd.old.act"))}</button></div>`;
   } else {
@@ -3229,6 +3247,7 @@ function renderFinder(k) {
       <td>${esc(t("fd.look." + i.reason))}${i.autostart ? `<div class="sub"><bdi dir="ltr">${esc(i.autostart)}</bdi></div>` : ""}${i.signer ? `<div class="sub">${esc(t("fd.look.signer", { s: i.signer }))}</div>` : ""}</td>
       <td class="row-acts"><button class="small ghost" data-fd-scan-file="${esc(i.path)}" data-icon="shield-check">${esc(t("fd.look.defender"))}</button><div class="sub" data-fd-verdict="${esc(i.path)}"></div></td></tr>`).join("")}</tbody></table>`;
   }
+  if (k !== "look") fdUpdateTotal(k);
 }
 // ---------- Find > What's taking space: biggest folders, one level at a time ----------
 let fsNow = null;
@@ -3355,23 +3374,29 @@ $("#tab-finders").addEventListener("click", async (e) => {
   }
   // programs: dead uninstall entries (registry, backed up first) and leftover folders (Recycle Bin)
   const items = picked.map((x) => ({ kind: x[6], id: x.slice(8) }));
-  if (!(await modal(t("fd.progs.confirm", { n: items.length }), `<p>${esc(t("fd.progs.confirmBody"))}</p>`, { okText: t("fd.progs.act"), danger: true }))) return;
+  const size = fdPickedBytes("progs");
+  if (!(await modal(t("fd.progs.confirm", { n: items.length }), `${size ? `<p><b>${esc(fmtBytes(size))}</b></p>` : ""}<p>${esc(t("fd.progs.confirmBody"))}</p>`, { okText: t("fd.progs.act"), danger: true }))) return;
   busy(act, true);
+  // one toast at the end: what was done, then each item that wasn't, by name, with its reason
   const fails = [];
   for (const it of items) {
     try {
-      if (it.kind === "e") await call("finders_remove_dead_entry", { regKey: it.id });
-      else await call("finders_recycle_leftover", { path: it.id });
+      if (it.kind === "e") await call("finders_remove_dead_entry", { regKey: it.id }, { quiet: true });
+      else await call("finders_recycle_leftover", { path: it.id }, { quiet: true });
       fd.progs = fd.progs.filter((p) => (p.kind === "dead_entry" ? p.reg_key : p.path) !== it.id);
       fdSel.delete(`progs|${it.kind}|${it.id}`);
-    } catch (err) { fails.push(String(err)); }
+    } catch (err) {
+      const p = fd.progs.find((x) => (x.kind === "dead_entry" ? x.reg_key : x.path) === it.id);
+      fails.push(`• ${p?.kind === "dead_entry" ? p.name : shortPath(it.id)}: ${err}`);
+    }
   }
   busy(act, false);
-  toast(t("fd.done", { n: items.length - fails.length }) + (fails.length ? "\n" + fails.join("\n") : ""), fails.length ? "error" : "ok");
+  toast(t("fd.done", { n: items.length - fails.length }) + (fails.length ? `\n${t("disk.skipped")}\n${fails.join("\n")}` : ""), fails.length ? "warn" : "ok", fails.length ? 12000 : undefined);
   renderFinder("progs");
 });
 $("#tab-finders").addEventListener("change", (e) => {
   const k = e.target.dataset.fd;
   if (!k) return;
   if (e.target.checked) fdSel.add(k); else fdSel.delete(k);
+  fdUpdateTotal(k.split("|")[0]);
 });

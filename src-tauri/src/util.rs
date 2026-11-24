@@ -168,7 +168,15 @@ pub fn recycle(path: &std::path::Path) -> Result<()> {
     };
     let rc = unsafe { SHFileOperationW(&mut op) };
     if rc != 0 || op.fAnyOperationsAborted.as_bool() {
-        return Err(anyhow!("could not move it to the Recycle Bin (code {rc})"));
+        // SHFileOperation's own codes (DE_*) and the Win32 ones it passes through, in words
+        let why = match rc {
+            5 | 0x78 => "access denied: a file in it is in use or protected. Close the program or service using it, or remove it by hand",
+            32 | 33 => "a file in it is in use. Close the program using it and try again",
+            2 | 3 | 0x7C => "it is no longer there",
+            0x4C7 => "it was stopped",
+            _ => "",
+        };
+        return Err(if why.is_empty() { anyhow!("could not move it to the Recycle Bin (code {rc})") } else { anyhow!("could not move it to the Recycle Bin: {why}") });
     }
     Ok(())
 }

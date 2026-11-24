@@ -525,14 +525,20 @@ pub async fn move_cache(state: State<'_, AppState>, id: String, drive: String) -
     r
 }
 
-/// Show a folder in Explorer.
+/// Show a folder in Explorer. A file is shown selected in its folder, never opened.
 #[tauri::command]
 pub async fn show_in_explorer(path: String) -> R<()> {
     let p = std::path::Path::new(&path);
     if !p.is_absolute() || !p.exists() {
         return Err(format!("not found: {path}"));
     }
-    let _ = util::run("explorer.exe", &[&path]);
+    if p.is_file() {
+        use std::os::windows::process::CommandExt;
+        // explorer wants /select,"<path>" as one raw argument (Windows paths can't hold a quote)
+        let _ = std::process::Command::new("explorer.exe").raw_arg(format!("/select,\"{path}\"")).spawn();
+    } else {
+        let _ = util::run("explorer.exe", &[&path]);
+    }
     Ok(())
 }
 
