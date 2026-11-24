@@ -33,10 +33,11 @@ Cada sesión lanza más procesos, y muchos siguen ejecutándose después de cerr
 - ⬢ Node + Claude (14 procesos): **2.5 GB**
 - 🧩 Servicios de Windows en ejecución: **~150**
 - 💾 Carpetas target de Rust (3 proyectos): **~120 GB**
+- 🌿 Worktrees de git (1 proyecto): **~30 GB**
 
 *Medido en el portátil de 32 GB del autor en plena jornada de trabajo.*
 
-Luego miré el disco. Estaba desarrollando tres apps en Rust a la vez: el propio RigSweep, [KeepRun](https://github.com/yobotn/keeprun) (mantiene apps de Node, .NET y Python funcionando como servicios de Windows) y [Focuside](https://github.com/yobotn/focuside) (un IDE enfocado para agentes de programación con IA). La carpeta `target` de cada proyecto había llegado a unos **40 GB**, es decir, **~120 GB** en total, todo salida de compilación que Cargo nunca limpia por sí solo. La pestaña **Disco dev** encontró las tres en un solo análisis.
+Luego miré el disco. Estaba desarrollando tres apps en Rust a la vez: el propio RigSweep, [KeepRun](https://github.com/yobotn/keeprun) (mantiene apps de Node, .NET y Python funcionando como servicios de Windows) y [Focuside](https://github.com/yobotn/focuside) (un IDE enfocado para agentes de programación con IA). La carpeta `target` de cada proyecto había llegado a unos **40 GB**, es decir, **~120 GB** en total, todo salida de compilación que Cargo nunca limpia por sí solo. Y un solo proyecto tenía unos **30 GB** en worktrees de git: copias extra que los agentes crearon para tareas en paralelo, cada una con su propia salida de compilación, que seguían ahí mucho después de fusionar el trabajo. La pestaña **Disco dev** lo encontró todo en un solo análisis.
 
 Nada de eso era un virus ni basura. Eran los restos normales de trabajar con agentes de IA, más cosas de Windows en segundo plano que un equipo de desarrollo no necesita. Las apps “aceleradoras de PC” que ya existían o hacen cosas irreversibles que dan miedo o no saben nada de flujos de desarrollo, así que construí la herramienta que yo quería.
 

@@ -33,10 +33,11 @@ Chaque session lance de nouveaux processus, et beaucoup continuent de tourner ap
 - ⬢ Node + Claude (14 processus): **2.5 GB**
 - 🧩 Services Windows en cours d'exécution: **~150**
 - 💾 Dossiers target Rust (3 projets): **~120 GB**
+- 🌿 Worktrees git (1 projet): **~30 GB**
 
 *Mesuré sur le portable de 32 Go de l'auteur en pleine journée de travail.*
 
-Ensuite, j'ai regardé le disque. Je développais trois applis Rust en parallèle : RigSweep lui-même, [KeepRun](https://github.com/yobotn/keeprun) (fait tourner des applis Node, .NET et Python comme services Windows) et [Focuside](https://github.com/yobotn/focuside) (un IDE épuré pour les agents de code IA). Le dossier `target` de chaque projet avait grossi jusqu'à environ **40 Go**, soit **~120 Go** au total, uniquement des sorties de build que Cargo ne nettoie jamais de lui-même. L'onglet **Disque dev** les a trouvés tous les trois en une seule analyse.
+Ensuite, j'ai regardé le disque. Je développais trois applis Rust en parallèle : RigSweep lui-même, [KeepRun](https://github.com/yobotn/keeprun) (fait tourner des applis Node, .NET et Python comme services Windows) et [Focuside](https://github.com/yobotn/focuside) (un IDE épuré pour les agents de code IA). Le dossier `target` de chaque projet avait grossi jusqu'à environ **40 Go**, soit **~120 Go** au total, uniquement des sorties de build que Cargo ne nettoie jamais de lui-même. Et un seul projet comptait à lui seul environ **30 Go** de worktrees git : des copies de travail supplémentaires créées par les agents pour des tâches en parallèle, chacune avec ses propres sorties de build, toujours là bien après la fusion du travail. L'onglet **Disque dev** a tout trouvé en une seule analyse.
 
 Rien de tout ça n'était un virus ou des fichiers indésirables. C'étaient les restes ordinaires du travail avec des agents IA, plus des tâches de fond de Windows dont un poste de dev n'a pas besoin. Les applis « PC booster » existantes font soit des choses inquiétantes et irréversibles, soit ignorent tout des workflows de dev. Alors j'ai construit l'outil que je voulais.
 

@@ -364,7 +364,7 @@
           <h2 data-t="story.h">📖 RigSweep が生まれた理由</h2>
           <p data-t="story.p1">AI の時代、開発用ノート PC で動いているのはもう 1 つのものだけではありません。いつもの 1 日でも、複数のターミナルで Claude Code のセッションをいくつも開き、プロジェクトごとに開発サーバーを立て、ビルドのウォッチャーを動かし、ブラウザーはドキュメントやプレビューでいっぱいです。</p>
           <p data-t="story.p2">セッションのたびにプロセスが増え、その多くはターミナルを閉じた後も動き続けます。タスク マネージャーに並ぶのは node.exe、python.exe、chrome.exe の羅列だけで、どのセッションやプロジェクトのものかはわかりません。</p>
-          <p data-t-html="story.p2b">次にディスクを確認しました。私は 3 つの Rust アプリを並行して開発していました。RigSweep 自体と、<a href="https://github.com/yobotn/keeprun">KeepRun</a> (Node、.NET、Python のアプリを Windows サービスとして動かし続けるツール)、<a href="https://github.com/yobotn/focuside">Focuside</a> (AI コーディング エージェントのための集中型 IDE) です。各プロジェクトの <code>target</code> フォルダーはそれぞれ約 <strong>40 GB</strong> にまで膨らみ、合計で <strong>約 120 GB</strong>。すべて Cargo が自動では片付けないビルド成果物です。[<strong>開発ディスク</strong>] タブは 1 回のスキャンで 3 つとも見つけました。</p>
+          <p data-t-html="story.p2b">次にディスクを確認しました。私は 3 つの Rust アプリを並行して開発していました。RigSweep 自体と、<a href="https://github.com/yobotn/keeprun">KeepRun</a> (Node、.NET、Python のアプリを Windows サービスとして動かし続けるツール)、<a href="https://github.com/yobotn/focuside">Focuside</a> (AI コーディング エージェントのための集中型 IDE) です。各プロジェクトの <code>target</code> フォルダーはそれぞれ約 <strong>40 GB</strong> にまで膨らみ、合計で <strong>約 120 GB</strong>。すべて Cargo が自動では片付けないビルド成果物です。さらに、1 つのプロジェクトだけで git worktree が約 <strong>30 GB</strong> ありました。エージェントが並行作業のために作った追加のチェックアウトで、それぞれに独自のビルド成果物があり、作業をマージしたずっと後も残っていたものです。[<strong>開発ディスク</strong>] タブは 1 回のスキャンでそのすべてを見つけました。</p>
           <p data-t="story.p2c">どれもウイルスやゴミではありません。AI エージェントと仕事をすれば当たり前に残るものと、開発マシンには要らない Windows のバックグラウンド処理です。既存の「PC 高速化」アプリは、怖くて元に戻せないことをするか、開発の流れをまったく知らないかのどちらかでした。だから、自分が欲しかったツールを作りました。</p>
           <p data-t-html="story.p3"><strong>RigSweep は、マシンを実際に使っているものを可視化し、古いものを一掃し、すべての変更を元に戻せる状態に保ちます。</strong></p>
         </div>
@@ -373,6 +373,7 @@
           <div class="stat"><span data-t="stat.node">⬢ Node + Claude (14 プロセス)</span><b>2.5 GB</b></div>
           <div class="stat"><span data-t="stat.services">🧩 実行中の Windows サービス</span><b>~150</b></div>
           <div class="stat"><span data-t="stat.rust">💾 Rust の target フォルダー (3 プロジェクト)</span><b>~120 GB</b></div>
+          <div class="stat"><span data-t="stat.worktrees">🌿 git worktree (1 プロジェクト)</span><b>~30 GB</b></div>
           <div class="cap" data-t="stat.cap">作者の 32 GB ノート PC で、作業日の途中に測定した値です。</div>
         </div>
       </div>
@@ -491,17 +492,17 @@
   </main>
 
   <script src="/icons.js?v=ec138590" defer></script>
-  <script src="/locales/en.js?v=f1729045"></script>
-  <script src="/locales/de.js?v=9c784f8d"></script>
-  <script src="/locales/es.js?v=a679c5b5"></script>
-  <script src="/locales/fr.js?v=86890dbf"></script>
-  <script src="/locales/it.js?v=96821498"></script>
-  <script src="/locales/pt-BR.js?v=4a64fca4"></script>
-  <script src="/locales/ru.js?v=7bbdce1d"></script>
-  <script src="/locales/ja.js?v=c323ed77"></script>
-  <script src="/locales/ko.js?v=51f743be"></script>
-  <script src="/locales/zh-CN.js?v=2386cb14"></script>
-  <script src="/locales/ar.js?v=7a5d07e4"></script>
+  <script src="/locales/en.js?v=89d89de5"></script>
+  <script src="/locales/de.js?v=bc550168"></script>
+  <script src="/locales/es.js?v=b01a659b"></script>
+  <script src="/locales/fr.js?v=b4801a7a"></script>
+  <script src="/locales/it.js?v=2702a7f0"></script>
+  <script src="/locales/pt-BR.js?v=fafb3753"></script>
+  <script src="/locales/ru.js?v=bb10879d"></script>
+  <script src="/locales/ja.js?v=37a81f65"></script>
+  <script src="/locales/ko.js?v=f8dc8601"></script>
+  <script src="/locales/zh-CN.js?v=446df75d"></script>
+  <script src="/locales/ar.js?v=f9d85312"></script>
   <script>
     const LANGS = { "en": "English", "de": "Deutsch", "es": "Español", "fr": "Français", "it": "Italiano", "pt-BR": "Português (Brasil)", "ru": "Русский", "ja": "日本語", "ko": "한국어", "zh-CN": "简体中文", "ar": "العربية" };
     // the Dashboard shot is a real capture (en/es/fr); the Dev Cleanup shot exists in every language

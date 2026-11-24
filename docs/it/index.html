@@ -364,7 +364,7 @@
           <h2 data-t="story.h">📖 Perché esiste</h2>
           <p data-t="story.p1">Nell'era dell'AI un portatile da sviluppatore non esegue più una sola cosa. Una giornata normale significa diverse sessioni di Claude Code in terminali diversi, un dev server per progetto, watcher di build e un browser pieno di documentazione e anteprime.</p>
           <p data-t="story.p2">Ogni sessione avvia altri processi, e molti restano in esecuzione anche dopo aver chiuso il terminale. Gestione attività mostra solo un muro di node.exe, python.exe e chrome.exe, senza dirti a quale sessione o progetto appartengono.</p>
-          <p data-t-html="story.p2b">Poi ho guardato il disco. Stavo sviluppando tre app Rust in parallelo: RigSweep stesso, <a href="https://github.com/yobotn/keeprun">KeepRun</a> (mantiene in esecuzione app Node, .NET e Python come servizi di Windows) e <a href="https://github.com/yobotn/focuside">Focuside</a> (un IDE essenziale per agenti di coding IA). La cartella <code>target</code> di ogni progetto era arrivata a circa <strong>40 GB</strong>, quindi <strong>~120 GB</strong> in totale, tutto output di build che Cargo non pulisce mai da solo. La scheda <strong>Disco dev</strong> le ha trovate tutte e tre con una sola scansione.</p>
+          <p data-t-html="story.p2b">Poi ho guardato il disco. Stavo sviluppando tre app Rust in parallelo: RigSweep stesso, <a href="https://github.com/yobotn/keeprun">KeepRun</a> (mantiene in esecuzione app Node, .NET e Python come servizi di Windows) e <a href="https://github.com/yobotn/focuside">Focuside</a> (un IDE essenziale per agenti di coding IA). La cartella <code>target</code> di ogni progetto era arrivata a circa <strong>40 GB</strong>, quindi <strong>~120 GB</strong> in totale, tutto output di build che Cargo non pulisce mai da solo. E un solo progetto aveva da solo circa <strong>30 GB</strong> di worktree git: copie di lavoro in più che gli agenti avevano creato per attività in parallelo, ognuna con il proprio output di build, ancora lì molto dopo il merge. La scheda <strong>Disco dev</strong> ha trovato tutto con una sola scansione.</p>
           <p data-t="story.p2c">Niente di tutto questo era un virus o spazzatura. Erano i normali avanzi del lavoro con gli agenti IA, più roba di Windows in background che a un PC da sviluppo non serve. Le app “PC booster” esistenti o fanno cose spaventose e irreversibili, o non sanno niente dei flussi di lavoro di sviluppo, così ho costruito lo strumento che volevo.</p>
           <p data-t-html="story.p3"><strong>RigSweep mostra cosa sta davvero usando il tuo PC, fa pulizia di ciò che non serve più e rende ogni modifica reversibile.</strong></p>
         </div>
@@ -373,6 +373,7 @@
           <div class="stat"><span data-t="stat.node">⬢ Node + Claude (14 processi)</span><b>2.5 GB</b></div>
           <div class="stat"><span data-t="stat.services">🧩 Servizi di Windows in esecuzione</span><b>~150</b></div>
           <div class="stat"><span data-t="stat.rust">💾 Cartelle target di Rust (3 progetti)</span><b>~120 GB</b></div>
+          <div class="stat"><span data-t="stat.worktrees">🌿 Worktree git (1 progetto)</span><b>~30 GB</b></div>
           <div class="cap" data-t="stat.cap">Misurato sul portatile da 32 GB dell'autore, nel mezzo di una giornata di lavoro.</div>
         </div>
       </div>
@@ -491,17 +492,17 @@
   </main>
 
   <script src="/icons.js?v=ec138590" defer></script>
-  <script src="/locales/en.js?v=f1729045"></script>
-  <script src="/locales/de.js?v=9c784f8d"></script>
-  <script src="/locales/es.js?v=a679c5b5"></script>
-  <script src="/locales/fr.js?v=86890dbf"></script>
-  <script src="/locales/it.js?v=96821498"></script>
-  <script src="/locales/pt-BR.js?v=4a64fca4"></script>
-  <script src="/locales/ru.js?v=7bbdce1d"></script>
-  <script src="/locales/ja.js?v=c323ed77"></script>
-  <script src="/locales/ko.js?v=51f743be"></script>
-  <script src="/locales/zh-CN.js?v=2386cb14"></script>
-  <script src="/locales/ar.js?v=7a5d07e4"></script>
+  <script src="/locales/en.js?v=89d89de5"></script>
+  <script src="/locales/de.js?v=bc550168"></script>
+  <script src="/locales/es.js?v=b01a659b"></script>
+  <script src="/locales/fr.js?v=b4801a7a"></script>
+  <script src="/locales/it.js?v=2702a7f0"></script>
+  <script src="/locales/pt-BR.js?v=fafb3753"></script>
+  <script src="/locales/ru.js?v=bb10879d"></script>
+  <script src="/locales/ja.js?v=37a81f65"></script>
+  <script src="/locales/ko.js?v=f8dc8601"></script>
+  <script src="/locales/zh-CN.js?v=446df75d"></script>
+  <script src="/locales/ar.js?v=f9d85312"></script>
   <script>
     const LANGS = { "en": "English", "de": "Deutsch", "es": "Español", "fr": "Français", "it": "Italiano", "pt-BR": "Português (Brasil)", "ru": "Русский", "ja": "日本語", "ko": "한국어", "zh-CN": "简体中文", "ar": "العربية" };
     // the Dashboard shot is a real capture (en/es/fr); the Dev Cleanup shot exists in every language

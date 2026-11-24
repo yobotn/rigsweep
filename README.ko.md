@@ -33,10 +33,11 @@ AI 시대의 개발용 노트북은 더 이상 한 가지만 실행하지 않습
 - ⬢ Node + Claude(프로세스 14개): **2.5 GB**
 - 🧩 실행 중인 Windows 서비스: **~150**
 - 💾 Rust target 폴더(프로젝트 3개): **~120 GB**
+- 🌿 git worktree(프로젝트 1개): **~30 GB**
 
 *작업일 한낮에 개발자의 32GB 노트북에서 측정한 값입니다.*
 
-다음으로 디스크를 확인했습니다. 저는 Rust 앱 세 개를 동시에 개발하고 있었습니다. RigSweep 자체와 [KeepRun](https://github.com/yobotn/keeprun)(Node, .NET, Python 앱을 Windows 서비스로 계속 실행해 주는 도구), [Focuside](https://github.com/yobotn/focuside)(AI 코딩 에이전트를 위한 집중형 IDE)입니다. 프로젝트마다 `target` 폴더가 약 **40GB**까지 커져서 모두 합치면 **약 120GB**였고, 전부 Cargo가 알아서 정리해 주지 않는 빌드 결과물이었습니다. **개발 디스크** 탭은 한 번의 검사로 세 폴더를 모두 찾아냈습니다.
+다음으로 디스크를 확인했습니다. 저는 Rust 앱 세 개를 동시에 개발하고 있었습니다. RigSweep 자체와 [KeepRun](https://github.com/yobotn/keeprun)(Node, .NET, Python 앱을 Windows 서비스로 계속 실행해 주는 도구), [Focuside](https://github.com/yobotn/focuside)(AI 코딩 에이전트를 위한 집중형 IDE)입니다. 프로젝트마다 `target` 폴더가 약 **40GB**까지 커져서 모두 합치면 **약 120GB**였고, 전부 Cargo가 알아서 정리해 주지 않는 빌드 결과물이었습니다. 게다가 프로젝트 하나에만 git worktree가 약 **30GB** 쌓여 있었습니다. 에이전트가 병렬 작업용으로 만든 추가 체크아웃으로, 저마다 빌드 결과물을 따로 가지고 있었고 작업을 병합한 지 한참 지나서도 그대로 남아 있었습니다. **개발 디스크** 탭은 한 번의 검사로 이 모두를 찾아냈습니다.
 
 바이러스도 쓰레기도 아니었습니다. AI 에이전트와 일하면 으레 남는 것들, 그리고 개발용 PC에는 필요 없는 Windows 백그라운드 작업이었습니다. 기존 'PC 최적화' 앱은 되돌릴 수 없는 위험한 일을 하거나 개발 작업 방식을 전혀 몰랐습니다. 그래서 제가 쓰고 싶은 도구를 직접 만들었습니다.
 

@@ -33,10 +33,11 @@ Every session spawns more processes, and many keep running after you close the t
 - ⬢ Node + Claude (14 processes): **2.5 GB**
 - 🧩 Windows services running: **~150**
 - 💾 Rust target folders (3 projects): **~120 GB**
+- 🌿 Git worktrees (1 project): **~30 GB**
 
 *Measured on the author's 32 GB laptop in the middle of a working day.*
 
-Then I looked at my disk. I was building three Rust apps side by side: RigSweep itself, [KeepRun](https://github.com/yobotn/keeprun) (keeps Node, .NET and Python apps running as Windows services) and [Focuside](https://github.com/yobotn/focuside) (a focused IDE for AI coding agents). Each project's `target` folder had grown to about **40 GB**, so **~120 GB** in total, all of it build output that Cargo never cleans up on its own. The **Dev Disk** tab found all three in a single scan.
+Then I looked at my disk. I was building three Rust apps side by side: RigSweep itself, [KeepRun](https://github.com/yobotn/keeprun) (keeps Node, .NET and Python apps running as Windows services) and [Focuside](https://github.com/yobotn/focuside) (a focused IDE for AI coding agents). Each project's `target` folder had grown to about **40 GB**, so **~120 GB** in total, all of it build output that Cargo never cleans up on its own. And one project alone had about **30 GB** of git worktrees: extra checkouts the agents made for parallel tasks, each with its own build output, still there long after the work was merged. The **Dev Disk** tab found all of it in a single scan.
 
 None of it was a virus or junk. It was the normal leftovers of working with AI agents, plus Windows background stuff a dev box doesn't need. Existing “PC booster” apps either do scary irreversible things or know nothing about dev workflows, so I built the tool I wanted.
 
