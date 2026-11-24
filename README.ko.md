@@ -85,7 +85,7 @@ Python과 Java로는 일반 데스크톱 앱도 실행되므로, 이 두 언어�
 - 📦 **패키지 캐시**: npm, npx, pnpm, Yarn, Bun, pip, uv, Cargo, Go, NuGet, Gradle, Maven, Playwright, Puppeteer, Hugging Face. uv와 Go는 각자의 명령(`uv cache prune`, `go clean`)으로 정리하고, Playwright와 Puppeteer는 이전 브라우저 버전만 지우고 최신 버전은 남깁니다.
 - 🎮 **GPU 및 머신러닝**: NVIDIA, AMD, Intel, DirectX 셰이더 캐시, CUDA 컴퓨트 캐시, PyTorch 허브 모델과 컴파일된 확장, Triton 커널 캐시, 쓰지 않는 conda 패키지(`conda clean --all`로 정리). Ollama와 LM Studio 모델은 크기만 보여 주고 절대 삭제하지 않습니다.
 - 🤖 **AI 도구 및 편집기**: Cursor, VS Code, Windsurf, Claude 데스크톱 앱, Codex, ChatGPT의 앱 캐시. 앱이 열려 있는 동안에는 건너뜁니다. Cursor의 상태 백업과 오래된 체크포인트도 지울 수 있습니다(미리 선택되지 않음). 채팅 기록(Cursor 채팅 데이터베이스, Claude Code 채팅, Codex 세션)은 크기만 보여 주므로 공간이 어디에 쓰였는지 알 수 있습니다. Cursor를 제거한 뒤에는 Cursor 채팅 데이터베이스와 체크포인트를 휴지통으로 옮길 수 있습니다.
-- 🌿 **Git 워크트리**: Claude Code, Cursor, Codex 또는 직접 만든 워크트리를 브랜치, 저장소, 방치된 기간과 함께 보여 줍니다. `git worktree remove`로 제거하므로 커밋하지 않은 작업이나 추적되지 않는 파일이 있는 워크트리는 제거되지 않으며, 브랜치와 커밋은 남습니다. 함께 사라질 git 무시 파일(`.env` 등)은 먼저 목록으로 보여 주고, 워크트리는 절대 미리 선택되지 않습니다. 확실하지 않다면 **AI에게 물어보기**로 프롬프트를 복사해, 삭제 전에 내 AI 에이전트가 푸시하지 않은 커밋, stash, 다시 만들 수 없는 파일을 확인하게 하세요.
+- 🌿 **Git 워크트리**: Claude Code, Cursor, Codex 또는 직접 만든 워크트리를 브랜치, 저장소, 방치된 기간과 함께 보여 줍니다. `git worktree remove`로 제거하므로 커밋하지 않은 작업이나 추적되지 않는 파일이 있는 워크트리는 제거되지 않으며, 브랜치와 커밋은 남습니다. 함께 사라질 git 무시 파일(`.env` 등)은 먼저 목록으로 보여 주고, 워크트리는 절대 미리 선택되지 않습니다. 확실하지 않다면 **AI로 확인**이 이미 쓰는 AI 코딩 CLI(Claude Code, Codex, Gemini CLI, Grok)를 읽기 전용으로 실행합니다. RigSweep이 git 정보(변경 사항, 무시된 파일, 푸시하지 않은 커밋, stash)를 넘기고, AI는 파일을 읽기만 하며, SAFE / NOT SAFE 판정이 해당 줄에 표시됩니다. CLI가 없으면 대신 에이전트용 프롬프트를 복사합니다.
 - 🖥️ **Windows 찌꺼기**: 7일 동안 손대지 않은 사용자 임시 파일과 Windows 임시 파일, Windows 업데이트 다운로드, 배달 최적화 파일, 크래시 덤프와 오류 보고서, 미리 보기 캐시, 휴지통(자동으로 체크되지 않음). Windows.old는 크기만 보여 줍니다.
 - 🐳 **Docker 및 WSL 가상 디스크**: Docker Desktop과 모든 WSL 배포판의 `.vhdx`는 커지기만 하고 저절로 줄어들지 않습니다. **압축**하면 Linux가 실제로 쓰는 만큼으로 줄어듭니다. 먼저 Docker Desktop을 종료하고 WSL을 끈 뒤 진행하며, 디스크 안의 내용은 아무것도 지우지 않습니다.
 - 🎯 **자동 선택**: 개발 디스크 탭에서 바로, 프로젝트가 얼마나 수정되지 않아야 하는지(3~365일), 어떤 폴더를 체크할지(빌드 결과물, 의존성, 패키지 캐시), 최소 크기를 고를 수 있습니다.
@@ -201,7 +201,7 @@ CPU-Z, GPU-Z, CrystalDiskInfo, CrystalDiskMark를 열어 확인하던 기본 정
 
 ### AI 에이전트와 스크립트용
 - ⌨️ **관리자 권한이 필요 없는** 헤드리스 명령: `rigsweep --disk-report --json`, `rigsweep --disk-clean --safe [--dry-run] --json`, `rigsweep --port 3000 --json`.
-- 🔌 **MCP 서버**: `rigsweep --mcp`는 Claude Code, Cursor, Codex에 `drive_space`, `disk_report`, `free_disk_space`(따로 지정하지 않으면 시험 실행) 및 `port_owner` 도구를 제공합니다. Claude Code에서는 `claude mcp add rigsweep -- "C:\Program Files\RigSweep\rigsweep.exe" --mcp`. Claude Desktop에서는 [최신 릴리스](https://github.com/yobotn/rigsweep/releases/latest)의 `rigsweep-<버전>.mcpb`를 설치하세요. [MCP Registry](https://registry.modelcontextprotocol.io/)에도 `io.github.yobotn/rigsweep`(으)로 등록되어 있습니다.
+- 🔌 **MCP 서버**: `rigsweep --mcp`는 Claude Code, Cursor, Codex에 `drive_space`, `disk_report`, `free_disk_space`(따로 지정하지 않으면 시험 실행) 및 `port_owner`, 그리고 `report_cleanup`(RigSweep이 확인을 맡긴 폴더를 에이전트가 제거하면 경로를 알려 주고, RigSweep은 사라졌는지 확인한 뒤 직접 잰 크기를 기록합니다) 도구를 제공합니다. Claude Code에서는 `claude mcp add rigsweep -- "C:\Program Files\RigSweep\rigsweep.exe" --mcp`. Claude Desktop에서는 [최신 릴리스](https://github.com/yobotn/rigsweep/releases/latest)의 `rigsweep-<버전>.mcpb`를 설치하세요. [MCP Registry](https://registry.modelcontextprotocol.io/)에도 `io.github.yobotn/rigsweep`(으)로 등록되어 있습니다.
 - 📖 전체 참조 문서: [rigsweep.com/cli](https://rigsweep.com/cli/).
 
 ### 업데이트는 원할 때만

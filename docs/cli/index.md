@@ -27,7 +27,7 @@ These print to the terminal they were started from, or to a file or pipe, and ne
 
 ## MCP server for AI agents
 
-`rigsweep.exe --mcp` lets an agent such as Claude Code, Cursor or Codex check disk space and free it on its own. Tools: `drive_space`, `disk_report`, `free_disk_space` (a dry run unless `dry_run` is `false`; only caches that rebuild themselves) and `port_owner`. To add it to Claude Code:
+`rigsweep.exe --mcp` lets an agent such as Claude Code, Cursor or Codex check disk space and free it on its own. Tools: `drive_space`, `disk_report`, `free_disk_space` (a dry run unless `dry_run` is `false`; only caches that rebuild themselves) and `port_owner`, plus `report_cleanup`: after an agent removed folders RigSweep asked it to check (git worktrees, program leftovers), it passes the paths, and RigSweep verifies each is gone and counts the size it measured itself, never a size the agent states. To add it to Claude Code:
 
 ```
 claude mcp add rigsweep -- "C:\Program Files\RigSweep\rigsweep.exe" --mcp

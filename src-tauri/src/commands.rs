@@ -419,6 +419,8 @@ pub async fn kill_dev_processes(app: AppHandle, state: State<'_, AppState>, targ
 #[tauri::command]
 pub fn get_impact(state: State<'_, AppState>) -> R<crate::impact::Summary> {
     let db = lock(&state)?;
+    // folders handed to the user's AI that are gone now count as freed with its help
+    crate::handoff::settle(&db, None);
     let ago = |d: i64| (chrono::Local::now() - chrono::Duration::days(d)).format("%Y-%m-%d %H:%M:%S").to_string();
     let sum = |since: Option<&str>| db.impact_rows(since).map(|r| crate::impact::total(&r)).map_err(err);
     Ok(crate::impact::Summary { week: sum(Some(&ago(7)))?, month: sum(Some(&ago(30)))?, all: sum(None)?, since: db.impact_since() })
@@ -496,7 +498,11 @@ pub(crate) fn disk_config(s: &Settings) -> devdisk::Config {
 
 #[tauri::command]
 pub async fn get_dev_disk(state: State<'_, AppState>) -> R<DiskReport> {
-    let cfg = disk_config(&Settings::load(&*lock(&state)?));
+    let cfg = {
+        let db = lock(&state)?;
+        crate::handoff::settle(&db, None);
+        disk_config(&Settings::load(&db))
+    };
     tauri::async_runtime::spawn_blocking(move || devdisk::report(&cfg)).await.map_err(err)
 }
 
@@ -543,6 +549,26 @@ pub async fn show_in_explorer(path: String) -> R<()> {
 }
 
 /// Compact a Docker Desktop / WSL virtual disk (quits Docker Desktop, shuts WSL down).
+/// Folders the user is about to ask their AI about (a copied prompt or Check with AI), with the
+/// size RigSweep measured: if one is gone later and RigSweep didn't remove it, it counts as freed
+/// with the AI's help.
+#[tauri::command]
+pub fn ai_handoff(state: State<'_, AppState>, items: Vec<crate::handoff::Item>) -> R<usize> {
+    crate::handoff::add(&*lock(&state)?, &items)
+}
+
+/// The AI coding CLIs installed (Claude Code, Codex, Gemini CLI, Grok), for "Check with AI".
+#[tauri::command]
+pub async fn ai_agents() -> R<Vec<crate::aicheck::Agent>> {
+    tauri::async_runtime::spawn_blocking(crate::aicheck::agents).await.map_err(err)
+}
+
+/// Runs one of them headless and read-only on these worktrees; nothing is deleted.
+#[tauri::command]
+pub async fn ai_check_worktrees(agent: String, paths: Vec<String>, lang: String) -> R<crate::aicheck::AiCheck> {
+    tauri::async_runtime::spawn_blocking(move || crate::aicheck::check(&agent, &paths, &lang)).await.map_err(err)
+}
+
 #[tauri::command]
 pub async fn compact_vdisk(state: State<'_, AppState>, path: String, prune: bool) -> R<devdisk::Compacted> {
     let p = path.clone();
@@ -610,7 +636,12 @@ fn start_disk_job(app: &AppHandle, cfg: devdisk::Config, targets: Vec<DiskTarget
 /// links, manifest, in use) before anything is removed.
 #[tauri::command]
 pub async fn start_disk_clean(app: AppHandle, state: State<'_, AppState>, targets: Vec<DiskTarget>) -> R<JobView> {
-    let cfg = disk_config(&Settings::load(&*lock(&state)?));
+    let cfg = {
+        let db = lock(&state)?;
+        // RigSweep removes these itself: not space the AI helped free
+        db.drop_handoffs(&targets.iter().filter(|t| t.kind == "worktree").map(|t| t.id.clone()).collect::<Vec<_>>());
+        disk_config(&Settings::load(&db))
+    };
     start_disk_job(&app, cfg, targets)?;
     disk_job(&state)
 }

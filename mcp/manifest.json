@@ -22,7 +22,8 @@
     { "name": "drive_space", "description": "Size and free space of every drive." },
     { "name": "disk_report", "description": "What takes disk space: caches, old build and dependency folders, agent worktrees, Docker/WSL disks. Read-only." },
     { "name": "free_disk_space", "description": "Empty only caches that rebuild themselves. A dry run unless dry_run=false." },
-    { "name": "port_owner", "description": "Which processes hold a local TCP/UDP port, with PID and command line." }
+    { "name": "port_owner", "description": "Which processes hold a local TCP/UDP port, with PID and command line." },
+    { "name": "report_cleanup", "description": "Tell RigSweep which folders it handed you that you deleted. Paths only: it verifies they are gone and counts its own measured size." }
   ],
   "compatibility": { "platforms": ["win32"] }
 }

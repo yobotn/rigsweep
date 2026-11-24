@@ -117,7 +117,8 @@ impl Db {
                 id INTEGER PRIMARY KEY AUTOINCREMENT, run INTEGER NOT NULL, ts TEXT NOT NULL, source TEXT NOT NULL,
                 area TEXT NOT NULL, kind TEXT NOT NULL, bytes INTEGER NOT NULL, count INTEGER NOT NULL);
              CREATE INDEX IF NOT EXISTS impact_ts ON impact(ts);
-             CREATE TABLE IF NOT EXISTS flashes(id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, json TEXT NOT NULL);",
+             CREATE TABLE IF NOT EXISTS flashes(id INTEGER PRIMARY KEY AUTOINCREMENT, ts INTEGER NOT NULL, json TEXT NOT NULL);
+             CREATE TABLE IF NOT EXISTS handoffs(path TEXT PRIMARY KEY COLLATE NOCASE, kind TEXT NOT NULL, bytes INTEGER NOT NULL, ts INTEGER NOT NULL);",
         )?;
         // 0.8.2: the CPU an ended process tree was using is kept next to its memory
         let has_cpu: bool = conn.prepare("SELECT 1 FROM pragma_table_info('impact') WHERE name = 'cpu'")?.exists([])?;
@@ -343,8 +344,41 @@ impl Db {
     }
 
     // ---------- settings ----------
-    // ---------- impact ----------
-    /// Record one cleanup run (`source` = "gui" | "auto"); empty or zero rows are skipped.
+    // ---------- AI hand-offs ----------
+    /// Whether this process may write the database (the MCP server, run without admin rights, can't).
+    pub fn writable(&self) -> bool {
+        self.conn.execute_batch("BEGIN IMMEDIATE; ROLLBACK;").is_ok()
+    }
+
+    // A folder RigSweep asked the user's AI about (a worktree, a program leftover), with the size
+    // RigSweep measured. When it is gone later and RigSweep didn't remove it, that size is credited as
+    // freed with the AI's help (see handoff.rs). Local only: paths never leave this database.
+    pub fn add_handoff(&self, path: &str, kind: &str, bytes: u64, ts: i64) -> Result<()> {
+        self.conn.execute(
+            "INSERT INTO handoffs(path, kind, bytes, ts) VALUES(?1,?2,?3,?4)
+             ON CONFLICT(path) DO UPDATE SET kind=?2, bytes=?3, ts=?4",
+            params![path, kind, bytes as i64, ts],
+        )?;
+        Ok(())
+    }
+
+    /// (path, kind, bytes, ts) for every folder handed to an AI and not settled yet.
+    pub fn handoffs(&self) -> Result<Vec<(String, String, u64, i64)>> {
+        let mut st = self.conn.prepare("SELECT path, kind, bytes, ts FROM handoffs ORDER BY ts")?;
+        let rows = st
+            .query_map([], |r| Ok((r.get(0)?, r.get(1)?, r.get::<_, i64>(2)?.max(0) as u64, r.get(3)?)))?
+            .collect::<std::result::Result<Vec<_>, _>>()?;
+        Ok(rows)
+    }
+
+    /// Forget these hand-offs (settled, expired, or RigSweep is removing the folder itself).
+    pub fn drop_handoffs(&self, paths: &[String]) {
+        for p in paths {
+            let _ = self.conn.execute("DELETE FROM handoffs WHERE path = ?1 COLLATE NOCASE", params![p]);
+        }
+    }
+
+    // ---------- impact ----------    /// Record one cleanup run (`source` = "gui" | "auto"); empty or zero rows are skipped.
     pub fn add_impact(&self, source: &str, items: &[Freed]) {
         let items: Vec<&Freed> = items.iter().filter(|f| f.bytes > 0 || f.count > 0).collect();
         if items.is_empty() {
@@ -384,7 +418,7 @@ impl Db {
     pub fn impact_events_after(&self, after_id: i64, limit: usize) -> Result<Vec<crate::report::Event>> {
         use chrono::TimeZone;
         let mut st = self.conn.prepare(
-            "SELECT id, ts, run, source, area, kind, bytes, count, cpu FROM impact WHERE id > ?1 ORDER BY id LIMIT ?2",
+            "SELECT id, ts, run, source, area, kind, bytes, count, cpu FROM impact WHERE id > ?1 AND area != 'ai' ORDER BY id LIMIT ?2",
         )?;
         let rows = st
             .query_map(params![after_id, limit as i64], |r| {

@@ -917,6 +917,8 @@ $("#bc-body").addEventListener("click", (e) => {
 });
 $("#btn-bc-scan").onclick = (e) => loadBrowsers(e.target);
 $("#btn-bc-safe").onclick = () => { bcRows().filter((r) => r.i.tier === "safe" && !r.b.running && r.i.bytes > 0).forEach((r) => bcSel.add(r.k)); renderBrowsers(); };
+$("#btn-bc-all").onclick = () => { bcRows().filter((r) => !r.b.running && r.i.bytes > 0).forEach((r) => bcSel.add(r.k)); renderBrowsers(); };
+$("#btn-bc-none").onclick = () => { bcSel.clear(); renderBrowsers(); };
 // only: clean just these rows (a row's own Clean button) instead of what's ticked
 $("#btn-bc-clean").onclick = async (e, only) => {
   const picked = only || bcRows().filter((r) => bcSel.has(r.k) && !r.b.running);
@@ -1041,6 +1043,16 @@ function pathPill(path, name) {
   if (i < 0) return `${pill(name)} ${esc(s)}`;
   return parts.map((x, j) => j === i ? pill(x) : esc(x)).join("\\");
 }
+// a copied prompt asks the agent to tell RigSweep, through its MCP server, which folders it removed;
+// RigSweep checks they are gone and counts the size it measured itself (handoff.rs)
+const REPORT_LINE = "This check is read-only. If I later ask you to remove any of them and you do, and the RigSweep MCP tool report_cleanup is available, call it with the exact paths you removed (paths only, no sizes) so RigSweep can count the space that was freed.";
+// folders about to be handed to the user's AI, with the size RigSweep measured: if one is gone
+// later and RigSweep didn't remove it, Impact counts it as freed with the AI's help
+function handoff(items) {
+  items = items.filter((i) => i.path && i.bytes > 0);
+  if (items.length) invoke("ai_handoff", { items }).catch((e) => console.error("ai_handoff", e));
+}
+const wtHandoff = (ws) => handoff(ws.map((w) => ({ path: w.path, kind: "worktree", bytes: w.bytes })));
 // Risky removals (a worktree is someone's checkout): a prompt the user pastes into their own AI
 // agent, which checks the folder and says whether anything would be lost before they delete it.
 function wtPrompt(ws) {
@@ -1071,6 +1083,8 @@ function wtPrompt(ws) {
     "5. Whether a terminal, editor, dev server or AI agent is still working in it",
     "",
     "Then answer SAFE TO DELETE or NOT SAFE for each one, list exactly what would be lost, and how to keep it (commit, push, copy a file).",
+    "",
+    REPORT_LINE,
   );
   if (LANG !== "en") lines.push(`Reply in ${LANGS[LANG]}.`);
   return lines.join("\n");
@@ -1090,8 +1104,65 @@ document.addEventListener("click", async (e) => {
   const ws = (disk?.worktrees || []).filter((w) => paths.includes(w.path));
   if (!ws.length) return;
   await copyText(wtPrompt(ws));
+  wtHandoff(ws);
   toast(t("disk.wt.asked"), "ok");
 });
+// "Check with AI": runs the user's own AI coding CLI (Claude Code, Codex, Gemini CLI, Grok)
+// headless and read-only on the worktrees. The backend gathers the git facts, builds the prompt and
+// limits the agent to reading; nothing is removed, the verdicts only show on the rows.
+let aiAgents = null;                 // [{ id, name, path }]
+const aiVerdicts = new Map();        // worktree path -> { safe, agent }
+const aiRunning = new Set();         // worktree paths being checked
+const aiName = (id) => aiAgents?.find((a) => a.id === id)?.name || id;
+const lsGet = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch { /* private mode */ } };
+document.addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-wt-ai]");
+  if (!b) return;
+  const paths = b.dataset.wtAi.split("\n");
+  const ws = (disk?.worktrees || []).filter((w) => paths.includes(w.path));
+  if (!ws.length || ws.some((w) => aiRunning.has(w.path))) return;
+  try { aiAgents = await invoke("ai_agents"); } catch (err) { console.error("ai_agents", err); aiAgents = aiAgents || []; }
+  if (!aiAgents.length) {
+    await copyText(wtPrompt(ws));
+    wtHandoff(ws);
+    return toast(t("disk.wt.aiNone"), "warn", 10000);
+  }
+  const last = lsGet("rigsweep.aiAgent");
+  const pick = aiAgents.some((a) => a.id === last) ? last : aiAgents[0].id;
+  const radios = aiAgents.map((a) => `<label class="check-row"><input type="radio" name="ai-agent" value="${esc(a.id)}" ${a.id === pick ? "checked" : ""} /> <span>${esc(a.name)} <span class="sub" dir="ltr">${esc(shortPath(a.path))}</span></span></label>`).join("");
+  const html = `<p>${esc(t("disk.wt.aiBody"))}</p><div role="radiogroup" aria-label="${esc(t("disk.wt.aiWhich"))}">${radios}</div>
+    <p class="sub">${esc(t("disk.wt.aiNote"))}</p>
+    <p><button class="small ghost" data-icon="copy" data-wt-ask="${esc(paths.join("\n"))}">${esc(t("disk.wt.aiCopy"))}</button></p>`;
+  if (!(await modal(t("disk.wt.aiPick", { n: ws.length }), html, { okText: t("disk.wt.aiRun") }))) return;
+  const agent = document.querySelector('input[name="ai-agent"]:checked')?.value || pick;
+  lsSet("rigsweep.aiAgent", agent);
+  ws.forEach((w) => aiRunning.add(w.path));
+  wtHandoff(ws);
+  renderDisk();
+  toast(t("disk.wt.aiRunning", { a: aiName(agent) }));
+  let r;
+  try { r = await call("ai_check_worktrees", { agent, paths: ws.map((w) => w.path), lang: LANG === "en" ? "" : LANGS[LANG] || "" }); }
+  catch { return; }
+  finally { ws.forEach((w) => aiRunning.delete(w.path)); renderDisk(); }
+  if (!r.ok) return modal(t("disk.wt.aiFail", { a: aiName(agent) }), `<pre class="ai-answer">${esc(r.text)}</pre>`, { cancel: false });
+  r.verdicts.forEach((v) => aiVerdicts.set(v.path, { safe: v.safe, agent }));
+  renderDisk();
+  const safe = ws.filter((w) => aiVerdicts.get(w.path)?.safe && !wLocked(w) && r.verdicts.some((v) => v.path === w.path));
+  const list = ws.map((w) => `<li><bdi dir="ltr">${pathPill(w.path, baseName(w.repo))}</bdi> ${aiBadge(w)}</li>`).join("");
+  const body = `<ul class="scroll-list">${list}</ul>${r.verdicts.length ? "" : `<p class="warn-text">${esc(t("disk.wt.aiNoVerdict"))}</p>`}
+    <pre class="ai-answer">${esc(r.text)}</pre><p class="sub">${esc(t("disk.wt.aiNote"))}</p>`;
+  const tick = await modal(t("disk.wt.aiResult", { a: aiName(agent) }), body, safe.length
+    ? { okText: t("disk.wt.aiTickSafe", { n: safe.length }), cancelText: t("common.close") } : { cancel: false });
+  if (tick && safe.length) { safe.forEach((w) => diskSel.add(wKey(w))); renderDisk(); }
+});
+// the verdict a check left on a worktree row (until the next scan drops the worktree)
+function aiBadge(w) {
+  if (aiRunning.has(w.path)) return `<span class="badge idle">${esc(t("disk.wt.aiChecking"))}</span>`;
+  const v = aiVerdicts.get(w.path);
+  if (!v) return "";
+  return `<span class="badge ${v.safe ? "active" : "orphan"}" title="${esc(aiName(v.agent))}">${esc(t(v.safe ? "disk.wt.aiSafe" : "disk.wt.aiUnsafe"))}</span>`;
+}
 // auto-select rules (Dev Disk bar): stale = untouched for N days; caches only the "rebuilds itself" ones
 const diskAuto = () => {
   const s = state?.settings || {};
@@ -1248,12 +1319,22 @@ function renderDisk() {
   if (disk.worktrees?.length) {
     const wtOrder = sorter("disk", (w, k) => k === "what" ? shortPath(w.path) : k === "idle" ? w.idle_days : k === "type" ? w.tool : w.bytes);
     const TOOL = { claude: "Claude Code", cursor: "Cursor", codex: "Codex", windsurf: "Windsurf", git: "Git", temp: "%TEMP%" };
-    const askBtn = (ws) => `<button class="small ghost" data-icon="copy" data-wt-ask="${esc(ws.map((w) => w.path).join("\n"))}" title="${esc(t("disk.wt.askTip"))}">${esc(t("disk.wt.ask"))}</button>`;
+    const askBtn = (ws) => ws.some((w) => aiRunning.has(w.path))
+      ? `<button class="small ghost is-busy" data-icon="bot" disabled aria-busy="true">${esc(t("disk.wt.aiChecking"))}</button>`
+      : `<button class="small ghost" data-icon="bot" data-wt-ai="${esc(ws.map((w) => w.path).join("\n"))}" title="${esc(t("disk.wt.aiTip"))}">${esc(t("disk.wt.ai"))}</button>`;
+    // a group header's checkbox ticks or clears every worktree under it that can be picked
+    const grpChk = (ws) => {
+      const ks = ws.filter((w) => !wLocked(w)).map(wKey);
+      if (!ks.length) return "";
+      const on = ks.every((k) => diskSel.has(k));
+      return `<input type="checkbox" data-disk-many="${esc(ks.join("\n"))}" ${on ? "checked" : ""} aria-label="${esc(t("disk.wt.selGroup"))}" title="${esc(t("disk.wt.selGroup"))}" />`;
+    };
     const wtRow = (w) => {
       const badges = [
         w.busy ? `<span class="badge serving">${esc(t("disk.inUse"))}</span>` : "",
         w.orphan ? `<span class="badge orphan" title="${esc(t("disk.wt.orphanTip"))}">${esc(t("disk.wt.orphan"))}</span>` : "",
         w.dirty && !w.orphan ? `<span class="badge orphan">${esc(t("disk.wt.dirty"))}</span>` : "",
+        aiBadge(w),
         w.idle_days >= diskAuto().days ? `<span class="badge idle">${esc(t("disk.untouched", { d: w.idle_days }))}</span>`
           : `<span class="badge active">${esc(w.idle_days === 0 ? t("disk.today") : t("disk.recent", { d: w.idle_days }))}</span>`,
       ].join("");
@@ -1278,12 +1359,12 @@ function renderDisk() {
     }
     const wtSum = (ws) => ws.reduce((a, w) => a + w.bytes, 0);
     // the whole section's "Ask your AI": every worktree listed, in one prompt
-    html += `<tr class="group"><td colspan="5"><b>${esc(t("disk.worktrees"))}</b> <span class="sub">${fmtBytes(disk.worktree_total)}</span></td><td><div class="row-acts">${groupBtn(dRows.filter((r) => r.w))}${askBtn(disk.worktrees)}</div></td></tr>`;
+    html += `<tr class="group"><td>${grpChk(disk.worktrees)}</td><td colspan="4"><b>${esc(t("disk.worktrees"))}</b> <span class="sub">${fmtBytes(disk.worktree_total)}</span></td><td><div class="row-acts">${groupBtn(dRows.filter((r) => r.w))}${askBtn(disk.worktrees)}</div></td></tr>`;
     html += [...byRepo.values()].sort((x, y) => wtSum(y) - wtSum(x)).map((ws) => {
       const repo = ws[0].repo;
       const name = repo ? `<b title="${esc(repo)}"><bdi dir="ltr">${pathPill(repo, baseName(repo))}</bdi></b>`
         : `<span class="badge orphan" title="${esc(t("disk.wt.orphanTip"))}">${esc(t("disk.wt.orphan"))}</span>`;
-      return `<tr class="group"><td></td><td colspan="2">${name}</td><td class="num sub">${fmtBytes(wtSum(ws))}</td><td></td><td><div class="row-acts">${groupBtn(dRows.filter((r) => r.w && ws.includes(r.w)))}${askBtn(ws)}</div></td></tr>`
+      return `<tr class="group"><td>${grpChk(ws)}</td><td colspan="2">${name}</td><td class="num sub">${fmtBytes(wtSum(ws))}</td><td></td><td><div class="row-acts">${groupBtn(dRows.filter((r) => r.w && ws.includes(r.w)))}${askBtn(ws)}</div></td></tr>`
         + [...ws].sort(wtOrder).map(wtRow).join("");
     }).join("");
   }
@@ -1339,8 +1420,9 @@ function renderDiskExcluded() {
 
 wireSort("#tab-disk", "disk", renderDisk);
 $("#disk-body").addEventListener("change", (e) => {
-  const k = e.target.dataset.disk;
+  const k = e.target.dataset.disk, many = e.target.dataset.diskMany;
   if (k) { e.target.checked ? diskSel.add(k) : diskSel.delete(k); renderDisk(); }
+  if (many) { many.split("\n").forEach((x) => e.target.checked ? diskSel.add(x) : diskSel.delete(x)); renderDisk(); }
 });
 $("#disk-body").addEventListener("click", async (e) => {
   const tg = e.target.closest("[data-disk-toggle]"), ex = e.target.closest("[data-disk-exclude]"), inc = e.target.closest("[data-disk-include]");
@@ -1406,6 +1488,9 @@ async function compactVdisk(btn) {
 
 $("#btn-disk-scan").onclick = () => loadDisk(true);
 $("#btn-disk-suggest").onclick = () => { diskRows().filter(diskSuggested).forEach((r) => diskSel.add(r.k)); renderDisk(); };
+// Select all leaves the worktrees out: each is someone's checkout, ticked by hand or with its group's checkbox
+$("#btn-disk-all").onclick = () => { diskRows().filter((r) => !r.w && r.bytes > 0).forEach((r) => diskSel.add(r.k)); renderDisk(); };
+$("#btn-disk-none").onclick = () => { diskSel.clear(); renderDisk(); };
 // only: clean just these rows (a row's own Clean button) instead of what's ticked
 $("#btn-disk-clean").onclick = async (e, only) => {
   if (jobActive(diskJob)) return toast(t("disk.job.busy"), "warn");
@@ -1419,7 +1504,7 @@ $("#btn-disk-clean").onclick = async (e, only) => {
   const od = picked.some((r) => r.p?.onedrive);
   const li = picked.map((r) => r.c
     ? `<li>${esc(t("disk.cache." + r.c.id))} <span class="sub">${fmtBytes(r.bytes)}</span></li>`
-    : r.w ? `<li><bdi dir="ltr">${pathPill(r.w.path, baseName(r.w.repo))}</bdi> <span class="sub">${fmtBytes(r.bytes)}</span></li>`
+    : r.w ? `<li><bdi dir="ltr">${pathPill(r.w.path, baseName(r.w.repo))}</bdi> <span class="sub">${fmtBytes(r.bytes)}</span> ${aiBadge(r.w)}</li>`
     : `<li><bdi dir="ltr">${pathPill(r.p.path, baseName(r.p.path))}\\<b>${esc(r.a.name)}</b></bdi> <span class="sub">${fmtBytes(r.bytes)}</span></li>`).join("");
   const ign = [...new Set(wts.flatMap((r) => r.w.ignored))];
   const html = `${spaceLines(sumBy(picked.filter((r) => !r.w?.orphan && !r.c?.recycle), diskDrive, (r) => r.bytes))}<p>${esc(t("disk.confirm.body"))}</p><ul class="scroll-list">${li}</ul>
@@ -2002,9 +2087,10 @@ function feedItem(h) {
 // ---------- impact: what RigSweep has freed on this PC ----------
 let impact = null;
 let impactPeriod = ["week", "month", "all"].includes(safeGet("impact_period")) ? safeGet("impact_period") : "month";
-const IM_TAB = { memory: "cleanup", disk: "disk", browser: "browser" };
+const IM_TAB = { memory: "cleanup", disk: "disk", browser: "browser", ai: "disk" };
 function impactLabel(k) {
   if (k.kind === "earlier") return t("impact.k.earlier");
+  if (k.area === "ai") return t(k.kind === "ai:leftover" ? "impact.k.aiLeftover" : "impact.k.aiWorktree");
   if (k.area === "memory") return tOr("impact.k." + k.kind, k.kind);
   if (k.kind === "worktree") return t("impact.k.worktree");
   if (k.kind === "dir:other") return t("impact.k.dirOther");
@@ -2025,6 +2111,7 @@ function renderImpact() {
   if (!impact) return;
   const p = impact[impactPeriod];
   $("#im-disk").textContent = fmtBytes(p.disk + p.browser);
+  $("#im-ai").textContent = p.ai > 0 ? t("impact.ai", { size: fmtBytes(p.ai) }) : "";
   $("#im-ram").textContent = fmtBytes(p.memory);
   $("#im-procs").textContent = ltr(String(p.processes));
   $("#im-ran").textContent = p.run_secs >= 60 ? t("impact.ranFor", { d: fmtDur(p.run_secs) }) : "";
@@ -3204,6 +3291,7 @@ const progAskBtn = (ps, label) => `<button class="small ghost" data-icon="copy" 
 document.addEventListener("click", async (e) => {
   const b = e.target.closest("[data-prog-ask]");
   if (!b) return;
+  if (ps.some((p) => p.kind !== "dead_entry")) lines.push("", REPORT_LINE);
   const ks = new Set(b.dataset.progAsk.split("\n"));
   const ps = (fd.progs || []).filter((p) => ks.has(progKey(p)));
   if (!ps.length) return;
@@ -3215,6 +3303,7 @@ function fdPickedBytes(k) {
   const picked = new Set([...fdSel].filter((x) => x.startsWith(k + "|")));
   if (k === "old") return (fd.old?.files || []).filter((f) => picked.has(`old|${f.path}`)).reduce((a, f) => a + f.bytes, 0);
   return (fd.progs || []).filter((p) => picked.has(progKey(p))).reduce((a, p) => a + (p.bytes || 0), 0);
+  handoff(ps.filter((p) => p.kind !== "dead_entry").map((p) => ({ path: p.path, kind: "leftover", bytes: p.bytes || 0 })));
 }
 function fdUpdateTotal(k) {
   const b = document.querySelector(`[data-fd-act="${k}"]`);

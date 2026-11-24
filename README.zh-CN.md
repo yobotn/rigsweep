@@ -85,7 +85,7 @@ Python 和 Java 也会运行普通的桌面应用，因此对于这两者，只�
 - 📦 **包缓存**：npm、npx、pnpm、Yarn、Bun、pip、uv、Cargo、Go、NuGet、Gradle、Maven、Playwright、Puppeteer、Hugging Face。uv 和 Go 用它们自己的命令清理（`uv cache prune`、`go clean`）；Playwright 和 Puppeteer 只删除旧版浏览器，保留最新版本。
 - 🎮 **GPU 与机器学习**：NVIDIA、AMD、Intel 和 DirectX 着色器缓存、CUDA 计算缓存、PyTorch Hub 模型和编译好的扩展、Triton 内核缓存，以及没用到的 conda 包（通过 `conda clean --all` 清理）。Ollama 和 LM Studio 的模型只显示大小，绝不删除。
 - 🤖 **AI 工具与编辑器**：Cursor、VS Code、Windsurf、Claude 桌面应用、Codex 和 ChatGPT 的应用缓存，应用开着时会跳过。Cursor 的状态备份和旧检查点也可以删除（绝不预先勾选）。聊天记录（Cursor 的聊天数据库、Claude Code 对话、Codex 会话）只显示大小，让你看清空间都去哪了。卸载 Cursor 后，它的聊天数据库和检查点可以移到回收站。
-- 🌿 **Git 工作树**：Claude Code、Cursor、Codex 或你自己创建的工作树，附带分支、仓库和闲置时长。通过 `git worktree remove` 移除，有未提交或未跟踪内容的工作树会被它拒绝；分支和提交都会保留。会被一起删掉的 git 忽略文件（如 `.env`）会先列出来，工作树也绝不预先勾选。 拿不准？**问问你的 AI** 会复制一段现成的提示词，让你自己的 AI 代理在删除前检查未推送的提交、stash 和无法重建的文件。
+- 🌿 **Git 工作树**：Claude Code、Cursor、Codex 或你自己创建的工作树，附带分支、仓库和闲置时长。通过 `git worktree remove` 移除，有未提交或未跟踪内容的工作树会被它拒绝；分支和提交都会保留。会被一起删掉的 git 忽略文件（如 `.env`）会先列出来，工作树也绝不预先勾选。 拿不准？**用 AI 检查** 会以只读方式运行你已在用的 AI 编程命令行工具（Claude Code、Codex、Gemini CLI 或 Grok）：RigSweep 把 git 掌握的信息（更改、被忽略的文件、未推送的提交、stash）交给它，它只能读取文件，SAFE / NOT SAFE 结论会显示在该行。没有安装？那就改为复制给你的 AI 代理用的提示词。
 - 🖥️ **Windows 残留**：7 天没动过的用户临时文件和 Windows 临时文件、Windows 更新下载内容、传递优化文件、崩溃转储和错误报告、缩略图缓存以及回收站（绝不预先勾选）。Windows.old 只显示大小。
 - 🐳 **Docker 和 WSL 虚拟磁盘**：Docker Desktop 和每个 WSL 发行版的 `.vhdx` 只会变大，不会自己缩小。**压缩**会把它缩到 Linux 实际用到的大小。压缩前会先退出 Docker Desktop 并关闭 WSL，磁盘里的内容一样都不删。
 - 🎯 **自动选择**：直接在开发磁盘页设置项目闲置多久才算过期（3 到 365 天）、勾选哪些文件夹（构建产物、依赖、包缓存）以及最小体积。
@@ -201,7 +201,7 @@ Python 和 Java 也会运行普通的桌面应用，因此对于这两者，只�
 
 ### 给 AI 智能体和脚本用
 - ⌨️ **无界面命令**，**无需管理员权限**：`rigsweep --disk-report --json`、`rigsweep --disk-clean --safe [--dry-run] --json` 和 `rigsweep --port 3000 --json`。
-- 🔌 **MCP 服务器**：`rigsweep --mcp` 为 Claude Code、Cursor 或 Codex 提供 `drive_space`、`disk_report`、`free_disk_space`（除非另行指定，否则只做演练）和 `port_owner` 这几个工具。在 Claude Code 中：`claude mcp add rigsweep -- "C:\Program Files\RigSweep\rigsweep.exe" --mcp`。 Claude Desktop：从[最新版本](https://github.com/yobotn/rigsweep/releases/latest)安装 `rigsweep-<版本>.mcpb`。它也以 `io.github.yobotn/rigsweep` 收录在 [MCP Registry](https://registry.modelcontextprotocol.io/) 中。
+- 🔌 **MCP 服务器**：`rigsweep --mcp` 为 Claude Code、Cursor 或 Codex 提供 `drive_space`、`disk_report`、`free_disk_space`（除非另行指定，否则只做演练）和 `port_owner`，以及 `report_cleanup`（代理删除了 RigSweep 请它检查的文件夹后，告诉 RigSweep 路径，RigSweep 确认它们已不存在，再按自己测得的大小计入） 这几个工具。在 Claude Code 中：`claude mcp add rigsweep -- "C:\Program Files\RigSweep\rigsweep.exe" --mcp`。 Claude Desktop：从[最新版本](https://github.com/yobotn/rigsweep/releases/latest)安装 `rigsweep-<版本>.mcpb`。它也以 `io.github.yobotn/rigsweep` 收录在 [MCP Registry](https://registry.modelcontextprotocol.io/) 中。
 - 📖 完整参考：[rigsweep.com/cli](https://rigsweep.com/cli/)。
 
 ### 更新由你决定

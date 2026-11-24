@@ -690,7 +690,7 @@ fn find_git_files(dir: &Path, depth: usize, out: &mut Vec<PathBuf>) {
 
 /// The worktree's own git folder (`<repo>\.git\worktrees\<name>`) from its `.git` file, or None
 /// if the file doesn't point into a `worktrees` folder (a submodule does that).
-fn worktree_gitdir(wt: &Path) -> Option<PathBuf> {
+pub(crate) fn worktree_gitdir(wt: &Path) -> Option<PathBuf> {
     let s = fs::read_to_string(wt.join(".git")).ok()?;
     let g = s.lines().find_map(|l| l.trim().strip_prefix("gitdir:"))?.trim().replace('/', "\\");
     let mut p = PathBuf::from(&g);
@@ -712,7 +712,7 @@ fn main_repo(gitdir: &Path) -> Option<PathBuf> {
     }
 }
 
-fn git_out(dir: &Path, args: &[&str]) -> Option<String> {
+pub(crate) fn git_out(dir: &Path, args: &[&str]) -> Option<String> {
     use std::os::windows::process::CommandExt;
     let o = std::process::Command::new("git")
         .arg("-C")

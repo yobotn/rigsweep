@@ -1666,8 +1666,14 @@ pub async fn finders_remove_dead_entry(reg_key: String) -> R<String> {
 }
 
 #[tauri::command]
-pub async fn finders_recycle_leftover(path: String) -> R<()> {
-    blocking(move || recycle_leftover(&path)).await?
+pub async fn finders_recycle_leftover(state: tauri::State<'_, crate::commands::AppState>, path: String) -> R<()> {
+    let p = path.clone();
+    blocking(move || recycle_leftover(&p)).await??;
+    // RigSweep removed it: not space the AI helped free
+    if let Ok(db) = state.db.lock() {
+        db.drop_handoffs(&[path]);
+    }
+    Ok(())
 }
 
 #[tauri::command]

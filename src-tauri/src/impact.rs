@@ -86,6 +86,8 @@ pub struct Totals {
     pub disk: u64,
     pub memory: u64,
     pub browser: u64,
+    /// disk freed outside RigSweep after it asked the user's AI (handoff.rs); not in `disk`, not a cleanup
+    pub ai: u64,
     pub processes: u64,
     pub cleanups: u64,
     /// CPU the ended processes were using when ended, added up over every cleanup (% of the whole CPU)
@@ -115,7 +117,7 @@ pub fn total(rows: &[(i64, Freed)]) -> Totals {
     let mut runs: Vec<i64> = vec![];
     let mut run_cpu: Vec<(i64, f32)> = vec![];
     for (run, f) in rows {
-        if !runs.contains(run) {
+        if f.area != "ai" && !runs.contains(run) {
             runs.push(*run);
         }
         match f.area.as_str() {
@@ -132,6 +134,7 @@ pub fn total(rows: &[(i64, Freed)]) -> Totals {
             }
             "disk" => t.disk += f.bytes,
             "browser" => t.browser += f.bytes,
+            "ai" => t.ai += f.bytes,
             _ => {}
         }
         match t.kinds.iter_mut().find(|k| k.area == f.area && k.kind == f.kind) {

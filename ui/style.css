@@ -294,6 +294,7 @@ tr.group td { background: var(--panel2); padding-top: var(--s2); padding-bottom:
 
 /* dev disk */
 .scroll-list { max-height: 260px; overflow: auto; padding-inline-start: var(--s5); }
+.ai-answer { white-space: pre-wrap; overflow-wrap: anywhere; font-family: inherit; font-size: var(--fs-sm); max-height: 320px; overflow: auto; margin: var(--s2) 0; padding: var(--s2) var(--s3); border: 1px solid var(--border); border-radius: 6px; }
 #disk-body code { font-size: var(--fs-xs); }
 
 /* loading skeletons: shown until the first data arrives, so the dashboard never opens blank */

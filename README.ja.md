@@ -85,7 +85,7 @@ Python と Java は一般的なデスクトップ アプリでも使われるた
 - 📦 **パッケージキャッシュ**: npm、npx、pnpm、Yarn、Bun、pip、uv、Cargo、Go、NuGet、Gradle、Maven、Playwright、Puppeteer、Hugging Face。uv と Go はそれぞれのコマンド (`uv cache prune`、`go clean`) でクリーンアップし、Playwright と Puppeteer は古いブラウザーのバージョンだけを削除して最新版を残します。
 - 🎮 **GPU と機械学習**: NVIDIA、AMD、Intel、DirectX のシェーダーキャッシュ、CUDA の計算キャッシュ、PyTorch Hub のモデルとコンパイル済み拡張、Triton のカーネルキャッシュ、使われていない conda パッケージ (`conda clean --all` で削除)。Ollama と LM Studio のモデルはサイズを表示するだけで、削除はしません。
 - 🤖 **AI ツールとエディター**: Cursor、VS Code、Windsurf、Claude デスクトップアプリ、Codex、ChatGPT のアプリキャッシュ。アプリが開いている間はスキップします。Cursor の状態バックアップと古いチェックポイントも削除できます (あらかじめ選択されることはありません)。チャット履歴 (Cursor のチャットデータベース、Claude Code のチャット、Codex のセッション) はサイズを表示するだけなので、どこに容量が使われているかがわかります。Cursor をアンインストールした後は、そのチャット データベースとチェックポイントをごみ箱に移せます。
-- 🌿 **Git worktree**: Claude Code、Cursor、Codex、またはあなた自身が作った worktree を、ブランチ、リポジトリ、使われていない期間とともに表示します。削除には `git worktree remove` を使うため、未コミットの変更や追跡されていないファイルがある worktree は削除されません。ブランチとそのコミットは残ります。一緒に消える git の無視対象ファイル (`.env` など) は事前に一覧表示され、worktree があらかじめ選択されることはありません。 消して大丈夫か不安なら、**AI に確認** で、未プッシュのコミット、stash、作り直せないファイルを削除前に自分の AI エージェントに調べさせるプロンプトをコピーできます。
+- 🌿 **Git worktree**: Claude Code、Cursor、Codex、またはあなた自身が作った worktree を、ブランチ、リポジトリ、使われていない期間とともに表示します。削除には `git worktree remove` を使うため、未コミットの変更や追跡されていないファイルがある worktree は削除されません。ブランチとそのコミットは残ります。一緒に消える git の無視対象ファイル (`.env` など) は事前に一覧表示され、worktree があらかじめ選択されることはありません。 消して大丈夫か不安なら、**AI で確認** で、普段使っている AI コーディング CLI (Claude Code、Codex、Gemini CLI、Grok) を読み取り専用で実行できます。RigSweep が git の情報 (変更、無視されたファイル、未プッシュのコミット、stash) を渡し、AI はファイルを読むだけで、SAFE / NOT SAFE の判定が行に表示されます。CLI がなければ、代わりにエージェント用のプロンプトをコピーします。
 - 🖥️ **Windows の残りもの**: 7 日間触れられていないユーザーと Windows の一時ファイル、Windows Update のダウンロード、配信の最適化のファイル、クラッシュ ダンプとエラー レポート、縮小版キャッシュ、ごみ箱 (自動でチェックが入ることはありません)。Windows.old はサイズを表示するだけです。
 - 🐳 **Docker と WSL の仮想ディスク**: Docker Desktop と各 WSL ディストリビューションの `.vhdx` は大きくなる一方で、自然に小さくなることはありません。**縮小** を使うと、Linux が実際に使っている分まで縮めます。先に Docker Desktop を終了し WSL をシャットダウンしてから行い、ディスクの中身は何も削除しません。
 - 🎯 **自動選択**: 開発ディスク タブ上で、プロジェクトが何日更新されていなければ対象にするか (3～365 日)、どのフォルダーにチェックを入れるか (ビルド出力、依存関係、パッケージ キャッシュ)、最小サイズを選べます。
@@ -201,7 +201,7 @@ CPU-Z、GPU-Z、CrystalDiskInfo、CrystalDiskMark を開いて確認していた
 
 ### AI エージェントとスクリプト向け
 - ⌨️ **管理者権限が不要な**ヘッドレス コマンド: `rigsweep --disk-report --json`、`rigsweep --disk-clean --safe [--dry-run] --json`、`rigsweep --port 3000 --json`。
-- 🔌 **MCP サーバー**: `rigsweep --mcp` で、Claude Code、Cursor、Codex に `drive_space`、`disk_report`、`free_disk_space` (指定しない限りドライ ラン) と `port_owner` のツールを提供します。Claude Code の場合: `claude mcp add rigsweep -- "C:\Program Files\RigSweep\rigsweep.exe" --mcp`。 Claude Desktop では [最新リリース](https://github.com/yobotn/rigsweep/releases/latest) の `rigsweep-<バージョン>.mcpb` をインストールします。[MCP Registry](https://registry.modelcontextprotocol.io/) にも `io.github.yobotn/rigsweep` として登録されています。
+- 🔌 **MCP サーバー**: `rigsweep --mcp` で、Claude Code、Cursor、Codex に `drive_space`、`disk_report`、`free_disk_space` (指定しない限りドライ ラン) と `port_owner`、さらに `report_cleanup` (RigSweep が確認を頼んだフォルダーをエージェントが削除したら、そのパスを伝えます。RigSweep は消えたことを確かめ、自分で測ったサイズを記録します) のツールを提供します。Claude Code の場合: `claude mcp add rigsweep -- "C:\Program Files\RigSweep\rigsweep.exe" --mcp`。 Claude Desktop では [最新リリース](https://github.com/yobotn/rigsweep/releases/latest) の `rigsweep-<バージョン>.mcpb` をインストールします。[MCP Registry](https://registry.modelcontextprotocol.io/) にも `io.github.yobotn/rigsweep` として登録されています。
 - 📖 詳しいリファレンス: [rigsweep.com/cli](https://rigsweep.com/cli/)。
 
 ### 更新は自分で選択

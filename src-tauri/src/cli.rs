@@ -223,6 +223,8 @@ fn tools() -> Value {
           "inputSchema": { "type": "object", "properties": { "dry_run": { "type": "boolean", "default": true } } } },
         { "name": "port_owner", "description": "Which processes hold a local TCP/UDP port (e.g. why port 3000 is already in use), with PID and command line.",
           "inputSchema": { "type": "object", "properties": { "port": { "type": "integer", "minimum": 1, "maximum": 65535 } }, "required": ["port"] } },
+        { "name": "report_cleanup", "description": "After you deleted folders that RigSweep asked you to check (git worktrees, program leftovers), tell it which paths so it can count the space as freed with your help. Pass the exact paths only, never sizes: RigSweep checks each path is really gone and credits the size it measured itself. Paths it never handed to an AI, or that still exist, count for nothing. Deletes nothing.",
+          "inputSchema": { "type": "object", "properties": { "paths": { "type": "array", "items": { "type": "string" }, "minItems": 1, "maxItems": 200 } }, "required": ["paths"] } },
     ])
 }
 
@@ -231,6 +233,13 @@ fn call_tool(name: &str, args: &Value) -> Result<Value, String> {
         "drive_space" => Ok(json!(hardware::volumes()?)),
         "disk_report" => Ok(disk_summary()),
         "free_disk_space" => Ok(clean_safe(args["dry_run"].as_bool().unwrap_or(true))),
+        "report_cleanup" => {
+            let paths: Vec<String> = args["paths"].as_array().ok_or("paths must be a list of folder paths")?.iter().filter_map(|p| p.as_str().map(str::to_string)).take(200).collect();
+            if paths.is_empty() {
+                return Err("paths must be a list of folder paths".into());
+            }
+            Ok(crate::handoff::report(&paths))
+        }
         "port_owner" => {
             let p = args["port"].as_u64().filter(|p| (1..=65535).contains(p)).ok_or("port must be 1-65535")?;
             Ok(json!(netmon::port_owner(p as u16)))

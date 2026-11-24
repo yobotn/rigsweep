@@ -101,7 +101,7 @@
       </header>
       <div class="card impact" id="impact">
         <div class="impact-stats">
-          <div><div class="label" data-i18n="impact.disk"></div><div class="big disk" id="im-disk">–</div></div>
+          <div><div class="label" data-i18n="impact.disk"></div><div class="big disk" id="im-disk">–</div><div class="sub" id="im-ai"></div></div>
           <div><div class="label" data-i18n="impact.ram"></div><div class="big ram" id="im-ram">–</div></div>
           <div><div class="label" data-i18n="impact.procs"></div><div class="big" id="im-procs">–</div><div class="sub" id="im-ran"></div></div>
           <div><div class="label" data-i18n="impact.cpuPeak"></div><div class="big cpu" id="im-cpu">–</div><div class="sub" data-i18n="impact.cpuPeakSub"></div></div>
@@ -156,6 +156,8 @@
         <div class="actions">
           <button id="btn-disk-scan" data-icon="scan-search" class="ghost" data-i18n="disk.scan"></button>
           <button id="btn-disk-suggest" data-icon="list-checks" class="ghost" data-i18n="disk.selectSuggested"></button>
+          <button id="btn-disk-all" data-icon="check" class="ghost" data-i18n="sel.all" data-i18n-title="disk.selAllTip"></button>
+          <button id="btn-disk-none" data-icon="square" class="ghost" data-i18n="sel.none"></button>
           <button id="btn-disk-clean" data-icon="trash-2" class="danger" data-i18n="disk.clean"></button>
         </div>
       </header>
@@ -282,6 +284,8 @@
         <div class="actions">
           <button id="btn-bc-scan" data-icon="scan-search" class="ghost" data-i18n="bc.scan"></button>
           <button id="btn-bc-safe" data-icon="list-checks" class="ghost" data-i18n="bc.selectSafe"></button>
+          <button id="btn-bc-all" data-icon="check" class="ghost" data-i18n="sel.all"></button>
+          <button id="btn-bc-none" data-icon="square" class="ghost" data-i18n="sel.none"></button>
           <button id="btn-bc-clean" data-icon="trash-2" class="danger" data-i18n="bc.clean"></button>
         </div>
       </header>
