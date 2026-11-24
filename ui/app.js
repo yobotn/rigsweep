@@ -1214,9 +1214,10 @@ function renderDisk() {
   for (const [g, title] of [["win", "disk.caches.win"], ["pkg", "disk.caches"], ["gpu", "disk.caches.gpu"], ["ai", "disk.caches.ai"]]) {
     const list = disk.caches.filter((c) => cacheGroup(c) === g && !(diskView === "active" && c.disabled));
     if (!list.length) continue;
-    const freeable = list.filter((c) => !c.disabled && !c.show_only).reduce((a, c) => a + c.bytes, 0);
+    // a leftover goes to the Recycle Bin, which frees nothing until it is emptied
+    const freeable = list.filter((c) => !c.disabled && !c.show_only && !c.recycle).reduce((a, c) => a + c.bytes, 0);
     html += `<tr class="group"><td colspan="5"><b>${esc(t(title))}</b> <span class="sub">${fmtBytes(freeable)}</span></td>
-      <td>${groupBtn(dRows.filter((r) => r.c && list.includes(r.c)))}</td></tr>`;
+      <td><div class="row-acts">${groupBtn(dRows.filter((r) => r.c && list.includes(r.c) && !r.c.recycle))}</div></td></tr>`;
     html += [...list].sort(cacheOrder).map((c) => {
       const info = [];
       if (c.show_only) info.push(esc(t("disk.showOnly")));
@@ -2462,7 +2463,7 @@ $("#btn-chrome").onclick = async () => {
 function liveMs() { return Math.min(60, Math.max(2, Number(state?.settings?.live_refresh_secs) || 5)) * 1000; }
 
 // ---------- settings: tabs and autosave ----------
-let settingsTab = "general";
+let settingsTab = new URLSearchParams(location.search).get("stab") || "general"; // ?stab=: screenshots only
 function showSettingsTab(name) {
   if (!document.querySelector(`[data-stab-panel="${name}"]`)) name = "general";
   settingsTab = name;
@@ -3034,7 +3035,8 @@ async function ensureShareNotice() {
   applyI18n();
   await loadState().catch(() => {});
   pollDiskJob(); // a cleanup may still be running from before a reload
-  currentTab = "dashboard";
+  // the app opens on the Dashboard; ?tab= is only for the screenshot script (scripts/screenshots)
+  currentTab = new URLSearchParams(location.search).get("tab") || "dashboard";
   rerender();
   ensureDisclaimer().then(ensureShareNotice);
   // the heat tile waits for the first live sample; never let a skeleton spin forever
@@ -3144,6 +3146,8 @@ $("#btn-who-path").onclick = async (e) => {
 // registry entry is backed up first. "Worth a look" never says "threat": Defender gives verdicts.
 const fd = { progs: null, old: null, look: null };
 const fdSel = new Set();
+// Defender scans running, and their results by path (drawn again when a list is redrawn)
+const fdScanning = new Set(), fdVerdicts = new Map();
 const fmtDate = (s) => (s ? new Date(s * 1000).toLocaleDateString(LANG) : "—");
 function openFinders() { for (const k of Object.keys(fd)) renderFinder(k); }
 async function scanFinder(k, btn) {
@@ -3223,6 +3227,11 @@ document.addEventListener("click", (e) => {
   const b = e.target.closest("[data-show-path]");
   if (b) call("show_in_explorer", { path: b.dataset.showPath }).catch(() => {});
 });
+function fdVerdictHtml(path) {
+  const r = fdVerdicts.get(path);
+  if (!r) return `<div class="sub" data-fd-verdict="${esc(path)}"></div>`;
+  return `<div class="${r.verdict === "threat" ? "warn-text" : "sub"}" data-fd-verdict="${esc(path)}"${r.verdict === "error" ? ` title="${esc(r.detail)}"` : ""}>${esc(t("fd.look.v." + r.verdict))}</div>`;
+}
 const fdChk = (key, label) => `<input type="checkbox" data-fd="${esc(key)}" ${fdSel.has(key) ? "checked" : ""} aria-label="${esc(label)}" />`;
 function renderFinder(k) {
   const out = $(`#fd-${k}-out`), d = fd[k];
@@ -3235,7 +3244,7 @@ function renderFinder(k) {
         ? `${esc(t("fd.progs.dead"))}<div class="sub"><bdi dir="ltr">${esc(p.missing_file)}</bdi></div>`
         : `${esc(t(p.has_exe ? "fd.progs.portable" : "fd.progs.leftover"))}<div class="sub"><bdi dir="ltr">${esc(shortPath(p.path))}</bdi> · ${esc(t("fd.changed", { d: fmtDate(p.modified) }))}</div>`;
       return `<tr><td>${fdChk(key, p.name)}</td><td><b>${esc(p.name)}</b>${p.publisher ? `<div class="sub">${esc(p.publisher)}</div>` : ""}</td><td>${what}</td>
-        <td class="num">${p.kind === "dead_entry" ? "—" : fmtBytes(p.bytes)}</td><td><div class="row-acts">${(p.kind === "dead_entry" ? p.install_location : p.path) ? `<button class="small ghost" data-show-path="${esc((p.kind === "dead_entry" ? p.install_location : p.path))}" data-icon="folder-open">${esc(t("fd.space.show"))}</button>` : ""}${progAskBtn([p], t("disk.wt.ask"))}${p.kind === "dead_entry" ? "" : `<button class="small ghost" data-fd-scan-file="${esc(p.path)}" data-icon="shield-check">${esc(t("fd.look.defender"))}</button>`}</div>${p.kind === "dead_entry" ? "" : `<div class="sub" data-fd-verdict="${esc(p.path)}"></div>`}</td></tr>`;
+        <td class="num">${p.kind === "dead_entry" ? "—" : fmtBytes(p.bytes)}</td><td><div class="row-acts">${(p.kind === "dead_entry" ? p.install_location : p.path) ? `<button class="small ghost" data-show-path="${esc((p.kind === "dead_entry" ? p.install_location : p.path))}" data-icon="folder-open">${esc(t("fd.space.show"))}</button>` : ""}${progAskBtn([p], t("disk.wt.ask"))}${p.kind === "dead_entry" ? "" : `<button class="small ghost" data-fd-scan-file="${esc(p.path)}" data-icon="shield-check">${esc(t("fd.look.defender"))}</button>`}</div>${p.kind === "dead_entry" ? "" : `${fdVerdictHtml(p.path)}`}</td></tr>`;
     }).join("")}</tbody></table>
     <div class="fd-actions">${progAskBtn(d, t("disk.wt.askAll"))}<button class="danger" data-fd-act="progs" data-icon="trash-2">${esc(t("fd.progs.act"))}</button></div>`;
   } else if (k === "old") {
@@ -3254,7 +3263,7 @@ function renderFinder(k) {
       <td><bdi dir="ltr">${esc(shortPath(i.path))}</bdi>${i.running ? ` <span class="badge serving">${esc(t("fd.look.running"))}</span>` : ""}
         <div class="sub">${esc(fmtBytes(i.bytes))} · ${esc(fmtDate(i.modified))}${i.sha256 ? `<span class="pro-only" title="SHA-256"> · ${esc(i.sha256.slice(0, 16))}…</span>` : ""}</div></td>
       <td>${esc(t("fd.look." + i.reason))}${i.autostart ? `<div class="sub"><bdi dir="ltr">${esc(i.autostart)}</bdi></div>` : ""}${i.signer ? `<div class="sub">${esc(t("fd.look.signer", { s: i.signer }))}</div>` : ""}</td>
-      <td class="row-acts"><button class="small ghost" data-fd-scan-file="${esc(i.path)}" data-icon="shield-check">${esc(t("fd.look.defender"))}</button><div class="sub" data-fd-verdict="${esc(i.path)}"></div></td></tr>`).join("")}</tbody></table>`;
+      <td class="row-acts"><button class="small ghost" data-fd-scan-file="${esc(i.path)}" data-icon="shield-check">${esc(t("fd.look.defender"))}</button>${fdVerdictHtml(i.path)}</td></tr>`).join("")}</tbody></table>`;
   }
   if (k !== "look") fdUpdateTotal(k);
 }
@@ -3351,14 +3360,20 @@ $("#tab-finders").addEventListener("click", async (e) => {
   if (scan) return scanFinder(scan.dataset.fdScan, scan);
   const df = e.target.closest("[data-fd-scan-file]");
   if (df) {
-    const path = df.dataset.fdScanFile, out = [...document.querySelectorAll("[data-fd-verdict]")].find((x) => x.dataset.fdVerdict === path);
+    // the result is kept by path and drawn wherever the row is by then: a folder scan can take
+    // minutes, and the list may be redrawn meanwhile
+    const path = df.dataset.fdScanFile;
+    if (fdScanning.has(path)) return;
+    fdScanning.add(path);
     busy(df, true);
     try {
-      const r = await call("finders_defender_scan", { path });
-      out.textContent = t("fd.look.v." + r.verdict);
-      out.className = r.verdict === "threat" ? "warn-text" : "sub";
-      if (r.verdict === "error") out.title = r.detail;
-    } catch {} finally { busy(df, false); }
+      fdVerdicts.set(path, await call("finders_defender_scan", { path }));
+    } catch {} finally {
+      fdScanning.delete(path);
+      busy(df, false);
+      const out = [...document.querySelectorAll("[data-fd-verdict]")].find((x) => x.dataset.fdVerdict === path);
+      if (out && fdVerdicts.has(path)) out.outerHTML = fdVerdictHtml(path);
+    }
     return;
   }
   const act = e.target.closest("[data-fd-act]");

@@ -981,14 +981,21 @@ fn app_installed(app: &str, hay: &[String]) -> bool {
         return true;
     }
     let local = env_dir("LOCALAPPDATA").map(|l| l.join("Programs"));
-    let scoop = env_dir("USERPROFILE").map(|h| h.join("scoop\\apps"));
-    let roots = [local, env_dir("ProgramW6432"), env_dir("ProgramFiles"), env_dir("ProgramFiles(x86)"), scoop];
-    if roots.iter().flatten().any(|r| dirs.iter().any(|d| r.join(d).join(exe).is_file() || r.join(d).join("current").join(exe).is_file())) {
+    // Scoop: per user, global, or wherever SCOOP / SCOOP_GLOBAL point (it writes no uninstall entry)
+    let scoop = [
+        env_dir("SCOOP").or_else(|| env_dir("USERPROFILE").map(|h| h.join("scoop"))),
+        env_dir("SCOOP_GLOBAL").or_else(|| env_dir("ProgramData").map(|p| p.join("scoop"))),
+    ];
+    let mut roots: Vec<PathBuf> = [local, env_dir("ProgramW6432"), env_dir("ProgramFiles"), env_dir("ProgramFiles(x86)")].into_iter().flatten().collect();
+    roots.extend(scoop.into_iter().flatten().map(|s| s.join("apps")));
+    if roots.iter().any(|r| dirs.iter().any(|d| r.join(d).join(exe).is_file() || r.join(d).join("current").join(exe).is_file())) {
         return true;
     }
+    let mut read_any = false;
     for hive in [HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE] {
         for view in [KEY_WOW64_64KEY, KEY_WOW64_32KEY] {
             let Ok(un) = winreg::RegKey::predef(hive).open_subkey_with_flags(r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", KEY_READ | view) else { continue };
+            read_any = true;
             for k in un.enum_keys().flatten() {
                 let name: String = un.open_subkey_with_flags(&k, KEY_READ | view).and_then(|s| s.get_value("DisplayName")).unwrap_or_default();
                 if name.to_lowercase().starts_with(app) || k.to_lowercase().contains(app) {
@@ -997,7 +1004,8 @@ fn app_installed(app: &str, hay: &[String]) -> bool {
             }
         }
     }
-    false
+    // the uninstall list couldn't be read at all: that proves nothing, so it counts as installed
+    !read_any
 }
 
 fn is_leftover(def: &CacheDef, hay: &[String]) -> bool {

@@ -153,7 +153,7 @@ mod tests {
 /// Move a file or folder to the Recycle Bin (never a permanent delete), with no dialogs.
 pub fn recycle(path: &std::path::Path) -> Result<()> {
     use windows::core::PCWSTR;
-    use windows::Win32::UI::Shell::{SHFileOperationW, FOF_ALLOWUNDO, FOF_NOCONFIRMATION, FOF_NOERRORUI, FOF_SILENT, FO_DELETE, SHFILEOPSTRUCTW};
+    use windows::Win32::UI::Shell::{SHFileOperationW, FOF_ALLOWUNDO, FOF_NOCONFIRMATION, FOF_NOERRORUI, FOF_SILENT, FOF_WANTNUKEWARNING, FO_DELETE, SHFILEOPSTRUCTW};
     use std::os::windows::ffi::OsStrExt;
     if !path.is_absolute() || path.components().count() < 3 {
         return Err(anyhow!("refusing to recycle {}", path.display()));
@@ -163,7 +163,10 @@ pub fn recycle(path: &std::path::Path) -> Result<()> {
     let mut op = SHFILEOPSTRUCTW {
         wFunc: FO_DELETE,
         pFrom: PCWSTR(from.as_ptr()),
-        fFlags: (FOF_ALLOWUNDO.0 | FOF_NOCONFIRMATION.0 | FOF_NOERRORUI.0 | FOF_SILENT.0) as u16,
+        // with FOF_NOCONFIRMATION alone, something the bin can't take (too big for its quota, bin
+        // turned off, network drive) would be deleted for good without a word; FOF_WANTNUKEWARNING
+        // makes Windows ask first, and a "No" comes back as aborted
+        fFlags: (FOF_ALLOWUNDO.0 | FOF_NOCONFIRMATION.0 | FOF_WANTNUKEWARNING.0 | FOF_NOERRORUI.0 | FOF_SILENT.0) as u16,
         ..Default::default()
     };
     let rc = unsafe { SHFileOperationW(&mut op) };
