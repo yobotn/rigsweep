@@ -1221,7 +1221,10 @@ function renderDisk() {
       </tr>`).join("");
   }
   if (disk.worktrees?.length) {
-    html += `<tr class="group"><td colspan="6"><b>${esc(t("disk.worktrees"))}</b> <span class="sub">${fmtBytes(disk.worktree_total)}</span></td></tr>`;
+    // the group's own "Ask your AI": one prompt that checks every worktree listed
+    const allWt = disk.worktrees.map((w) => w.path).join("\n");
+    html += `<tr class="group"><td colspan="5"><b>${esc(t("disk.worktrees"))}</b> <span class="sub">${fmtBytes(disk.worktree_total)}</span></td>
+      <td><button class="small ghost" data-icon="copy" data-wt-ask="${esc(allWt)}" title="${esc(t("disk.wt.askTip"))}">${esc(t("disk.wt.ask"))}</button></td></tr>`;
     const wtOrder = sorter("disk", (w, k) => k === "what" ? shortPath(w.path) : k === "idle" ? w.idle_days : k === "type" ? w.tool : w.bytes);
     const TOOL = { claude: "Claude Code", cursor: "Cursor", codex: "Codex", windsurf: "Windsurf", git: "Git", temp: "%TEMP%" };
     html += [...disk.worktrees].sort(wtOrder).map((w) => {
