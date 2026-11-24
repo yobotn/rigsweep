@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use rusqlite::{params, Connection, OptionalExtension};
+use rusqlite::{params, Connection, OpenFlags, OptionalExtension};
 use serde::Serialize;
 use serde_json::Value;
 use std::path::PathBuf;
@@ -89,6 +89,18 @@ impl Db {
         std::fs::create_dir_all(data_dir()).context("create data dir")?;
         let conn = Connection::open(db_path()).context("open sqlite db")?;
         Self::init(conn)
+    }
+
+    /// The database for reading only, without creating or migrating anything: what a process without
+    /// admin rights (the headless commands, the MCP server) can do with it.
+    pub fn open_read() -> Result<Db> {
+        Self::open_read_at(&db_path())
+    }
+
+    fn open_read_at(p: &std::path::Path) -> Result<Db> {
+        let conn = Connection::open_with_flags(p, OpenFlags::SQLITE_OPEN_READ_ONLY | OpenFlags::SQLITE_OPEN_NO_MUTEX).context("open sqlite db read-only")?;
+        conn.busy_timeout(std::time::Duration::from_secs(10))?;
+        Ok(Db { conn })
     }
 
     #[cfg(test)]
@@ -345,9 +357,15 @@ impl Db {
 
     // ---------- settings ----------
     // ---------- AI hand-offs ----------
-    /// Whether this process may write the database (the MCP server, run without admin rights, can't).
+    /// Whether this process may write the database (the headless commands and the MCP server, run
+    /// without admin rights, can't). A real write in a transaction that is rolled back: SQLite opens a
+    /// file it may only read as read-only without saying so, and even BEGIN IMMEDIATE succeeds then.
     pub fn writable(&self) -> bool {
-        self.conn.execute_batch("BEGIN IMMEDIATE; ROLLBACK;").is_ok()
+        let ok = self.conn.execute_batch("BEGIN; CREATE TABLE IF NOT EXISTS rw_probe(x INTEGER); ROLLBACK;").is_ok();
+        if !ok {
+            let _ = self.conn.execute_batch("ROLLBACK;");
+        }
+        ok
     }
 
     // A folder RigSweep asked the user's AI about (a worktree, a program leftover), with the size
@@ -498,6 +516,30 @@ impl Db {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    #[test]
+    fn a_read_only_database_is_not_writable_and_nothing_is_left_behind() {
+        let p = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("target").join("db-ro-test.db");
+        let _ = std::fs::remove_file(&p);
+        let rw = Db::init(Connection::open(&p).unwrap()).unwrap();
+        assert!(rw.writable());
+        assert!(!rw.conn.prepare("SELECT 1 FROM sqlite_master WHERE name = 'rw_probe'").unwrap().exists([]).unwrap());
+        drop(rw);
+        let ro = Db::open_read_at(&p).unwrap();
+        assert!(!ro.writable());
+        assert!(ro.handoffs().is_ok()); // reading still works
+    }
+
+    /// On a real install, run without admin rights: cargo test real_db_read_only -- --ignored --nocapture
+    #[test]
+    #[ignore]
+    fn real_db_read_only() {
+        let opened = Db::open().map(|_| "read-write or silently read-only").unwrap_or("failed");
+        let ro = Db::open_read().expect("read-only open");
+        let roots = crate::engine::Settings::load(&ro).disk_roots;
+        println!("Db::open: {opened}; open_read writable: {}; disk_roots: {roots:?}", ro.writable());
+        assert!(!roots.is_empty());
+    }
 
     #[test]
     fn impact_backfill_then_new_runs() {

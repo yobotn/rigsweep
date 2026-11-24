@@ -110,22 +110,30 @@ fn gb(b: u64) -> String {
     format!("{:.1} GB", b as f64 / 1e9)
 }
 
-/// Settings from the app's database when it can be read, else the defaults.
-fn disk_config() -> devdisk::Config {
-    crate::db::Db::open()
-        .ok()
-        .map(|db| crate::commands::disk_config(&crate::engine::Settings::load(&db)))
-        .unwrap_or_else(|| devdisk::Config {
-            roots: devdisk::default_roots(),
-            excludes: vec![],
-            disabled: devdisk::default_disabled(),
-            stale_days: devdisk::default_stale_days(),
-        })
+/// The app's database. Without admin rights it can't be written (or migrated), so it is opened
+/// read-only then: settings can still be read.
+fn open_db() -> Option<crate::db::Db> {
+    crate::db::Db::open().ok().or_else(|| crate::db::Db::open_read().ok())
+}
+
+fn default_config() -> devdisk::Config {
+    devdisk::Config { roots: devdisk::default_roots(), excludes: vec![], disabled: devdisk::default_disabled(), stale_days: devdisk::default_stale_days() }
+}
+
+/// Settings from the app's database; the defaults when RigSweep has never run here (the MCP bundle
+/// works without the app). None when the database exists but can't be read: then the user's
+/// excluded folders and "Never clean" caches are unknown.
+fn disk_config() -> Option<devdisk::Config> {
+    if !crate::db::db_path().exists() {
+        return Some(default_config());
+    }
+    open_db().map(|db| crate::commands::disk_config(&crate::engine::Settings::load(&db)))
 }
 
 /// The Dev Disk scan, trimmed to what a person or an agent needs to decide.
 fn disk_summary() -> Value {
-    let r = devdisk::report(&disk_config());
+    // a report deletes nothing: unknown settings just mean the defaults
+    let r = devdisk::report(&disk_config().unwrap_or_else(default_config));
     let safe: u64 = devdisk::auto_targets(&r).iter().map(|t| t.bytes).sum();
     json!({
         "drives": hardware::volumes().unwrap_or_default(),
@@ -165,7 +173,11 @@ fn print_report(v: &Value) {
 
 /// Empty the caches that rebuild themselves, waiting for the cleanup to finish.
 fn clean_safe(dry_run: bool) -> Value {
-    let cfg = disk_config();
+    let cfg = match disk_config() {
+        Some(c) => c,
+        None if dry_run => default_config(),
+        None => return json!({ "error": "RigSweep's settings couldn't be read, so the folders you excluded and the caches set to Never clean are unknown. Nothing was cleaned. Open RigSweep once, or run this from an administrator terminal." }),
+    };
     let targets = devdisk::auto_targets(&devdisk::report(&cfg));
     let planned: Vec<Value> = targets.iter().map(|t| json!({ "cache": t.id, "bytes": t.bytes })).collect();
     let total: u64 = targets.iter().map(|t| t.bytes).sum();
@@ -180,11 +192,20 @@ fn clean_safe(dry_run: bool) -> Value {
         return json!({ "error": e });
     }
     let Ok(r) = rx.recv() else { return json!({ "error": "the cleanup stopped unexpectedly" }) };
-    if let Ok(db) = crate::db::Db::open() {
-        for c in &r.cleaned {
-            db.log("cli", None, "disk_clean", true, c);
+    // without admin rights the database is read-only: the app records this cleanup from the inbox
+    match open_db() {
+        Some(db) if db.writable() => {
+            for c in &r.cleaned {
+                db.log("cli", None, "disk_clean", true, c);
+            }
+            db.add_impact("cli", &r.impact);
         }
-        db.add_impact("cli", &r.impact);
+        _ => {
+            let e = crate::inbox::Entry { source: "cli".into(), cleaned: r.cleaned.clone(), impact: r.impact.clone() };
+            if let Err(err) = crate::inbox::save(&e) {
+                eprintln!("RigSweep couldn't note this cleanup for its Impact page: {err}");
+            }
+        }
     }
     json!({ "freed_bytes": r.freed, "cleaned": r.cleaned, "skipped": r.skipped, "locked_files": r.locked_files,
         "system_drive_free_before": before, "system_drive_free_after": devdisk::system_free() })

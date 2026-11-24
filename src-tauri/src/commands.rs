@@ -419,7 +419,9 @@ pub async fn kill_dev_processes(app: AppHandle, state: State<'_, AppState>, targ
 #[tauri::command]
 pub fn get_impact(state: State<'_, AppState>) -> R<crate::impact::Summary> {
     let db = lock(&state)?;
-    // folders handed to the user's AI that are gone now count as freed with its help
+    // cleanups the headless commands ran without admin rights, and folders handed to the user's
+    // AI that are gone now (freed with its help)
+    crate::inbox::ingest(&db);
     crate::handoff::settle(&db, None);
     let ago = |d: i64| (chrono::Local::now() - chrono::Duration::days(d)).format("%Y-%m-%d %H:%M:%S").to_string();
     let sum = |since: Option<&str>| db.impact_rows(since).map(|r| crate::impact::total(&r)).map_err(err);
@@ -500,6 +502,7 @@ pub(crate) fn disk_config(s: &Settings) -> devdisk::Config {
 pub async fn get_dev_disk(state: State<'_, AppState>) -> R<DiskReport> {
     let cfg = {
         let db = lock(&state)?;
+        crate::inbox::ingest(&db);
         crate::handoff::settle(&db, None);
         disk_config(&Settings::load(&db))
     };

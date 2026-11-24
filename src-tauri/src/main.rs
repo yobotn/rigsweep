@@ -20,6 +20,7 @@ mod gpu;
 mod handoff;
 mod hardware;
 mod icons;
+mod inbox;
 mod heat;
 mod impact;
 mod kill;
