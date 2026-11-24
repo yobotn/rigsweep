@@ -589,6 +589,8 @@ I18N["de"] = {
     "disk.tier.shown": "wird hier nicht gelöscht",
     "disk.tier.backup": "nächste Cursor-Sicherung",
     "disk.tier.history": "kommt nicht zurück",
+    "disk.tier.leftover": "App deinstalliert",
+    "disk.leftover.warn": "Die App, zu der diese Daten gehören, ist deinstalliert, nichts öffnet sie mehr. Sie kommen in den Papierkorb: Dort lassen sie sich wiederherstellen, oder leeren Sie ihn, um den Speicherplatz freizugeben.",
     "disk.tier.worktree": "Branch bleibt",
     "disk.showOnly": "Wird hier nur angezeigt. Was Sie nicht brauchen, entfernen Sie in der App selbst.",
     "disk.hist.warn": "⚠ Alte Cursor-Checkpoints und die Sicherung des Cursor-Zustands lassen sich nicht wiederherstellen. Chats und Einstellungen bleiben erhalten.",

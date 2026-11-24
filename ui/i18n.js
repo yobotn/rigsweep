@@ -531,6 +531,8 @@ const I18N = {
     "disk.tier.shown": "not deleted here",
     "disk.tier.backup": "Cursor’s next backup",
     "disk.tier.history": "doesn’t come back",
+    "disk.tier.leftover": "app uninstalled",
+    "disk.leftover.warn": "The app that owns these is uninstalled, so nothing opens them any more. They go to the Recycle Bin: restore them from there, or empty the bin to free the space.",
     "disk.tier.worktree": "branch stays",
     "disk.showOnly": "Only shown here. Remove what you don't need in the app itself.",
     "disk.hist.warn": "⚠ Old Cursor checkpoints or its state backup can't be brought back. Your chats and settings stay.",

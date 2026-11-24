@@ -1005,7 +1005,7 @@ function spaceNow() {
 }
 function renderDiskSpace() {
   // an orphaned worktree goes to the Recycle Bin, which frees nothing until the bin is emptied
-  const rows = diskRows().filter((r) => !r.w?.orphan);
+  const rows = diskRows().filter((r) => !r.w?.orphan && !r.c?.recycle);
   renderSpace($("#disk-space"), sumBy(rows.filter((r) => diskSel.has(r.k)), diskDrive, (r) => r.bytes), sumBy(rows, diskDrive, (r) => r.bytes), $("#btn-disk-clean"));
 }
 function renderBcSpace() {
@@ -1183,7 +1183,7 @@ function renderDisk() {
   // one row's own Clean button: the same confirm and backend job as "Delete selected", for just that row
   const oneBtn = (k) => `<button class="small ghost" data-icon="trash-2" data-disk-one="${esc(k)}" ${jobActive(diskJob) ? "disabled" : ""}>${esc(t("ready.clean"))}</button>`;
   const chk = (k, locked) => locked ? "🔒" : `<input type="checkbox" data-disk="${esc(k)}" ${diskSel.has(k) ? "checked" : ""} />`;
-  const tier = (x) => `<span class="risk ${x === "safe" || x === "build" ? "safe" : x === "history" || x === "bin" ? "caution" : x === "shown" ? "" : "moderate"}">${esc(t("disk.tier." + x))}</span>`;
+  const tier = (x) => `<span class="risk ${x === "safe" || x === "build" ? "safe" : x === "history" || x === "bin" || x === "leftover" ? "caution" : x === "shown" ? "" : "moderate"}">${esc(t("disk.tier." + x))}</span>`;
   let html = "";
   // package caches, then GPU & machine learning, then AI tools & editors; each its own group
   const cacheGroup = (c) => c.eco === "gpu" || c.eco === "ml" ? "gpu" : c.eco === "ai" ? "ai" : c.eco === "win" ? "win" : "pkg";
@@ -1372,7 +1372,8 @@ $("#btn-disk-clean").onclick = async (e, only) => {
     : r.w ? `<li><bdi dir="ltr">${pathPill(r.w.path, baseName(r.w.repo))}</bdi> <span class="sub">${fmtBytes(r.bytes)}</span></li>`
     : `<li><bdi dir="ltr">${pathPill(r.p.path, baseName(r.p.path))}\\<b>${esc(r.a.name)}</b></bdi> <span class="sub">${fmtBytes(r.bytes)}</span></li>`).join("");
   const ign = [...new Set(wts.flatMap((r) => r.w.ignored))];
-  const html = `${spaceLines(sumBy(picked.filter((r) => !r.w?.orphan), diskDrive, (r) => r.bytes))}<p>${esc(t("disk.confirm.body"))}</p><ul class="scroll-list">${li}</ul>
+  const html = `${spaceLines(sumBy(picked.filter((r) => !r.w?.orphan && !r.c?.recycle), diskDrive, (r) => r.bytes))}<p>${esc(t("disk.confirm.body"))}</p><ul class="scroll-list">${li}</ul>
+    ${picked.some((r) => r.c?.recycle) ? `<p class="warn-text">${esc(t("disk.leftover.warn"))}</p>` : ""}
     ${deps ? `<p class="warn-text">${esc(t("disk.deps.warn"))}</p>` : ""}
     ${redl ? `<p class="warn-text">${esc(t("disk.redl.warn"))}</p>` : ""}
     ${hist ? `<p class="warn-text">${esc(t("disk.hist.warn"))}</p>` : ""}

@@ -589,6 +589,8 @@ I18N["zh-CN"] = {
     "disk.tier.shown": "此处不删除",
     "disk.tier.backup": "Cursor 下次备份",
     "disk.tier.history": "无法恢复",
+    "disk.tier.leftover": "应用已卸载",
+    "disk.leftover.warn": "这些数据所属的应用已卸载，已没有程序会打开它们。它们会移到回收站：可以从回收站还原，或清空回收站以释放空间。",
     "disk.tier.worktree": "分支保留",
     "disk.showOnly": "这里仅作显示。不需要的内容请在对应应用中自行删除。",
     "disk.hist.warn": "⚠ Cursor 的旧检查点及其状态备份删除后无法恢复。你的聊天和设置会保留。",

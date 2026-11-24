@@ -959,6 +959,51 @@ const CACHES: &[CacheDef] = &[
     CacheDef { id: "winold", eco: "win", tier: "shown", how: How::Show, busy: &[] },
 ];
 
+/// The app that owns a shown-only item (chat history, checkpoints). While it is installed only it
+/// deletes them; once it is uninstalled nothing can open them any more, so they become a leftover
+/// that may go, to the Recycle Bin.
+fn owner_app(id: &str) -> Option<&'static str> {
+    match id {
+        "cursordb" | "cursorsnap" => Some("cursor"),
+        _ => None,
+    }
+}
+
+/// Any sign the app is still on this PC: running, its exe in a usual place, or an uninstall entry
+/// named after it. A false "installed" only keeps the data, which is the safe side.
+fn app_installed(app: &str, hay: &[String]) -> bool {
+    use winreg::enums::{HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, KEY_READ, KEY_WOW64_32KEY, KEY_WOW64_64KEY};
+    let (exe, dirs): (&str, &[&str]) = match app {
+        "cursor" => ("cursor.exe", &["cursor"]),
+        _ => return true,
+    };
+    if hay.iter().any(|h| h.contains(&format!("\\{exe}"))) {
+        return true;
+    }
+    let local = env_dir("LOCALAPPDATA").map(|l| l.join("Programs"));
+    let scoop = env_dir("USERPROFILE").map(|h| h.join("scoop\\apps"));
+    let roots = [local, env_dir("ProgramW6432"), env_dir("ProgramFiles"), env_dir("ProgramFiles(x86)"), scoop];
+    if roots.iter().flatten().any(|r| dirs.iter().any(|d| r.join(d).join(exe).is_file() || r.join(d).join("current").join(exe).is_file())) {
+        return true;
+    }
+    for hive in [HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE] {
+        for view in [KEY_WOW64_64KEY, KEY_WOW64_32KEY] {
+            let Ok(un) = winreg::RegKey::predef(hive).open_subkey_with_flags(r"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", KEY_READ | view) else { continue };
+            for k in un.enum_keys().flatten() {
+                let name: String = un.open_subkey_with_flags(&k, KEY_READ | view).and_then(|s| s.get_value("DisplayName")).unwrap_or_default();
+                if name.to_lowercase().starts_with(app) || k.to_lowercase().contains(app) {
+                    return true;
+                }
+            }
+        }
+    }
+    false
+}
+
+fn is_leftover(def: &CacheDef, hay: &[String]) -> bool {
+    def.how == How::Show && owner_app(def.id).is_some_and(|a| !app_installed(a, hay))
+}
+
 /// The cache folders of an Electron app (and VS Code-style editors) inside its data folder.
 /// Settings, sign-ins, extensions and chat history stay.
 const ELECTRON_CACHES: &[&str] = &[
@@ -1281,6 +1326,8 @@ pub struct CacheView {
     pub keep_newest: bool,
     /// shown with its size only; never cleaned here (models, chat history)
     pub show_only: bool,
+    /// a leftover of an uninstalled app: it goes to the Recycle Bin, so nothing is freed until the bin is emptied
+    pub recycle: bool,
     /// only what is older than this many days goes (0: everything)
     pub aged_days: u64,
     pub paths: Vec<String>,
@@ -1321,6 +1368,7 @@ fn scan_caches(cfg: &Config, hay: &[String]) -> Vec<CacheView> {
         if paths.is_empty() {
             return None;
         }
+        let leftover = is_leftover(def, hay);
         let total: u64 = if def.how == How::RecycleBin { recycle_size() } else { paths.iter().map(|p| path_size(p)).sum() };
         let bytes = if def.how == How::RecycleBin {
             total
@@ -1339,14 +1387,15 @@ fn scan_caches(cfg: &Config, hay: &[String]) -> Vec<CacheView> {
         Some(CacheView {
             id: def.id,
             eco: def.eco,
-            tier: def.tier,
+            tier: if leftover { "leftover" } else { def.tier },
             bytes,
             total,
             disabled: cfg.disabled.iter().any(|d| d == def.id),
             busy: cache_busy(def, hay),
             tool: tool_label(def.how),
             keep_newest: def.how == How::KeepNewest,
-            show_only: def.how == How::Show,
+            show_only: def.how == How::Show && !leftover,
+            recycle: leftover,
             aged_days: if let How::Aged(d) = def.how { d } else { 0 },
             paths: paths.iter().map(|p| p.to_string_lossy().into_owned()).collect(),
         })
@@ -1684,6 +1733,21 @@ fn clean_cache(def: &CacheDef) -> Result<(u64, bool), String> {
             FREED.fetch_add(before.saturating_sub(recycle_size()), Ordering::Relaxed);
             Ok((0, false))
         }
+        // checked again now: the app may have been installed since the scan
+        How::Show if is_leftover(def, &process_hay()) => {
+            for p in paths.iter().filter(|p| p.exists()) {
+                if hold() {
+                    return Ok((0, true));
+                }
+                if let Ok(mut c) = CURRENT.lock() {
+                    *c = format!("Recycle Bin: {}", p.display());
+                }
+                let size = path_size(p);
+                crate::util::recycle(p).map_err(|e| e.to_string())?;
+                FREED.fetch_add(size, Ordering::Relaxed);
+            }
+            Ok((0, false))
+        }
         How::Show => Err("only shown here; remove it in the app that owns it".into()),
     }
 }
@@ -1982,6 +2046,25 @@ mod tests {
         let _ = fs::remove_dir_all(&p);
         fs::create_dir_all(&p).unwrap();
         p
+    }
+
+    #[test]
+    fn leftovers_only_from_shown_items_of_an_uninstalled_app() {
+        // only shown-only items have an owner app; caches never take the Recycle Bin route
+        for d in CACHES {
+            if owner_app(d.id).is_some() {
+                assert!(d.how == How::Show, "{} has an owner but is not shown-only", d.id);
+            }
+        }
+        // a running Cursor always counts as installed, whatever the disk and registry say
+        let running = vec![r"c:\x\|c:\users\a\appdata\local\programs\cursor\cursor.exe|cursor.exe".to_string()];
+        assert!(app_installed("cursor", &running));
+        let db = CACHES.iter().find(|d| d.id == "cursordb").unwrap();
+        assert!(!is_leftover(db, &running));
+        // an app RigSweep knows nothing about is always treated as installed
+        assert!(app_installed("nope", &[]));
+        let npm = CACHES.iter().find(|d| d.id == "npm").unwrap();
+        assert!(!is_leftover(npm, &[]));
     }
 
     #[test]

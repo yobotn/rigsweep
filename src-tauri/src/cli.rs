@@ -132,7 +132,7 @@ fn disk_summary() -> Value {
         "safe_to_clean_bytes": safe,
         "caches": r.caches.iter().filter(|c| c.bytes > 0 || c.show_only).map(|c| json!({
             "id": c.id, "group": c.eco, "comes_back": c.tier, "bytes": if c.show_only { c.total } else { c.bytes },
-            "only_shown": c.show_only, "in_use": c.busy, "never_clean": c.disabled, "paths": c.paths,
+            "only_shown": c.show_only, "to_recycle_bin": c.recycle, "in_use": c.busy, "never_clean": c.disabled, "paths": c.paths,
         })).collect::<Vec<_>>(),
         "projects": r.projects.iter().map(|p| json!({
             "path": p.path, "idle_days": p.idle_days, "stale": p.stale, "in_use": p.busy,

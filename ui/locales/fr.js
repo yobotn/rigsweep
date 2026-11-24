@@ -589,6 +589,8 @@ I18N["fr"] = {
     "disk.tier.shown": "pas supprimé ici",
     "disk.tier.backup": "la prochaine sauvegarde de Cursor",
     "disk.tier.history": "ne revient pas",
+    "disk.tier.leftover": "application désinstallée",
+    "disk.leftover.warn": "L’application à laquelle ils appartiennent est désinstallée, plus rien ne les ouvre. Ils vont dans la Corbeille : restaurez-les depuis la Corbeille, ou videz-la pour libérer l’espace.",
     "disk.tier.worktree": "la branche reste",
     "disk.showOnly": "Simplement affiché ici. Supprimez ce dont vous n'avez pas besoin depuis l'application elle-même.",
     "disk.hist.warn": "⚠ Les anciens checkpoints de Cursor et la sauvegarde de son état ne pourront pas être récupérés. Vos discussions et réglages sont conservés.",

@@ -589,6 +589,8 @@ I18N["ja"] = {
     "disk.tier.shown": "ここでは削除しない",
     "disk.tier.backup": "Cursor の次回バックアップ",
     "disk.tier.history": "元に戻せない",
+    "disk.tier.leftover": "アプリはアンインストール済み",
+    "disk.leftover.warn": "これらを使うアプリはアンインストール済みのため、開くものはもうありません。ごみ箱に移されます。ごみ箱から復元するか、ごみ箱を空にして領域を解放してください。",
     "disk.tier.worktree": "ブランチは残る",
     "disk.showOnly": "ここでは表示のみです。不要なものはそのアプリ側で削除してください。",
     "disk.hist.warn": "⚠ Cursor の古いチェックポイントや状態のバックアップは元に戻せません。チャットと設定は残ります。",

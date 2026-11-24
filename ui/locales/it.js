@@ -589,6 +589,8 @@ I18N["it"] = {
     "disk.tier.shown": "non si elimina qui",
     "disk.tier.backup": "il prossimo backup di Cursor",
     "disk.tier.history": "non torna",
+    "disk.tier.leftover": "app disinstallata",
+    "disk.leftover.warn": "L’app a cui appartengono è stata disinstallata, quindi niente li apre più. Vanno nel Cestino: puoi ripristinarli da lì o svuotarlo per liberare lo spazio.",
     "disk.tier.worktree": "il branch resta",
     "disk.showOnly": "Viene solo mostrato qui. Rimuovi ciò che non ti serve direttamente dall'app.",
     "disk.hist.warn": "⚠ I vecchi checkpoint di Cursor e il backup del suo stato non si possono recuperare. Chat e impostazioni restano.",

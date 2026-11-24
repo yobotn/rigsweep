@@ -589,6 +589,8 @@ I18N["ko"] = {
     "disk.tier.shown": "여기서 삭제 안 함",
     "disk.tier.backup": "Cursor의 다음 백업",
     "disk.tier.history": "되돌릴 수 없음",
+    "disk.tier.leftover": "앱 제거됨",
+    "disk.leftover.warn": "이 데이터를 쓰는 앱이 제거되어 더 이상 열 수 있는 앱이 없습니다. 휴지통으로 옮겨집니다. 휴지통에서 복원하거나, 휴지통을 비워 공간을 확보하세요.",
     "disk.tier.worktree": "브랜치 유지",
     "disk.showOnly": "여기서는 표시만 합니다. 필요 없는 항목은 해당 앱에서 직접 삭제하세요.",
     "disk.hist.warn": "⚠ Cursor의 오래된 체크포인트나 상태 백업은 되돌릴 수 없습니다. 채팅과 설정은 그대로 남습니다.",
