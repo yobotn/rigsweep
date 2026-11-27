@@ -399,16 +399,31 @@ fn arg_value(cmd: &str, name: &str) -> Option<String> {
     (!v.is_empty()).then(|| v.to_string())
 }
 
-/// Where a Chromium browser keeps its profiles, by the program its uninstall command runs.
-fn browser_user_data(exe: &str) -> Option<PathBuf> {
-    let local = env_dir("LOCALAPPDATA")?;
-    let sub = match exe {
-        "chrome.exe" | "chrome_proxy.exe" => r"Google\Chrome\User Data",
-        "msedge.exe" | "msedge_proxy.exe" => r"Microsoft\Edge\User Data",
-        "brave.exe" | "brave_proxy.exe" => r"BraveSoftware\Brave-Browser\User Data",
+/// Where a Chromium browser keeps its profiles, by the program its uninstall command runs:
+/// <vendor>\<channel>\Application\<exe> keeps them in %LOCALAPPDATA%\<vendor>\<channel>\User Data,
+/// each channel (Beta, Dev, Canary) its own. Anything else can't be judged.
+fn browser_user_data(prog: &str) -> Option<PathBuf> {
+    user_data_under(&env_dir("LOCALAPPDATA")?, prog)
+}
+
+fn user_data_under(local: &Path, prog: &str) -> Option<PathBuf> {
+    let p = Path::new(prog);
+    let name = |q: Option<&Path>| q.and_then(|q| q.file_name()).map(|n| n.to_string_lossy().into_owned());
+    let exe = name(Some(p))?.to_ascii_lowercase();
+    let app = p.parent();
+    let channel_dir = app.and_then(|a| a.parent());
+    if !name(app)?.eq_ignore_ascii_case("Application") {
+        return None;
+    }
+    let (vendor, channel) = (name(channel_dir.and_then(|c| c.parent()))?, name(channel_dir)?);
+    let (vendor, channels): (&str, &[&str]) = match (vendor.to_ascii_lowercase().as_str(), exe.as_str()) {
+        ("google", "chrome.exe" | "chrome_proxy.exe") => ("Google", &["Chrome", "Chrome Beta", "Chrome Dev", "Chrome SxS"]),
+        ("microsoft", "msedge.exe" | "msedge_proxy.exe") => ("Microsoft", &["Edge", "Edge Beta", "Edge Dev", "Edge SxS"]),
+        ("bravesoftware", "brave.exe" | "brave_proxy.exe") => ("BraveSoftware", &["Brave-Browser", "Brave-Browser-Beta", "Brave-Browser-Nightly"]),
         _ => return None,
     };
-    Some(local.join(sub))
+    let channel = channels.iter().find(|c| c.eq_ignore_ascii_case(&channel))?;
+    Some(local.join(vendor).join(channel).join("User Data"))
 }
 
 /// A browser web app (Chrome, Edge or Brave "install this site as an app") registers an uninstall entry that
@@ -428,8 +443,12 @@ fn dead_web_app(e: &UninstEntry, user_data_of: &dyn Fn(&str) -> Option<PathBuf>)
     if profile.contains(['\\', '/']) || profile.contains("..") {
         return None;
     }
+    // a profile folder of its own (--user-data-dir) is not judged
+    if arg_value(&e.uninstall_string, "--user-data-dir=").is_some() {
+        return None;
+    }
     let (prog, _) = split_command(&e.uninstall_string)?;
-    let user_data = user_data_of(&base_name(&prog))?;
+    let user_data = user_data_of(&prog)?;
     // no Local State: not the folder this browser uses, so nothing can be said
     if !user_data.join("Local State").is_file() {
         return None;
@@ -1983,7 +2002,7 @@ mod tests {
         let kept = "aghbiahbpaijignceidepookljebhfak";
         let gone = "efmjfjelnicpmdcmfikempdhlmainjcb";
         fs::create_dir_all(icons.join(kept)).unwrap();
-        let of = |exe: &str| (exe == "chrome.exe").then(|| ud.clone());
+        let of = |exe: &str| exe.to_ascii_lowercase().ends_with(r"\chrome.exe").then(|| ud.clone());
         let cmd = |id: &str, prof: &str| format!(r#""C:\Program Files\Google\Chrome\Application\chrome.exe" --profile-directory={prof} --uninstall-app-id={id}"#);
         assert_eq!(dead_web_app(&entry("HKCU", "Chrome Remote Desktop", &cmd(gone, "Default")), &of), Some(icons.join(gone)));
         assert_eq!(dead_web_app(&entry("HKCU", "Kept", &cmd(kept, "Default")), &of), None);
@@ -1995,10 +2014,28 @@ mod tests {
         assert_eq!(dead_web_app(&entry("HKCU", "x", &cmd(gone, r"..\..\Windows")), &of), None);
         let other = format!(r#""C:\Tools\other.exe" --uninstall-app-id={gone}"#);
         assert_eq!(dead_web_app(&entry("HKCU", "x", &other), &of), None);
+        let own = format!(r#""C:\Program Files\Google\Chrome\Application\chrome.exe" --user-data-dir="D:\p" --uninstall-app-id={gone}"#);
+        assert_eq!(dead_web_app(&entry("HKCU", "x", &own), &of), None);
         // without a Local State the folder is not the browser's, so nothing is said
         fs::remove_file(ud.join("Local State")).unwrap();
         assert_eq!(dead_web_app(&entry("HKCU", "x", &cmd(gone, "Default")), &of), None);
         let _ = fs::remove_dir_all(&ud);
+    }
+
+    #[test]
+    fn finders_browser_channels_have_their_own_profiles() {
+        let l = Path::new(r"C:\L");
+        let ud = |p: &str| user_data_under(l, p);
+        assert_eq!(ud(r"C:\Program Files\Google\Chrome\Application\chrome_proxy.exe"), Some(l.join(r"Google\Chrome\User Data")));
+        assert_eq!(ud(r"C:\Program Files\Google\Chrome Beta\Application\chrome.exe"), Some(l.join(r"Google\Chrome Beta\User Data")));
+        assert_eq!(ud(r"C:\Users\u\AppData\Local\Google\Chrome SxS\Application\chrome.exe"), Some(l.join(r"Google\Chrome SxS\User Data")));
+        assert_eq!(ud(r"C:\Program Files (x86)\Microsoft\Edge Dev\Application\msedge_proxy.exe"), Some(l.join(r"Microsoft\Edge Dev\User Data")));
+        assert_eq!(ud(r"C:\Program Files\BraveSoftware\Brave-Browser-Nightly\Application\brave.exe"), Some(l.join(r"BraveSoftware\Brave-Browser-Nightly\User Data")));
+        // anything else can't be judged
+        assert_eq!(ud(r"C:\Program Files\Google\Chromium\Application\chrome.exe"), None);
+        assert_eq!(ud(r"C:\Tools\chrome.exe"), None);
+        assert_eq!(ud(r"C:\Program Files\Google\Chrome\Application\msedge.exe"), None);
+        assert_eq!(ud("chrome.exe"), None);
     }
 
     #[test]
