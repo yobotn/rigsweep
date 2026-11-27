@@ -713,17 +713,14 @@ fn main_repo(gitdir: &Path) -> Option<PathBuf> {
     }
 }
 
+/// git, run as the signed-in user and never as admin: a repository's own config (core.fsmonitor,
+/// filters) can make git run any program, and anything running as the user can write that config.
 pub(crate) fn git_out(dir: &Path, args: &[&str]) -> Option<String> {
-    use std::os::windows::process::CommandExt;
-    let o = std::process::Command::new("git")
-        .arg("-C")
-        .arg(dir)
-        .args(args)
-        .creation_flags(0x0800_0000) // CREATE_NO_WINDOW
-        .stdin(std::process::Stdio::null())
-        .output()
-        .ok()?;
-    o.status.success().then(|| String::from_utf8_lossy(&o.stdout).into_owned())
+    let mut a = vec!["-C".to_string(), dir.to_string_lossy().into_owned()];
+    a.extend(args.iter().map(|s| s.to_string()));
+    let req = crate::asuser::Req { exe: "git".into(), args: a, timeout_secs: 120, max_output: 16 << 20, ..Default::default() };
+    let o = crate::asuser::run(&req, &|| false);
+    o.success().then_some(o.stdout)
 }
 
 /// (dirty, ignored non-build entries) from `git status`; None if git can't read it.
@@ -1694,6 +1691,28 @@ fn run_tool(exe: &str, args: &[&str]) -> Result<(), String> {
     Err(if e.trim().is_empty() { o } else { e }.trim().chars().take(200).collect())
 }
 
+/// git without admin rights, stopped by Stop and after TOOL_LIMIT like run_tool.
+fn git_as_user(args: &[&str]) -> Result<(), String> {
+    let req = crate::asuser::Req {
+        exe: "git".into(),
+        args: args.iter().map(|s| s.to_string()).collect(),
+        timeout_secs: TOOL_LIMIT.as_secs(),
+        max_output: 1 << 16,
+        ..Default::default()
+    };
+    let o = crate::asuser::run(&req, &|| CTL.load(Ordering::SeqCst) == STOP);
+    if o.success() {
+        return Ok(());
+    }
+    if o.timed_out {
+        return Err(format!("no result after {} minutes, stopped", TOOL_LIMIT.as_secs() / 60));
+    }
+    if let Some(e) = o.error {
+        return Err(e);
+    }
+    Err(if o.stderr.trim().is_empty() { o.stdout } else { o.stderr }.trim().chars().take(200).collect())
+}
+
 /// Returns (files left, stopped). Bytes are counted in FREED as files go; a tool's own cleanup
 /// is measured before and after (and can't be paused or stopped half-way).
 fn clean_cache(def: &CacheDef) -> Result<(u64, bool), String> {
@@ -1844,7 +1863,8 @@ fn run(cfg: &Config, targets: Vec<DiskTarget>, save: &dyn Fn(&[DiskTarget])) -> 
                     let size = local_size(&dir);
                     let (repo_s, dir_s) = (repo.to_string_lossy().into_owned(), dir.to_string_lossy().into_owned());
                     // no --force: git refuses a worktree with changes, which is what we want
-                    let res = run_tool("git", &["-C", &repo_s, "worktree", "remove", &dir_s]);
+                    // as the signed-in user, like every git call (see git_out)
+                    let res = git_as_user(&["-C", &repo_s, "worktree", "remove", &dir_s]);
                     let left = if dir.exists() { local_size(&dir) } else { 0 };
                     FREED.fetch_add(size.saturating_sub(left), Ordering::Relaxed);
                     match res {

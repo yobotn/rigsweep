@@ -2,6 +2,7 @@
 
 mod actions;
 mod aicheck;
+mod asuser;
 mod analyzer;
 mod badge;
 mod browserclean;
@@ -47,6 +48,12 @@ use commands::AppState;
 fn main() {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let has = |f: &str| args.iter().any(|a| a.eq_ignore_ascii_case(f));
+
+    // the copy the elevated app starts without admin rights, to run git and AI CLIs (asuser.rs)
+    if args.first().is_some_and(|a| a == asuser::FLAG) {
+        asuser::serve();
+        return;
+    }
 
     // headless commands for scripts and agents (no admin rights needed, no window)
     if cli::try_run(&args) {

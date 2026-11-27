@@ -9,14 +9,12 @@
 // Trust: commit messages and file names in the facts come from the repository, so they are fenced
 // and the prompt says they are data. The worst a hostile repo can do is a wrong verdict, which the
 // user reads before confirming the removal. The agent runs in an empty folder, not in the
-// worktree, so the repository's own agent settings (hooks, MCP servers) aren't loaded.
+// worktree, so the repository's own agent settings (hooks, MCP servers) aren't loaded, and it
+// runs as the signed-in user, never with the app's admin rights.
 
 use serde::Serialize;
-use std::io::{Read, Write};
-use std::os::windows::process::CommandExt;
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use crate::devdisk::{git_out, worktree_gitdir};
 
@@ -160,33 +158,44 @@ fn parse(text: &str, paths: &[String]) -> Vec<Verdict> {
     v
 }
 
-/// The agent's headless, read-only command line. The prompt goes in on stdin, except for Grok,
+/// The agent's headless, read-only arguments. The prompt goes in on stdin, except for Grok,
 /// whose docs only show it as an argument.
-fn command(id: &str, exe: &Path, paths: &[String], prompt: &str) -> Command {
-    let mut c = Command::new(exe);
+fn command(id: &str, paths: &[String], prompt: &str) -> Vec<String> {
+    let s = |v: &[&str]| v.iter().map(|x| x.to_string()).collect::<Vec<_>>();
     match id {
         // --restricted: no shell or code-running tools, the user's and repo's settings files (hooks)
         // ignored; --tools: reading only; dontAsk: anything else is refused, not asked
         "claude" => {
-            c.args(["-p", "--restricted", "--safe-mode", "--strict-mcp-config", "--no-session-persistence", "--tools", "Read,Glob,Grep", "--permission-mode", "dontAsk"]);
+            let mut a = s(&["-p", "--restricted", "--safe-mode", "--strict-mcp-config", "--no-session-persistence", "--tools", "Read,Glob,Grep", "--permission-mode", "dontAsk"]);
             for p in paths {
-                c.arg("--add-dir").arg(p);
+                a.push("--add-dir".into());
+                a.push(p.clone());
             }
+            a
         }
         // the read-only sandbox lets it read and run commands, but write nothing
-        "codex" => {
-            c.args(["exec", "--sandbox", "read-only", "--skip-git-repo-check", "--color", "never", "-"]);
-        }
+        "codex" => s(&["exec", "--sandbox", "read-only", "--skip-git-repo-check", "--color", "never", "-"]),
         // headless without --yolo: the tools that write or run commands are left out
         "gemini" => {
-            c.args(["-p", "Follow the instructions given on standard input.", "--include-directories"]).arg(paths.join(","));
+            let mut a = s(&["-p", "Follow the instructions given on standard input.", "--include-directories"]);
+            a.push(paths.join(","));
+            a
         }
         "grok" => {
-            c.args(["-p", prompt, "--tools", "read_file,grep,list_dir", "--disallowed-tools", "run_terminal_cmd", "--no-subagents", "--no-memory", "--disable-web-search", "--no-auto-update", "--max-turns", "30", "--output-format", "plain"]);
+            let mut a = s(&["-p"]);
+            a.push(prompt.to_string());
+            a.extend(s(&["--tools", "read_file,grep,list_dir", "--disallowed-tools", "run_terminal_cmd", "--no-subagents", "--no-memory", "--disable-web-search", "--no-auto-update", "--max-turns", "30", "--output-format", "plain"]));
+            a
         }
-        _ => {}
+        _ => vec![],
     }
-    c
+}
+
+/// A command line Windows can start: 32,767 characters, 8,191 through a .cmd (npm's shims).
+fn fits_command_line(exe: &Path, args: &[String]) -> bool {
+    let len: usize = exe.as_os_str().len() + args.iter().map(|a| a.encode_utf16().count() + 3).sum::<usize>();
+    let cmd = exe.extension().is_some_and(|e| e.eq_ignore_ascii_case("cmd") || e.eq_ignore_ascii_case("bat"));
+    len < if cmd { 8_000 } else { 32_000 }
 }
 
 /// Run one AI CLI on these worktrees and return what it said.
@@ -209,57 +218,34 @@ pub fn check(agent: &str, paths: &[String], lang: &str) -> AiCheck {
     // a language name from the UI's own list; anything else is dropped
     let lang: String = lang.chars().filter(|c| c.is_alphabetic() || *c == ' ' || *c == '(' || *c == ')').take(40).collect();
     let prompt = prompt(&fs, lang.trim());
-    // an empty folder of its own, so no repository's agent config is picked up
+    let args = command(id, paths, &prompt);
+    if !fits_command_line(&exe, &args) {
+        return fail(format!("{id} takes the prompt on its command line, which is too long for {} worktrees. Pick fewer.", paths.len()));
+    }
+    // an empty folder of its own, so no repository's agent config is picked up. It runs as the
+    // signed-in user, not as admin (asuser.rs): its own config and MCP servers are the user's.
     let cwd = std::env::temp_dir().join("RigSweep-ai-check");
     let _ = std::fs::create_dir_all(&cwd);
-    let mut cmd = command(id, &exe, paths, &prompt);
-    cmd.current_dir(&cwd)
-        .env_remove("CLAUDECODE")
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .creation_flags(0x0800_0000); // CREATE_NO_WINDOW
-    let mut child = match cmd.spawn() {
-        Ok(c) => c,
-        Err(e) => return fail(format!("could not start {}: {e}", exe.display())),
+    let req = crate::asuser::Req {
+        exe: exe.to_string_lossy().into_owned(),
+        args,
+        cwd: Some(cwd.to_string_lossy().into_owned()),
+        env_remove: vec!["CLAUDECODE".into()],
+        stdin: Some(if id == "grok" { String::new() } else { prompt }),
+        timeout_secs: TIMEOUT.as_secs(),
+        max_output: MAX_OUTPUT,
     };
-    if let Some(mut si) = child.stdin.take() {
-        let body = if id == "grok" { String::new() } else { prompt };
-        std::thread::spawn(move || {
-            let _ = si.write_all(body.as_bytes());
-        });
+    let o = crate::asuser::run(&req, &|| false);
+    if o.timed_out {
+        return fail(format!("{id} took longer than {} minutes and was stopped", TIMEOUT.as_secs() / 60));
     }
-    let read = |s: Option<Box<dyn Read + Send>>| {
-        std::thread::spawn(move || {
-            let mut b = vec![];
-            if let Some(mut s) = s {
-                let _ = s.by_ref().take(MAX_OUTPUT as u64).read_to_end(&mut b);
-                std::io::copy(&mut s, &mut std::io::sink()).ok();
-            }
-            String::from_utf8_lossy(&b).into_owned()
-        })
-    };
-    let t_out = read(child.stdout.take().map(|s| Box::new(s) as Box<dyn Read + Send>));
-    let t_err = read(child.stderr.take().map(|s| Box::new(s) as Box<dyn Read + Send>));
-    let start = Instant::now();
-    let status = loop {
-        match child.try_wait() {
-            Ok(Some(s)) => break Some(s),
-            Ok(None) if start.elapsed() > TIMEOUT => {
-                let _ = child.kill();
-                let _ = child.wait();
-                break None;
-            }
-            Ok(None) => std::thread::sleep(Duration::from_millis(250)),
-            Err(_) => break None,
-        }
-    };
-    let out = t_out.join().unwrap_or_default();
-    let err = t_err.join().unwrap_or_default();
-    let Some(status) = status else { return fail(format!("{id} took longer than {} minutes and was stopped", TIMEOUT.as_secs() / 60)) };
-    if !status.success() || out.trim().is_empty() {
+    if let Some(e) = o.error {
+        return fail(e);
+    }
+    let (out, err) = (o.stdout, o.stderr);
+    if o.code != Some(0) || out.trim().is_empty() {
         let tail: Vec<&str> = err.lines().chain(out.lines()).filter(|l| !l.trim().is_empty()).collect();
-        return fail(format!("{id} exited with code {}\n{}", status.code().unwrap_or(-1), tail[tail.len().saturating_sub(12)..].join("\n")));
+        return fail(format!("{id} exited with code {}\n{}", o.code.unwrap_or(-1), tail[tail.len().saturating_sub(12)..].join("\n")));
     }
     let verdicts = parse(&out, paths);
     AiCheck { agent: id, ok: true, text: out.trim().to_string(), verdicts }
@@ -307,6 +293,16 @@ mod tests {
         println!("{}\n{:?}", r.text, r.verdicts);
         assert!(r.ok, "{}", r.text);
         assert_eq!(r.verdicts.len(), 1);
+    }
+
+    #[test]
+    fn long_prompts_dont_go_through_a_cmd_shim() {
+        let long = vec!["x".repeat(9_000)];
+        assert!(fits_command_line(Path::new(r"C:\n\grok.exe"), &long));
+        assert!(!fits_command_line(Path::new(r"C:\n\grok.cmd"), &long));
+        assert!(!fits_command_line(Path::new(r"C:\n\grok.exe"), &["x".repeat(40_000)]));
+        assert!(command("grok", &[], "hi").contains(&"hi".to_string()));
+        assert!(!command("claude", &[r"C:\a".into()], "hi").contains(&"hi".to_string()));
     }
 
     #[test]
