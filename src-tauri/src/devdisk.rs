@@ -70,6 +70,7 @@ pub fn default_stale_days() -> u32 {
     30
 }
 
+#[derive(Clone)]
 pub struct Config {
     pub roots: Vec<String>,
     pub excludes: Vec<String>,
@@ -1432,13 +1433,30 @@ pub struct DiskReport {
     /// Docker Desktop and WSL virtual disks (compacted, never deleted)
     pub vdisks: Vec<VDisk>,
     pub scan_ms: u64,
+    /// set when only one folder was scanned (File Explorer's right-click menu): no caches or virtual disks then
+    pub scope: Option<String>,
 }
 
 pub fn report(cfg: &Config) -> DiskReport {
+    report_in(cfg, None)
+}
+
+/// Only the projects and worktrees inside one folder, with the user's exclusions still applied.
+/// Package caches and virtual disks live elsewhere, so they are left out.
+pub fn report_folder(cfg: &Config, folder: &str) -> Result<DiskReport, String> {
+    let p = Path::new(folder);
+    if !p.is_absolute() || !p.is_dir() {
+        return Err(format!("not a folder: {folder}"));
+    }
+    let cfg = Config { roots: vec![folder.to_string()], ..cfg.clone() };
+    Ok(report_in(&cfg, Some(folder.to_string())))
+}
+
+fn report_in(cfg: &Config, scope: Option<String>) -> DiskReport {
     let t0 = Instant::now();
     let hay = process_hay();
     let (caches, (projects, wt_dirs)) = std::thread::scope(|s| {
-        let c = s.spawn(|| scan_caches(cfg, &hay));
+        let c = s.spawn(|| if scope.is_some() { vec![] } else { scan_caches(cfg, &hay) });
         let p = scan_projects(cfg, &hay);
         (c.join().unwrap_or_default(), p)
     });
@@ -1454,8 +1472,9 @@ pub fn report(cfg: &Config) -> DiskReport {
         caches,
         projects,
         worktrees,
-        vdisks: vdisks(),
+        vdisks: if scope.is_some() { vec![] } else { vdisks() },
         scan_ms: t0.elapsed().as_millis() as u64,
+        scope,
     }
 }
 
@@ -2054,6 +2073,29 @@ mod tests {
         let _ = fs::remove_dir_all(&p);
         fs::create_dir_all(&p).unwrap();
         p
+    }
+
+    #[test]
+    fn report_folder_scans_only_that_folder() {
+        let root = tmp("scope");
+        let app = root.join("web");
+        fs::create_dir_all(app.join("node_modules").join("a")).unwrap();
+        fs::write(app.join("package.json"), "{}").unwrap();
+        fs::write(app.join("node_modules").join("a").join("i.js"), vec![0u8; 100]).unwrap();
+        let cfg = Config { roots: vec![], excludes: vec![], disabled: vec![], stale_days: 30 };
+        // the project folder itself, as when it is right-clicked
+        let r = report_folder(&cfg, &app.to_string_lossy()).unwrap();
+        assert_eq!(r.projects.len(), 1, "{:?}", r.projects);
+        assert!(r.caches.is_empty() && r.vdisks.is_empty());
+        assert_eq!(r.scope.as_deref(), Some(&*app.to_string_lossy()));
+        // the folder above it
+        assert_eq!(report_folder(&cfg, &root.to_string_lossy()).unwrap().projects.len(), 1);
+        // the user's exclusions still apply
+        let ex = Config { excludes: vec!["web".into()], ..cfg.clone() };
+        assert!(report_folder(&ex, &root.to_string_lossy()).unwrap().projects.is_empty());
+        assert!(report_folder(&cfg, "relative").is_err());
+        assert!(report_folder(&cfg, &root.join("missing").to_string_lossy()).is_err());
+        let _ = fs::remove_dir_all(&root);
     }
 
     #[test]

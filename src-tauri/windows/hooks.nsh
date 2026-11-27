@@ -63,6 +63,9 @@
 !macroend
 
 !macro NSIS_HOOK_POSTUNINSTALL
+  ; File Explorer's "Free up space with RigSweep" (Settings > Dev Disk), if it was turned on
+  DeleteRegKey HKCU "Software\Classes\Directory\shell\RigSweep"
+  DeleteRegKey HKCU "Software\Classes\Directory\Background\shell\RigSweep"
   ; Harmless if the exclusion was never added.
   nsExec::ExecToLog 'powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command "Remove-MpPreference -ExclusionPath $\'$INSTDIR$\' -ErrorAction SilentlyContinue"'
   Pop $0

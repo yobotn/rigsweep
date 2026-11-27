@@ -489,6 +489,15 @@ pub async fn clean_browser_caches(state: State<'_, AppState>, targets: Vec<Clean
 
 // ---------- dev disk ----------
 
+/// The scan folders plus the one folder File Explorer's menu scanned (every target is still
+/// re-checked: a build or dependency folder, no links, not excluded, not in use).
+fn with_folder(mut cfg: devdisk::Config, folder: Option<String>) -> devdisk::Config {
+    if let Some(f) = folder.filter(|f| std::path::Path::new(f).is_absolute() && std::path::Path::new(f).is_dir()) {
+        cfg.roots.push(f);
+    }
+    cfg
+}
+
 pub(crate) fn disk_config(s: &Settings) -> devdisk::Config {
     devdisk::Config {
         roots: s.disk_roots.clone(),
@@ -499,14 +508,39 @@ pub(crate) fn disk_config(s: &Settings) -> devdisk::Config {
 }
 
 #[tauri::command]
-pub async fn get_dev_disk(state: State<'_, AppState>) -> R<DiskReport> {
+/// `folder`: scan only that folder (opened from File Explorer's right-click menu).
+pub async fn get_dev_disk(state: State<'_, AppState>, folder: Option<String>) -> R<DiskReport> {
     let cfg = {
         let db = lock(&state)?;
         crate::inbox::ingest(&db);
         crate::handoff::settle(&db, None);
         disk_config(&Settings::load(&db))
     };
-    tauri::async_runtime::spawn_blocking(move || devdisk::report(&cfg)).await.map_err(err)
+    tauri::async_runtime::spawn_blocking(move || match folder {
+        Some(f) => devdisk::report_folder(&cfg, &f),
+        None => Ok(devdisk::report(&cfg)),
+    })
+    .await
+    .map_err(err)?
+}
+
+/// The folder File Explorer's right-click menu asked to scan, once (None after it was taken).
+#[tauri::command]
+pub fn take_scan_folder() -> Option<String> {
+    crate::shellmenu::take_pending()
+}
+
+/// Is "Free up space with RigSweep" in File Explorer's folder menu?
+#[tauri::command]
+pub fn explorer_menu_status() -> bool {
+    crate::shellmenu::is_on()
+}
+
+/// Add or remove the File Explorer menu entry. `label` is the menu text in the app's language.
+#[tauri::command]
+pub fn set_explorer_menu(on: bool, label: String) -> R<bool> {
+    crate::shellmenu::set(on, &label)?;
+    Ok(crate::shellmenu::is_on())
 }
 
 /// Sizes of the sub-folders of one folder (Find > What's taking space). Read-only.
@@ -638,12 +672,13 @@ fn start_disk_job(app: &AppHandle, cfg: devdisk::Config, targets: Vec<DiskTarget
 /// polls `get_disk_job`. Every target is verified again on this side (scan roots, exclusions,
 /// links, manifest, in use) before anything is removed.
 #[tauri::command]
-pub async fn start_disk_clean(app: AppHandle, state: State<'_, AppState>, targets: Vec<DiskTarget>) -> R<JobView> {
+/// `folder`: the folder File Explorer's menu scanned, which may be outside the scan folders.
+pub async fn start_disk_clean(app: AppHandle, state: State<'_, AppState>, targets: Vec<DiskTarget>, folder: Option<String>) -> R<JobView> {
     let cfg = {
         let db = lock(&state)?;
         // RigSweep removes these itself: not space the AI helped free
         db.drop_handoffs(&targets.iter().filter(|t| t.kind == "worktree").map(|t| t.id.clone()).collect::<Vec<_>>());
-        disk_config(&Settings::load(&db))
+        with_folder(disk_config(&Settings::load(&db)), folder)
     };
     start_disk_job(&app, cfg, targets)?;
     disk_job(&state)
@@ -651,10 +686,10 @@ pub async fn start_disk_clean(app: AppHandle, state: State<'_, AppState>, target
 
 /// Continue the cleanup that was stopped (or cut short by closing the app).
 #[tauri::command]
-pub async fn resume_disk_clean(app: AppHandle, state: State<'_, AppState>) -> R<JobView> {
+pub async fn resume_disk_clean(app: AppHandle, state: State<'_, AppState>, folder: Option<String>) -> R<JobView> {
     let (cfg, targets) = {
         let db = lock(&state)?;
-        (disk_config(&Settings::load(&db)), load_resume(&db))
+        (with_folder(disk_config(&Settings::load(&db)), folder), load_resume(&db))
     };
     if targets.is_empty() {
         return Err("nothing left to continue".into());

@@ -93,6 +93,7 @@ Los proyectos antiguos conservan gigas de `node_modules`, `.next`, `target`, `bi
 - 🙈 **Exclusiones**: AppData, las carpetas de herramientas de tu perfil (`.cargo`, `.nvm`, `.vscode`…), `.git` y Windows se omiten siempre. Añade tus propias rutas o nombres de carpeta (`vendor`, `old-*`) en Ajustes, o pulsa **Excluir** en un proyecto.
 - 💽 **Medidor de la unidad**: Disco dev, Limpieza de navegadores y el Panel se abren con el espacio libre de tu unidad ahora y después de limpiar ("58 GB libres → 81 GB libres") y un gran botón **Liberar X GB**. El Panel suma todo lo que encontraron los análisis.
 - 🔁 **Limpiar automáticamente** (Configuración → Disco dev, desactivado por defecto): una vez por semana, y si quieres también cuando a C: le quede menos espacio del que elijas, RigSweep vacía solo las cachés que se reconstruyen solas. Nunca proyectos, la Papelera ni descargas lentas.
+- 🖱️ **Clic derecho en una carpeta** (Configuración → Disco dev, desactivado por defecto): «Liberar espacio con RigSweep» en el menú del Explorador de archivos abre Disco dev examinando solo esa carpeta: node_modules, target, resultados de compilación y worktrees. En Windows 11 está en «Mostrar más opciones».
 - ⏸️ **Pausa, reanuda o detén** una limpieza larga y síguela con una barra de progreso. Si un reinicio la interrumpe, puede continuar donde se quedó.
 - ✅ Por defecto analiza tu perfil de usuario (Escritorio, Documentos, Descargas, OneDrive…). No se borra nada sin tu confirmación, y cada carpeta se vuelve a comprobar justo antes de borrarla.
 

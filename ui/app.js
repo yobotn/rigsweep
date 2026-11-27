@@ -947,6 +947,7 @@ $("#btn-bc-clean").onclick = async (e, only) => {
 function lines(v) { return v.split(/\r?\n/).map((x) => x.trim()).filter(Boolean); }
 let disk = null;            // DiskReport
 let diskSel = new Set();    // "c|id" or "p|path|name"
+let diskScope = null;       // one folder, from File Explorer's right-click menu (null = the scan folders)
 const diskSeen = new Set();
 const cKey = (c) => `c|${c.id}`;
 const aKey = (p, a) => `p|${p.path}|${a.name}`;
@@ -1211,7 +1212,7 @@ async function scanDisk() {
   const btn = $("#btn-disk-scan");
   busy(btn, true, t("bc.scanning"));
   if (!disk) $("#disk-body").innerHTML = `<tr><td colspan="6" class="loading"><span class="spinner"></span> ${esc(t("disk.scanning"))}</td></tr>`;
-  try { [disk] = await Promise.all([call("get_dev_disk", undefined, { quiet: !disk }), loadVolumes()]); delete scanFailed.disk; }
+  try { [disk] = await Promise.all([call("get_dev_disk", { folder: diskScope }, { quiet: !disk }), loadVolumes()]); delete scanFailed.disk; }
   catch (e) { if (!disk) failRow("#disk-body", 6, "disk", e); throw e; }
   finally { busy(btn, false); }
   const rows = diskRows(), keys = new Set(rows.map((r) => r.k));
@@ -1251,6 +1252,29 @@ $("#disk-view").addEventListener("click", (e) => {
   if (b) { diskView = b.dataset.diskView; renderDisk(); }
 });
 
+// File Explorer's "Free up space with RigSweep": Dev Disk opens on just that folder
+function renderDiskScope() {
+  const el = $("#disk-scope");
+  el.classList.toggle("hidden", !diskScope);
+  // the path stays left-to-right inside a right-to-left sentence
+  if (diskScope) el.innerHTML = `<span>${esc(t("disk.scope", { p: "\u0001" })).replace("\u0001", `<bdi dir="ltr">${esc(diskScope)}</bdi>`)}</span> <button class="small ghost" data-icon="scan-search" id="btn-disk-scope-all">${esc(t("disk.scopeAll"))}</button>`;
+}
+function setDiskScope(folder) {
+  diskScope = folder;
+  disk = null; diskSel = new Set(); diskSeen.clear(); diskView = "all";
+  renderDiskScope();
+  return loadDisk(true);
+}
+$("#disk-scope").addEventListener("click", (e) => { if (e.target.closest("#btn-disk-scope-all")) setDiskScope(null); });
+async function openScanFolder() {
+  let f = null;
+  try { f = await invoke("take_scan_folder"); } catch {}
+  if (!f) return;
+  setDiskScope(f).catch(() => {});
+  showTab("disk");
+}
+listen("scan-folder", openScanFolder);
+
 function renderDisk() {
   renderDiskAuto();
   renderDiskJob();
@@ -1258,7 +1282,8 @@ function renderDisk() {
   if (!disk) return;
   if (diskView === "excluded") return renderDiskExcluded();
   const picked = diskRows().filter((r) => diskSel.has(r.k)).reduce((a, r) => a + r.bytes, 0);
-  $("#disk-summary").textContent = t("disk.summary", {
+  renderDiskScope();
+  $("#disk-summary").textContent = t(diskScope ? "disk.summaryScope" : "disk.summary", {
     caches: fmtBytes(disk.cache_total), projects: fmtBytes(disk.project_total), n: disk.projects.length,
     stale: fmtBytes(disk.projects.filter(isStale).reduce((a, p) => a + p.items.reduce((b, i) => b + i.bytes, 0), 0)), sel: fmtBytes(picked),
   });
@@ -1531,7 +1556,7 @@ $("#btn-disk-clean").onclick = async (e, only) => {
     ${od ? `<p class="warn-text">${esc(t("disk.od.warn"))}</p>` : ""}`;
   const body = queue ? html + `<p class="sub">${esc(t("disk.queue.body"))}</p>` : html;
   if (!(await modal(t("disk.confirm.title", { size: fmtBytes(size) }), body, { okText: t(queue ? "disk.queue.add" : "disk.clean"), danger: !queue }))) return;
-  const entry = { items: picked.map((r) => ({ k: r.k, target: r.c
+  const entry = { folder: diskScope, items: picked.map((r) => ({ k: r.k, target: r.c
     ? { kind: "cache", id: r.c.id, name: "", bytes: r.bytes }
     : r.w ? { kind: "worktree", id: r.w.path, name: r.w.orphan ? "recycle" : "", bytes: r.bytes }
     : { kind: "project", id: r.p.path, name: r.a.name, bytes: r.bytes } })) };
@@ -1559,7 +1584,7 @@ async function startDiskEntry(entry) {
   busy($("#btn-disk-clean"), true, t("disk.cleaning"));
   if (disk) renderDisk();
   // the job runs in the backend; a reload or tab switch just picks it up again
-  try { applyDiskJob(await call("start_disk_clean", { targets: entry.items.map((i) => i.target) })); } catch { pollDiskJob(); return; }
+  try { applyDiskJob(await call("start_disk_clean", { targets: entry.items.map((i) => i.target), folder: entry.folder })); } catch { pollDiskJob(); return; }
   pollDiskJob();
 }
 
@@ -1692,7 +1717,7 @@ async function diskJobCall(btn, cmd, args) {
 }
 $("#dj-pause").onclick = (e) => diskJobCall(e.currentTarget, "disk_job_control", { action: diskJob?.state === "paused" ? "resume" : "pause" });
 $("#dj-stop").onclick = (e) => diskJobCall(e.currentTarget, "disk_job_control", { action: "stop" });
-$("#dj-continue").onclick = (e) => diskJobCall(e.currentTarget, "resume_disk_clean");
+$("#dj-continue").onclick = (e) => diskJobCall(e.currentTarget, "resume_disk_clean", { folder: diskScope });
 $("#dj-dismiss").onclick = (e) => diskJobCall(e.currentTarget, "dismiss_disk_job");
 
 // ---------- boost report ----------
@@ -2562,8 +2587,25 @@ function renderSettings() {
   renderUpdate();
   $("#s-info").textContent = t("set.info", { s: state.startup_registered ? t("set.registered") : t("set.notRegistered"), d: state.data_dir });
   loadAv();
+  loadXm();
   loadShare();
 }
+
+// File Explorer's folder menu (HKCU, removed by the uninstaller too)
+let xmOn = false;
+async function loadXm() {
+  try { xmOn = await invoke("explorer_menu_status"); } catch { xmOn = false; }
+  $("#xm-hint").textContent = t("xm.hint", { v: t("xm.verb") });
+  $("#xm-status").textContent = t(xmOn ? "xm.on" : "xm.off");
+  $("#btn-xm").textContent = t(xmOn ? "xm.remove" : "xm.add");
+}
+$("#btn-xm").onclick = async (e) => {
+  const on = !xmOn, btn = e.target.closest("button");
+  if (on && !(await modal(t("xm.title"), `<p>${esc(t("xm.confirm", { v: t("xm.verb") }))}</p>`, { okText: t("xm.add") }))) return;
+  busy(btn, true);
+  try { xmOn = await call("set_explorer_menu", { on, label: t("xm.verb") }); } catch {} finally { busy(btn, false); }
+  loadXm();
+};
 
 async function loadAv() {
   try { avState = await invoke("defender_self_status"); } catch { avState = null; }
@@ -3168,6 +3210,7 @@ async function ensureShareNotice() {
   currentTab = new URLSearchParams(location.search).get("tab") || "dashboard";
   rerender();
   ensureDisclaimer().then(ensureShareNotice);
+  openScanFolder(); // started from File Explorer's right-click menu
   // the heat tile waits for the first live sample; never let a skeleton spin forever
   setTimeout(() => document.querySelectorAll(".skel").forEach((el) => el.classList.remove("skel")), 8000);
 })();

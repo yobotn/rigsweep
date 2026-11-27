@@ -31,6 +31,7 @@ mod update;
 mod persistence;
 mod report;
 mod share;
+mod shellmenu;
 mod startup;
 mod util;
 
@@ -50,6 +51,16 @@ fn main() {
     // headless commands for scripts and agents (no admin rights needed, no window)
     if cli::try_run(&args) {
         return;
+    }
+
+    // File Explorer's "Free up space with RigSweep": a RigSweep already running takes the folder,
+    // so the menu doesn't ask for UAC again
+    let scan_folder = shellmenu::folder_arg(&args);
+    if let Some(f) = &scan_folder {
+        if !elevation::is_elevated() && shellmenu::forward(f) {
+            return;
+        }
+        shellmenu::set_pending(f.clone());
     }
 
     if !elevation::is_elevated() {
@@ -117,7 +128,13 @@ fn run_app(start_hidden: bool) {
     };
 
     tauri::Builder::default()
-        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| show_main(app)))
+        .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
+            if let Some(f) = shellmenu::folder_arg(&args) {
+                shellmenu::set_pending(f);
+                let _ = app.emit("scan-folder", ());
+            }
+            show_main(app)
+        }))
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(AppState {
             db: Mutex::new(db),
@@ -154,6 +171,9 @@ fn run_app(start_hidden: bool) {
             commands::get_browser_caches,
             commands::clean_browser_caches,
             commands::get_dev_disk,
+            commands::take_scan_folder,
+            commands::explorer_menu_status,
+            commands::set_explorer_menu,
             commands::start_disk_clean,
             commands::resume_disk_clean,
             commands::get_disk_job,
@@ -204,6 +224,7 @@ fn run_app(start_hidden: bool) {
             commands::clear_flashes,
         ])
         .setup(move |app| {
+            shellmenu::allow_from_unelevated();
             build_tray(app.handle())?;
             spawn_watchdog(app.handle().clone());
             spawn_dev_monitor(app.handle().clone());

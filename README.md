@@ -93,6 +93,7 @@ Old projects keep gigabytes of `node_modules`, `.next`, `target`, `bin/obj` and 
 - 🙈 **Exclusions**: AppData, tool folders in your profile (`.cargo`, `.nvm`, `.vscode`…), `.git` and Windows are always skipped. Add your own paths or folder names (`vendor`, `old-*`) in Settings, or click **Exclude** on a project.
 - 💽 **Drive meter**: Dev Disk, Browser Cleanup and the Dashboard open with your drive's free space now and after cleaning ("58 GB free → 81 GB free") and one big **Free X GB** button. The Dashboard adds up everything the scans found.
 - 🔁 **Clean automatically** (Settings → Dev Disk, off by default): once a week, and optionally when C: drops below a size you choose, RigSweep empties only the caches that rebuild themselves. Never projects, the Recycle Bin or slow downloads.
+- 🖱️ **Right-click a folder** (Settings → Dev Disk, off by default): "Free up space with RigSweep" in File Explorer's menu opens Dev Disk with only that folder scanned: node_modules, target, build output and worktrees. On Windows 11 it's under Show more options.
 - ⏸️ **Pause, resume or stop** a long cleanup and follow it on a progress bar. A cleanup cut short by a restart can pick up where it left off.
 - ✅ Scans your user profile (Desktop, Documents, Downloads, OneDrive…) by default. Nothing is deleted without your confirmation, and every folder is checked again right before deletion.
 

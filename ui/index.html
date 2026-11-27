@@ -162,6 +162,7 @@
         </div>
       </header>
       <div class="intro"><p class="hint" data-i18n="disk.hint"></p><p class="hint" data-i18n="disk.hint.more"></p></div>
+      <div id="disk-scope" class="autobar hidden" role="status"></div>
       <div id="disk-auto" class="autobar">
         <b data-i18n="disk.auto.title"></b>
         <label><span data-i18n="disk.auto.days"></span> <select id="da-days"></select></label>
@@ -497,6 +498,12 @@
           <label class="chk"><input type="checkbox" id="s-disk-auto" /> <span><span data-i18n="set.diskAuto"></span><span class="sub" data-i18n="set.diskAutoHint"></span></span></label>
           <label><span data-i18n="set.diskAutoLow"></span> <input type="number" id="s-disk-auto-low" min="0" max="4096" /></label>
           <p class="hint" data-i18n="set.diskBuiltin"></p>
+        </div>
+        <div class="card form" id="xm-card">
+          <h2 data-i18n="xm.title"></h2>
+          <p class="hint" id="xm-hint"></p>
+          <div id="xm-status" class="sub"></div>
+          <div class="actions"><button id="btn-xm" class="ghost"></button></div>
         </div>
       </div>
 
