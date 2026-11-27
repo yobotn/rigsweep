@@ -3284,6 +3284,7 @@ function progPrompt(ps) {
     "",
     "Then answer SAFE TO REMOVE, KEEP or NOT SURE for each one, say what it is in one line, and what would stop working if it went.",
   );
+  if (ps.some((p) => p.kind !== "dead_entry")) lines.push("", REPORT_LINE);
   if (LANG !== "en") lines.push(`Reply in ${LANGS[LANG]}.`);
   return lines.join("\n");
 }
@@ -3291,11 +3292,11 @@ const progAskBtn = (ps, label) => `<button class="small ghost" data-icon="copy" 
 document.addEventListener("click", async (e) => {
   const b = e.target.closest("[data-prog-ask]");
   if (!b) return;
-  if (ps.some((p) => p.kind !== "dead_entry")) lines.push("", REPORT_LINE);
   const ks = new Set(b.dataset.progAsk.split("\n"));
   const ps = (fd.progs || []).filter((p) => ks.has(progKey(p)));
   if (!ps.length) return;
   await copyText(progPrompt(ps));
+  handoff(ps.filter((p) => p.kind !== "dead_entry").map((p) => ({ path: p.path, kind: "leftover", bytes: p.bytes || 0 })));
   toast(t("disk.wt.asked"), "ok");
 });
 // what the ticked rows of a list add up to, shown on its action button: "Remove selected · 1.0 GB"
@@ -3303,7 +3304,6 @@ function fdPickedBytes(k) {
   const picked = new Set([...fdSel].filter((x) => x.startsWith(k + "|")));
   if (k === "old") return (fd.old?.files || []).filter((f) => picked.has(`old|${f.path}`)).reduce((a, f) => a + f.bytes, 0);
   return (fd.progs || []).filter((p) => picked.has(progKey(p))).reduce((a, p) => a + (p.bytes || 0), 0);
-  handoff(ps.filter((p) => p.kind !== "dead_entry").map((p) => ({ path: p.path, kind: "leftover", bytes: p.bytes || 0 })));
 }
 function fdUpdateTotal(k) {
   const b = document.querySelector(`[data-fd-act="${k}"]`);
