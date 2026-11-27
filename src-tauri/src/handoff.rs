@@ -38,9 +38,26 @@ fn now() -> i64 {
     chrono::Utc::now().timestamp()
 }
 
-/// Gone for good: nothing at that path any more (an unreadable path doesn't count as gone).
+/// Gone for good: nothing at that path any more, while the folder it was in is still there (an
+/// unreadable path, or one on an unplugged drive or an offline share, doesn't count as gone).
 fn gone(p: &str) -> bool {
-    matches!(std::fs::symlink_metadata(p), Err(e) if e.kind() == std::io::ErrorKind::NotFound)
+    let parent_there = Path::new(p).parent().is_some_and(|d| d.is_dir());
+    parent_there && matches!(std::fs::symlink_metadata(p), Err(e) if e.kind() == std::io::ErrorKind::NotFound)
+}
+
+/// Which of the hand-offs are gone, looked at without the database lock held: a path on a slow or
+/// offline share can take seconds, and every other command waits on that lock.
+pub fn gone_among(db: &std::sync::Mutex<Db>) -> Vec<String> {
+    let paths: Vec<String> = match db.lock() {
+        Ok(d) => d.handoffs().unwrap_or_default().into_iter().map(|h| h.0).collect(),
+        Err(_) => return vec![],
+    };
+    paths.into_iter().filter(|p| gone(p)).collect()
+}
+
+/// `settle(db, None)` with the paths `gone_among` found gone (a hand-off added since isn't gone).
+pub fn settle_known(db: &Db, gone_paths: &[String]) {
+    settle_with(db, None, now(), &|p| gone_paths.iter().any(|g| g == p));
 }
 
 /// Remember folders handed to an AI. Only existing absolute folders of a known kind are kept.
@@ -68,6 +85,10 @@ pub fn settle(db: &Db, only: Option<&[String]>) -> Vec<Settled> {
 }
 
 fn settle_at(db: &Db, only: Option<&[String]>, t: i64) -> Vec<Settled> {
+    settle_with(db, only, t, &gone)
+}
+
+fn settle_with(db: &Db, only: Option<&[String]>, t: i64, gone: &dyn Fn(&str) -> bool) -> Vec<Settled> {
     let all = db.handoffs().unwrap_or_default();
     let (mut out, mut drop, mut freed) = (vec![], vec![], vec![]);
     let wanted = |p: &str| only.is_none_or(|o| o.iter().any(|x| x.eq_ignore_ascii_case(p)));
@@ -167,6 +188,27 @@ mod tests {
         db.drop_handoffs(&[b.clone()]); // RigSweep is removing it itself
         std::fs::remove_dir_all(&b).unwrap();
         assert!(settle(&db, None).is_empty());
+        let _ = std::fs::remove_dir_all(&a);
+    }
+
+    #[test]
+    fn a_folder_on_a_drive_that_is_gone_is_not_credited() {
+        let db = Db::open_in_memory().unwrap();
+        let a = dir("offline");
+        let inner = Path::new(&a).join("wt").to_string_lossy().into_owned();
+        std::fs::create_dir_all(&inner).unwrap();
+        add(&db, &[Item { path: inner.clone(), kind: "worktree".into(), bytes: 7 }]).unwrap();
+        // the drive or share went away: the folder it was in is missing too
+        std::fs::remove_dir_all(&a).unwrap();
+        assert!(!gone(&inner));
+        assert!(settle(&db, None).is_empty());
+        // looked at outside the lock, then settled with what was found
+        std::fs::create_dir_all(&a).unwrap();
+        let m = std::sync::Mutex::new(db);
+        let g = gone_among(&m);
+        assert_eq!(g, vec![inner.clone()]);
+        settle_known(&m.lock().unwrap(), &g);
+        assert!(m.lock().unwrap().handoffs().unwrap().is_empty());
         let _ = std::fs::remove_dir_all(&a);
     }
 }

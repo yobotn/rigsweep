@@ -418,11 +418,12 @@ pub async fn kill_dev_processes(app: AppHandle, state: State<'_, AppState>, targ
 /// What RigSweep has freed on this PC: this week, the last 30 days and all time.
 #[tauri::command]
 pub fn get_impact(state: State<'_, AppState>) -> R<crate::impact::Summary> {
+    let gone = crate::handoff::gone_among(&state.db);
     let db = lock(&state)?;
     // cleanups the headless commands ran without admin rights, and folders handed to the user's
     // AI that are gone now (freed with its help)
     crate::inbox::ingest(&db);
-    crate::handoff::settle(&db, None);
+    crate::handoff::settle_known(&db, &gone);
     let ago = |d: i64| (chrono::Local::now() - chrono::Duration::days(d)).format("%Y-%m-%d %H:%M:%S").to_string();
     let sum = |since: Option<&str>| db.impact_rows(since).map(|r| crate::impact::total(&r)).map_err(err);
     Ok(crate::impact::Summary { week: sum(Some(&ago(7)))?, month: sum(Some(&ago(30)))?, all: sum(None)?, since: db.impact_since() })
@@ -510,10 +511,11 @@ pub(crate) fn disk_config(s: &Settings) -> devdisk::Config {
 #[tauri::command]
 /// `folder`: scan only that folder (opened from File Explorer's right-click menu).
 pub async fn get_dev_disk(state: State<'_, AppState>, folder: Option<String>) -> R<DiskReport> {
+    let gone = crate::handoff::gone_among(&state.db);
     let cfg = {
         let db = lock(&state)?;
         crate::inbox::ingest(&db);
-        crate::handoff::settle(&db, None);
+        crate::handoff::settle_known(&db, &gone);
         disk_config(&Settings::load(&db))
     };
     tauri::async_runtime::spawn_blocking(move || match folder {

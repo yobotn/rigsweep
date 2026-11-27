@@ -1886,12 +1886,12 @@ pub async fn finders_remove_dead_entry(reg_key: String) -> R<String> {
 
 #[tauri::command]
 pub async fn finders_recycle_leftover(state: tauri::State<'_, crate::commands::AppState>, path: String) -> R<()> {
-    let p = path.clone();
-    blocking(move || recycle_leftover(&p)).await??;
-    // RigSweep removed it: not space the AI helped free
+    // RigSweep removes it: not space the AI helped free. Dropped first, so a Dashboard refresh
+    // between the two can't credit it to the AI.
     if let Ok(db) = state.db.lock() {
-        db.drop_handoffs(&[path]);
+        db.drop_handoffs(std::slice::from_ref(&path));
     }
+    blocking(move || recycle_leftover(&path)).await??;
     Ok(())
 }
 
