@@ -2203,6 +2203,16 @@ mod tests {
         let w = &wts[0];
         assert_eq!(w.branch, "feature");
         assert_eq!(lower(Path::new(&w.repo)), lower(&repo));
+        // elevated with no desktop (a CI runner): git is never run as admin, so the worktree
+        // counts as having changes and is never removed
+        if git_out(&repo, &["--version"]).is_none() {
+            assert!(w.dirty, "{w:?}");
+            let t = DiskTarget { kind: "worktree".into(), id: wt.to_string_lossy().into_owned(), name: String::new(), bytes: 0 };
+            let r = clean(&cfg, &[t]);
+            assert!(r.done.is_empty() && wt.exists(), "{r:?}");
+            let _ = fs::remove_dir_all(&root);
+            return;
+        }
         assert!(!w.dirty && !w.orphan);
         assert_eq!(w.ignored, vec![".env".to_string()]); // node_modules is build output, not listed
 
