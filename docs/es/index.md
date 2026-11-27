@@ -62,7 +62,7 @@ Esa ventana de Símbolo del sistema que aparece y desaparece: RigSweep registra 
 
 ### Buscar
 
-Mira qué ocupa espacio en cada unidad carpeta por carpeta, saca las cachés de paquetes de C: a otra unidad o a un Dev Drive y revisa programas sin desinstalador, archivos grandes y viejos en Descargas y programas de inicio sin firma, con un análisis de Microsoft Defender en un clic.
+Mira qué ocupa espacio en cada unidad carpeta por carpeta, saca las cachés de paquetes de C: a otra unidad o a un Dev Drive y revisa programas cuyo desinstalador falta o no hace nada, archivos grandes y viejos en Descargas y programas de inicio sin firma, con un análisis de Microsoft Defender en un clic.
 
 ### Informe de mejora
 

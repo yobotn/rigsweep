@@ -62,7 +62,7 @@ Quella finestra del Prompt dei comandi che lampeggia e sparisce: RigSweep regist
 
 ### Trova
 
-Guarda cosa occupa spazio su ogni unità cartella per cartella, sposta le cache dei pacchetti da C: su un'altra unità o un Dev Drive e controlla i programmi senza programma di disinstallazione, i file grandi e vecchi in Download e i programmi di avvio non firmati, con una scansione di Microsoft Defender in un clic.
+Guarda cosa occupa spazio su ogni unità cartella per cartella, sposta le cache dei pacchetti da C: su un'altra unità o un Dev Drive e controlla i programmi il cui programma di disinstallazione manca o non fa nulla, i file grandi e vecchi in Download e i programmi di avvio non firmati, con una scansione di Microsoft Defender in un clic.
 
 ### Report boost
 

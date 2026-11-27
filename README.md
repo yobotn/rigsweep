@@ -187,7 +187,7 @@ Where your space went, and three lists to review. Nothing is removed unless you 
 
 - 📊 **What's taking space**: the biggest folders on any drive, one level at a time. Click one to go deeper; *Show* opens it in Explorer. It only reads.
 - 🚚 **Move caches off the system drive**: npm, pip, uv, Yarn, Bun, NuGet, Go, Gradle, Playwright, Hugging Face and PyTorch caches move to another drive or a Dev Drive in one click. RigSweep sets the tool's own environment variable for your account.
-- 📦 **Programs without an uninstaller**: entries in Installed apps whose uninstaller is gone, and folders in Program Files that no installed program, service, shortcut or task uses. Each entry is saved to a backup file before it's removed, and folders go to the Recycle Bin.
+- 📦 **Programs without an uninstaller**: entries in Installed apps whose uninstaller is gone or does nothing (a browser web app that was already removed), and folders in Program Files that no installed program, service, shortcut or task uses. Each entry is saved to a backup file before it's removed, and folders go to the Recycle Bin.
 - 🕒 **Old files**: files over 50 MB in Downloads, Desktop and Documents that haven't changed for a year, and installers in Downloads older than 90 days. They go to the Recycle Bin, and a file synced with OneDrive is flagged, because deleting it removes it on every device.
 - 🛡️ **Worth a look**: unsigned programs that start with Windows or run from AppData or Temp, names that hide their real type (`invoice.pdf.exe`, a hidden right-to-left character) and unsigned downloads. Being listed isn't a verdict: **Scan with Defender** asks Microsoft Defender about that one file.
 

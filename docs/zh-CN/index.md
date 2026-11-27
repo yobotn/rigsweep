@@ -62,7 +62,7 @@ rigsweep --disk-report --json 和 --disk-clean --safe --dry-run 无需管理员�
 
 ### 查找
 
-逐个文件夹查看每个驱动器上什么占了空间，把包缓存从 C: 移到其他驱动器或 Dev Drive，并检查没有卸载程序的软件、下载文件夹里又大又旧的文件和未签名的启动程序，一键用 Microsoft Defender 扫描。
+逐个文件夹查看每个驱动器上什么占了空间，把包缓存从 C: 移到其他驱动器或 Dev Drive，并检查卸载程序缺失或无效的软件、下载文件夹里又大又旧的文件和未签名的启动程序，一键用 Microsoft Defender 扫描。
 
 ### 提速报告
 

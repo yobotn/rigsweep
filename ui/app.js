@@ -3264,13 +3264,20 @@ function progPrompt(ps) {
     if (p.kind === "dead_entry") {
       lines.push(`Installed apps entry: ${p.name}${p.version ? ` ${p.version}` : ""}`);
       if (p.publisher) lines.push(`Publisher: ${p.publisher}`);
-      lines.push(`Its uninstaller is missing: ${p.missing_file}`, `Registry key: ${p.reg_key}`);
+      if (p.reason === "web_app_gone") {
+        lines.push(`It is a browser web app, uninstalled with: ${p.uninstall_string}`,
+          `The app is no longer in the browser profile (${p.missing_file} is gone), so that command does nothing.`);
+      } else {
+        lines.push(`Its uninstaller is missing: ${p.missing_file}`);
+      }
+      lines.push(`Registry key: ${p.reg_key}`);
       if (p.install_location) lines.push(`Install folder: ${p.install_location}`);
       lines.push("RigSweep would remove only the registry entry (after backing it up).");
     } else {
       lines.push(`Folder: ${p.path}`, `Size: ${fmtBytes(p.bytes)}`, `Last change: ${fmtDate(p.modified)}`);
+      if (p.publisher) lines.push(`Publisher of its main program (version info or signature): ${p.publisher}`);
       if (p.has_exe) lines.push("It contains a program (.exe), so it may be a portable app.");
-      lines.push("No uninstall entry, service, Run key, App Paths entry, PATH entry, scheduled task or shortcut points into it, and nothing running was started from it. RigSweep would move it to the Recycle Bin.");
+      lines.push("No uninstall entry (by path or by name), Windows Installer record, service, Run key, App Paths entry, PATH entry, program setting in the registry, scheduled task or shortcut points into it, and nothing running was started from it. RigSweep would move it to the Recycle Bin.");
     }
     lines.push("");
   }
@@ -3330,7 +3337,7 @@ function renderFinder(k) {
     out.innerHTML = `<table class="tbl"><thead><tr><th></th><th>${esc(t("fd.col.name"))}</th><th>${esc(t("fd.col.what"))}</th><th class="num">${esc(t("fd.col.size"))}</th><th></th></tr></thead><tbody>${d.map((p) => {
       const key = progKey(p);
       const what = p.kind === "dead_entry"
-        ? `${esc(t("fd.progs.dead"))}<div class="sub"><bdi dir="ltr">${esc(p.missing_file)}</bdi></div>`
+        ? `${esc(t(p.reason === "web_app_gone" ? "fd.progs.deadWeb" : "fd.progs.dead"))}<div class="sub"><bdi dir="ltr">${esc(p.reason === "web_app_gone" ? shortPath(p.missing_file) : p.missing_file)}</bdi></div>`
         : `${esc(t(p.has_exe ? "fd.progs.portable" : "fd.progs.leftover"))}<div class="sub"><bdi dir="ltr">${esc(shortPath(p.path))}</bdi> · ${esc(t("fd.changed", { d: fmtDate(p.modified) }))}</div>`;
       return `<tr><td>${fdChk(key, p.name)}</td><td><b>${esc(p.name)}</b>${p.publisher ? `<div class="sub">${esc(p.publisher)}</div>` : ""}</td><td>${what}</td>
         <td class="num">${p.kind === "dead_entry" ? "—" : fmtBytes(p.bytes)}</td><td><div class="row-acts">${(p.kind === "dead_entry" ? p.install_location : p.path) ? `<button class="small ghost" data-show-path="${esc((p.kind === "dead_entry" ? p.install_location : p.path))}" data-icon="folder-open">${esc(t("fd.space.show"))}</button>` : ""}${progAskBtn([p], t("disk.wt.ask"))}${p.kind === "dead_entry" ? "" : `<button class="small ghost" data-fd-scan-file="${esc(p.path)}" data-icon="shield-check">${esc(t("fd.look.defender"))}</button>`}</div>${p.kind === "dead_entry" ? "" : `${fdVerdictHtml(p.path)}`}</td></tr>`;

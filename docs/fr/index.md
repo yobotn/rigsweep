@@ -62,7 +62,7 @@ Cette fenêtre d'invite de commandes qui clignote puis disparaît : RigSweep enr
 
 ### Recherche
 
-Voyez ce qui prend de la place sur chaque disque, dossier par dossier, déplacez les caches de paquets de C: vers un autre disque ou un Dev Drive, et passez en revue les programmes sans désinstalleur, les gros vieux fichiers des Téléchargements et les programmes de démarrage non signés, avec une analyse Microsoft Defender en un clic.
+Voyez ce qui prend de la place sur chaque disque, dossier par dossier, déplacez les caches de paquets de C: vers un autre disque ou un Dev Drive, et passez en revue les programmes dont le désinstalleur a disparu ou ne fait rien, les gros vieux fichiers des Téléchargements et les programmes de démarrage non signés, avec une analyse Microsoft Defender en un clic.
 
 ### Rapport de gains
 

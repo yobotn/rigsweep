@@ -62,7 +62,7 @@ Aquela janela do Prompt de Comando que pisca e some: o RigSweep registra o coman
 
 ### Encontrar
 
-Veja o que ocupa espaço em cada unidade, pasta por pasta, tire os caches de pacotes do C: para outra unidade ou um Dev Drive e revise programas sem desinstalador, arquivos grandes e antigos em Downloads e programas de inicialização sem assinatura, com uma verificação do Microsoft Defender em um clique.
+Veja o que ocupa espaço em cada unidade, pasta por pasta, tire os caches de pacotes do C: para outra unidade ou um Dev Drive e revise programas cujo desinstalador sumiu ou não faz nada, arquivos grandes e antigos em Downloads e programas de inicialização sem assinatura, com uma verificação do Microsoft Defender em um clique.
 
 ### Relatório de ganhos
 

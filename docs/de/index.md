@@ -62,7 +62,7 @@ Das Eingabeaufforderungsfenster, das kurz aufblitzt und verschwindet: RigSweep z
 
 ### Finden
 
-Sieh Ordner für Ordner, was auf jedem Laufwerk Platz belegt, verschiebe Paket-Caches von C: auf ein anderes Laufwerk oder ein Dev Drive und prüfe Programme ohne Deinstallationsprogramm, große alte Dateien in Downloads und unsignierte Autostart-Programme, mit einem Microsoft-Defender-Scan per Klick.
+Sieh Ordner für Ordner, was auf jedem Laufwerk Platz belegt, verschiebe Paket-Caches von C: auf ein anderes Laufwerk oder ein Dev Drive und prüfe Programme, deren Deinstallationsprogramm fehlt oder nichts tut, große alte Dateien in Downloads und unsignierte Autostart-Programme, mit einem Microsoft-Defender-Scan per Klick.
 
 ### Boost-Bericht
 

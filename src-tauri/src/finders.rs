@@ -290,7 +290,10 @@ pub struct OrphanProgram {
     pub uninstall_string: String,
     /// dead entries: the full key, hive and view included (HKLM\SOFTWARE\WOW6432Node\...\Uninstall\Foo)
     pub reg_key: String,
-    /// dead entries: the uninstaller file that is gone
+    /// dead entries: why the uninstaller can't work. uninstaller_missing: its file is gone (missing_file).
+    /// web_app_gone: a browser web app whose app is no longer in its profile (missing_file is that folder).
+    pub reason: &'static str,
+    /// dead entries: the uninstaller file that is gone, or the web app's missing profile folder
     pub missing_file: String,
     /// dead entries: the publisher's EstimatedSize in KB. Removing the entry frees none of it; the files are usually gone already.
     pub estimated_kb: u64,
@@ -385,6 +388,79 @@ fn missing(p: &Path) -> bool {
     matches!(fs::symlink_metadata(p), Err(e) if e.kind() == std::io::ErrorKind::NotFound)
 }
 
+/// The value of `--name=` in a command line: quoted ("Profile 1") or up to the next space.
+fn arg_value(cmd: &str, name: &str) -> Option<String> {
+    let i = cmd.to_ascii_lowercase().find(&name.to_ascii_lowercase())?;
+    let rest = &cmd[i + name.len()..];
+    let v = match rest.strip_prefix('"') {
+        Some(q) => &q[..q.find('"')?],
+        None => rest.split([' ', '\t']).next()?,
+    };
+    (!v.is_empty()).then(|| v.to_string())
+}
+
+/// Where a Chromium browser keeps its profiles, by the program its uninstall command runs.
+fn browser_user_data(exe: &str) -> Option<PathBuf> {
+    let local = env_dir("LOCALAPPDATA")?;
+    let sub = match exe {
+        "chrome.exe" | "chrome_proxy.exe" => r"Google\Chrome\User Data",
+        "msedge.exe" | "msedge_proxy.exe" => r"Microsoft\Edge\User Data",
+        "brave.exe" | "brave_proxy.exe" => r"BraveSoftware\Brave-Browser\User Data",
+        _ => return None,
+    };
+    Some(local.join(sub))
+}
+
+/// A browser web app (Chrome, Edge or Brave "install this site as an app") registers an uninstall entry that
+/// runs the browser with --uninstall-app-id. Once the app is gone from its profile that command does nothing,
+/// and the entry stays in the installed apps list for good (Chrome Remote Desktop, Outlook PWA...).
+/// Returns the profile folder the app is missing from, or None when it is there or can't be judged.
+fn dead_web_app(e: &UninstEntry, user_data_of: &dyn Fn(&str) -> Option<PathBuf>) -> Option<PathBuf> {
+    // the browser's profiles are the current user's: entries of the machine or other users can't be judged here
+    if e.hive != "HKCU" {
+        return None;
+    }
+    let id = arg_value(&e.uninstall_string, "--uninstall-app-id=")?.to_ascii_lowercase();
+    if id.len() != 32 || !id.bytes().all(|b| (b'a'..=b'p').contains(&b)) {
+        return None;
+    }
+    let profile = arg_value(&e.uninstall_string, "--profile-directory=").unwrap_or_else(|| "Default".into());
+    if profile.contains(['\\', '/']) || profile.contains("..") {
+        return None;
+    }
+    let (prog, _) = split_command(&e.uninstall_string)?;
+    let user_data = user_data_of(&base_name(&prog))?;
+    // no Local State: not the folder this browser uses, so nothing can be said
+    if !user_data.join("Local State").is_file() {
+        return None;
+    }
+    let prof = user_data.join(&profile);
+    if missing(&prof) {
+        return Some(prof);
+    }
+    let apps = prof.join("Web Applications");
+    let icons = apps.join("Manifest Resources");
+    // a profile without the usual layout (an older or newer browser) is not judged
+    if !icons.is_dir() {
+        return None;
+    }
+    if !missing(&icons.join(&id)) || !missing(&apps.join(format!("_crx_{id}"))) {
+        return None;
+    }
+    Some(icons.join(&id))
+}
+
+/// Why an entry that can be judged has an uninstaller that can't work, with the file or folder that is gone.
+fn dead_reason(e: &UninstEntry, windir: &str) -> Option<(PathBuf, &'static str)> {
+    if e.name.is_empty() || e.system_component || e.is_update || e.uninstall_string.is_empty() {
+        return None;
+    }
+    if let Some(p) = dead_web_app(e, &browser_user_data) {
+        return Some((p, "web_app_gone"));
+    }
+    dead_target(e, windir).map(|t| (t, "uninstaller_missing"))
+}
+
 /// The missing uninstaller of an entry that can be judged, or None.
 fn dead_target(e: &UninstEntry, windir: &str) -> Option<PathBuf> {
     if e.name.is_empty() || e.system_component || e.is_update || e.uninstall_string.is_empty() {
@@ -415,7 +491,7 @@ fn dead_entries(entries: &[UninstEntry]) -> Vec<OrphanProgram> {
         .iter()
         .filter(|e| e.hive == "HKLM" || e.hive == "HKCU")
         .filter_map(|e| {
-            let t = dead_target(e, &wd)?;
+            let (t, reason) = dead_reason(e, &wd)?;
             Some(OrphanProgram {
                 kind: "dead_entry",
                 name: e.name.clone(),
@@ -424,6 +500,7 @@ fn dead_entries(entries: &[UninstEntry]) -> Vec<OrphanProgram> {
                 install_location: e.install_location.clone(),
                 uninstall_string: e.uninstall_string.clone(),
                 reg_key: e.reg_key(),
+                reason,
                 missing_file: t.to_string_lossy().into_owned(),
                 estimated_kb: e.estimated_kb,
                 path: String::new(),
@@ -474,6 +551,127 @@ fn push_key_values(out: &mut String, root: &RegKey, path: &str, values: &[&str])
                 out.push('\n');
             }
         }
+    }
+}
+
+/// A path as Windows Installer stores it in a component record: "C?\Program Files\..." and
+/// "C:\?Program Files (x86)\..." both mean C:\Program Files... A real path never holds a '?'.
+fn msi_path(s: &str) -> String {
+    let b = s.as_bytes();
+    if b.len() > 3 && b[0].is_ascii_alphabetic() && b[1] == b'?' && b[2] == b'\\' {
+        return format!("{}:{}", &s[..1], s[2..].replace('?', ""));
+    }
+    if b.len() > 3 && b[0].is_ascii_alphabetic() && b[1] == b':' {
+        return s.replace('?', "");
+    }
+    s.to_string()
+}
+
+/// Top-level keys under SOFTWARE that are not one program's own settings, or are read elsewhere.
+const NOT_VENDOR_KEYS: &[&str] = &["classes", "microsoft", "policies", "wow6432node", "wow64aarch64node"];
+
+/// Every string value below `base\<vendor>`, up to `budget` keys and 6 levels.
+fn vendor_strings(out: &mut String, root: &RegKey, base: &str, budget: &mut usize) {
+    fn walk(out: &mut String, k: &RegKey, depth: usize, budget: &mut usize) {
+        for s in reg_strings(k) {
+            out.push_str(&s);
+            out.push('\n');
+        }
+        if depth == 0 {
+            return;
+        }
+        for name in k.enum_keys().flatten() {
+            if *budget == 0 {
+                return;
+            }
+            *budget -= 1;
+            if let Ok(sub) = k.open_subkey_with_flags(&name, KEY_READ | KEY_WOW64_64KEY) {
+                walk(out, &sub, depth - 1, budget);
+            }
+        }
+    }
+    let Ok(sw) = root.open_subkey_with_flags(base, KEY_READ | KEY_WOW64_64KEY) else { return };
+    for name in sw.enum_keys().flatten() {
+        if NOT_VENDOR_KEYS.contains(&name.to_ascii_lowercase().as_str()) || *budget == 0 {
+            continue;
+        }
+        if let Ok(k) = sw.open_subkey_with_flags(&name, KEY_READ | KEY_WOW64_64KEY) {
+            walk(out, &k, 6, budget);
+        }
+    }
+}
+
+/// Letters and digits only, lower-case: "Remote Setup" and "RemoteSetup" compare equal.
+fn name_key(s: &str) -> String {
+    s.chars().filter(|c| c.is_alphanumeric()).flat_map(char::to_lowercase).collect()
+}
+
+/// A file's CompanyName from its version resource.
+fn company_name(p: &Path) -> Option<String> {
+    use windows::core::PCWSTR;
+    use windows::Win32::Storage::FileSystem::{GetFileVersionInfoSizeW, GetFileVersionInfoW, VerQueryValueW};
+    let w = wide(p.as_os_str());
+    unsafe {
+        let n = GetFileVersionInfoSizeW(PCWSTR(w.as_ptr()), None);
+        if n == 0 || n > 4 * MB as u32 {
+            return None;
+        }
+        let mut buf = vec![0u8; n as usize];
+        GetFileVersionInfoW(PCWSTR(w.as_ptr()), None, n, buf.as_mut_ptr() as *mut c_void).ok()?;
+        let query = |sub: &str| -> Option<(*const u16, usize)> {
+            let s = wide(OsStr::new(sub));
+            let mut ptr: *mut c_void = std::ptr::null_mut();
+            let mut len = 0u32;
+            if !VerQueryValueW(buf.as_ptr() as *const c_void, PCWSTR(s.as_ptr()), &mut ptr, &mut len).as_bool() || ptr.is_null() || len == 0 {
+                return None;
+            }
+            Some((ptr as *const u16, len as usize))
+        };
+        let mut langs: Vec<String> = vec![];
+        // the translation table's length is in bytes: pairs of (language, code page)
+        if let Some((ptr, bytes)) = query(r"\VarFileInfo\Translation") {
+            for pair in std::slice::from_raw_parts(ptr, bytes / 2).chunks_exact(2) {
+                langs.push(format!("{:04x}{:04x}", pair[0], pair[1]));
+            }
+        }
+        langs.extend(["040904b0".to_string(), "040904e4".into(), "04090000".into()]);
+        for l in langs {
+            // a string value's length is in characters
+            if let Some((ptr, chars)) = query(&format!(r"\StringFileInfo\{l}\CompanyName")) {
+                let s = String::from_utf16_lossy(std::slice::from_raw_parts(ptr, chars));
+                let s = s.trim_matches(['\0', ' ']).to_string();
+                if !s.is_empty() {
+                    return Some(s);
+                }
+            }
+        }
+    }
+    None
+}
+
+/// Who made the program in a folder: the version info, else the signer, of its largest .exe at the top
+/// two levels (uninstallers aside).
+fn folder_publisher(dir: &Path) -> String {
+    let mut exes: Vec<(u64, PathBuf)> = vec![];
+    let mut budget = 2_000usize;
+    collect_files(dir, 1, &mut budget, &mut |p| {
+        let n = p.file_name().map(|n| n.to_string_lossy().to_lowercase()).unwrap_or_default();
+        if ext_of(p) == "exe" && !n.starts_with("unins") {
+            let len = fs::metadata(p).map(|m| if m.file_attributes() & NOT_LOCAL == 0 { m.len() } else { 0 }).unwrap_or(0);
+            if len > 0 {
+                exes.push((len, p.to_path_buf()));
+            }
+        }
+    });
+    exes.sort_by(|a, b| b.0.cmp(&a.0));
+    for (_, exe) in exes.iter().take(3) {
+        if let Some(c) = company_name(exe) {
+            return c;
+        }
+    }
+    match exes.first().filter(|(len, _)| *len <= 512 * MB).map(|(_, p)| verify_embedded(p)) {
+        Some((0, Some(signer))) => signer,
+        _ => String::new(),
     }
 }
 
@@ -529,20 +727,18 @@ fn reference_hay(entries: &[UninstEntry]) -> String {
             for c in comps.enum_keys().flatten() {
                 if let Ok(k) = comps.open_subkey_with_flags(&c, KEY_READ) {
                     for s in reg_strings(&k) {
-                        // MSI writes "C?\Program Files\..." for some paths
-                        let b = s.as_bytes();
-                        if b.len() > 3 && b[1] == b'?' && b[2] == b'\\' {
-                            h.push_str(&s[..1]);
-                            h.push(':');
-                            h.push_str(&s[2..]);
-                        } else {
-                            h.push_str(&s);
-                        }
+                        h.push_str(&msi_path(&s));
                         h.push('\n');
                     }
                 }
             }
         }
+    }
+    // programs' own settings: a suite's launcher or another of its parts often names the folder only here
+    // (Brother's utilities point to RemoteSetup from HKLM\SOFTWARE\WOW6432Node\Brother)
+    for (root, base) in [(&hklm, "SOFTWARE"), (&hklm, r"SOFTWARE\WOW6432Node"), (&hkcu, "SOFTWARE")] {
+        let mut budget = 60_000usize;
+        vendor_strings(&mut h, root, base, &mut budget);
     }
     push_key_values(&mut h, &hklm, r"SYSTEM\CurrentControlSet\Control\Session Manager\Environment", &["Path"]);
     push_key_values(&mut h, &hkcu, "Environment", &["Path"]);
@@ -660,6 +856,9 @@ fn leftover_folders(entries: &[UninstEntry]) -> Vec<OrphanProgram> {
     let hay = reference_hay(entries);
     let procs = processes();
     let fresh = now().saturating_sub(LEFTOVER_QUIET_DAYS * DAY);
+    // an entry hidden from Installed apps (a suite's part, SystemComponent) often has no InstallLocation,
+    // but its name is the folder's: "RemoteSetup" in C:\Program Files (x86)\RemoteSetup
+    let entry_names: HashSet<String> = entries.iter().map(|e| name_key(&e.name)).filter(|n| n.len() >= 3).collect();
     let mut out = vec![];
     for root in leftover_roots() {
         let Ok(rd) = fs::read_dir(&root) else { continue };
@@ -672,7 +871,7 @@ fn leftover_folders(entries: &[UninstEntry]) -> Vec<OrphanProgram> {
             let path = e.path();
             let l = lower(&path);
             let short = short_path(&path).filter(|s| *s != l);
-            if mentions(&hay, &l) || short.as_deref().is_some_and(|s| mentions(&hay, s)) {
+            if mentions(&hay, &l) || short.as_deref().is_some_and(|s| mentions(&hay, s)) || entry_names.contains(&name_key(&name)) {
                 continue;
             }
             if procs.iter().any(|(exe, cmd)| within(exe, &l) || mentions(cmd, &l)) {
@@ -689,11 +888,12 @@ fn leftover_folders(entries: &[UninstEntry]) -> Vec<OrphanProgram> {
             out.push(OrphanProgram {
                 kind: "leftover_folder",
                 name,
-                publisher: String::new(),
+                publisher: if has_exe { folder_publisher(&path) } else { String::new() },
                 version: String::new(),
                 install_location: String::new(),
                 uninstall_string: String::new(),
                 reg_key: String::new(),
+                reason: "",
                 missing_file: String::new(),
                 estimated_kb: 0,
                 path: path.to_string_lossy().into_owned(),
@@ -784,7 +984,7 @@ pub fn remove_dead_entry(reg_key: &str) -> R<String> {
         .iter()
         .find(|e| e.hive == hive_short && e.key.eq_ignore_ascii_case(sub))
         .ok_or("the entry is already gone")?;
-    if dead_target(e, &windir()).is_none() {
+    if dead_reason(e, &windir()).is_none() {
         return Err("its uninstaller can be found again, so the entry was left alone".into());
     }
     let key = root.open_subkey_with_flags(sub, KEY_READ | KEY_WOW64_64KEY).map_err(err)?;
@@ -1746,6 +1946,71 @@ mod tests {
         assert_eq!(t(r#"cmd /c "C:\x\u.bat""#), None);
     }
 
+    fn entry(hive: &str, name: &str, uninstall: &str) -> UninstEntry {
+        UninstEntry {
+            hive: hive.into(),
+            key: format!(r"{UNINSTALL}\x"),
+            wow: false,
+            name: name.into(),
+            publisher: String::new(),
+            version: String::new(),
+            install_location: String::new(),
+            uninstall_string: uninstall.into(),
+            system_component: false,
+            is_update: false,
+            estimated_kb: 0,
+            strings: vec![],
+        }
+    }
+
+    #[test]
+    fn finders_msi_paths_and_names() {
+        assert_eq!(msi_path(r"C:\?Program Files (x86)\RemoteSetup\brmfrmss.exe"), r"C:\Program Files (x86)\RemoteSetup\brmfrmss.exe");
+        assert_eq!(msi_path(r"C?\Program Files\Foo\a.dll"), r"C:\Program Files\Foo\a.dll");
+        assert_eq!(msi_path(r"02:\Software\Foo\Bar"), r"02:\Software\Foo\Bar");
+        assert_eq!(msi_path(r"D:\Apps\x.exe"), r"D:\Apps\x.exe");
+        assert_eq!(name_key("Remote Setup"), name_key("RemoteSetup"));
+        assert_eq!(arg_value(r#"chrome.exe --profile-directory="Profile 1" --x"#, "--profile-directory=").as_deref(), Some("Profile 1"));
+        assert_eq!(arg_value("chrome.exe --Uninstall-App-Id=abc --y", "--uninstall-app-id=").as_deref(), Some("abc"));
+        assert_eq!(arg_value("chrome.exe --y", "--uninstall-app-id="), None);
+    }
+
+    #[test]
+    fn finders_dead_web_apps() {
+        let ud = tmp("webapps");
+        fs::write(ud.join("Local State"), "{}").unwrap();
+        let icons = ud.join(r"Default\Web Applications\Manifest Resources");
+        let kept = "aghbiahbpaijignceidepookljebhfak";
+        let gone = "efmjfjelnicpmdcmfikempdhlmainjcb";
+        fs::create_dir_all(icons.join(kept)).unwrap();
+        let of = |exe: &str| (exe == "chrome.exe").then(|| ud.clone());
+        let cmd = |id: &str, prof: &str| format!(r#""C:\Program Files\Google\Chrome\Application\chrome.exe" --profile-directory={prof} --uninstall-app-id={id}"#);
+        assert_eq!(dead_web_app(&entry("HKCU", "Chrome Remote Desktop", &cmd(gone, "Default")), &of), Some(icons.join(gone)));
+        assert_eq!(dead_web_app(&entry("HKCU", "Kept", &cmd(kept, "Default")), &of), None);
+        // a profile that is gone takes its apps with it
+        assert_eq!(dead_web_app(&entry("HKCU", "Old", &cmd(gone, r#""Profile 9""#)), &of), Some(ud.join("Profile 9")));
+        // only the current user's entries, only a known browser, only a real app id
+        assert_eq!(dead_web_app(&entry("HKLM", "x", &cmd(gone, "Default")), &of), None);
+        assert_eq!(dead_web_app(&entry("HKCU", "x", &cmd("short", "Default")), &of), None);
+        assert_eq!(dead_web_app(&entry("HKCU", "x", &cmd(gone, r"..\..\Windows")), &of), None);
+        let other = format!(r#""C:\Tools\other.exe" --uninstall-app-id={gone}"#);
+        assert_eq!(dead_web_app(&entry("HKCU", "x", &other), &of), None);
+        // without a Local State the folder is not the browser's, so nothing is said
+        fs::remove_file(ud.join("Local State")).unwrap();
+        assert_eq!(dead_web_app(&entry("HKCU", "x", &cmd(gone, "Default")), &of), None);
+        let _ = fs::remove_dir_all(&ud);
+    }
+
+    #[test]
+    fn finders_folder_publisher() {
+        let d = tmp("publisher");
+        let sys = PathBuf::from(windir()).join(r"System32\notepad.exe");
+        fs::copy(&sys, d.join("notepad.exe")).unwrap();
+        assert!(company_name(&sys).is_some_and(|c| c.contains("Microsoft")));
+        assert!(folder_publisher(&d).contains("Microsoft"));
+        let _ = fs::remove_dir_all(&d);
+    }
+
     #[test]
     fn finders_command_targets() {
         let t = command_targets(r#"wscript.exe //B "C:\Users\u\AppData\Roaming\x\run.vbs""#);
@@ -1816,7 +2081,7 @@ mod tests {
     fn finders_live() {
         let t = Instant::now();
         for o in find_orphan_programs() {
-            println!("{:<15} {} | {} | {} | {} B exe={}", o.kind, o.name, o.reg_key, o.missing_file, o.bytes, o.has_exe);
+            println!("{:<15} {} [{}] {} | {} | {} | {} B exe={}", o.kind, o.name, o.publisher, o.reason, o.reg_key, o.missing_file, o.bytes, o.has_exe);
         }
         println!("orphans: {:?}", t.elapsed());
         let t = Instant::now();
