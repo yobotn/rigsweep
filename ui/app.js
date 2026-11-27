@@ -1117,7 +1117,9 @@ document.addEventListener("click", async (e) => {
 // headless and read-only on the worktrees. The backend gathers the git facts, builds the prompt and
 // limits the agent to reading; nothing is removed, the verdicts only show on the rows.
 let aiAgents = null;                 // [{ id, name, path }]
-const aiVerdicts = new Map();        // worktree path -> { safe, agent }
+const aiVerdicts = new Map();        // worktree path -> { safe, agent, sig }
+// what a verdict was given on: a change, a commit or a new branch there since makes it stale
+const wtSig = (w) => [w.dirty, w.last_active, w.branch, (w.ignored || []).join("|")].join("/");
 const aiRunning = new Set();         // worktree paths being checked
 const aiName = (id) => aiAgents?.find((a) => a.id === id)?.name || id;
 const lsGet = (k) => { try { return localStorage.getItem(k); } catch { return null; } };
@@ -1152,7 +1154,10 @@ document.addEventListener("click", async (e) => {
   catch { return; }
   finally { ws.forEach((w) => aiRunning.delete(w.path)); renderDisk(); }
   if (!r.ok) return modal(t("disk.wt.aiFail", { a: aiName(agent) }), `<pre class="ai-answer">${esc(r.text)}</pre>`, { cancel: false });
-  r.verdicts.forEach((v) => aiVerdicts.set(v.path, { safe: v.safe, agent }));
+  r.verdicts.forEach((v) => {
+    const w = ws.find((x) => x.path === v.path);
+    if (w) aiVerdicts.set(v.path, { safe: v.safe, agent, sig: wtSig(w) });
+  });
   renderDisk();
   const safe = ws.filter((w) => aiVerdicts.get(w.path)?.safe && !wLocked(w) && r.verdicts.some((v) => v.path === w.path));
   const list = ws.map((w) => `<li><bdi dir="ltr">${pathPill(w.path, baseName(w.repo))}</bdi> ${aiBadge(w)}</li>`).join("");
@@ -1162,7 +1167,7 @@ document.addEventListener("click", async (e) => {
     ? { okText: t("disk.wt.aiTickSafe", { n: safe.length }), cancelText: t("common.close") } : { cancel: false });
   if (tick && safe.length) { safe.forEach((w) => diskSel.add(wKey(w))); renderDisk(); }
 });
-// the verdict a check left on a worktree row (until the next scan drops the worktree)
+// the verdict a check left on a worktree row (until a scan finds the worktree changed or gone)
 function aiBadge(w) {
   if (aiRunning.has(w.path)) return `<span class="badge idle">${esc(t("disk.wt.aiChecking"))}</span>`;
   const v = aiVerdicts.get(w.path);
@@ -1217,9 +1222,16 @@ async function scanDisk() {
   const btn = $("#btn-disk-scan");
   busy(btn, true, t("bc.scanning"));
   if (!disk) $("#disk-body").innerHTML = `<tr><td colspan="6" class="loading"><span class="spinner"></span> ${esc(t("disk.scanning"))}</td></tr>`;
-  try { [disk] = await Promise.all([call("get_dev_disk", { folder: diskScope }, { quiet: !disk }), loadVolumes()]); delete scanFailed.disk; }
+  const scope = diskScope;
+  let r;
+  try { [r] = await Promise.all([call("get_dev_disk", { folder: scope }, { quiet: !disk }), loadVolumes()]); delete scanFailed.disk; }
   catch (e) { if (!disk) failRow("#disk-body", 6, "disk", e); throw e; }
   finally { busy(btn, false); }
+  // the folder changed while it scanned (File Explorer's menu, "Scan all folders"): the scan for the new one decides
+  if (scope !== diskScope) return;
+  disk = r;
+  const now = new Map((disk.worktrees || []).map((w) => [w.path, wtSig(w)]));
+  for (const [p, v] of aiVerdicts) if (now.get(p) !== v.sig) aiVerdicts.delete(p);
   const rows = diskRows(), keys = new Set(rows.map((r) => r.k));
   diskSel = new Set([...diskSel].filter((k) => keys.has(k)));
   rows.forEach((r) => { if (!diskSeen.has(r.k) && diskSuggested(r)) diskSel.add(r.k); diskSeen.add(r.k); });

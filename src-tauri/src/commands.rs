@@ -491,10 +491,14 @@ pub async fn clean_browser_caches(state: State<'_, AppState>, targets: Vec<Clean
 // ---------- dev disk ----------
 
 /// The scan folders plus the one folder File Explorer's menu scanned (every target is still
-/// re-checked: a build or dependency folder, no links, not excluded, not in use).
+/// re-checked: a build or dependency folder, no links, not excluded, not in use). A worktree that
+/// was right-clicked itself is checked from the folder it sits in: a scan folder is never removed.
 fn with_folder(mut cfg: devdisk::Config, folder: Option<String>) -> devdisk::Config {
-    if let Some(f) = folder.filter(|f| std::path::Path::new(f).is_absolute() && std::path::Path::new(f).is_dir()) {
-        cfg.roots.push(f);
+    let Some(f) = folder.filter(|f| std::path::Path::new(f).is_absolute() && std::path::Path::new(f).is_dir()) else { return cfg };
+    let p = std::path::Path::new(&f);
+    match p.parent().filter(|_| devdisk::worktree_gitdir(p).is_some()) {
+        Some(parent) => cfg.roots.push(parent.to_string_lossy().into_owned()),
+        None => cfg.roots.push(f),
     }
     cfg
 }
@@ -628,6 +632,9 @@ pub async fn compact_vdisk(state: State<'_, AppState>, path: String, prune: bool
 
 /// What a stopped or interrupted cleanup still has to do; survives a reload or restart.
 const DISK_RESUME: &str = "disk_resume";
+/// The File Explorer folder that cleanup was started on ("" for the scan folders), so Continue
+/// checks its targets against the same folders after a reload or "Scan all folders".
+const DISK_RESUME_FOLDER: &str = "disk_resume_folder";
 
 fn load_resume(db: &Db) -> Vec<DiskTarget> {
     db.get_setting(DISK_RESUME).and_then(|s| serde_json::from_str(&s).ok()).unwrap_or_default()
@@ -680,17 +687,26 @@ pub async fn start_disk_clean(app: AppHandle, state: State<'_, AppState>, target
         let db = lock(&state)?;
         // RigSweep removes these itself: not space the AI helped free
         db.drop_handoffs(&targets.iter().filter(|t| t.kind == "worktree").map(|t| t.id.clone()).collect::<Vec<_>>());
-        with_folder(disk_config(&Settings::load(&db)), folder)
+        with_folder(disk_config(&Settings::load(&db)), folder.clone())
     };
     start_disk_job(&app, cfg, targets)?;
+    {
+        let db = lock(&state)?;
+        let _ = db.set_setting(DISK_RESUME_FOLDER, folder.as_deref().unwrap_or(""));
+    }
     disk_job(&state)
 }
 
 /// Continue the cleanup that was stopped (or cut short by closing the app).
 #[tauri::command]
+/// `folder` is only used when the cleanup was started before its folder was remembered.
 pub async fn resume_disk_clean(app: AppHandle, state: State<'_, AppState>, folder: Option<String>) -> R<JobView> {
     let (cfg, targets) = {
         let db = lock(&state)?;
+        let folder = match db.get_setting(DISK_RESUME_FOLDER) {
+            Some(f) => (!f.is_empty()).then_some(f),
+            None => folder,
+        };
         (with_folder(disk_config(&Settings::load(&db)), folder), load_resume(&db))
     };
     if targets.is_empty() {
