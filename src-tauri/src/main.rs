@@ -71,6 +71,11 @@ fn main() {
     }
 
     if !elevation::is_elevated() {
+        // the folder as cleaned up (D:\ arrives as D:"), so the elevated copy reads it back right
+        let args = match &scan_folder {
+            Some(f) => vec![shellmenu::FLAG.to_string(), f.clone()],
+            None => args.clone(),
+        };
         if !elevation::relaunch_elevated(&args) {
             elevation::error_box("RigSweep needs administrator rights to manage services, tasks and policies.\nPlease accept the UAC prompt.");
         }
@@ -231,7 +236,7 @@ fn run_app(start_hidden: bool) {
             commands::clear_flashes,
         ])
         .setup(move |app| {
-            shellmenu::allow_from_unelevated();
+            shellmenu::allow_from_unelevated(shellmenu::is_on());
             build_tray(app.handle())?;
             spawn_watchdog(app.handle().clone());
             spawn_dev_monitor(app.handle().clone());

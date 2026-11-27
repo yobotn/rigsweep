@@ -256,7 +256,12 @@ initLang();
 const langSel = $("#lang-select");
 langSel.innerHTML = Object.entries(LANGS).filter(([k]) => I18N[k]).map(([k, v]) => `<option value="${k}">${v}</option>`).join("");
 langSel.value = LANG;
-langSel.onchange = () => { setLang(langSel.value); rerender(); };
+langSel.onchange = () => {
+  setLang(langSel.value);
+  rerender();
+  // File Explorer's menu entry speaks the app's language too
+  if (xmOn) invoke("set_explorer_menu", { on: true, label: t("xm.verb") }).catch(() => {});
+};
 
 // open Tweaks on one tweak: its category stays open even when the list is redrawn by the rescan the tab switch starts
 async function jumpToTweak(id) {

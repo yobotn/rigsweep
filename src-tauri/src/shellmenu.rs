@@ -8,8 +8,10 @@
 // When RigSweep already runs (elevated), the menu's copy runs without admin rights and hands the
 // folder over through the single-instance window instead of asking for UAC again. Windows blocks
 // WM_COPYDATA from a normal process to an elevated one, so the app lets that one message through
-// for its own single-instance window (allow_from_unelevated). The only thing taken from such a
-// message is a folder path, which must exist, and it only starts a read-only scan.
+// for its own single-instance window (allow_from_unelevated), and only while the entry is on.
+// The only thing taken from such a message is a folder path, which must exist, and it only starts
+// a read-only scan. git runs without admin rights during that scan (asuser.rs), so a planted
+// repository config gains nothing.
 
 use std::path::Path;
 use std::sync::Mutex;
@@ -18,7 +20,7 @@ use windows::core::{HSTRING, PCWSTR};
 use windows::Win32::Foundation::{HWND, LPARAM, WPARAM};
 use windows::Win32::UI::WindowsAndMessaging::{
     AllowSetForegroundWindow, ChangeWindowMessageFilterEx, FindWindowW, GetWindowThreadProcessId, SendMessageTimeoutW,
-    MSGFLT_ALLOW, SMTO_ABORTIFHUNG, WM_COPYDATA,
+    MSGFLT_ALLOW, MSGFLT_RESET, SMTO_ABORTIFHUNG, WM_COPYDATA,
 };
 use winreg::enums::HKEY_CURRENT_USER;
 use winreg::RegKey;
@@ -110,15 +112,17 @@ pub fn forward(folder: &str) -> bool {
     sent.0 != 0 && result != 0
 }
 
-/// Let the menu's copy (not elevated) reach this elevated app's single-instance window.
-/// The plugin creates its window during setup: retry for a few seconds in case it isn't there yet.
-pub fn allow_from_unelevated() {
-    std::thread::spawn(|| {
+/// Let the menu's copy (not elevated) reach this elevated app's single-instance window, only
+/// while the menu entry is on (`allow` false closes it again). The plugin creates its window
+/// during setup: retry for a few seconds in case it isn't there yet.
+pub fn allow_from_unelevated(allow: bool) {
+    std::thread::spawn(move || {
         let (class, window) = names();
         for _ in 0..50 {
             if let Ok(hwnd) = unsafe { FindWindowW(PCWSTR(class.as_ptr()), PCWSTR(window.as_ptr())) } {
                 if !hwnd.is_invalid() && owned_by_us(hwnd) {
-                    let _ = unsafe { ChangeWindowMessageFilterEx(hwnd, WM_COPYDATA, MSGFLT_ALLOW, None) };
+                    let action = if allow { MSGFLT_ALLOW } else { MSGFLT_RESET };
+                    let _ = unsafe { ChangeWindowMessageFilterEx(hwnd, WM_COPYDATA, action, None) };
                     return;
                 }
             }
@@ -153,6 +157,7 @@ pub fn set(on: bool, label: &str) -> Result<(), String> {
                 Err(e) => return Err(e.to_string()),
             }
         }
+        allow_from_unelevated(false);
         return Ok(());
     }
     let label: String = label.trim().chars().filter(|c| !c.is_control()).take(80).collect();
@@ -165,6 +170,7 @@ pub fn set(on: bool, label: &str) -> Result<(), String> {
         let (cmd, _) = key.create_subkey("command").map_err(|e| e.to_string())?;
         cmd.set_value("", &command(&exe, ph)).map_err(|e| e.to_string())?;
     }
+    allow_from_unelevated(true);
     Ok(())
 }
 
