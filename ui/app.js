@@ -1264,17 +1264,24 @@ function renderDisk() {
   });
   renderDiskSpace();
   // one row's own Clean button: the same confirm and backend job as "Delete selected", for just that row
-  const oneBtn = (k) => diskCleaning.has(k)
-    ? `<button class="small ghost is-busy" data-icon="trash-2" disabled aria-busy="true">${esc(t("disk.cleaning"))}</button>`
-    : `<button class="small ghost" data-icon="trash-2" data-disk-one="${esc(k)}" ${jobActive(diskJob) ? "disabled" : ""}>${esc(t("ready.clean"))}</button>`;
+  // while a cleanup runs it says "Add to queue": queued rows start by themselves when it ends
+  const busyBtn = `<button class="small ghost is-busy" data-icon="trash-2" disabled aria-busy="true">${esc(t("disk.cleaning"))}</button>`;
+  const queued = diskQueuedKeys();
+  const queuedBtn = (ks) => `<button class="small ghost" data-icon="hourglass" data-disk-unqueue="${esc(ks.join("\n"))}" title="${esc(t("disk.queue.tip"))}">${esc(t("disk.queue.queued"))}</button>`;
+  const cleanAttrs = jobActive(diskJob) ? `data-icon="list-ordered"` : `data-icon="trash-2"`;
+  const cleanLabel = esc(t(jobActive(diskJob) ? "disk.queue.add" : "ready.clean"));
+  const oneBtn = (k) => diskCleaning.has(k) ? busyBtn
+    : queued.has(k) ? queuedBtn([k])
+    : `<button class="small ghost" ${cleanAttrs} data-disk-one="${esc(k)}">${cleanLabel}</button>`;
   const showBtn = (path) => `<button class="small ghost" data-show-path="${esc(path)}" data-icon="folder-open" title="${esc(path)}">${esc(t("fd.space.show"))}</button>`;
   // a group header's Clean: every cleanable row of the group, through the same confirm
   const dRows = diskRows();
   const groupBtn = (rows) => {
     const ks = rows.map((r) => r.k);
     if (!ks.length || !rows.some((r) => r.bytes)) return "";
-    if (ks.some((k) => diskCleaning.has(k))) return `<button class="small ghost is-busy" data-icon="trash-2" disabled aria-busy="true">${esc(t("disk.cleaning"))}</button>`;
-    return `<button class="small ghost" data-icon="trash-2" data-disk-group="${esc(ks.join("\n"))}" ${jobActive(diskJob) ? "disabled" : ""}>${esc(t("ready.clean"))}</button>`;
+    if (ks.some((k) => diskCleaning.has(k))) return busyBtn;
+    if (ks.every((k) => queued.has(k))) return queuedBtn(ks);
+    return `<button class="small ghost" ${cleanAttrs} data-disk-group="${esc(ks.join("\n"))}">${cleanLabel}</button>`;
   };
   const chk = (k, locked) => locked ? "🔒" : `<input type="checkbox" data-disk="${esc(k)}" ${diskSel.has(k) ? "checked" : ""} />`;
   const tier = (x) => `<span class="risk ${x === "safe" || x === "build" ? "safe" : x === "history" || x === "bin" || x === "leftover" ? "caution" : x === "shown" ? "" : "moderate"}">${esc(t("disk.tier." + x))}</span>`;
@@ -1428,6 +1435,8 @@ $("#disk-body").addEventListener("click", async (e) => {
   const tg = e.target.closest("[data-disk-toggle]"), ex = e.target.closest("[data-disk-exclude]"), inc = e.target.closest("[data-disk-include]");
   const vd = e.target.closest("[data-vd]"), one = e.target.closest("[data-disk-one]");
   if (vd) return compactVdisk(vd);
+  const unq = e.target.closest("[data-disk-unqueue]");
+  if (unq) return unqueueDisk(new Set(unq.dataset.diskUnqueue.split("\n")));
   const grp = e.target.closest("[data-disk-group]");
   if (grp) {
     const ks = new Set(grp.dataset.diskGroup.split("\n"));
@@ -1493,8 +1502,11 @@ $("#btn-disk-all").onclick = () => { diskRows().filter((r) => !r.w && r.bytes > 
 $("#btn-disk-none").onclick = () => { diskSel.clear(); renderDisk(); };
 // only: clean just these rows (a row's own Clean button) instead of what's ticked
 $("#btn-disk-clean").onclick = async (e, only) => {
-  if (jobActive(diskJob)) return toast(t("disk.job.busy"), "warn");
-  const picked = only || diskRows().filter((r) => diskSel.has(r.k));
+  // a row's or group's Clean while a cleanup runs: confirm it now, it runs when that one ends
+  const queue = jobActive(diskJob);
+  if (queue && !only) return toast(t("disk.job.busy"), "warn");
+  const skip = queue ? new Set([...diskCleaning, ...diskQueuedKeys()]) : new Set();
+  const picked = (only || diskRows().filter((r) => diskSel.has(r.k))).filter((r) => !skip.has(r.k));
   if (!picked.length) return toast(t("disk.nothing"));
   const size = picked.reduce((a, r) => a + r.bytes, 0);
   const deps = picked.some((r) => r.a?.tier === "deps");
@@ -1517,19 +1529,39 @@ $("#btn-disk-clean").onclick = async (e, only) => {
     ${ign.length ? `<p class="warn-text">${esc(t("disk.wt.ignored", { list: ign.join(", ") }))}</p>` : ""}
     ${wts.length ? `<p><button class="small ghost" data-icon="copy" data-wt-ask="${esc(wts.map((r) => r.w.path).join("\n"))}">${esc(t("disk.wt.askAll"))}</button> <span class="sub">${esc(t("disk.wt.askTip"))}</span></p>` : ""}
     ${od ? `<p class="warn-text">${esc(t("disk.od.warn"))}</p>` : ""}`;
-  if (!(await modal(t("disk.confirm.title", { size: fmtBytes(size) }), html, { okText: t("disk.clean"), danger: true }))) return;
-  // show it at once on the rows themselves: the job bar is at the top, often scrolled out of view
-  picked.forEach((r) => diskCleaning.add(r.k));
-  busy($("#btn-disk-clean"), true, t("disk.cleaning"));
-  renderDisk();
-  const targets = picked.map((r) => r.c
+  const body = queue ? html + `<p class="sub">${esc(t("disk.queue.body"))}</p>` : html;
+  if (!(await modal(t("disk.confirm.title", { size: fmtBytes(size) }), body, { okText: t(queue ? "disk.queue.add" : "disk.clean"), danger: !queue }))) return;
+  const entry = { items: picked.map((r) => ({ k: r.k, target: r.c
     ? { kind: "cache", id: r.c.id, name: "", bytes: r.bytes }
     : r.w ? { kind: "worktree", id: r.w.path, name: r.w.orphan ? "recycle" : "", bytes: r.bytes }
-    : { kind: "project", id: r.p.path, name: r.a.name, bytes: r.bytes });
-  // the job runs in the backend; a reload or tab switch just picks it up again
-  try { applyDiskJob(await call("start_disk_clean", { targets })); } catch { pollDiskJob(); return; }
-  pollDiskJob();
+    : { kind: "project", id: r.p.path, name: r.a.name, bytes: r.bytes } })) };
+  // it may have ended while the dialog was open: then this one starts right away
+  if (jobActive(diskJob)) {
+    diskQueue.push(entry);
+    toast(t("disk.queue.added", { size: fmtBytes(size) }), "ok");
+    renderDisk();
+    return;
+  }
+  startDiskEntry(entry);
 };
+
+// cleanups confirmed while another one ran, oldest first; each starts by itself when the one before ends
+const diskQueue = [];
+const diskQueuedKeys = () => new Set(diskQueue.flatMap((q) => q.items.map((i) => i.k)));
+function unqueueDisk(ks) {
+  diskQueue.forEach((q) => { q.items = q.items.filter((i) => !ks.has(i.k)); });
+  for (let i = diskQueue.length - 1; i >= 0; i--) if (!diskQueue[i].items.length) diskQueue.splice(i, 1);
+  renderDisk();
+}
+async function startDiskEntry(entry) {
+  // show it at once on the rows themselves: the job bar is at the top, often scrolled out of view
+  entry.items.forEach((i) => diskCleaning.add(i.k));
+  busy($("#btn-disk-clean"), true, t("disk.cleaning"));
+  if (disk) renderDisk();
+  // the job runs in the backend; a reload or tab switch just picks it up again
+  try { applyDiskJob(await call("start_disk_clean", { targets: entry.items.map((i) => i.target) })); } catch { pollDiskJob(); return; }
+  pollDiskJob();
+}
 
 // ---------- dev disk cleanup job (lives in the backend; this side only polls and draws it) ----------
 let diskJob = null, diskJobTimer = null, diskRate = null;
@@ -1563,9 +1595,14 @@ function applyDiskJob(j) {
     busy($("#btn-disk-clean"), false);
     if (disk) renderDisk();
   }
+  const ended = prev && prev.id === j.id && jobActive(prev) && !jobActive(j);
+  // Stop means stop: what was queued behind it is dropped too
+  if (ended && j.state === "stopped" && diskQueue.length) { diskQueue.length = 0; toast(t("disk.queue.dropped"), "warn"); }
   // it ended while this page watched it: report, drop what's gone, rescan
-  if (prev && prev.id === j.id && jobActive(prev) && !jobActive(j) && j.result) onDiskJobEnd(j);
+  if (ended && j.result) onDiskJobEnd(j);
   renderDiskJob();
+  // then the next queued cleanup starts by itself
+  if (!jobActive(j) && diskQueue.length) startDiskEntry(diskQueue.shift());
 }
 
 function onDiskJobEnd(j) {
@@ -1592,7 +1629,8 @@ function onDiskJobEnd(j) {
     disk.stale_total = disk.projects.filter((p) => p.stale).reduce((a, p) => a + sum(p), 0);
     renderDisk();
   }
-  if (currentTab === "disk" || disk) loadDisk(true);
+  // with more queued, the rescan waits for the last one
+  if ((currentTab === "disk" || disk) && !diskQueue.length) loadDisk(true);
 }
 
 // a long path is cut at the start: the file name is the part worth seeing
@@ -1630,7 +1668,11 @@ function renderDiskJob() {
   const rate = active && j.state === "running" && diskRate?.id === j.id && diskRate.bps > 0 ? diskRate.bps : 0;
   $("#dj-stats").textContent = j.state === "idle" ? "" : t("disk.job.stats", {
     freed: fmtBytes(j.freed), total: fmtBytes(j.total), pct: Math.round(pct), files: j.files.toLocaleString(),
-  }) + (rate ? ` · ${fmtBytes(rate)}/s` : "");
+  }) + (rate ? ` · ${fmtBytes(rate)}/s` : "")
+    + (diskQueue.length ? " · " + t("disk.queue.count", {
+      n: diskQueue.reduce((a, q) => a + q.items.length, 0),
+      size: fmtBytes(diskQueue.reduce((a, q) => a + q.items.reduce((b, i) => b + (i.target.bytes || 0), 0), 0)),
+    }) : "");
   const file = $("#dj-file");
   file.textContent = active ? tailPath(j.current) || shortPath(j.target) : "";
   file.title = active ? j.current : "";
